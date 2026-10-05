@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import subprocess
 import time
-from threading import Thread
+from threading import Event, Thread
 from typing import cast
 
 import pytest
@@ -64,16 +64,30 @@ def test_timeout_is_preserved(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_observer_coverage_reuse_and_stopped_report(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(measure, "memory_snapshot", fake_snapshot)
     observer = measure.MemorySampler(interval_seconds=0.01)
+    observations_ready = Event()
+    interior_calls = 0
+
+    def observed() -> measure.MemorySnapshot:
+        nonlocal interior_calls
+        snapshot = fake_snapshot()
+        if (
+            observer._body_start_ns
+            and snapshot.perf_counter_ns >= observer._body_start_ns
+        ):
+            interior_calls += 1
+            if interior_calls >= 3:
+                observations_ready.set()
+        return snapshot
+
+    monkeypatch.setattr(measure, "memory_snapshot", observed)
     with pytest.raises(RuntimeError, match="stopped"):
         observer.report()
     with observer:
-        # No computation: allow a few bounded mocked observation cycles.
-        time.sleep(0.055)
+        # Wait for observations, without promising an OS scheduling frequency.
+        assert observations_ready.wait(timeout=3)
     result = observer.report()
     assert result.completed and result.interior_valid_samples >= 3
-    assert max(result.body_gaps_ns) <= 100_000_000
     assert result.body_start_ns < result.body_end_ns
     assert result.sampled_peak_rss_bytes == 4096
     assert not cast(Thread, observer._thread).is_alive()
@@ -115,19 +129,40 @@ def test_interior_peak_and_conservative_unknown_read_gaps() -> None:
     assert result.samples[0].rss_bytes == 9000 and result.samples[-1].rss_bytes == 9999
 
 
+def test_scripted_snapshot_windows_cover_the_body_with_bounded_gaps() -> None:
+    observer = measure.MemorySampler()
+    observer._finished = True
+    observer._body_start_ns = 0
+    observer._body_end_ns = 100_000_000
+    observer._samples = [
+        measure.MemorySnapshot(1, 0, -10_000_000, 9000, 9000, 0, None),
+        measure.MemorySnapshot(1, 0, 20_000_000, 10, 9000, 10_000_000, None),
+        measure.MemorySnapshot(1, 0, 50_000_000, 20, 9000, 10_000_000, None),
+        measure.MemorySnapshot(1, 0, 80_000_000, 15, 9000, 10_000_000, None),
+        measure.MemorySnapshot(1, 0, 110_000_000, 9999, 9999, 0, None),
+    ]
+    result = observer.report()
+    assert result.completed and result.interior_valid_samples == 3
+    assert result.sampled_peak_rss_bytes == 20
+    assert result.body_gaps_ns == (30_000_000, 40_000_000, 40_000_000, 20_000_000)
+    assert max(result.body_gaps_ns) <= 100_000_000
+
+
 def test_thread_failure_cannot_report_success(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = 0
+    failed = Event()
 
     def observed() -> measure.MemorySnapshot:
         nonlocal calls
         calls += 1
         if calls == 2:
+            failed.set()
             raise RuntimeError("injected observer failure")
         return fake_snapshot()
 
     monkeypatch.setattr(measure, "memory_snapshot", observed)
     with measure.MemorySampler(interval_seconds=0.01) as observer:
-        time.sleep(0.03)
+        assert failed.wait(timeout=3)
     result = observer.report()
     assert not result.completed and result.observer_errors
     assert "injected observer failure" in result.observer_errors[0]
@@ -151,12 +186,16 @@ def test_sample_and_time_limits_are_explicit(
 ) -> None:
     monkeypatch.setattr(measure, "memory_snapshot", fake_snapshot)
     with measure.MemorySampler(interval_seconds=0.01, max_samples=2) as observer:
-        time.sleep(0.03)
+        thread = cast(Thread, observer._thread)
+        thread.join(timeout=2)
+        assert not thread.is_alive()
     result = observer.report()
     assert not result.completed and result.sample_limit_reached
     assert len(result.samples) == 2
     with measure.MemorySampler(interval_seconds=0.01, max_seconds=0.01) as observer:
-        time.sleep(0.03)
+        thread = cast(Thread, observer._thread)
+        thread.join(timeout=2)
+        assert not thread.is_alive()
     result = observer.report()
     assert not result.completed and result.time_limit_reached
 
