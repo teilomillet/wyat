@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "command": "PYTHONPATH=/Users/teilomillet/Code/wyat /tmp/wyat-mlx-only/bin/python /private/tmp/wyat-prefix-mlx-only.py",
+  "source_sha256": "2c5fb99985fb0c860eded771da0e880d1a12614e7ec4f0251485a803e5fb2242",
+  "versions": {
+    "mlx": "0.32.3",
+    "mlx-lm": "0.31.3",
+    "transformers": "5.17.0"
+  },
+  "torch_available": false,
+  "torch_imported": false,
+  "device": "cpu",
+  "model_id": "torch-free-prefix-mechanics",
+  "scores": [
+    -0.47400566935539246,
+    -0.3945431709289551
+  ],
+  "reference_scores": [
+    -0.47400569915771484,
+    -0.39454323053359985
+  ],
+  "scope": "Tiny production prefix mechanics only; no real checkpoint or performance inference",
+  "provenance": "Archived after the successful observed run; attribution-only readout header was added afterward.",
+  "retained_source_sha256": {
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800"
+  },
+  "execution_source_sha256": {
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "a7194e050d3b95048828ce0980d9a292286c48a1acb393839093f3b6df6fd2b7"
+  }
+}

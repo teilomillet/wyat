@@ -1,0 +1,25 @@
+{
+  "purpose": "Preserve executed auditor bytes as text, outside maintained Python modules",
+  "files": [
+    {
+      "original_path": "benchmarks/analysis/results/cuda-fp32-b1-review.audit-02536334ea2309d4.py",
+      "archive_path": "benchmarks/analysis/results/cuda-fp32-b1-review.audit-02536334ea2309d4.txt",
+      "sha256": "02536334ea2309d49460f81a25b4c244a1dfa65d0b944b8ba3ac8e0d142ed3ca",
+      "bytes": 18540
+    },
+    {
+      "original_path": "benchmarks/analysis/results/cuda-fp32-b1-review.initial-audit-bf4511f9c07954cd.py",
+      "archive_path": "benchmarks/analysis/results/cuda-fp32-b1-review.initial-audit-bf4511f9c07954cd.txt",
+      "sha256": "bf4511f9c07954cd1565e1eae78e3d1533ddc506576824955751a4c3eb6e0003",
+      "bytes": 17292
+    }
+  ],
+  "immutable_review": {
+    "path": "benchmarks/analysis/results/cuda-fp32-b1-review.json",
+    "sha256": "1a5d5118549d6e3c0fee67378d859abd269f565d4f3f07a4f1b8f61ebb0f287e"
+  },
+  "embedded_source_unchanged": true,
+  "limits": [
+    "The original review retains its historical .py path; this mapping locates the byte-identical archive."
+  ]
+}

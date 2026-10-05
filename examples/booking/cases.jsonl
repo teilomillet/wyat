@@ -1,0 +1,1 @@
+{"id":"booking-1","request":{"query":"Choose the requested action","context":"Cancel my booking","candidates":[{"id":"cancel","text":"Cancel the booking"},{"id":"create","text":"Create a booking"}]},"expected":["cancel"]}

@@ -1,0 +1,12 @@
+{
+  "captured_utc": "2026-10-05T07:01:14.909141+00:00",
+  "scope": "Unchanged completed raw CUDA quality artifacts copied locally for independent audit",
+  "files": {
+    "benchmarks/analysis/results/cuda-fp32-b1.json": "d528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167",
+    "benchmarks/analysis/results/cuda-fp32-b1.wall.json": "cb00f5f065a04e5c598da04cb3e57a7b75bbaedeb1407dc6ebbb0dd806f4dc8e",
+    "benchmarks/analysis/results/cuda-fp32-b1.log": "2380f2819762a5dff5dab7ba708067bbfb08d938524b4a32d55add929da2999d",
+    "benchmarks/analysis/results/cuda-fp32-b1.sources-ae4a797635edfbd1.json": "ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf"
+  },
+  "exit_code": 0,
+  "stderr": ""
+}

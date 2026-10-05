@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "benchmarks.analysis.mlx.bfloat.run",
+    "--worker",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-bfloat-mlp-screen77.json"
+  ],
+  "timeout_seconds": 180,
+  "completed": true,
+  "timed_out": false,
+  "tf32": "0",
+  "sources": {
+    "path": "benchmarks/analysis/results/mlx-bfloat-mlp-screen77.wall.sources-0690b181f595f1ee.json",
+    "sha256": "0690b181f595f1ee3233e9b0dd20727c4b3b4c57a5852b11a78d241e775df156"
+  },
+  "exit_code": 1,
+  "elapsed_seconds": 28.51513412501663
+}

@@ -1,0 +1,261 @@
+"""Independent stdlib-only raw CUDA control audit; no tensor/framework import."""
+from __future__ import annotations
+
+import ast
+import hashlib
+import json
+import math
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import cast
+
+ROOT = Path('/Users/teilomillet/Code/wyat')
+RESULTS = ROOT / 'benchmarks/analysis/results'
+MODEL_ID = 'kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee'
+DATA_SHA = '0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03'
+REF_SHA = 'b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664'
+INPUT_SHA = 'fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8'
+MANIFEST_SHA = 'f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866'
+
+
+def obj(value: object) -> dict[str, object]:
+    assert isinstance(value, dict) and all(isinstance(k, str) for k in value)
+    return cast(dict[str, object], value)
+
+
+def array(value: object) -> list[object]:
+    assert isinstance(value, list)
+    return cast(list[object], value)
+
+
+def number(value: object) -> float:
+    assert type(value) in (int, float)
+    result = float(cast(float, value))
+    assert math.isfinite(result)
+    return result
+
+
+def pairs(items: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for name, value in items:
+        assert name not in result, f'duplicate field {name}'
+        result[name] = value
+    return result
+
+
+def invalid(token: str) -> object:
+    raise ValueError(f'nonfinite JSON token {token}')
+
+
+def parse(raw: bytes | str) -> object:
+    return cast(object, json.loads(raw, object_pairs_hook=pairs, parse_constant=invalid))
+
+
+def read(path: Path) -> dict[str, object]:
+    return obj(parse(path.read_bytes()))
+
+
+def sha(path: Path) -> str:
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def interpretation(scores: list[float], ids: list[object]) -> tuple[list[float], list[object]]:
+    assert scores and len(scores) == len(ids)
+    weights = [math.exp(value - max(scores)) for value in scores]
+    total = math.fsum(weights)
+    return [weight / total for weight in weights], [ids[i] for i in sorted(range(len(scores)), key=scores.__getitem__, reverse=True)]
+
+
+def check(main: Path, expected_sha: str, wall: Path) -> dict[str, object]:
+    assert sha(main) == expected_sha
+    saved, parent = read(main), read(wall)
+    assert saved['arm'] == 'fp32' and type(saved['batch_size']) is int and saved['batch_size'] == 1
+    assert saved['completed'] is True and saved['quality_passed'] is True and saved['dtype_passed'] is True
+    assert saved['phase'] == 'completed' and saved['accepted'] is False
+    assert not any(key in saved for key in ('error', 'cleanup_error'))
+    assert parent['exit_code'] == 0 and parent['completed'] is True and parent['timed_out'] is False
+    assert parent['timeout_seconds'] == 180 and 0 <= number(parent['elapsed_seconds']) < 190
+    command = array(parent['command'])
+    assert 'benchmarks.analysis.cuda.run' in command and '--worker' in command
+    for flag, value in (('--arm', 'fp32'), ('--batch-size', '1'), ('--manifest-sha256', MANIFEST_SHA)):
+        assert command[command.index(flag) + 1] == value
+    manifest_path = RESULTS / 'cuda-transfer-manifest-v2-20261005.json'
+    assert sha(manifest_path) == MANIFEST_SHA
+    manifest, admission = read(manifest_path), obj(saved['admission'])
+    for key, value in {'model_id': MODEL_ID, 'dataset_sha256': DATA_SHA, 'reference_sha256': REF_SHA, 'input_sha256': INPUT_SHA}.items():
+        assert manifest[key] == admission[key] == value
+    assert admission['manifest_sha256'] == MANIFEST_SHA
+    assert admission['versions'] == manifest['versions'] and admission['runtime'] == manifest['runtime']
+    assert manifest['runtime'] == {'python': '3.12.13', 'torch_runtime': '2.12.1+cu130', 'cuda_build': '13.0'}
+    assets = [obj(item) for item in array(manifest['files'])]
+    assert admission['asset_count'] == len(assets) == 44
+    names = [cast(str, item['path']) for item in assets]
+    assert len(set(names)) == len(names) and names == sorted(names)
+    for item in assets:
+        path = ROOT / cast(str, item['path'])
+        assert path.stat().st_size == item['bytes'] and sha(path) == item['sha256'], str(path)
+    identity = hashlib.sha256()
+    model_prefix = '.models/Decision-2.0-Kai-0.6B/'
+    model_files = {cast(str, item['path']).removeprefix(model_prefix): cast(str, item['sha256']) for item in assets if cast(str, item['path']).startswith(model_prefix) and not cast(str, item['path']).endswith('/LICENSE')}
+    assert len(model_files) == 8
+    for name, value in sorted(model_files.items()):
+        identity.update(name.encode() + b'\0' + bytes.fromhex(value))
+    assert 'kai:' + identity.hexdigest() == MODEL_ID
+    archive_info = obj(saved['source_archive'])
+    archive_path = RESULTS / Path(cast(str, archive_info['path'])).name
+    assert sha(archive_path) == archive_info['sha256']
+    sources = [obj(item) for item in array(read(archive_path)['files'])]
+    table = obj(saved['source_sha256'])
+    assert len(table) == len(sources) and len(set(item['name'] for item in sources)) == len(sources)
+    external: list[dict[str, object]] = []
+    for item in sources:
+        name, text = cast(str, item['name']), cast(str, item['text'])
+        assert hashlib.sha256(text.encode()).hexdigest() == item['sha256'] == table[name]
+        if name.startswith('external_'):
+            relative = {'external_qwen3': 'models/qwen3/modeling_qwen3.py', 'external_sdpa': 'integrations/sdpa_attention.py'}[name]
+            matches = list((ROOT / '.venv/lib').glob('*/site-packages/transformers/' + relative))
+            assert len(matches) == 1 and sha(matches[0]) == item['sha256']
+            external.append({'name': name, 'sha256': item['sha256'], 'path': item['path']})
+        else:
+            assert sha(ROOT / name) == item['sha256'], name
+    assert {item['name'] for item in external} == {'external_qwen3', 'external_sdpa'}
+    python_assets = {item['path']: item['sha256'] for item in assets if cast(str, item['path']).endswith('.py')}
+    assert python_assets == {item['name']: item['sha256'] for item in sources if not cast(str, item['name']).startswith('external_')}
+    source_texts = {cast(str, item['name']): cast(str, item['text']) for item in sources}
+    manifest_ast = ast.parse(source_texts['benchmarks/analysis/cuda/manifest.py'])
+    literals: dict[str, object] = {}
+    for node in manifest_ast.body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id in ('PACKAGES', 'RUNTIME'):
+            literals[node.targets[0].id] = ast.literal_eval(node.value)
+    assert literals['PACKAGES'] == manifest['versions'] and literals['RUNTIME'] == manifest['runtime']
+    control_source = source_texts['benchmarks/analysis/cuda/scorer.py']
+    assert 'sdpa_kernel(SDPBackend.MATH)' in control_source and 'enabled=False' in control_source
+    assert 'fp32_precision = "ieee"' in control_source and 'allow_tf32' not in control_source
+    assert saved['precision'] == 'modern IEEE global/CUDA matmul' and saved['attention'] == 'math only'
+    assert obj(saved['gate']) == {'logit_atol': 1e-3, 'logit_rtol': 1e-3, 'probability_atol': 1e-4}
+    data_path, reference_path = ROOT / 'benchmarks/real/banking77-train-dev-menu6.jsonl', ROOT / 'benchmarks/real/torch-fp32-reference77.json'
+    assert sha(data_path) == DATA_SHA and sha(reference_path) == REF_SHA
+    cases = [obj(parse(line)) for line in data_path.read_bytes().splitlines()]
+    reference = read(reference_path)
+    refs = [obj(item) for item in array(reference['rows'])]
+    assert reference['model_id'] == MODEL_ID and reference['dataset_sha256'] == DATA_SHA
+    canonical = json.dumps(cases, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode()
+    assert hashlib.sha256(canonical).hexdigest() == INPUT_SHA
+    cycle = obj(saved['cycle'])
+    rows = [obj(item) for item in array(cycle['rows'])]
+    chunks = [obj(item) for item in array(saved['completed_batches'])]
+    assert len(cases) == len(refs) == len(rows) == len(chunks) == 77
+    assert len({case['id'] for case in cases}) == 77
+    assert saved['completed_rows'] == saved['expected_rows'] == 77 and saved['unknown_case_ids'] == []
+    assert [row for chunk in chunks for row in array(chunk['rows'])] == rows
+    assert sum(number(chunk['latency_ms']) for chunk in chunks) == number(cycle['latency_ms'])
+    assert all(len(array(chunk['rows'])) == 1 for chunk in chunks)
+    max_logit = max_probability = 0.0
+    selected_equal = ranking_equal = correct = reference_correct = 0
+    scores_total = 0
+    details: list[dict[str, object]] = []
+    for case, ref, row in zip(cases, refs, rows, strict=True):
+        assert case['id'] == ref['id'] == row['id'] and row['expected'] == case['expected'] == ref['expected']
+        assert row['status'] == 'ok' and row['error'] is None and number(row['latency_ms']) >= 0
+        request = obj(case['request'])
+        ids = [obj(candidate)['id'] for candidate in array(request['candidates'])]
+        assert ids == ref['candidate_ids'] and len(ids) == 6
+        prediction = obj(row['prediction'])
+        observed = [number(value) for value in array(prediction['scores'])]
+        old = [number(value) for value in array(ref['legacy_logits'])]
+        probabilities, ranking = interpretation(observed, ids)
+        old_probabilities, old_ranking = interpretation(old, ids)
+        assert prediction == {'model_id': MODEL_ID, 'scores': observed, 'probabilities': probabilities, 'ranking': ranking, 'selected': ranking[0]}
+        is_correct = ranking[0] in array(case['expected'])
+        old_correct = old_ranking[0] in array(case['expected'])
+        assert row['correct'] is is_correct
+        correct += is_correct
+        reference_correct += old_correct
+        selected_equal += ranking[0] == old_ranking[0]
+        ranking_equal += ranking == old_ranking
+        logit_error = max(abs(a-b) for a,b in zip(old, observed, strict=True))
+        probability_error = max(abs(a-b) for a,b in zip(old_probabilities, probabilities, strict=True))
+        assert all(math.isclose(a,b,abs_tol=1e-3,rel_tol=1e-3) for a,b in zip(old, observed, strict=True))
+        assert probability_error <= 1e-4 and ranking == old_ranking
+        max_logit = max(max_logit, logit_error)
+        max_probability = max(max_probability, probability_error)
+        scores_total += len(observed)
+        details.append({'id': case['id'], 'selected': ranking[0], 'ranking': ranking, 'correct': is_correct, 'max_abs_logit_difference': logit_error, 'max_abs_probability_difference': probability_error})
+    assert cycle['correct'] == correct and cycle['failed'] == 0 and correct >= reference_correct
+    drift = {'total': 77, 'comparable':77, 'selected_equal':selected_equal, 'ranking_equal':ranking_equal, 'baseline_correct':reference_correct, 'candidate_correct':correct, 'max_abs_logit_difference':max_logit, 'max_abs_probability_difference':max_probability, 'logits_within_tolerance': True, 'probabilities_within_tolerance':True, 'passed':True}
+    assert obj(saved['drift']) == drift
+    assert saved['cuda_control_drift'] is None
+    events = [obj(item) for item in array(saved['dtype_events'])]
+    assert [event['role'] for event in events] == ['q_proj', 'gate_proj', 'head'] * 77
+    for event in events:
+        assert event['output_dtype'] == 'torch.float32' and event['autocast_enabled'] is False
+        assert event['input_dtypes'] == ['torch.float32'] * (2 if event['role'] == 'head' else 1)
+    for owner in ('backbone', 'head'):
+        weights = obj(obj(saved['weight_dtypes'])[owner])
+        assert set(weights) == {'torch.float32'} and number(weights['torch.float32']) > 0
+    memory = obj(saved['cuda_memory'])
+    assert all(type(v) is int and number(v) >= 0 for v in memory.values())
+    assert number(memory['peak_reserved_bytes']) >= number(memory['peak_allocated_bytes']) >= number(memory['allocated_bytes']) > 0
+    assert number(memory['peak_reserved_bytes']) >= number(memory['reserved_bytes']) >= number(memory['allocated_bytes'])
+    for name in ('occupancy_before', 'occupancy_before_allocation'):
+        occupancy = obj(saved[name])
+        assert occupancy['compute_apps'] == '' and occupancy['utilization_percent'] == 0 and number(occupancy['memory_used_MiB']) <= 256
+    post = obj(saved['occupancy_after'])
+    assert post['uuid'] == obj(saved['occupancy_before'])['uuid'] == obj(saved['occupancy_before_allocation'])['uuid']
+    apps = cast(str, post['compute_apps']).splitlines()
+    assert len(apps) <= 1
+    lineage: dict[str, str] = {}
+    for path in (main, wall, main.with_suffix('.log'), archive_path, manifest_path, RESULTS/'cuda-asset-preflight-20261005.json', RESULTS/'cuda-asset-preflight-v2-20261005.json', RESULTS/'cuda-source-transfer-20261005.json', RESULTS/'cuda-source-transfer-v2-20261005.json', RESULTS/'cuda-fp32-b1-copy.json', RESULTS/'cuda-fp32-b1-transport.json', RESULTS/'cuda-fp32-b1-release.json'):
+        lineage[str(path)] = sha(path)
+    copied = read(RESULTS/'cuda-fp32-b1-copy.json')
+    assert copied['exit_code'] == 0
+    copied_files = obj(copied['files'])
+    assert len(copied_files) == 4
+    for name, expected in copied_files.items():
+        assert sha(ROOT / name) == expected
+    assert sha(wall) == 'cb00f5f065a04e5c598da04cb3e57a7b75bbaedeb1407dc6ebbb0dd806f4dc8e'
+    assert sha(main.with_suffix('.log')) == '2380f2819762a5dff5dab7ba708067bbfb08d938524b4a32d55add929da2999d'
+    assert sha(archive_path) == 'ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf'
+    transport = read(RESULTS/'cuda-fp32-b1-transport.json')
+    assert transport['exit_code'] == 0 and 'cuda-transfer-manifest-v2-20261005.json' in cast(str, array(transport['command'])[-1])
+    release = read(RESULTS/'cuda-fp32-b1-release.json')
+    assert release['exit_code'] == 0
+    terminal = obj(parse(cast(str, release['stdout'])))
+    assert terminal['wall'] == parent
+    probes = [obj(value) for value in array(terminal['probes'])]
+    assert len(probes) == 3 and probes[0]['exit'] == probes[1]['exit'] == 0
+    assert probes[0]['stdout'] == '128, 0\n' and probes[1]['stdout'] == ''
+    assert probes[2]['exit'] == 1 and probes[2]['stdout'] == ''
+    preflight = read(RESULTS/'cuda-asset-preflight-v2-20261005.json')
+    assert preflight['exit_code'] == 0
+    ready = obj(parse(cast(str, preflight['stdout'])))
+    assert ready['cuda_initialized'] is False and ready['cases'] == 77 and ready['all_tokens_endpoints_queries_validated'] is True
+    assert ready['admission'] == admission
+    assert sha(RESULTS/'cuda-asset-preflight-v2-20261005.json') == 'c7c3d933c8d987b0bd95c87bd70b4b6fb1a8e3878b21a490a91c10a8cb99704c'
+    assert read(RESULTS/'cuda-asset-preflight-20261005.json')['exit_code'] == 1
+    assert sha(main) == expected_sha and sha(manifest_path) == MANIFEST_SHA
+    return {'passed':True, 'rows':77, 'unique_cases':77, 'scores':scores_total, 'correct':correct, 'reference_correct':reference_correct, 'drift':drift, 'dtype_events':len(events), 'weights':saved['weight_dtypes'], 'memory':memory, 'occupancy_before':saved['occupancy_before'], 'occupancy_after':post, 'parent':parent, 'asset_count':44, 'source_count':len(sources), 'source_sha256':table, 'asset_sha256':{cast(str,item['path']):item['sha256'] for item in assets}, 'terminal_release_probes':probes, 'external_sources':external, 'artifact_sha256':lineage, 'per_case':details, 'limits':['Single cold development cohort; no speed/held-out-quality/production promotion.', 'MATH/IEEE/cleanup policy verified in frozen source; actual GPU kernel dispatch/independent precision-restoration trace not collected.', 'Raw dtype events observe first-layer projections and head; no every-operation trace.', 'Wall records terminal owned-worker cleanup policy; GPU memory is allocator metrics, not total process/system RSS.', 'Occupancy snapshots are not a hardware reservation; no foreign process was signaled.']}
+
+
+def main() -> None:
+    started = time.perf_counter()
+    path, expected, review = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])
+    result = check(path, expected, path.with_suffix('.wall.json'))
+    script = Path(__file__).read_bytes()
+    script_sha = hashlib.sha256(script).hexdigest()
+    archive = review.with_suffix(f'.audit-{script_sha[:16]}.py')
+    with archive.open('xb') as stream:
+        stream.write(script)
+    result.update(captured_utc=datetime.now(timezone.utc).isoformat(), scope='Independent framework-free CPU audit, no model/device allocation', audit_script={'path':str(archive),'sha256':script_sha,'text':script.decode()}, elapsed_seconds=time.perf_counter()-started, frameworks_imported=[name for name in ('torch','transformers','mlx','numpy') if name in sys.modules])
+    assert result['frameworks_imported'] == []
+    with review.open('x') as stream:
+        json.dump(result, stream, indent=2, allow_nan=False)
+        stream.write('\n')
+    print(json.dumps({'review':str(review),'sha256':sha(review),'rows':result['rows'],'drift':result['drift'],'frameworks_imported':result['frameworks_imported']}))
+
+
+if __name__ == '__main__':
+    main()

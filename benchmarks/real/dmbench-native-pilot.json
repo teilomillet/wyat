@@ -1,0 +1,292 @@
+{
+  "schema_version": 1,
+  "scope": "bounded native-engine interoperability exercise; not a performance comparison or official quality score",
+  "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+  "model_artifact": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+  "input_dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "case_ids": [
+    "banking77-train-05698",
+    "banking77-train-09214",
+    "banking77-train-01636",
+    "banking77-train-09708"
+  ],
+  "recipe": "dmbench-verbatim-choice-v1",
+  "input_contract": {
+    "text": "original selected query verbatim",
+    "choices": "original IDs, text and order",
+    "context": "empty; source assay's classification instruction omitted",
+    "expected": "independent dataset annotation in DMBench Case only"
+  },
+  "environment": {
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "python": "3.12.11",
+    "device": "mlx GPU",
+    "dtype": "float32",
+    "compile": false,
+    "token_cache_size": 0,
+    "versions": {
+      "mlx": "0.32.3",
+      "mlx-lm": "0.31.3",
+      "transformers": "5.18.0",
+      "safetensors": "0.8.0"
+    },
+    "dmbench_version": "0.2.0"
+  },
+  "source_sha256": {
+    "dmbench/api.py": "9b409120ce3d94164fa9d3a60ceb115074689521753c38a6796da90155246496",
+    "dmbench/evaluation.py": "f3a20ed6687cf437890b8e20416064e62c390f4c0d3648cef9e59d3216effa54",
+    "dmbench/__init__.py": "038fd8e7297ce3369531d9e293cdce25108df6d6769109f3a2ffaecde4488d8c",
+    "wyat/interop/dmbench.py": "21637fed3c2496a4c0f3a52cd06e4b21d088821f6b1d2f83c9ec72beca7883bd",
+    "reproducer": "33d4b3e15500acc98b5aee8926b2e3816067f1e2a2c1d0557c21af8b21549bba"
+  },
+  "scalar": {
+    "count": 4,
+    "correct": 4,
+    "accuracy": 1.0,
+    "complete_groups": {
+      "count": 4,
+      "correct": 4,
+      "accuracy": 1.0
+    },
+    "version": 1,
+    "by_source": {
+      "PolyAI/BANKING77/train": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0,
+        "complete_groups": {
+          "count": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "by_task": {
+      "banking77/choice": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0,
+        "complete_groups": {
+          "count": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "by_split": {
+      "development": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0,
+        "complete_groups": {
+          "count": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "classification": [],
+    "predictions": [
+      {
+        "id": "banking77-train-05698",
+        "answer": "Refund_not_showing_up",
+        "error": null,
+        "probabilities": {
+          "declined_transfer": 0.0012793741979844303,
+          "atm_support": 0.00017252759650332615,
+          "topping_up_by_card": 0.0003928221190109755,
+          "request_refund": 0.09520135479802343,
+          "extra_charge_on_statement": 0.001090215621616866,
+          "Refund_not_showing_up": 0.9018637056668609
+        },
+        "usage": null,
+        "elapsed_seconds": 0.4973113749874756
+      },
+      {
+        "id": "banking77-train-09214",
+        "answer": "activate_my_card",
+        "error": null,
+        "probabilities": {
+          "verify_my_identity": 0.02431726980029927,
+          "top_up_by_cash_or_cheque": 0.005299445460724632,
+          "failed_transfer": 0.001911686922994003,
+          "activate_my_card": 0.9530050637330056,
+          "card_arrival": 0.009489001573283626,
+          "compromised_card": 0.005977532509692807
+        },
+        "usage": null,
+        "elapsed_seconds": 0.05108237499371171
+      },
+      {
+        "id": "banking77-train-01636",
+        "answer": "age_limit",
+        "error": null,
+        "probabilities": {
+          "balance_not_updated_after_bank_transfer": 0.004006676882127712,
+          "age_limit": 0.9575573668461637,
+          "unable_to_verify_identity": 0.012444362880267599,
+          "card_delivery_estimate": 0.0049039967998260065,
+          "verify_my_identity": 0.011842901404249014,
+          "get_physical_card": 0.009244695187365919
+        },
+        "usage": null,
+        "elapsed_seconds": 0.038456875015981495
+      },
+      {
+        "id": "banking77-train-09708",
+        "answer": "apple_pay_or_google_pay",
+        "error": null,
+        "probabilities": {
+          "transaction_charged_twice": 0.016466579900547576,
+          "verify_my_identity": 0.011668894810982053,
+          "top_up_limits": 0.12119416791558181,
+          "lost_or_stolen_phone": 0.012003550326966005,
+          "failed_transfer": 0.020644940266871074,
+          "apple_pay_or_google_pay": 0.8180218667790514
+        },
+        "usage": null,
+        "elapsed_seconds": 0.038250832993071526
+      }
+    ],
+    "timing": {
+      "elapsed_seconds": 0.6252976670511998,
+      "inference_seconds": 0.6251014579902403,
+      "mode": "sequential",
+      "batch_size": 1,
+      "batch_count": 0,
+      "measurement": "model call and output normalization; batch time is not per-item latency"
+    }
+  },
+  "batch_size_2": {
+    "count": 4,
+    "correct": 4,
+    "accuracy": 1.0,
+    "complete_groups": {
+      "count": 4,
+      "correct": 4,
+      "accuracy": 1.0
+    },
+    "version": 1,
+    "by_source": {
+      "PolyAI/BANKING77/train": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0,
+        "complete_groups": {
+          "count": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "by_task": {
+      "banking77/choice": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0,
+        "complete_groups": {
+          "count": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "by_split": {
+      "development": {
+        "count": 4,
+        "correct": 4,
+        "accuracy": 1.0,
+        "complete_groups": {
+          "count": 4,
+          "correct": 4,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "classification": [],
+    "predictions": [
+      {
+        "id": "banking77-train-05698",
+        "answer": "Refund_not_showing_up",
+        "error": null,
+        "probabilities": {
+          "declined_transfer": 0.001279373908238199,
+          "atm_support": 0.00017252747516261356,
+          "topping_up_by_card": 0.00039282221735878345,
+          "request_refund": 0.09520134458618354,
+          "extra_charge_on_statement": 0.0010902153747103169,
+          "Refund_not_showing_up": 0.9018637164383465
+        },
+        "usage": null,
+        "elapsed_seconds": null,
+        "batch_index": 0,
+        "batch_elapsed_seconds": 0.09159374999580905
+      },
+      {
+        "id": "banking77-train-09214",
+        "answer": "activate_my_card",
+        "error": null,
+        "probabilities": {
+          "verify_my_identity": 0.02431726979314723,
+          "top_up_by_cash_or_cheque": 0.005299446722652401,
+          "failed_transfer": 0.001911687378213484,
+          "activate_my_card": 0.9530050634527141,
+          "card_arrival": 0.009489001570492782,
+          "compromised_card": 0.005977531082780097
+        },
+        "usage": null,
+        "elapsed_seconds": null,
+        "batch_index": 0,
+        "batch_elapsed_seconds": 0.09159374999580905
+      },
+      {
+        "id": "banking77-train-01636",
+        "answer": "age_limit",
+        "error": null,
+        "probabilities": {
+          "balance_not_updated_after_bank_transfer": 0.004006676882127712,
+          "age_limit": 0.9575573668461637,
+          "unable_to_verify_identity": 0.012444362880267599,
+          "card_delivery_estimate": 0.0049039967998260065,
+          "verify_my_identity": 0.011842901404249014,
+          "get_physical_card": 0.009244695187365919
+        },
+        "usage": null,
+        "elapsed_seconds": null,
+        "batch_index": 1,
+        "batch_elapsed_seconds": 0.06520533299772069
+      },
+      {
+        "id": "banking77-train-09708",
+        "answer": "apple_pay_or_google_pay",
+        "error": null,
+        "probabilities": {
+          "transaction_charged_twice": 0.016466579946358934,
+          "verify_my_identity": 0.011668892061364868,
+          "top_up_limits": 0.12119416825275381,
+          "lost_or_stolen_phone": 0.012003550360360856,
+          "failed_transfer": 0.02064494032430697,
+          "apple_pay_or_google_pay": 0.8180218690548545
+        },
+        "usage": null,
+        "elapsed_seconds": null,
+        "batch_index": 1,
+        "batch_elapsed_seconds": 0.06520533299772069
+      }
+    ],
+    "timing": {
+      "elapsed_seconds": 0.1568947079940699,
+      "inference_seconds": 0.15679908299352974,
+      "mode": "explicit_batch",
+      "batch_size": 2,
+      "batch_count": 2,
+      "measurement": "model call and output normalization; batch time is not per-item latency"
+    }
+  },
+  "limits": [
+    "One execution per condition; no warmup or repeated timing protocol.",
+    "Native model load excluded by DMBench inference timing.",
+    "Both conditions share the same loaded model; scalar executes first.",
+    "Four training-source queries; released model exposure is unknown."
+  ]
+}

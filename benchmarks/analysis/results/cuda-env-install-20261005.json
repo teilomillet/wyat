@@ -1,0 +1,16 @@
+{
+  "captured_utc": "2026-10-05T06:34:30.098795+00:00",
+  "scope": "Authorized private small HF layer; no Torch download/GPU allocation; base runtime unchanged",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "env UV_CACHE_DIR=/home/teilo/tmp/wyat-cuda-20261005/download-cache /home/teilo/.local/bin/uv pip install --python /home/teilo/tmp/wyat-cuda-20261005/env/bin/python transformers==5.18.0"
+  ],
+  "exit_code": 0,
+  "stdout": "",
+  "stderr": "Using Python 3.12.13 environment at: tmp/wyat-cuda-20261005/env\nResolved 27 packages in 344ms\nDownloading pygments (1.2MiB)\nDownloading hf-xet (4.3MiB)\nDownloading tokenizers (3.2MiB)\nDownloading transformers (12.0MiB)\nDownloading numpy (15.9MiB)\n Downloaded pygments\n Downloaded tokenizers\n Downloaded hf-xet\n Downloaded transformers\n Downloaded numpy\nPrepared 27 packages in 639ms\nInstalled 27 packages in 47ms\n + annotated-doc==0.0.5\n + anyio==4.15.1\n + certifi==2026.7.22\n + click==8.5.0\n + filelock==4.0.11\n + fsspec==2026.9.0\n + h11==0.16.0\n + hf-xet==1.6.0\n + httpcore==1.0.9\n + httpx==0.28.1\n + huggingface-hub==1.33.0\n + idna==3.20\n + markdown-it-py==4.2.0\n + mdurl==0.1.2\n + numpy==2.5.3\n + packaging==26.3\n + pygments==2.21.0\n + pyyaml==6.0.3\n + regex==2026.9.29\n + rich==15.0.0\n + safetensors==0.8.0\n + shellingham==1.5.4\n + tokenizers==0.23.2\n + tqdm==4.70.1\n + transformers==5.18.0\n + typer==0.27.2\n + typing-extensions==4.16.0\n"
+}

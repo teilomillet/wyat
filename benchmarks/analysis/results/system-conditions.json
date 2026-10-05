@@ -1,0 +1,40 @@
+{
+  "scope": "Late system observation after padding experiment exited; cannot attribute historical timing outliers",
+  "measurements": [
+    {
+      "command": [
+        "sysctl",
+        "-n",
+        "vm.swapusage"
+      ],
+      "started_at": "2026-10-05T00:32:46.119367+00:00",
+      "finished_at": "2026-10-05T00:32:46.122586+00:00",
+      "exit_code": 0,
+      "stdout": "total = 14336.00M  used = 13062.88M  free = 1273.12M  (encrypted)\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "pmset",
+        "-g",
+        "therm"
+      ],
+      "started_at": "2026-10-05T00:32:46.122594+00:00",
+      "finished_at": "2026-10-05T00:32:46.129950+00:00",
+      "exit_code": 0,
+      "stdout": "Note: No thermal warning level has been recorded\nNote: No performance warning level has been recorded\nNote: No CPU power status has been recorded\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "memory_pressure",
+        "-Q"
+      ],
+      "started_at": "2026-10-05T00:32:46.129967+00:00",
+      "finished_at": "2026-10-05T00:32:46.132626+00:00",
+      "exit_code": 0,
+      "stdout": "The system has 25769803776 (1572864 pages with a page size of 16384).\nSystem-wide memory free percentage: 82%\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+.models/
+*.tensors.safetensors
 *.py[codz]
 *$py.class
 
@@ -37,6 +39,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+artifacts/
 htmlcov/
 .tox/
 .nox/

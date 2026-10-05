@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-S",
+    "/private/tmp/wyat-cuda-profile-cost-audit.py",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-profile-cost-review.json"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "cap_seconds": 60,
+  "elapsed_seconds": 0.1022935839719139,
+  "stdout": "{\"path\": \"/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-profile-cost-review.json\", \"sha256\": \"25a662962d0db47b75a8df4a2850ab9d40008a005ff7b98822be40724871f0c0\", \"profiles\": [\"b1_math\", \"b1_efficient\", \"b8_math\", \"b8_efficient\"], \"source_sha256\": \"5453f6a3950c554f660f3a860576a2dc9b2a82992a5825ea22949c8eb66e2964\"}\n",
+  "stderr": "",
+  "script_sha256": "5453f6a3950c554f660f3a860576a2dc9b2a82992a5825ea22949c8eb66e2964"
+}

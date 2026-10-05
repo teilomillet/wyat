@@ -1,0 +1,16 @@
+{
+  "captured_utc": "2026-10-05T06:27:35.716248+00:00",
+  "scope": "Read-only GPU occupancy, process and environment inventory; no allocation or transfer",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "nvidia-smi --query-gpu=name,uuid,memory.total,memory.used,utilization.gpu,driver_version --format=csv,noheader,nounits; nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader,nounits; uname -srm; pwd; command -v python3; command -v uv; ls -d ~/Code ~/code ~/projects ~/.cache/huggingface/hub /tmp/wyat* 2>/dev/null"
+  ],
+  "exit_code": 1,
+  "stdout": "NVIDIA GeForce RTX 4070 Ti, GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7, 12282, 128, 0, 595.91.07\nLinux 7.0.0-34-generic x86_64\n/home/teilo\n/usr/bin/python3\n",
+  "stderr": "zsh:1: no matches found: /tmp/wyat*\n"
+}

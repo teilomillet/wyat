@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "benchmarks.analysis.torch.prefix.latency.run",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b1.json",
+    "--comparator",
+    "retained",
+    "--batch-size",
+    "1",
+    "--worker"
+  ],
+  "timeout_seconds": 180,
+  "completed": false,
+  "timed_out": false,
+  "inductor_cache": null,
+  "exit_code": 1,
+  "elapsed_seconds": 110.5457515839953
+}

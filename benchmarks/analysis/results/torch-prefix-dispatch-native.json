@@ -1,0 +1,404 @@
+{
+  "completed": true,
+  "passed": true,
+  "scope": "tiny CPU maintained-dispatch and causal oracle; no speed claim",
+  "sources_sha256": {
+    "evidence": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "hf_cache": "136b3d85b4496b6c4d614a676bdfd4f32e926b88eafe9a88c7cf1e173e8390b5",
+    "hf_mask": "100c7fce03f65deeb83031152d5cafd3030c2173b3a8bec1803b6739996d682f",
+    "hf_qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "hf_sdpa": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad",
+    "probe": "d54a427ff9b053208e238d204e03b3c46680aaf7475b639988fac1e4465e8244"
+  },
+  "sources_archive": {
+    "path": "benchmarks/analysis/results/torch-prefix-dispatch-native.sources-4bafbe6a627537bc.json",
+    "sha256": "4bafbe6a627537bc97299976b5ae87f57142eacb8963eaaf4e3efc666f7edb39"
+  },
+  "environment": {
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "python": "3.12.11",
+    "torch": "2.14.1",
+    "torch_git_version": "5c4886908584029761b579af026dcfb627c84070",
+    "transformers": "5.18.0",
+    "mps_built": true,
+    "mps_available": true,
+    "hf_mps_snapshot": true,
+    "hf_torch_ge_2_13": true,
+    "torch_threads": 8
+  },
+  "protocol": {
+    "prefix": 5,
+    "suffix": 6,
+    "query_heads": 4,
+    "kv_heads": 2,
+    "head_dimension": 8,
+    "dtype": "float32",
+    "mask": "key_index <= prefix_length + suffix_query_index",
+    "global_flags_changed": false,
+    "oracle": "uniform mean key index plus 100 times KV-head index"
+  },
+  "limits": [
+    "No real weights or model execution; this is one tiny attention shape.",
+    "Profiler input shapes establish actual flash Q/K/V head counts.",
+    "Source archives identify disk sources, not compiled binary identity.",
+    "HF import-time availability is process/context dependent."
+  ],
+  "checks": {
+    "actual_flash_uses_unexpanded_kv_heads": true,
+    "contiguous_matches_uniform_oracle": true,
+    "suffix_matches_full_causal": true,
+    "wrong_upper_left_fails_oracle": true,
+    "stride_zero_forces_math": true
+  },
+  "full_vs_suffix_max_abs_error": 0.0,
+  "contiguous_masked": {
+    "query_shape": [
+      1,
+      4,
+      6,
+      8
+    ],
+    "key_shape": [
+      1,
+      2,
+      11,
+      8
+    ],
+    "value_shape": [
+      1,
+      2,
+      11,
+      8
+    ],
+    "last_strides": [
+      1,
+      1,
+      1
+    ],
+    "mask_shape": [
+      1,
+      1,
+      6,
+      11
+    ],
+    "operators": [
+      "aten::_scaled_dot_product_flash_attention_for_cpu",
+      "aten::as_strided",
+      "aten::clone",
+      "aten::contiguous",
+      "aten::copy_",
+      "aten::empty",
+      "aten::empty_like",
+      "aten::empty_strided",
+      "aten::expand",
+      "aten::scalar_tensor",
+      "aten::scaled_dot_product_attention",
+      "aten::to",
+      "aten::transpose",
+      "aten::view",
+      "aten::where"
+    ],
+    "attention_events": [
+      {
+        "operator": "aten::scaled_dot_product_attention",
+        "input_shapes": [
+          [
+            1,
+            4,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [
+            1,
+            1,
+            6,
+            11
+          ],
+          [],
+          [],
+          [],
+          []
+        ]
+      },
+      {
+        "operator": "aten::_scaled_dot_product_flash_attention_for_cpu",
+        "input_shapes": [
+          [
+            1,
+            4,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [],
+          [],
+          [
+            1,
+            1,
+            6,
+            11
+          ],
+          []
+        ]
+      }
+    ],
+    "oracle_max_abs_error": 7.62939453125e-06
+  },
+  "stride_zero_masked": {
+    "query_shape": [
+      1,
+      4,
+      6,
+      8
+    ],
+    "key_shape": [
+      1,
+      2,
+      11,
+      8
+    ],
+    "value_shape": [
+      1,
+      2,
+      11,
+      8
+    ],
+    "last_strides": [
+      1,
+      1,
+      0
+    ],
+    "mask_shape": [
+      1,
+      1,
+      6,
+      11
+    ],
+    "operators": [
+      "aten::_reshape_alias",
+      "aten::_safe_softmax",
+      "aten::_scaled_dot_product_attention_math",
+      "aten::_softmax",
+      "aten::_to_copy",
+      "aten::_unsafe_view",
+      "aten::add_",
+      "aten::all",
+      "aten::as_strided",
+      "aten::bmm",
+      "aten::clone",
+      "aten::contiguous",
+      "aten::copy_",
+      "aten::empty",
+      "aten::empty_like",
+      "aten::empty_strided",
+      "aten::expand",
+      "aten::fill_",
+      "aten::flatten",
+      "aten::isneginf",
+      "aten::matmul",
+      "aten::mul",
+      "aten::repeat_interleave",
+      "aten::reshape",
+      "aten::resolve_conj",
+      "aten::scalar_tensor",
+      "aten::scaled_dot_product_attention",
+      "aten::select",
+      "aten::softmax",
+      "aten::to",
+      "aten::transpose",
+      "aten::unsqueeze",
+      "aten::view",
+      "aten::where"
+    ],
+    "attention_events": [
+      {
+        "operator": "aten::scaled_dot_product_attention",
+        "input_shapes": [
+          [
+            1,
+            4,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [
+            1,
+            1,
+            6,
+            11
+          ],
+          [],
+          [],
+          [],
+          []
+        ]
+      },
+      {
+        "operator": "aten::_scaled_dot_product_attention_math",
+        "input_shapes": [
+          [
+            1,
+            4,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [
+            1,
+            2,
+            11,
+            8
+          ],
+          [
+            1,
+            1,
+            6,
+            11
+          ],
+          [],
+          [],
+          [],
+          [],
+          []
+        ]
+      }
+    ],
+    "oracle_max_abs_error": 7.62939453125e-06
+  },
+  "no_mask_upper_left": {
+    "query_shape": [
+      1,
+      4,
+      6,
+      8
+    ],
+    "key_shape": [
+      1,
+      2,
+      11,
+      8
+    ],
+    "value_shape": [
+      1,
+      2,
+      11,
+      8
+    ],
+    "last_strides": [
+      1,
+      1,
+      1
+    ],
+    "mask_shape": null,
+    "operators": [
+      "aten::_scaled_dot_product_flash_attention_for_cpu",
+      "aten::as_strided",
+      "aten::clone",
+      "aten::contiguous",
+      "aten::copy_",
+      "aten::empty",
+      "aten::empty_like",
+      "aten::empty_strided",
+      "aten::scaled_dot_product_attention",
+      "aten::slice",
+      "aten::transpose"
+    ],
+    "attention_events": [
+      {
+        "operator": "aten::scaled_dot_product_attention",
+        "input_shapes": [
+          [
+            1,
+            4,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            6,
+            8
+          ],
+          [],
+          [],
+          [],
+          [],
+          []
+        ]
+      },
+      {
+        "operator": "aten::_scaled_dot_product_flash_attention_for_cpu",
+        "input_shapes": [
+          [
+            1,
+            4,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            6,
+            8
+          ],
+          [
+            1,
+            2,
+            6,
+            8
+          ],
+          [],
+          [],
+          [],
+          []
+        ]
+      }
+    ],
+    "oracle_max_abs_error": 2.5
+  }
+}

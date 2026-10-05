@@ -1,0 +1,20 @@
+{
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "python3 -c 'import hashlib, io, json, pathlib, signal, sys, tarfile\nsignal.alarm(30)\nroot=pathlib.Path('\"'\"'/home/teilo/tmp/wyat-cuda-20261005'\"'\"')\nexpected=json.loads('\"'\"'{\"benchmarks/analysis/cuda/latency/__init__.py\": \"325640684bb19484bc79445ff4891e9a6d62a94bd57e8b5c3a9d7d4686f70273\", \"benchmarks/analysis/cuda/latency/study.py\": \"bc05180187e224c79a85bd323689a674796e5aecd3ed316f5203a8c1e2a48e0a\", \"benchmarks/analysis/cuda/latency/run.py\": \"5a2dca5b3e9f3880905a26831be66890ec03bfbb24d4dc80686fdc408103ed55\", \"tests/analysis/test_cuda_latency.py\": \"3e92b411501359868fd189d6147a73b79f0770e43c39099388ce2a4cf7a61fc6\", \"docs/analysis/latency.md\": \"a55aae2b48b1363b123bb9963a1e5f95ae239fb0fe988f134cba8a565e4a9938\", \"benchmarks/analysis/results/cuda-latency-source-declaration-20261005.json\": \"a26d5be45598c29e9fe6f1a0d0e620c22d0101f060eda730274d404498c7a0a4\"}'\"'\"')\nraw=sys.stdin.buffer.read()\nwith tarfile.open(fileobj=io.BytesIO(raw),mode='\"'\"'r:'\"'\"') as archive:\n    members=archive.getmembers()\n    assert [item.name for item in members]==list(expected)\n    outputs=[]\n    for member in members:\n        assert member.isfile()\n        source=archive.extractfile(member)\n        assert source is not None\n        data=source.read()\n        assert hashlib.sha256(data).hexdigest()==expected[member.name]\n        destination=root/member.name\n        assert not destination.exists(), destination\n        outputs.append((destination,data))\n    for destination,data in outputs:\n        destination.parent.mkdir(parents=True,exist_ok=True)\n        with destination.open('\"'\"'xb'\"'\"') as target: target.write(data)\nprint(json.dumps({'\"'\"'written'\"'\"':expected,'\"'\"'archive_sha256'\"'\"':hashlib.sha256(raw).hexdigest()}))\n'"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "cap_seconds": 60,
+  "elapsed_seconds": 1.9111559589509852,
+  "input_bytes": 92160,
+  "input_sha256": "585c7726a63249206000208137383dce4ac96ab6be7979842448a2dfca35fc95",
+  "stderr": "",
+  "verifier_sha256": "7dd3274e7ee67cdfd23cbc821c3dc7efd21805cf0323725ef77fb99294af38f3"
+}

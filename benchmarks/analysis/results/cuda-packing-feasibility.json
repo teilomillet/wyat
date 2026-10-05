@@ -1,0 +1,90 @@
+{
+  "completed": true,
+  "scope": "One real Kai layer-zero MLP and cached first-eight batch activation; CPU structural/local-output proof only",
+  "tensor_identities": [
+    {
+      "file": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "key": "layers.0.mlp.gate_proj.weight",
+      "dtype": "BF16",
+      "shape": [
+        3072,
+        1024
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+    },
+    {
+      "file": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "key": "layers.0.mlp.up_proj.weight",
+      "dtype": "BF16",
+      "shape": [
+        3072,
+        1024
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "e5eb93967f1743e95d8d89b2be046e2baa21a187853c97bfbdd06ce8907da01e"
+    },
+    {
+      "file": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "key": "layers.0.mlp.down_proj.weight",
+      "dtype": "BF16",
+      "shape": [
+        1024,
+        3072
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "ca67515b27ffb5508f2a07e2d01d9cd315e9b1456482cb45c866b7bb9ef49cd7"
+    },
+    {
+      "file": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-autotune-projection.tensors.safetensors",
+      "key": "input",
+      "dtype": "F32",
+      "shape": [
+        1536,
+        1024
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "f7d4e3b1e9a6f552479293db2af66ce48e83b2d87ef7ab3139873ca54d52e669"
+    }
+  ],
+  "gate": {
+    "atol": 0.001,
+    "rtol": 0.001,
+    "rule": "absdiff <= max(atol, rtol*max(abs(reference),abs(actual)))"
+  },
+  "threads": 1,
+  "limits": [
+    "No whole-backbone loading, inference decisions, CUDA kernels, speed measurement or production claim",
+    "Old Parameter wrappers expire; allocator/RSS release is not established",
+    "Shared storage changes original parameter identities; no external aliases/optimizer/autograd supported"
+  ],
+  "source_sha256": "29e39581ac8d39e5c34c33484dd113515fd964615dae732c5709c1ca37050a7d",
+  "storage_only_quality": {
+    "passed": true,
+    "finite": true,
+    "max_abs_error": 0.0,
+    "atol": 0.001,
+    "rtol": 0.001
+  },
+  "packed_quality": {
+    "passed": true,
+    "finite": true,
+    "max_abs_error": 0.0,
+    "atol": 0.001,
+    "rtol": 0.001
+  },
+  "weight_bits_preserved": true,
+  "old_parameters_expired": true,
+  "alias_equal": true,
+  "shared_gate_up_bytes": 25165824,
+  "nominal_duplicate_parameter_bytes": 50331648,
+  "outputs": {
+    "original_sha256": "d3cc9dd03d6be123834d19aae513e666662ce020527d8caa3108a608375fe710",
+    "storage_only_sha256": "d3cc9dd03d6be123834d19aae513e666662ce020527d8caa3108a608375fe710",
+    "packed_sha256": "d3cc9dd03d6be123834d19aae513e666662ce020527d8caa3108a608375fe710",
+    "shape": [
+      1536,
+      1024
+    ]
+  }
+}

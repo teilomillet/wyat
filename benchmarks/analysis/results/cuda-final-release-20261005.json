@@ -1,0 +1,17 @@
+{
+  "captured_utc": "2026-10-05T07:12:11.469177+00:00",
+  "scope": "Fresh final read-only release after all3CUDAworkers terminal; each probe status retained; no further CUDA work",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "python3 -"
+  ],
+  "source": "import subprocess,json\nprobes=[]\nfor args in (['nvidia-smi','--query-gpu=memory.used,utilization.gpu','--format=csv,noheader,nounits'],['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader,nounits'],['pgrep','-af','benchmarks.analysis.cuda.run']):\n r=subprocess.run(args,capture_output=True,text=True,timeout=5)\n probes.append({'command':args,'exit_code':r.returncode,'stdout':r.stdout,'stderr':r.stderr})\nprint(json.dumps(probes,indent=2))\n",
+  "exit_code": 0,
+  "stdout": "[\n  {\n    \"command\": [\n      \"nvidia-smi\",\n      \"--query-gpu=memory.used,utilization.gpu\",\n      \"--format=csv,noheader,nounits\"\n    ],\n    \"exit_code\": 0,\n    \"stdout\": \"128, 0\\n\",\n    \"stderr\": \"\"\n  },\n  {\n    \"command\": [\n      \"nvidia-smi\",\n      \"--query-compute-apps=pid,process_name,used_memory\",\n      \"--format=csv,noheader,nounits\"\n    ],\n    \"exit_code\": 0,\n    \"stdout\": \"\",\n    \"stderr\": \"\"\n  },\n  {\n    \"command\": [\n      \"pgrep\",\n      \"-af\",\n      \"benchmarks.analysis.cuda.run\"\n    ],\n    \"exit_code\": 1,\n    \"stdout\": \"\",\n    \"stderr\": \"\"\n  }\n]\n",
+  "stderr": ""
+}

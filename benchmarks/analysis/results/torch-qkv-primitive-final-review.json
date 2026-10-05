@@ -1,0 +1,200 @@
+{
+  "audit_passed": true,
+  "frameworks_imported": [],
+  "main_sha256": "fe4d68337e4b695bdafc26c18ed261bd776175e36e6970ed03694965840afe17",
+  "wall_sha256": "b63376979a8ea7e99826ca2f71a7ea1a554737a692d247554ede6ab0affbcee2",
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "archive_sha256": "eff85f9cc7c03a0d045499df4c984d9747e6c7c23d60efad53c841caf2b97fb6",
+  "source_review_sha256": "ab1d79d62696f0506b2e17dd8d34e7b76ad894bf95b71dfa67d3bbefb69a7878",
+  "executed_source_sha256": {
+    "benchmarks/analysis/evidence.py": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "benchmarks/analysis/torch/autotune.py": "f092983c781a2665831d3d05b3ec4d6e7cd23b49320c783affbbddcc3b3fa504",
+    "benchmarks/analysis/torch/prefix/production/study.py": "33da6b96ece624a95192743661094a1ae0e5472cac3cdf16370495da9029d74e",
+    "benchmarks/analysis/torch/process.py": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+    "benchmarks/analysis/torch/projection/__init__.py": "b235c0bfbc6e210e969126d81ba6e9cf42ef5ed4304dcd11bc2e8243f06d11b1",
+    "benchmarks/analysis/torch/projection/qkv.py": "5ae53534cdcdf2b98c814056c5f25b6727d573f4216ab4a5f19c62c0a38df8a1",
+    "benchmarks/analysis/torch/projection/run.py": "a40a433052226e79ecedd1f9271a29f12c7a094c441bd5f66799050c6782e120",
+    "benchmarks/analysis/torch/projection/study.py": "b93cc46e898df16a563fde5e948836326ee02cc3d415046cfd1301a93367bd95",
+    "docs/analysis/cpu/projection.md": "0e0c363b4699515deec022d29b65d747597149c84e1d57c77e1be95390395701",
+    "maintained_functional": "95ff403085bb179477a01df63acfddf59dfac0fb58829e99a9c8b5c2fe98899b",
+    "maintained_qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "tests/analysis/cpu/projection/test_qkv.py": "2784edd518a7e99a08dddedfb2b9aa45e2484e8ff57cd856c2ab2c6dedc2d798",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "outcome_count": 96,
+  "primitive_quality_passed": true,
+  "primitive_eligible": {
+    "kv": false,
+    "qkv": false
+  },
+  "accepted": false,
+  "operands": [
+    {
+      "name": "scalar192",
+      "actual_array_file_sha256": "2611e3188281ba5790c5cdee5c5a5a8cca3a8f48d005d8b7edb160995474d611",
+      "shape": [
+        1,
+        167,
+        1024
+      ],
+      "raw_calls": 24,
+      "independent_statistics": {
+        "kv": {
+          "ratios": [
+            1.0054937376400792,
+            0.9793060525906333,
+            1.0280701754385964,
+            0.9214399534748473,
+            1.0441253847482383,
+            1.1862850405899739
+          ],
+          "median": 1.016781956539338,
+          "p05": 0.9359064782537938,
+          "eligible": false
+        },
+        "qkv": {
+          "ratios": [
+            1.0099877503724548,
+            1.0349713088983195,
+            1.0589749026562318,
+            1.0885088047134346,
+            1.0841007819287576,
+            1.2054297077641363
+          ],
+          "median": 1.0715378422924946,
+          "p05": 1.016233640003921,
+          "eligible": false
+        }
+      }
+    },
+    {
+      "name": "scalar197",
+      "actual_array_file_sha256": "ddd56791208c51b3cac505a28031b432ba0bdfd7dc5a832f67ebf739cb19128e",
+      "shape": [
+        1,
+        172,
+        1024
+      ],
+      "raw_calls": 24,
+      "independent_statistics": {
+        "kv": {
+          "ratios": [
+            1.0191601053336734,
+            1.0454324644706168,
+            1.029876923076923,
+            1.0083821800768398,
+            1.0207153719008266,
+            1.0396357396408995
+          ],
+          "median": 1.0252961474888749,
+          "p05": 1.0110766613910482,
+          "eligible": false
+        },
+        "qkv": {
+          "ratios": [
+            1.066298945913254,
+            1.1136063872569837,
+            1.0433108588853126,
+            1.0443125106382978,
+            1.071300592193921,
+            1.0415870798245532
+          ],
+          "median": 1.0553057282757758,
+          "p05": 1.042018024589743,
+          "eligible": false
+        }
+      }
+    },
+    {
+      "name": "scalar214",
+      "actual_array_file_sha256": "0c8e7d56d9d7d28032d5829638221a9a9a71c9dc5c91b35f9d0e52550ef2fa63",
+      "shape": [
+        1,
+        189,
+        1024
+      ],
+      "raw_calls": 24,
+      "independent_statistics": {
+        "kv": {
+          "ratios": [
+            1.0757342169342545,
+            0.9990052796694469,
+            1.0230927059114647,
+            1.0088172111553784,
+            1.072906717605858,
+            1.0353073342962607
+          ],
+          "median": 1.0292000201038627,
+          "p05": 1.0014582625409298,
+          "eligible": false
+        },
+        "qkv": {
+          "ratios": [
+            1.1405929813053461,
+            1.057188444965978,
+            1.0625766312757334,
+            1.024436314110531,
+            1.1486683627419703,
+            1.0478648960874077
+          ],
+          "median": 1.0598825381208559,
+          "p05": 1.0302934596047502,
+          "eligible": false
+        }
+      }
+    },
+    {
+      "name": "batch8",
+      "actual_array_file_sha256": "0d5c1897b1139759d9dbf8535b886dd7fff88dcacbe7877fd0a25b05b9761297",
+      "shape": [
+        8,
+        167,
+        1024
+      ],
+      "raw_calls": 24,
+      "independent_statistics": {
+        "kv": {
+          "ratios": [
+            1.001298302387143,
+            1.1292625328602486,
+            1.0774543326604562,
+            1.005827643864015,
+            1.0022973753912836,
+            1.2421754597527885
+          ],
+          "median": 1.0416409882622357,
+          "p05": 1.001548070638178,
+          "eligible": false
+        },
+        "qkv": {
+          "ratios": [
+            1.046061502695862,
+            1.0194183163804733,
+            1.2324296097275327,
+            1.019198632474296,
+            0.9463456299837537,
+            1.322067239473778
+          ],
+          "median": 1.0327399095381677,
+          "p05": 0.9645588806063893,
+          "eligible": false
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "Saved separate FP32 outputs are parity oracle; no independent full matrix multiplication recomputation.",
+    "Input/model/token/maintained-norm provenance and normalized array bytes are checked; no independent bitwise Torch normalization replay.",
+    "Six primitive permutations do not establish engine gain, model rank/probability quality, confidence bounds, ordinary full-model critical path or production eligibility.",
+    "Logical storage counters are not RSS/peak memory or proof of runtime alias lifetimes.",
+    "Historical executed source identities are validated from archived text; current production22 is checked separately."
+  ],
+  "audit_script": {
+    "path": "/private/tmp/wyat-cpu-projection-audit.py",
+    "sha256": "c72b95edb164d971e2c05f16a475efed6978e8ff552f9b7d8a4828e16a93fb81",
+    "text": "\"\"\"Independent saved FP32 projection parity and timing audit, stdlib only.\n\nPrepared before capture; execute only after root releases immutable native raws.\nThis validates primitive parity, never complete-model decisions or engine speed.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport ast\nimport hashlib\nimport itertools\nimport json\nimport math\nimport struct\nimport sys\nfrom array import array\nfrom dataclasses import dataclass\nfrom pathlib import Path\nfrom typing import cast\n\ntype Json = None | bool | int | float | str | list[Json] | dict[str, Json]\ntype Object = dict[str, Json]\nROOT = Path(\"/Users/teilomillet/Code/wyat\")\nARMS = (\"separate\", \"kv\", \"qkv\")\nORDERS = tuple(itertools.permutations(ARMS))\nPROFILES = (\n    (\"scalar192\", (7,), (1, 167, 1024)),\n    (\"scalar197\", (18,), (1, 172, 1024)),\n    (\"scalar214\", (75,), (1, 189, 1024)),\n    (\"batch8\", tuple(range(8)), (8, 167, 1024)),\n)\nPACKAGE_SHA = \"3a2a6e0999dee44fe71a06905efb35158d5b935b582b02c28043bec30acc2975\"\nDATA_SHA = \"0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03\"\nREFERENCE_SHA = \"b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664\"\nSOURCE_REVIEW_SHA = \"ab1d79d62696f0506b2e17dd8d34e7b76ad894bf95b71dfa67d3bbefb69a7878\"\nINPUT_SHA = \"fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8\"\nMODEL_ID = \"kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee\"\n\n\ndef require(condition: bool, message: str) -> None:\n    if not condition:\n        raise ValueError(message)\n\n\ndef obj(value: Json) -> Object:\n    require(isinstance(value, dict), \"Expected JSON object\")\n    return cast(Object, value)\n\n\ndef items(value: Json) -> list[Json]:\n    require(isinstance(value, list), \"Expected JSON array\")\n    return cast(list[Json], value)\n\n\ndef text(value: Json) -> str:\n    require(isinstance(value, str), \"Expected string\")\n    return cast(str, value)\n\n\ndef number(value: Json) -> float:\n    require(type(value) in (int, float), \"Expected finite real number\")\n    result = float(cast(int | float, value))\n    require(math.isfinite(result), \"Expected finite real number\")\n    return result\n\n\ndef integer(value: Json) -> int:\n    require(type(value) is int, \"Expected integer\")\n    return cast(int, value)\n\n\ndef reject_duplicates(pairs: list[tuple[str, Json]]) -> Object:\n    result: Object = {}\n    for name, value in pairs:\n        require(name not in result, \"Duplicate JSON key\")\n        result[name] = value\n    return result\n\n\ndef decode(data: str | bytes) -> Object:\n    return obj(cast(Json, json.loads(data, object_pairs_hook=reject_duplicates)))\n\n\ndef sha(path: Path) -> str:\n    with path.open(\"rb\") as stream:\n        return hashlib.file_digest(stream, \"sha256\").hexdigest()\n\n\ndef pinned(path: Path, checksum: str) -> Object:\n    require(\n        not path.is_symlink() and sha(path) == checksum,\n        \"Changed pinned artifact \" + str(path),\n    )\n    return decode(path.read_bytes())\n\n\ndef percentile(values: list[float], quantile: float) -> float:\n    ordered = sorted(values)\n    position = (len(ordered) - 1) * quantile\n    lower = math.floor(position)\n    fraction = position - lower\n    return ordered[lower] + (ordered[math.ceil(position)] - ordered[lower]) * fraction\n\n\ndef literal(source: str, name: str) -> Json:\n    for node in ast.parse(source).body:\n        if isinstance(node, ast.Assign) and any(\n            isinstance(t, ast.Name) and t.id == name for t in node.targets\n        ):\n            return cast(Json, ast.literal_eval(node.value))\n    raise ValueError(\"Archived literal missing: \" + name)\n\n\n@dataclass(frozen=True)\nclass Tensor:\n    dtype: str\n    shape: tuple[int, ...]\n    start: int\n    stop: int\n\n\nclass SavedTensors:\n    \"\"\"Bounded native safetensors reader: no imports or implicit dtype conversion.\"\"\"\n\n    def __init__(self, path: Path) -> None:\n        require(not path.is_symlink(), \"Tensor capture symlink\")\n        self.path = path\n        size = path.stat().st_size\n        with path.open(\"rb\") as stream:\n            first = stream.read(8)\n            require(len(first) == 8, \"Missing safetensors header length\")\n            length = struct.unpack(\"<Q\", first)[0]\n            require(\n                2 <= length <= min(16_777_216, size - 8),\n                \"Invalid safetensors header length\",\n            )\n            header = decode(stream.read(length))\n        self.offset = 8 + length\n        self.tensors: dict[str, Tensor] = {}\n        spans: list[tuple[int, int]] = []\n        widths = {\"F32\": 4, \"BF16\": 2, \"F16\": 2}\n        for name, value in header.items():\n            if name == \"__metadata__\":\n                require(\n                    all(isinstance(v, str) for v in obj(value).values()),\n                    \"Malformed tensor metadata\",\n                )\n                continue\n            row = obj(value)\n            require(\n                set(row) == {\"dtype\", \"shape\", \"data_offsets\"},\n                \"Unexpected native tensor descriptor\",\n            )\n            dtype = text(row[\"dtype\"])\n            shape = tuple(integer(v) for v in items(row[\"shape\"]))\n            offsets = items(row[\"data_offsets\"])\n            require(\n                dtype in widths and len(offsets) == 2 and all(v >= 0 for v in shape),\n                \"Unsupported tensor descriptor\",\n            )\n            start, stop = (integer(v) for v in offsets)\n            require(\n                0 <= start <= stop <= size - self.offset\n                and stop - start == math.prod(shape) * widths[dtype],\n                \"Invalid tensor byte range\",\n            )\n            spans.append((start, stop))\n            self.tensors[name] = Tensor(dtype, shape, start, stop)\n        cursor = 0\n        for start, stop in sorted(spans):\n            require(start == cursor, \"Overlapping or unaccounted native tensor bytes\")\n            cursor = stop\n        require(cursor == size - self.offset, \"Unaccounted tensor payload tail\")\n\n    def raw(self, name: str) -> bytes:\n        descriptor = self.tensors[name]\n        with self.path.open(\"rb\") as stream:\n            stream.seek(self.offset + descriptor.start)\n            data = stream.read(descriptor.stop - descriptor.start)\n        require(\n            len(data) == descriptor.stop - descriptor.start, \"Truncated native array\"\n        )\n        return data\n\n    def f32_bytes(self, name: str) -> bytes:\n        descriptor = self.tensors[name]\n        data = self.raw(name)\n        if descriptor.dtype == \"F32\":\n            return data\n        if descriptor.dtype == \"BF16\":\n            return b\"\".join(\n                struct.pack(\"<I\", value << 16)\n                for (value,) in struct.iter_unpack(\"<H\", data)\n            )\n        return b\"\".join(\n            struct.pack(\"<f\", value) for (value,) in struct.iter_unpack(\"<e\", data)\n        )\n\n    def floats(self, name: str) -> array[float]:\n        require(\n            self.tensors[name].dtype == \"F32\", \"Capture must contain actual FP32 arrays\"\n        )\n        values: array[float] = array(\"f\")\n        values.frombytes(self.raw(name))\n        if sys.byteorder != \"little\":\n            values.byteswap()\n        return values\n\n\ndef compare(left: array[float], right: array[float]) -> Object:\n    require(len(left) == len(right) and len(left) > 0, \"Output element count differs\")\n    failures = 0\n    maximum = relative = 0.0\n    finite = True\n    for a, b in zip(left, right, strict=True):\n        if not math.isfinite(a) or not math.isfinite(b):\n            finite = False\n            failures += 1\n            continue\n        error = abs(a - b)\n        scale = max(abs(a), abs(b))\n        failures += error > max(1e-3, scale * 1e-3)\n        maximum = max(maximum, error)\n        relative = max(relative, error / max(scale, 1e-300))\n    return {\n        \"passed\": failures == 0,\n        \"finite\": finite,\n        \"failed_elements\": failures,\n        \"max_absolute_error\": maximum if finite else None,\n        \"max_relative_error\": relative if finite else None,\n    }\n\n\ndef verify_gate(observed: Object, recomputed: Object) -> None:\n    for key in (\"passed\", \"finite\", \"failed_elements\"):\n        require(\n            observed[key] == recomputed[key]\n            and type(observed[key]) is type(recomputed[key]),\n            \"Saved gate differs: \" + key,\n        )\n    for key in (\"max_absolute_error\", \"max_relative_error\"):\n        if recomputed[key] is None:\n            require(observed[key] is None, \"Nonfinite metric falsely available\")\n        else:\n            require(\n                math.isclose(\n                    number(observed[key]),\n                    number(recomputed[key]),\n                    rel_tol=1e-14,\n                    abs_tol=1e-14,\n                ),\n                \"Saved gate metric differs: \" + key,\n            )\n\n\nclass Arguments(argparse.Namespace):\n    main: Path\n    output: Path\n    main_sha: str\n    wall_sha: str\n    log_sha: str\n    archive_sha: str\n    source_review: Path\n    source_review_sha: str\n\n\ndef audit(args: Arguments) -> Object:\n    main = pinned(args.main, args.main_sha)\n    wall = pinned(args.main.with_suffix(\".wall.json\"), args.wall_sha)\n    require(sha(args.main.with_suffix(\".log\")) == args.log_sha, \"Worker log changed\")\n    require(\n        wall[\"timeout_seconds\"] == 120\n        and wall[\"timed_out\"] is False\n        and wall[\"exit_code\"] == 0\n        and wall[\"completed\"] is True\n        and 0 <= number(wall[\"elapsed_seconds\"]) <= 120,\n        \"Native owned terminal cap failed\",\n    )\n    command = [text(v) for v in items(wall[\"command\"])]\n    module = \"benchmarks.analysis.torch.projection.run\"\n    require(\n        module in command\n        and \"--worker\" in command\n        and command[command.index(\"--output\") + 1] == str(args.main),\n        \"Wrong primitive worker\",\n    )\n    model = Path(command[command.index(module) + 1])\n    require(\n        args.source_review_sha == SOURCE_REVIEW_SHA, \"Wrong reviewed primitive source\"\n    )\n    review = pinned(args.source_review, args.source_review_sha)\n    require(review.get(\"passed\") is True, \"Source-only review not admitted\")\n    descriptor = obj(main[\"source_archive\"])\n    require(descriptor[\"sha256\"] == args.archive_sha, \"Source archive pin mismatch\")\n    archived_path = Path(text(descriptor[\"path\"]))\n    archive = pinned(archived_path, args.archive_sha)\n    source_sha: Object = {}\n    source_text: dict[str, str] = {}\n    for raw in items(archive[\"files\"]):\n        entry = obj(raw)\n        name, contents = text(entry[\"name\"]), text(entry[\"text\"])\n        checksum = hashlib.sha256(contents.encode()).hexdigest()\n        require(\n            name not in source_sha and entry[\"sha256\"] == checksum,\n            \"Altered or duplicate archived source\",\n        )\n        source_sha[name] = checksum\n        source_text[name] = contents\n    require(source_sha == main[\"source_sha256\"], \"Executed source map mismatch\")\n    require(len(source_sha) == 16, \"Executed primitive source inventory changed\")\n    for name, reviewed_sha in obj(review[\"scoped_source_sha256\"]).items():\n        require(\n            source_sha.get(name) == reviewed_sha,\n            \"Executed source differs from reviewed new6\",\n        )\n    original = source_text[\"benchmarks/analysis/torch/prefix/production/study.py\"]\n    asset_pins = obj(literal(original, \"MODEL_FILES\"))\n    require(\n        literal(original, \"DATA_SHA\") == DATA_SHA\n        and literal(original, \"REFERENCE_SHA\") == REFERENCE_SHA\n        and literal(original, \"INPUT_SHA\") == INPUT_SHA\n        and literal(original, \"MODEL_ID\") == MODEL_ID,\n        \"Original input contract changed\",\n    )\n    assets: Object = {\n        str(model / name): checksum for name, checksum in asset_pins.items()\n    }\n    data_path = ROOT / \"benchmarks/real/banking77-train-dev-menu6.jsonl\"\n    reference_path = ROOT / \"benchmarks/real/torch-fp32-reference77.json\"\n    assets.update({str(data_path): DATA_SHA, str(reference_path): REFERENCE_SHA})\n    require(main[\"asset_sha256\"] == assets, \"Asset inventory mismatch\")\n    for path, asset_sha in assets.items():\n        require(sha(Path(path)) == text(asset_sha), \"Pinned actual asset changed\")\n    package = pinned(\n        ROOT / \"benchmarks/real/package-cpu-prefix-production-verification.json\",\n        PACKAGE_SHA,\n    )\n    runtime = obj(package[\"production_source_sha256\"])\n    require(\n        len(runtime) == 22 and review[\"production_source_sha256\"] == runtime,\n        \"Expected reviewed original production22\",\n    )\n    for path, runtime_sha in runtime.items():\n        require(sha(ROOT / path) == text(runtime_sha), \"Production runtime changed\")\n    cases = [\n        cast(Json, json.loads(line)) for line in data_path.read_text().splitlines()\n    ]\n    canonical = json.dumps(\n        cases,\n        ensure_ascii=False,\n        sort_keys=True,\n        separators=(\",\", \":\"),\n        allow_nan=False,\n    ).encode()\n    require(\n        len(cases) == 77 and hashlib.sha256(canonical).hexdigest() == INPUT_SHA,\n        \"Original ordered requests changed\",\n    )\n    reference = pinned(reference_path, REFERENCE_SHA)\n    rows = [obj(v) for v in items(reference[\"rows\"])]\n    require(\n        len(rows) == 77 and reference[\"model_id\"] == MODEL_ID,\n        \"Reference model identity changed\",\n    )\n    protocol = obj(main[\"protocol\"])\n    require(\n        protocol[\"profiles\"]\n        == [[label, list(offsets)] for label, offsets, _ in PROFILES]\n        and protocol[\"orders\"] == [list(order) for order in ORDERS]\n        and protocol[\"arms\"] == list(ARMS)\n        and protocol[\"total_invocations\"] == 96\n        and protocol[\"threads\"] == 8\n        and protocol[\"dtype\"] == \"float32\"\n        and protocol[\"device\"] == \"cpu\",\n        \"Prospective primitive protocol changed\",\n    )\n    require(\n        protocol[\"projection_gate\"]\n        == {\"atol\": 1e-3, \"rtol\": 1e-3, \"rule\": \"symmetric max, not additive\"}\n        and protocol[\"eligibility\"]\n        == {\"all_four_operands\": True, \"median_minimum\": 1.12, \"p05_exclusive\": 1.0},\n        \"Declared primitive gates changed\",\n    )\n    require(\n        protocol[\"cold_calls\"] == 1\n        and protocol[\"warm_calls\"] == 1\n        and protocol[\"measured_calls_per_arm\"] == 6,\n        \"Invocation denominator changed\",\n    )\n    policy = obj(main[\"process_policy\"])\n    require(policy[\"cpu_autocast\"] is False, \"CPU precision policy mismatch\")\n    source_weights = SavedTensors(model / \"backbone/model.safetensors\")\n    weight_expected = b\"\".join(\n        source_weights.f32_bytes(f\"layers.0.self_attn.{name}_proj.weight\")\n        for name in (\"q\", \"k\", \"v\")\n    )\n    identities = obj(main[\"weight_identities\"])\n    cursor = 0\n    for name, width in ((\"q\", 2048), (\"k\", 1024), (\"v\", 1024)):\n        native = weight_expected[cursor : cursor + width * 1024 * 4]\n        identity = obj(identities[name])\n        require(\n            identity[\"shape\"] == [width, 1024]\n            and identity[\"dtype\"] == \"torch.float32\"\n            and identity[\"sha256\"] == hashlib.sha256(native).hexdigest(),\n            \"Authentic projection weight mismatch\",\n        )\n        cursor += len(native)\n    norm_bytes = source_weights.f32_bytes(\"layers.0.input_layernorm.weight\")\n    require(\n        obj(identities[\"norm\"])\n        == {\"sha256\": hashlib.sha256(norm_bytes).hexdigest(), \"epsilon\": 1e-6},\n        \"Authentic norm identity mismatch\",\n    )\n    require(\n        main[\"retained_projection_bytes\"] == 16_777_216\n        and main[\"setup_projection_logical_peak_bytes\"] == 33_554_432\n        and main[\"hypothetical_all28_projection_bytes\"] == 469_762_048,\n        \"Logical allocation accounting mismatch\",\n    )\n    schedule = [(stage, -1, arm) for stage in (\"cold\", \"warm\") for arm in ARMS] + [\n        (\"measured\", repeat, arm)\n        for repeat, order in enumerate(ORDERS)\n        for arm in order\n    ]\n    observations = [obj(v) for v in items(main[\"operands\"])]\n    require(len(observations) == 4, \"Incomplete primitive operands\")\n    reports: list[Json] = []\n    eligibility: dict[str, list[bool]] = {\"kv\": [], \"qkv\": []}\n    for entry, (label, offsets, input_shape) in zip(\n        observations, PROFILES, strict=True\n    ):\n        require(\n            entry[\"name\"] == label\n            and entry[\"completed\"] is True\n            and entry[\"pending_calls\"] == 0,\n            \"Incomplete primitive operand\",\n        )\n        metadata = obj(entry[\"input\"])\n        tokens = [items(rows[index][\"token_ids\"]) for index in offsets]\n        require(\n            metadata[\"strides\"]\n            == [\n                (input_shape[1] + (25 if input_shape[0] == 1 else 0)) * 1024,\n                1024,\n                1,\n            ],\n            \"Input layout changed\",\n        )\n        require(\n            metadata[\"case_offsets\"] == list(offsets)\n            and metadata[\"case_ids\"] == [rows[index][\"id\"] for index in offsets]\n            and metadata[\"token_ids\"] == tokens\n            and metadata[\"full_lengths\"] == [len(t) for t in tokens]\n            and metadata[\"prefix_length\"] == 25\n            and metadata[\"shape\"] == list(input_shape)\n            and metadata[\"padded_full_length\"] == input_shape[1] + 25\n            and metadata[\"pad_id\"] == 151643,\n            \"Real token/operand geometry changed\",\n        )\n        padded = [\n            integer(v)\n            for token in tokens\n            for v in (*token, *([151643] * (input_shape[1] + 25 - len(token))))\n        ]\n        ids = b\"\".join(struct.pack(\"<q\", v) for v in padded)\n        require(\n            metadata[\"input_ids_sha256\"] == hashlib.sha256(ids).hexdigest(),\n            \"Actual padded token IDs differ\",\n        )\n        raw_path = args.main.with_name(\n            args.main.stem + \".\" + label + \".tensors.safetensors\"\n        )\n        require(\n            Path(text(entry[\"raw_tensors\"])) == raw_path\n            and sha(raw_path) == entry[\"raw_sha256\"],\n            \"Changed actual saved tensor payload\",\n        )\n        capture = SavedTensors(raw_path)\n        require(\n            capture.tensors[\"input\"].shape == input_shape\n            and capture.tensors[\"packed_weight\"].shape == (4096, 1024)\n            and capture.raw(\"packed_weight\") == weight_expected,\n            \"Input/weight raw geometry or exact packing changed\",\n        )\n        require(\n            hashlib.sha256(capture.raw(\"input\")).hexdigest()\n            == metadata[\"activation_sha256\"],\n            \"Normalized activation bytes changed\",\n        )\n        require(\n            all(math.isfinite(v) for v in capture.floats(\"input\")),\n            \"Nonfinite authentic operand\",\n        )\n        calls = [obj(v) for v in items(entry[\"calls\"])]\n        require(len(calls) == 24, \"Incomplete primitive call schedule\")\n        baseline = tuple(text(v) for v in items(calls[0][\"output_sha256\"]))\n        measured: dict[str, list[float]] = {arm: [] for arm in ARMS}\n        cache: dict[tuple[str, ...], Object] = {}\n        used_names = {\"input\", \"packed_weight\"}\n        for call, (stage, repeat, arm) in zip(calls, schedule, strict=True):\n            require(\n                (call[\"stage\"], call[\"repeat\"], call[\"arm\"]) == (stage, repeat, arm),\n                \"Changed balanced primitive order\",\n            )\n            hashes = tuple(text(v) for v in items(call[\"output_sha256\"]))\n            require(\n                len(hashes) == 3\n                and call[\"output_shapes\"]\n                == [list(input_shape[:-1]) + [width] for width in (2048, 1024, 1024)],\n                \"Output geometry changed\",\n            )\n            widths = (2048, 1024, 1024)\n            storage_widths = (\n                widths\n                if arm == \"separate\"\n                else ((2048, 2048, 2048) if arm == \"kv\" else (4096, 4096, 4096))\n            )\n            require(\n                call[\"output_strides\"]\n                == [[input_shape[1] * w, w, 1] for w in storage_widths],\n                \"Observed output layout changed\",\n            )\n            recorded_gate = obj(call[\"quality\"])\n            require(\n                recorded_gate.get(\"atol\") == 1e-3\n                and recorded_gate.get(\"rtol\") == 1e-3\n                and recorded_gate.get(\"rule\")\n                == \"abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))\",\n                \"Actual projection quality rule changed\",\n            )\n            if hashes not in cache:\n                gates: list[Object] = []\n                for name, checksum, original_checksum, width in zip(\n                    (\"q\", \"k\", \"v\"), hashes, baseline, (2048, 1024, 1024), strict=True\n                ):\n                    key, base_key = (\n                        name + \"-\" + checksum,\n                        name + \"-\" + original_checksum,\n                    )\n                    used_names.update((key, base_key))\n                    require(\n                        capture.tensors[key].shape == (*input_shape[:-1], width)\n                        and hashlib.sha256(capture.raw(key)).hexdigest() == checksum,\n                        \"Output SHA does not bind actual array\",\n                    )\n                    require(\n                        hashlib.sha256(capture.raw(base_key)).hexdigest()\n                        == original_checksum,\n                        \"Separate baseline output changed\",\n                    )\n                    gates.append(compare(capture.floats(base_key), capture.floats(key)))\n                cache[hashes] = {\n                    \"passed\": all(g[\"passed\"] is True for g in gates),\n                    \"finite\": all(g[\"finite\"] is True for g in gates),\n                    \"failed_elements\": sum(\n                        integer(g[\"failed_elements\"]) for g in gates\n                    ),\n                    \"max_absolute_error\": max(\n                        number(g[\"max_absolute_error\"]) for g in gates\n                    ),\n                    \"max_relative_error\": max(\n                        number(g[\"max_relative_error\"]) for g in gates\n                    ),\n                }\n            verify_gate(obj(call[\"quality\"]), cache[hashes])\n            require(\n                cache[hashes][\"passed\"] is True\n                and call[\"invalid_latency_repr\"] is None\n                and number(call[\"latency_ms\"]) > 0,\n                \"Observed primitive gate/timing failure\",\n            )\n            if stage == \"measured\":\n                measured[arm].append(number(call[\"latency_ms\"]))\n        require(set(capture.tensors) == used_names, \"Unexplained saved tensor payload\")\n        require(entry[\"measured_ms\"] == measured, \"Measured raw timings differ\")\n        stats: Object = {}\n        for arm in (\"kv\", \"qkv\"):\n            ratios = [\n                a / b for a, b in zip(measured[\"separate\"], measured[arm], strict=True)\n            ]\n            median, p05 = percentile(ratios, 0.5), percentile(ratios, 0.05)\n            reported = obj(obj(entry[\"statistics\"])[arm])\n            require(\n                reported == {\"ratios\": ratios, \"median\": median, \"p05\": p05},\n                \"Reported primitive metrics differ\",\n            )\n            eligible = median >= 1.12 and p05 > 1\n            eligibility[arm].append(eligible)\n            stats[arm] = {\n                \"ratios\": cast(list[Json], ratios),\n                \"median\": median,\n                \"p05\": p05,\n                \"eligible\": eligible,\n            }\n        reports.append(\n            {\n                \"name\": label,\n                \"actual_array_file_sha256\": sha(raw_path),\n                \"shape\": list(input_shape),\n                \"raw_calls\": 24,\n                \"independent_statistics\": stats,\n            }\n        )\n    eligibility_result = {arm: all(values) for arm, values in eligibility.items()}\n    require(\n        main[\"completed\"] is True\n        and main[\"quality_passed\"] is True\n        and main[\"primitive_eligible\"] == eligibility_result\n        and main[\"accepted\"] is False\n        and main[\"source_verified_after\"] is True\n        and main[\"asset_verified_after\"] is True\n        and main[\"threads_restored\"] is True\n        and main[\"phase\"] == \"complete\",\n        \"Terminal primitive result mismatch\",\n    )\n    return {\n        \"audit_passed\": True,\n        \"frameworks_imported\": [],\n        \"main_sha256\": args.main_sha,\n        \"wall_sha256\": args.wall_sha,\n        \"log_sha256\": args.log_sha,\n        \"archive_sha256\": args.archive_sha,\n        \"source_review_sha256\": args.source_review_sha,\n        \"executed_source_sha256\": source_sha,\n        \"outcome_count\": 96,\n        \"primitive_quality_passed\": True,\n        \"primitive_eligible\": cast(Object, eligibility_result),\n        \"accepted\": False,\n        \"operands\": reports,\n        \"limitations\": [\n            \"Saved separate FP32 outputs are parity oracle; \"\n            \"no independent full matrix multiplication recomputation.\",\n            \"Input/model/token/maintained-norm provenance and normalized array \"\n            \"bytes are checked; no independent bitwise Torch normalization replay.\",\n            \"Six primitive permutations do not establish engine gain, model \"\n            \"rank/probability quality, confidence bounds, ordinary full-model \"\n            \"critical path or production eligibility.\",\n            \"Logical storage counters are not RSS/peak memory or proof of \"\n            \"runtime alias lifetimes.\",\n            \"Historical executed source identities are validated from archived \"\n            \"text; current production22 is checked separately.\",\n        ],\n    }\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description=__doc__)\n    parser.add_argument(\"main\", type=Path)\n    parser.add_argument(\"--output\", type=Path, required=True)\n    for name in (\"main\", \"wall\", \"log\", \"archive\"):\n        parser.add_argument(\"--\" + name + \"-sha\", required=True)\n    parser.add_argument(\"--source-review\", type=Path, required=True)\n    parser.add_argument(\"--source-review-sha\", required=True)\n    args = parser.parse_args(namespace=Arguments())\n    require(not args.output.exists(), \"Preserve existing independent audit\")\n    report = audit(args)\n    source = Path(__file__)\n    report[\"audit_script\"] = {\n        \"path\": str(source),\n        \"sha256\": sha(source),\n        \"text\": source.read_text(),\n    }\n    with args.output.open(\"x\") as stream:\n        json.dump(report, stream, indent=2, allow_nan=False)\n        stream.write(\"\\n\")\n    print(\n        json.dumps(\n            {\n                \"audit_passed\": True,\n                \"primitive_eligible\": report[\"primitive_eligible\"],\n                \"audit_sha256\": sha(args.output),\n            },\n            allow_nan=False,\n        )\n    )\n\n\nif __name__ == \"__main__\":\n    main()\n"
+  }
+}

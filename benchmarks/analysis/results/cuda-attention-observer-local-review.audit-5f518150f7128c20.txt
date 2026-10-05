@@ -1,0 +1,160 @@
+"""Independent framework-free verification of local attention preparation evidence."""
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import cast
+
+ROOT = Path('/Users/teilomillet/Code/wyat')
+RESULTS = ROOT / 'benchmarks/analysis/results'
+
+
+def obj(value: object) -> dict[str, object]:
+    assert isinstance(value, dict)
+    return cast(dict[str, object], value)
+
+
+def sequence(value: object) -> list[object]:
+    assert isinstance(value, list)
+    return cast(list[object], value)
+
+
+def unique(items: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for name, value in items:
+        assert name not in result
+        result[name] = value
+    return result
+
+
+def nonfinite(token: str) -> object:
+    raise ValueError(token)
+
+
+def read(path: Path) -> dict[str, object]:
+    return obj(json.loads(path.read_bytes(), object_pairs_hook=unique, parse_constant=nonfinite))
+
+
+def sha(path: Path) -> str:
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def main() -> None:
+    started = time.perf_counter()
+    paths: dict[str, str] = {}
+    def pin(path: Path, expected: str | None = None) -> None:
+        value = sha(path)
+        assert expected is None or value == expected, str(path)
+        paths[str(path)] = value
+    receipt_path = ROOT / 'benchmarks/real/engine-attention-observer-verification.json'
+    pin(receipt_path, '96afbbdf568001c845f4892b4693f07a626911f479d3e99c338cf5657499d27e')
+    receipt = read(receipt_path)
+    archive_path = Path(cast(str, obj(receipt['source_archive'])['path']))
+    pin(archive_path, '59a4f08b99a399841af5e9df8f32a9949fcb3b6ea9f83fb77fc6ba109ccc39ed')
+    assert obj(receipt['source_archive'])['sha256'] == paths[str(archive_path)]
+    sources = [obj(x) for x in sequence(read(archive_path)['files'])]
+    table = obj(receipt['source_sha256'])
+    assert len(sources) == len(table) == receipt['maintained_python_files'] == 129
+    assert len({x['path'] for x in sources}) == 129
+    for source in sources:
+        name = cast(str, source['path'])
+        value = hashlib.sha256(cast(str, source['text']).encode()).hexdigest()
+        assert table[name] == source['sha256'] == value
+        pin(ROOT / name, value)
+    old_path = ROOT / 'benchmarks/real/engine-unroll-cuda-verification.json'
+    pin(old_path)
+    old = obj(read(old_path)['source_sha256'])
+    assert len(old) == 123
+    assert all(table[name] == value for name, value in old.items())
+    prior_path = ROOT / 'benchmarks/real/engine-attention-verification.json'
+    pin(prior_path)
+    prior = obj(read(prior_path)['source_sha256'])
+    assert set(prior) == set(table)
+    differences = sorted(name for name,value in table.items() if prior[name] != value)
+    assert differences == ['benchmarks/analysis/cuda/attention/study.py', 'benchmarks/analysis/cuda/attention/trace.py', 'tests/analysis/test_cuda_attention.py']
+    pin(RESULTS / 'cuda-attention-local-review.json', '7b903f46d0a93d4ff8bf4f6232f426aaee68e1fbfe2318c66c9433039a5320a8')
+    production = {name: value for name, value in table.items() if name.startswith('wyat/')}
+    assert len(production) == 20
+    assert obj(receipt['production_identity'])['unchanged_files'] == 20
+    assert receipt['completed'] is True and receipt['source_bytes_unchanged_after_checks'] is True
+    verifier = obj(receipt['verifier'])
+    assert hashlib.sha256(cast(str, verifier['text']).encode()).hexdigest() == verifier['sha256']
+    checks = obj(receipt['checks'])
+    for name, raw in checks.items():
+        check = obj(raw)
+        assert check['exit_code'] == 0 and check['timed_out'] is False and check['reaped'] is True
+        assert float(cast(float, check['seconds'])) < cast(int, check['cap_seconds'])
+        assert type(check['pid']) is int and check['stderr'] == ''
+        assert isinstance(check['command'], list)
+    stdout = cast(str, obj(checks['pytest'])['stdout'])
+    assert '777 passed, 1 warning in 10.91s' in stdout and 'skipped' not in stdout and 'failed' not in stdout
+    assert obj(checks['pytest'])['cap_seconds'] == 120
+    assert obj(checks['ruff_lint'])['stdout'] == 'All checks passed!\n'
+    assert obj(checks['ruff_format'])['stdout'] == '135 files already formatted\n'
+    assert obj(checks['mypy'])['stdout'] == 'Success: no issues found in 129 source files\n'
+    manifest_path = RESULTS / 'cuda-transfer-manifest-v2-20261005.json'
+    pin(manifest_path, 'f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866')
+    assets = [obj(x) for x in sequence(read(manifest_path)['files'])]
+    assert len(assets) == 44
+    for asset in assets:
+        path = ROOT / cast(str, asset['path'])
+        assert path.stat().st_size == asset['bytes']
+        pin(path, cast(str, asset['sha256']))
+    declaration_path = Path(sys.argv[1])
+    pin(declaration_path, sys.argv[2])
+    declaration = read(declaration_path)
+    assert len(declaration) == 7
+    for name, value in declaration.items():
+        pin(ROOT / name, cast(str, value))
+        if name.endswith('.py'):
+            assert table[name] == value
+    original_declaration = RESULTS / 'cuda-attention-source-declaration-20261005.json'
+    pin(original_declaration, '71f72524e94055a7626dfc1d74af63508dfbb4578d3816090cd79cdf69328ad7')
+    original_raw = RESULTS / 'cuda-attention-b1.json'
+    pin(original_raw, '80c4c331e891901bc704245177c8d9dae5975881274f5390ef41acad1d420d43')
+    pin(RESULTS / 'cuda-attention-b1-review.json', '62a0676e5e0afa51586da31076a2edd0bf159a3570c98a277f4c4f95c244ab9f')
+    original_archive_path = RESULTS / 'cuda-attention-b1.sources-766517e920343a96.json'
+    pin(original_archive_path, '766517e920343a9637f70a3aeddd251e5808eebb65ae24abe87b3676e022395e')
+    original_sources = [obj(x) for x in sequence(read(original_archive_path)['files'])]
+    original_table = obj(read(original_raw)['source_sha256'])
+    assert len(original_sources) == len(original_table) == 43
+    for source in original_sources:
+        assert hashlib.sha256(cast(str,source['text']).encode()).hexdigest() == source['sha256'] == original_table[cast(str,source['name'])]
+    original_differences = sorted(name for name in declaration if read(original_declaration)[name] != declaration[name])
+    assert original_differences == sorted(differences + ['docs/analysis/attention.md'])
+    for name, expected in (
+        ('cuda-fp32-b1.json', 'd528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167'),
+        ('cuda-fp32-b1.wall.json', 'cb00f5f065a04e5c598da04cb3e57a7b75bbaedeb1407dc6ebbb0dd806f4dc8e'),
+        ('cuda-fp32-b1-review.json', '1a5d5118549d6e3c0fee67378d859abd269f565d4f3f07a4f1b8f61ebb0f287e'),
+        ('cuda-fp32-b1.sources-ae4a797635edfbd1.json', 'ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf'),
+    ):
+        pin(RESULTS / name, expected)
+    output = RESULTS / 'cuda-attention-observer-local-review.json'
+    source = Path(__file__).read_bytes()
+    source_sha = hashlib.sha256(source).hexdigest()
+    archive = output.with_suffix(f'.audit-{source_sha[:16]}.txt')
+    with archive.open('xb') as stream:
+        stream.write(source)
+    result = dict(passed=True,scope='Framework-free local tooling preparation audit; no model/GPU execution',
+                  captured_utc=datetime.now(timezone.utc).isoformat(),source_count=129,preserved_prior_sources=123,
+                  production_files_unchanged=20,asset_count=44,new_declaration_files=7,approved_python_differences=differences,separate_declared_doc_difference='docs/analysis/attention.md',original_real_sources_preserved=43,pytest=dict(passed=777,skipped=0,warnings=1,child_seconds=10.91,parent_seconds=obj(checks['pytest'])['seconds']),
+                  recorded_checks=checks,archive_sha256=paths[str(archive_path)],artifact_sha256=paths,
+                  audit_script=dict(path=str(archive),sha256=source_sha,text=source.decode()),
+                  elapsed_seconds=time.perf_counter()-started,frameworks_imported=[x for x in ('torch','transformers','mlx','numpy') if x in sys.modules],
+                  limits=['Verification rechecks recorded command outcomes and exact source bytes; it does not independently rerun tests.',
+                          '777 native local tests support tooling only; efficient CUDA eligibility, actual GPU dispatch, first8/full77 model quality and speed remain unknown.',
+                          'Ruff135 and typed129 are distinct recorded command scopes; historical results/source text archives are not maintained Python modules.',
+                          'User-approved exact transfer remains operationally separate; this audit performs no network or GPU allocation.'])
+    assert result['frameworks_imported'] == []
+    with output.open('x') as stream:
+        json.dump(result,stream,indent=2,allow_nan=False);stream.write('\n')
+    print(json.dumps(dict(path=str(output),sha256=sha(output),passed=True,elapsed_seconds=result['elapsed_seconds'])))
+
+
+if __name__ == '__main__':
+    main()

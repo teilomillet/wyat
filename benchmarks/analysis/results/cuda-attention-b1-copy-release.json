@@ -1,0 +1,157 @@
+{
+  "source": "import base64, hashlib, json, subprocess\nfrom pathlib import Path\nroot=Path(\"/home/teilo/tmp/wyat-cuda-20261005\")\nbase=root/\"benchmarks/analysis/results/cuda-attention-b1.json\"\nsaved=json.loads(base.read_text())\npaths=[base,base.with_suffix(\".wall.json\"),base.with_suffix(\".log\")]\nif \"source_archive\" in saved:\n    paths.append(Path(saved[\"source_archive\"][\"path\"]))\nfiles=[]\nfor path in paths:\n    data=path.read_bytes()\n    files.append({\"path\":str(path.relative_to(root)),\"bytes\":len(data),\"sha256\":hashlib.sha256(data).hexdigest(),\"base64\":base64.b64encode(data).decode(\"ascii\")})\nqueries=[]\nfor command in ([\"nvidia-smi\",\"--query-gpu=memory.used,utilization.gpu\",\"--format=csv,noheader,nounits\"],[\"nvidia-smi\",\"--query-compute-apps=pid,process_name,used_memory\",\"--format=csv,noheader,nounits\"],[\"pgrep\",\"-af\",\"benchmarks.analysis.cuda.attention.run\"]):\n    result=subprocess.run(command,capture_output=True,text=True,timeout=5,check=False)\n    queries.append({\"command\":command,\"exit_code\":result.returncode,\"stdout\":result.stdout,\"stderr\":result.stderr})\nprint(json.dumps({\"files\":files,\"release_queries\":queries,\"summary\":{key:saved.get(key) for key in (\"completed\",\"quality_passed\",\"dispatch_passed\",\"phase\",\"error\",\"case_ids\",\"unknown_case_ids\",\"math_drift\",\"efficient_drift\")}},sort_keys=True))\n",
+  "command": "ssh -o BatchMode=yes -o ConnectTimeout=8 gpu 'cd /home/teilo/tmp/wyat-cuda-20261005 && env/bin/python -' > /private/tmp/wyat-attention-b1-copy.json <<'WYAT_COPY'\nimport base64, hashlib, json, subprocess\nfrom pathlib import Path\nroot=Path(\"/home/teilo/tmp/wyat-cuda-20261005\")\nbase=root/\"benchmarks/analysis/results/cuda-attention-b1.json\"\nsaved=json.loads(base.read_text())\npaths=[base,base.with_suffix(\".wall.json\"),base.with_suffix(\".log\")]\nif \"source_archive\" in saved:\n    paths.append(Path(saved[\"source_archive\"][\"path\"]))\nfiles=[]\nfor path in paths:\n    data=path.read_bytes()\n    files.append({\"path\":str(path.relative_to(root)),\"bytes\":len(data),\"sha256\":hashlib.sha256(data).hexdigest(),\"base64\":base64.b64encode(data).decode(\"ascii\")})\nqueries=[]\nfor command in ([\"nvidia-smi\",\"--query-gpu=memory.used,utilization.gpu\",\"--format=csv,noheader,nounits\"],[\"nvidia-smi\",\"--query-compute-apps=pid,process_name,used_memory\",\"--format=csv,noheader,nounits\"],[\"pgrep\",\"-af\",\"benchmarks.analysis.cuda.attention.run\"]):\n    result=subprocess.run(command,capture_output=True,text=True,timeout=5,check=False)\n    queries.append({\"command\":command,\"exit_code\":result.returncode,\"stdout\":result.stdout,\"stderr\":result.stderr})\nprint(json.dumps({\"files\":files,\"release_queries\":queries,\"summary\":{key:saved.get(key) for key in (\"completed\",\"quality_passed\",\"dispatch_passed\",\"phase\",\"error\",\"case_ids\",\"unknown_case_ids\",\"math_drift\",\"efficient_drift\")}},sort_keys=True))\n\nWYAT_COPY",
+  "initial": {
+    "chunk_id": "21ab2e",
+    "wall_time_seconds": 1.002587209,
+    "session_id": 93741,
+    "original_token_count": 0,
+    "output": ""
+  },
+  "terminal": {
+    "chunk_id": "4c0c8c",
+    "wall_time_seconds": 1.2541e-05,
+    "exit_code": 0,
+    "original_token_count": 0,
+    "output": ""
+  },
+  "first_retrieval": {
+    "exit_code": 0,
+    "original_token_count": 827714,
+    "display_truncated": true
+  },
+  "recorded_utc": "2026-10-05T08:03:25.045553+00:00",
+  "files": [
+    {
+      "bytes": 2145793,
+      "path": "benchmarks/analysis/results/cuda-attention-b1.json",
+      "sha256": "80c4c331e891901bc704245177c8d9dae5975881274f5390ef41acad1d420d43"
+    },
+    {
+      "bytes": 1031,
+      "path": "benchmarks/analysis/results/cuda-attention-b1.wall.json",
+      "sha256": "bf14241e10f6e782422baaae25ca412c4163810c13812af5aca56f572ccbd478"
+    },
+    {
+      "bytes": 1371,
+      "path": "benchmarks/analysis/results/cuda-attention-b1.log",
+      "sha256": "ae44f37e01b7e4d5d4c1635a46e1987e904cd29aeb32edfb0ee5a1d07153c31b"
+    },
+    {
+      "bytes": 332717,
+      "path": "benchmarks/analysis/results/cuda-attention-b1.sources-766517e920343a96.json",
+      "sha256": "766517e920343a9637f70a3aeddd251e5808eebb65ae24abe87b3676e022395e"
+    }
+  ],
+  "release_queries": [
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=memory.used,utilization.gpu",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "128, 0\n"
+    },
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "pgrep",
+        "-af",
+        "benchmarks.analysis.cuda.attention.run"
+      ],
+      "exit_code": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "summary": {
+    "case_ids": [
+      "banking77-train-05698",
+      "banking77-train-09214",
+      "banking77-train-01636",
+      "banking77-train-09708",
+      "banking77-train-04562",
+      "banking77-train-01221",
+      "banking77-train-08638",
+      "banking77-train-03357"
+    ],
+    "completed": true,
+    "dispatch_passed": false,
+    "efficient_drift": {
+      "cpu_reference": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 1.2040138244628906e-05,
+        "max_abs_probability_difference": 1.3443644467231453e-06,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      },
+      "cuda_control": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 5.4836273193359375e-06,
+        "max_abs_probability_difference": 9.256787782963016e-07,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      }
+    },
+    "error": null,
+    "math_drift": {
+      "cpu_reference": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 9.119510650634766e-06,
+        "max_abs_probability_difference": 8.503759042488568e-07,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      },
+      "cuda_control": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 0.0,
+        "max_abs_probability_difference": 0.0,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      }
+    },
+    "phase": "completed",
+    "quality_passed": true,
+    "unknown_case_ids": {
+      "efficient_ordinary": [],
+      "efficient_profile": [],
+      "math_ordinary": [],
+      "math_profile": []
+    }
+  }
+}

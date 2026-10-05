@@ -1,0 +1,321 @@
+"""Independent stdlib-only identity receipt for the QKV primitive source gate."""
+
+from __future__ import annotations
+
+import ast
+import hashlib
+import json
+import sys
+from pathlib import Path
+from typing import cast
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULTS = ROOT / "benchmarks/analysis/results"
+PINS = {
+    "benchmarks/analysis/torch/projection/__init__.py": (
+        "b235c0bfbc6e210e969126d81ba6e9cf42ef5ed4304dcd11bc2e8243f06d11b1"
+    ),
+    "benchmarks/analysis/torch/projection/qkv.py": (
+        "5ae53534cdcdf2b98c814056c5f25b6727d573f4216ab4a5f19c62c0a38df8a1"
+    ),
+    "benchmarks/analysis/torch/projection/study.py": (
+        "f7b847a8a436472f2a4c41f3a0ab045940a8aab0dd8895d7b253c16573810e87"
+    ),
+    "benchmarks/analysis/torch/projection/run.py": (
+        "a40a433052226e79ecedd1f9271a29f12c7a094c441bd5f66799050c6782e120"
+    ),
+    "tests/analysis/cpu/projection/test_qkv.py": (
+        "1e878f8b9e13d0c040e6b8fb01f28b37a6e2628717af3d3a5a1c87cda09c2f80"
+    ),
+    "docs/analysis/cpu/projection.md": (
+        "0e0c363b4699515deec022d29b65d747597149c84e1d57c77e1be95390395701"
+    ),
+}
+
+
+def digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read(path: Path) -> dict[str, object]:
+    value: object = json.loads(path.read_text())
+    assert isinstance(value, dict)
+    return cast(dict[str, object], value)
+
+
+def table(value: object) -> dict[str, str]:
+    assert isinstance(value, dict)
+    assert all(isinstance(k, str) and isinstance(v, str) for k, v in value.items())
+    return cast(dict[str, str], value)
+
+
+def main() -> None:
+    focused_path = RESULTS / "torch-qkv-focused-final.json"
+    focused_sha = "5c5568f099d729f3e8edb3d9d5251c673ea37944ac6d3e567a591fc3fe8560bc"
+    assert digest(focused_path) == focused_sha
+    focused = read(focused_path)
+    sources = table(focused["source_after"])
+    assert len(sources) == 28 and sources == table(focused["source_before"])
+    assert focused["source_unchanged"] is True
+    assert focused["production_source_count"] == 22
+    assert focused["scoped_source_count"] == 6
+    assert focused["exit_code"] == 0 and focused["timed_out"] is False
+    assert focused["reaped"] is True and focused["cap_seconds"] == 60
+    elapsed = focused["elapsed_seconds"]
+    assert isinstance(elapsed, float) and 0 < elapsed < 60
+    assert "13 passed in 2.88s" in cast(str, focused["stdout"])
+    assert {name: digest(ROOT / name) for name in sources} == sources
+    assert {name: sources[name] for name in PINS} == PINS
+    package_path = ROOT / (
+        "benchmarks/real/package-cpu-prefix-production-verification.json"
+    )
+    package_sha = "3a2a6e0999dee44fe71a06905efb35158d5b935b582b02c28043bec30acc2975"
+    assert digest(package_path) == package_sha
+    production = table(read(package_path)["production_source_sha256"])
+    assert len(production) == 22
+    assert {name: sources[name] for name in production} == production
+    assert set(sources) == set(production) | set(PINS)
+    initial_path = Path(cast(str, focused["prior_receipt"]))
+    initial_sha = "7ce21828705b3bb70e7e82c2f3bb9e3a1838653ea4e0b8ce23f8a8331dc298a9"
+    assert focused["prior_receipt_sha256"] == initial_sha
+    assert digest(initial_path) == initial_sha
+    initial = read(initial_path)
+    assert "11 passed" in cast(str, initial["stdout"])
+    initial_sources = table(initial["source_after"])
+    assert set(initial_sources) == set(PINS)
+    changed = {
+        name for name in initial_sources if initial_sources[name] != sources[name]
+    }
+    assert changed == {
+        "benchmarks/analysis/torch/projection/run.py",
+        "tests/analysis/cpu/projection/test_qkv.py",
+    }
+    run_path = ROOT / "benchmarks/analysis/torch/projection/run.py"
+    run_tree = ast.parse(run_path.read_text())
+    launcher = next(
+        node
+        for node in ast.walk(run_tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "launch"
+    )
+    assert ast.unparse(launcher.args[0]) == "__package__ + '.run'"
+    timeout = next(item.value for item in launcher.keywords if item.arg == "timeout")
+    assert ast.literal_eval(timeout) == 120
+    reference = read(ROOT / "benchmarks/real/torch-fp32-reference77.json")
+    rows = cast(list[dict[str, object]], reference["rows"])
+    assert len(rows) == 77
+    assert tuple(len(cast(list[int], rows[i]["token_ids"])) for i in (7, 18, 75)) == (
+        192,
+        197,
+        214,
+    )
+    assert max(len(cast(list[int], row["token_ids"])) for row in rows[:8]) == 192
+    tokenizer = read(ROOT / ".models/Decision-2.0-Kai-0.6B/tokenizer_config.json")
+    tokens = read(ROOT / ".models/Decision-2.0-Kai-0.6B/tokenizer.json")
+    assert tokenizer["pad_token"] == "<|endoftext|>"
+    assert [
+        item["id"]
+        for item in cast(list[dict[str, object]], tokens["added_tokens"])
+        if item["content"] == tokenizer["pad_token"]
+    ] == [151643]
+    assert not any(
+        name.split(".")[0] in {"torch", "transformers", "mlx", "numpy"}
+        for name in sys.modules
+    )
+    script = Path(__file__)
+    script_sha = digest(script)
+    archive = RESULTS / f"torch-qkv-independent-review.source-{script_sha[:16]}.txt"
+    output = RESULTS / "torch-qkv-independent-review.json"
+    assert not output.exists() and not archive.exists()
+    receipt: dict[str, object] = {
+        "schema_version": 1,
+        "passed": True,
+        "scope_approved": "source_only_authentic_layer0_fp32_projection_primitive",
+        "reviewer": "/root/contracts",
+        "reviewer_runtime_tests_performed": False,
+        "reviewer_model_jobs_performed": False,
+        "source_sha256": sources,
+        "scoped_source_sha256": PINS,
+        "production_source_sha256": production,
+        "production_files_unchanged": 22,
+        "package_baseline_sha256": package_sha,
+        "focused_receipt": {
+            "path": str(focused_path.relative_to(ROOT)),
+            "sha256": focused_sha,
+            "command": focused["command"],
+            "cap_seconds": 60,
+            "elapsed_seconds": elapsed,
+            "exit_code": 0,
+            "timed_out": False,
+            "reaped": True,
+            "stdout": focused["stdout"],
+            "source_before_after_current_match": True,
+            "runtime_scope": focused["runtime_scope"],
+            "supervisor_producer_attestation": (
+                "Cap/reap are recorded by the preserved focused receipt; exact "
+                "executed supervisor text was not independently supplied."
+            ),
+        },
+        "initial_focused_receipt": {
+            "path": str(initial_path),
+            "sha256": initial_sha,
+            "initial_11_tests_passed": True,
+            "limits": "Imported-module launcher test did not expose python-m context.",
+        },
+        "closed_findings": [
+            {
+                "finding": "Old autotune activation was MLP input, not QKV input.",
+                "resolution": (
+                    "Use released selected embedding rows and stock layer0 input "
+                    "RMSNorm; no old activation reuse."
+                ),
+            },
+            {
+                "finding": "Zero padding did not match production token packing.",
+                "resolution": (
+                    "Pinned tokenizer pad/EOS ID151643 replaces unsupported initial"
+                    " assumption."
+                ),
+            },
+            {
+                "finding": (
+                    "launch(__name__) becomes python-m __main__ in documented "
+                    "invocation."
+                ),
+                "resolution": (
+                    "launch(__package__+'.run') and explicit main-context regression."
+                ),
+            },
+            {
+                "finding": "Completion failure state needed direct negative evidence.",
+                "resolution": (
+                    "Final-save and thread-restoration negatives retain all96calls "
+                    "and clear eligibility/quality/completed."
+                ),
+            },
+        ],
+        "remaining_blockers": [],
+        "reviewer_initial_identity_check_failure": read(
+            Path("/private/tmp/wyat-review-qkv-source.initial-failure.json")
+        ),
+        "declared_worker_cap_seconds": 120,
+        "protocol": {
+            "arms": ["separate", "kv", "qkv"],
+            "operands": {
+                "scalar192": [1, 167, 1024],
+                "scalar197": [1, 172, 1024],
+                "scalar214": [1, 189, 1024],
+                "batch8": [8, 167, 1024],
+            },
+            "invocations": 96,
+            "schedule": (
+                "cold/warm each arm, then all six three-arm permutations per operand"
+            ),
+            "dtype": "float32",
+            "device": "cpu",
+            "threads": 8,
+            "prefix_length": 25,
+            "padding_id": 151643,
+            "norm_epsilon": 1e-6,
+            "one_packed_projection_bytes": 16777216,
+            "source_plus_packed_setup_projection_bytes": 33554432,
+            "eligibility": (
+                "Every operand paired median>=1.12 and samplep05>1; triage only."
+            ),
+            "projection_gate": (
+                "Finite FP32; abs(a-b)<=max(1e-3,1e-3*max(abs(a),abs(b)))."
+            ),
+        },
+        "reviewed_obligations": [
+            (
+                "All77 pinned ordered requests/token vectors/readout geometry "
+                "admitted before checkpoint operands."
+            ),
+            (
+                "Authentic layer0 input: released embedding rows then stock "
+                "token-local RMSNorm, suffixP25, exact physical pad151643; no "
+                "extra RoPE or backbone forward."
+            ),
+            (
+                "Exact-bit copied weights, one packed owner, separate/KV "
+                "contiguous weight views; output split and differing output "
+                "strides retained inside measured primitive scope."
+            ),
+            (
+                "Clock includes project/F.linear/splitting; source checks, "
+                "snapshots, hashing, quality and I/O remain outside it."
+            ),
+            (
+                "Produced output hashes and distinct raw tensor bytes persisted"
+                " before numerical/timing gate; bad output fails without "
+                "success state."
+            ),
+            (
+                "Unchanged process policy and FP32/no-autocast contract; "
+                "threads restored before positive completion."
+            ),
+            (
+                "On-disk source/archive/assets verified before setup and after "
+                "calls; no production or global precision changes."
+            ),
+            (
+                "Projection eligibility does not establish full model "
+                "ranks/probabilities, whole-engine gain, memory ceiling or "
+                "promotion."
+            ),
+        ],
+        "limits": [
+            (
+                "Reviewer ran stdlib identity checks only; focused "
+                "tiny/property/fake13 pass belongs to preserved author receipt."
+            ),
+            (
+                "No new checkpoint computation, CPU/Metal benchmark, model "
+                "forward or network action by reviewer."
+            ),
+            (
+                "Actual projection primitive execution is pending; whole-model "
+                "original numerical/probability/full-ranking gates remain "
+                "mandatory."
+            ),
+            (
+                "Recorded source hashes identify on-disk text, not native "
+                "binaries or imported runtime object identity."
+            ),
+            (
+                "Packed output strides may change downstream Q/K "
+                "normalization/RoPE cost; no downstream attention/server gain "
+                "claimed."
+            ),
+            (
+                "Four selected operands and six-order quantiles are a triage "
+                "assay, not confidence bounds or a portable speed result."
+            ),
+        ],
+        "identity_verifier": {
+            "command": [str(ROOT / ".venv/bin/python"), "-S", str(script)],
+            "source_archive": str(archive.relative_to(ROOT)),
+            "source_sha256": script_sha,
+            "framework_imports": [],
+        },
+    }
+    with archive.open("x") as handle:
+        handle.write(script.read_text())
+    with output.open("x") as handle:
+        handle.write(json.dumps(receipt, indent=2, allow_nan=False) + "\n")
+    print(
+        json.dumps(
+            {
+                "path": str(output),
+                "sha256": digest(output),
+                "reviewer_source_sha256": script_sha,
+                "production_count": 22,
+                "scoped_count": 6,
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

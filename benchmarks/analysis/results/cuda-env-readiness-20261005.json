@@ -1,0 +1,7 @@
+{
+  "captured_utc": "2026-10-05T06:38:01.001678+00:00",
+  "scope": "Authorized private environment import readiness; no model/tensor allocation",
+  "exit_code": 0,
+  "stdout": "{\"python\": \"3.12.13 (main, Apr 14 2026, 14:29:00) [Clang 22.1.3 ]\", \"packages\": {\"torch\": \"2.12.1\", \"transformers\": \"5.18.0\", \"safetensors\": \"0.8.0\", \"tokenizers\": \"0.23.2\", \"numpy\": \"2.5.3\", \"huggingface-hub\": \"1.33.0\"}, \"torch_source\": \"/home/teilo/Code/retrain/.venv/lib/python3.12/site-packages/torch/__init__.py\", \"qwen_source\": \"/home/teilo/tmp/wyat-cuda-20261005/env/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py\", \"cuda_initialized\": false, \"free_bytes\": 6249029632, \"base_transformers\": \"/home/teilo/Code/retrain/.venv/lib/python3.12/site-packages\", \"head_precision\": \"none\"}\n",
+  "stderr": ""
+}

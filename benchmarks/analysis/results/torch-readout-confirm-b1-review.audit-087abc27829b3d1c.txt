@@ -1,0 +1,622 @@
+"""Independent scalar readout confirmation audit; run only after root release.
+
+No framework imports or inference: immutable stdlib referee functions reconstruct
+frozen vectors, decisions, paired quality and the original four speed gates.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import hashlib
+import json
+import math
+import runpy
+from collections.abc import Callable
+from pathlib import Path
+from typing import cast
+
+type Json = None | bool | int | float | str | list[Json] | dict[str, Json]
+type Object = dict[str, Json]
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULTS = ROOT / "benchmarks/analysis/results"
+REFEREE = Path("/private/tmp/wyat-cpu-prefix-production-audit.py")
+REFEREE_SHA = "2353659ee2a2a1960581d90fa9bc1e33574a5d520a166e74f3cb838303f28a0b"
+CORE_SHA = "53a776840ce6d406a710b5beca586a38d4ae17e1a2e55e3f0c35e605fd7e1c2e"
+SCREEN_REVIEW_SHA = "b42ef790a0de67ddddc4265946e3d478e11dafcc8b05fb6b55eda2653a4040cd"
+SCHEDULE = (
+    ("screen", "retained"),
+    ("screen", "selected"),
+    ("warmup", "retained"),
+    ("warmup", "selected"),
+    *(
+        ("measured", arm)
+        for pair in range(5)
+        for arm in (
+            ("retained", "selected") if pair % 2 == 0 else ("selected", "retained")
+        )
+    ),
+)
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise ValueError(message)
+
+
+def sha(path: Path) -> str:
+    with path.open("rb") as handle:
+        return hashlib.file_digest(handle, "sha256").hexdigest()
+
+
+def literal(source: str, name: str) -> Object:
+    """Read a frozen top-level constant without executing model/benchmark code."""
+    for node in ast.parse(source).body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(target, ast.Name) and target.id == name
+            for target in node.targets
+        ):
+            return cast(Object, ast.literal_eval(node.value))
+    raise ValueError("Missing archived constant " + name)
+
+
+class Arguments(argparse.Namespace):
+    main: Path
+    output: Path
+    main_sha: str
+    journal_sha: str
+    wall_sha: str
+    archive_sha: str
+    log_sha: str
+    source_gate: Path
+    source_gate_sha: str
+
+
+def audit(args: Arguments) -> Object:
+    require(sha(REFEREE) == REFEREE_SHA, "Immutable stdlib referee changed")
+    helpers = runpy.run_path(str(REFEREE))
+    obj = cast(Callable[[Json], Object], helpers["obj"])
+    array = cast(Callable[[Json], list[Json]], helpers["array"])
+    text = cast(Callable[[Json], str], helpers["text"])
+    pinned = cast(Callable[[Path, str], Object], helpers["pinned"])
+    scores = cast(Callable[[Json], list[float]], helpers["logits"])
+    decide = cast(
+        Callable[[list[float], list[str]], tuple[list[float], list[str]]],
+        helpers["decision"],
+    )
+    compare = cast(
+        Callable[[list[float], list[float], list[str]], Object], helpers["compare"]
+    )
+    passed = cast(Callable[[Object], bool], helpers["gate_passed"])
+    canonical = cast(Callable[[list[Json]], str], helpers["canonical_digest"])
+    number = cast(Callable[[Json], float], helpers["number"])
+    percentile = cast(Callable[[list[float], float], float], helpers["percentile"])
+    native = cast(Callable[[], dict[str, str]], helpers["validate_baseline"])()
+    main = pinned(args.main, args.main_sha)
+    wall = pinned(args.main.with_suffix(".wall.json"), args.wall_sha)
+    require(
+        wall["timeout_seconds"] == 180
+        and wall["timed_out"] is False
+        and type(wall["exit_code"]) is int
+        and wall["exit_code"] in (0, 1)
+        and wall["completed"] is (wall["exit_code"] == 0)
+        and 0 <= number(wall["elapsed_seconds"]) <= 180,
+        "Owned parent cap/terminal unsupported",
+    )
+    command = [text(v) for v in array(wall["command"])]
+    entry = "benchmarks.analysis.torch.readout.confirm"
+    require(
+        entry in command
+        and "--worker" in command
+        and "--output" in command
+        and command[command.index("--output") + 1] == str(args.main),
+        "Wrong scalar worker",
+    )
+    model = Path(command[command.index(entry) + 1])
+    log = args.main.with_suffix(".log")
+    journal = args.main.with_suffix(".cycles.jsonl")
+    require(
+        sha(log) == args.log_sha and sha(journal) == args.journal_sha,
+        "Raw log/journal changed",
+    )
+    raw = [cast(Json, json.loads(line)) for line in journal.read_text().splitlines()]
+    archive_descriptor = obj(main["source_archive"])
+    require(
+        archive_descriptor["sha256"] == args.archive_sha, "Executed archive differs"
+    )
+    archive = pinned(Path(text(archive_descriptor["path"])), args.archive_sha)
+    sources: dict[str, str] = {}
+    source_text: dict[str, str] = {}
+    for value in array(archive["files"]):
+        row = obj(value)
+        name = text(row["name"])
+        path = text(row["path"])
+        contents = text(row["text"])
+        checksum = hashlib.sha256(contents.encode()).hexdigest()
+        require(
+            name not in sources and row["sha256"] == checksum,
+            "Duplicate/altered archive text",
+        )
+        require(sha(Path(path)) == checksum, "Executed current source changed")
+        if path in native:
+            require(native[path] == checksum, "Native-verified shared code changed")
+        sources[name] = checksum
+        source_text[name] = contents
+    require(sources == obj(main["source_sha256"]), "Executed source inventory differs")
+    expected_production = {
+        str(Path(path).relative_to(ROOT)): checksum
+        for path, checksum in native.items()
+        if Path(path).is_relative_to(ROOT / "wyat")
+    }
+    require(
+        len(expected_production) == 22
+        and all(
+            sources[name] == checksum for name, checksum in expected_production.items()
+        ),
+        "Production22 differs",
+    )
+    source_gate = pinned(args.source_gate, args.source_gate_sha)
+    core = pinned(RESULTS / "cpu-readout-core-review.json", CORE_SHA)
+    screen_review = pinned(
+        RESULTS / "torch-readout-first8-review.json", SCREEN_REVIEW_SHA
+    )
+    require(
+        core["passed"] is True and screen_review["audit_passed"] is True,
+        "Prior independent admission unsupported",
+    )
+    # The final source-review schema is checked once the owner supplies its pin.
+    review_sources = obj(source_gate["source_sha256"])
+    require(
+        source_gate["passed"] is True
+        and all(sources[name] == checksum for name, checksum in review_sources.items()),
+        "Final independently reviewed source differs",
+    )
+    for name, core_checksum in obj(core["source_sha256"]).items():
+        require(sources[name] == core_checksum, "Core mechanics source changed")
+    history = cast(Object, helpers["HISTORY"]) | literal(
+        source_text["benchmarks/analysis/torch/readout/study.py"], "HISTORY"
+    )
+    history |= literal(source_text[entry.replace(".", "/") + ".py"], "SCREEN_HISTORY")
+    history |= {"cpu-readout-core-review.json": CORE_SHA}
+    require(
+        obj(main["historical_sha256"]) == history, "Admission pin inventory differs"
+    )
+    for name, history_checksum in history.items():
+        require(
+            sha(RESULTS / name) == history_checksum,
+            "Admitted historical evidence changed",
+        )
+    screen_files = {
+        "main_sha256": "torch-readout-first8.json",
+        "journal_sha256": "torch-readout-first8.cycles.jsonl",
+        "wall_sha256": "torch-readout-first8.wall.json",
+        "source_archive_sha256": "torch-readout-first8.sources-7a31a5ea873ab0e2.json",
+    }
+    for field, name in screen_files.items():
+        require(screen_review[field] == history[name], "Screen raw audit pin differs")
+    require(
+        sha(RESULTS / "torch-readout-first8.log") == screen_review["log_sha256"],
+        "Screen log changed",
+    )
+    for name, archive_checksum in history.items():
+        if ".sources-" not in name:
+            continue
+        old_archive = pinned(RESULTS / name, text(archive_checksum))
+        names: dict[str, str] = {}
+        for value in array(old_archive["files"]):
+            old = obj(value)
+            old_name = text(old["name"])
+            old_checksum = hashlib.sha256(text(old["text"]).encode()).hexdigest()
+            require(
+                old_name not in names and old["sha256"] == old_checksum,
+                "Historical archived text differs",
+            )
+            names[old_name] = old_checksum
+        receipt_name = name.split(".sources-", 1)[0] + ".json"
+        old_receipt = pinned(RESULTS / receipt_name, text(history[receipt_name]))
+        require(
+            obj(old_receipt["source_sha256"]) == names,
+            "Historical executed source inventory differs",
+        )
+
+    data = ROOT / "benchmarks/real/banking77-train-dev-menu6.jsonl"
+    reference_path = ROOT / "benchmarks/real/torch-fp32-reference77.json"
+    data_sha = cast(str, helpers["DATA_SHA"])
+    reference_sha = cast(str, helpers["REFERENCE_SHA"])
+    model_id = cast(str, helpers["MODEL_ID"])
+    input_sha = cast(str, helpers["INPUT_SHA"])
+    require(
+        sha(data) == data_sha and sha(reference_path) == reference_sha,
+        "Frozen input/reference changed",
+    )
+    raw_cases = [cast(Json, json.loads(line)) for line in data.read_text().splitlines()]
+    require(
+        len(raw_cases) == 77 and canonical(raw_cases) == input_sha,
+        "Canonical77 identity differs",
+    )
+    cases = [obj(v) for v in raw_cases]
+    reference = pinned(reference_path, reference_sha)
+    refs = [obj(v) for v in array(reference["rows"])]
+    require(
+        len(refs) == 77
+        and reference["model_id"] == model_id
+        and reference["dataset_sha256"] == data_sha,
+        "Frozen reference identity differs",
+    )
+    prefix = array(refs[0]["token_ids"])[:25]
+    for case, ref in zip(cases, refs, strict=True):
+        ids = [text(obj(c)["id"]) for c in array(obj(case["request"])["candidates"])]
+        tokens = array(ref["token_ids"])
+        positions = array(ref["candidate_positions"])
+        require(
+            ref["id"] == case["id"]
+            and ref["candidate_ids"] == ids
+            and len(ids) == 6
+            and array(ref["token_ids"])[:25] == prefix
+            and 25 < len(tokens) <= 512
+            and all(type(t) is int for t in tokens)
+            and ref["query_position"] == len(tokens) - 1
+            and len(positions) == 6
+            and all(type(p) is int and 25 <= p < len(tokens) for p in positions),
+            "Frozen token/candidate geometry differs",
+        )
+    require(
+        main["model_id"] == model_id
+        and main["dataset_sha256"] == data_sha
+        and main["reference_sha256"] == reference_sha
+        and main["input_sha256"] == input_sha
+        and main["case_ids"] == [c["id"] for c in cases]
+        and main["prefix_tokens"] == prefix
+        and main["token_lengths"] == [len(array(r["token_ids"])) for r in refs]
+        and main["prefix_state_bytes"] == [5734400, 5734400],
+        "Consumed full77 identity differs",
+    )
+    assets = {str(data): data_sha, str(reference_path): reference_sha}
+    assets.update(
+        {
+            str(model / name): checksum
+            for name, checksum in cast(dict[str, str], helpers["MODEL_FILES"]).items()
+        }
+    )
+    require(
+        obj(main["asset_sha256"]) == assets
+        and all(sha(Path(name)) == checksum for name, checksum in assets.items()),
+        "Nine model/input asset identity differs",
+    )
+    require(
+        main["batch_size"] == 1 and main["dispatch_observed"] is False,
+        "Scalar/unprofiled contract differs",
+    )
+    policy = {
+        "flash_sdpa": True,
+        "math_sdpa": True,
+        "efficient_sdpa": True,
+        "cudnn_sdpa": True,
+        "float32_matmul_precision": "highest",
+        "cpu_autocast": False,
+    }
+    require(obj(main["process_policy"]) == policy, "Process policy changed")
+    require(
+        obj(main["sdpa_flags"])
+        == {
+            "_is_torch_mps_available": True,
+            "_is_torch_greater_or_equal_than_2_13": True,
+        },
+        "Native HF context differs",
+    )
+    runtime = obj(main["runtime"])
+    require(
+        obj(runtime["packages"])["torch"] == "2.14.1"
+        and obj(runtime["packages"])["transformers"] == "5.18.0"
+        and runtime["torch_git_version"] == "5c4886908584029761b579af026dcfb627c84070",
+        "Runtime differs",
+    )
+    protocol = obj(main["protocol"])
+    require(
+        protocol["schedule"] == [list(v) for v in SCHEDULE]
+        and protocol["outcomes"] == 1078
+        and protocol["device"] == "cpu"
+        and protocol["dtype"] == "float32"
+        and protocol["threads"] == 8
+        and protocol["prefix_length"] == 25
+        and protocol["max_length"] == 512
+        and protocol["token_cache_size"] == 0,
+        "Scalar protocol differs",
+    )
+    require(
+        obj(main["quality_gate"])
+        == {"logit_atol": 1e-3, "logit_rtol": 1e-3, "probability_atol": 1e-4},
+        "Numerical gate changed",
+    )
+    require(
+        obj(main["performance_gate"])
+        == {
+            "paired_median_minimum": 1.02,
+            "paired_p05_minimum_exclusive": 1.0,
+            "aggregate_throughput_ratio_minimum_exclusive": 1.0,
+            "candidate_cohort_p95_maximum_ratio": 1.0,
+        },
+        "Four prospective gates changed",
+    )
+    cycles = [obj(v) for v in array(main["cycles"])]
+    require(len(cycles) == len(raw) <= 14, "Raw partial schedule differs")
+    outcomes: list[Json] = []
+    paired_gates: list[Json] = []
+    quality = True
+    correct_total = 0
+    groups: dict[tuple[str, int], dict[str, list[list[float] | None]]] = {}
+    anchors: dict[str, list[list[float] | None]] = {}
+    measured: dict[str, list[float]] = {"retained": [], "selected": []}
+    for index, row in enumerate(cycles):
+        stage, arm = SCHEDULE[index]
+        repeat = (index - 4) // 2 if stage == "measured" else 0
+        require(
+            row["index"] == index and row["stage"] == stage and row["arm"] == arm,
+            "Chronological schedule differs",
+        )
+        require(
+            {
+                k: v
+                for k, v in row.items()
+                if k not in ("reference_quality", "anchor_quality")
+            }
+            == obj(raw[index]),
+            "Journal changed beyond later quality fields",
+        )
+        cycle = obj(row["cycle"])
+        rows = [obj(v) for v in array(cycle["rows"])]
+        require(len(rows) == 77, "Raw77 denominator incomplete")
+        elapsed = number(cycle["latency_ms"])
+        require(elapsed > 0, "Invalid canonical timing")
+        if stage == "measured":
+            measured[arm].append(elapsed)
+        correct = 0
+        unknown: list[str] = []
+        current: list[list[float] | None] = []
+        for case, ref, result in zip(cases, refs, rows, strict=True):
+            require(
+                result["id"] == case["id"] and result["expected"] == case["expected"],
+                "Output gold/ID differs",
+            )
+            number(result["latency_ms"])
+            if result["prediction"] is None:
+                require(result["correct"] is False, "Unknown marked correct")
+                quality = False
+                unknown.append(text(result["id"]))
+                current.append(None)
+                outcomes.append(
+                    {"index": index, "id": result["id"], "failed_or_missing": True}
+                )
+                continue
+            require(
+                result["status"] == "ok" and result["error"] is None,
+                "Failed outcome has prediction",
+            )
+            prediction = obj(result["prediction"])
+            actual = scores(prediction["scores"])
+            ids = [text(v) for v in array(ref["candidate_ids"])]
+            probabilities, ranking = decide(actual, ids)
+            serialized = scores(prediction["probabilities"])
+            require(
+                len(serialized) == 6
+                and all(
+                    abs(a - b) <= 2 * max(math.ulp(a), math.ulp(b))
+                    for a, b in zip(probabilities, serialized, strict=True)
+                ),
+                "Softmax replay differs",
+            )
+            require(
+                prediction["model_id"] == model_id
+                and prediction["ranking"] == ranking
+                and prediction["selected"] == ranking[0],
+                "Full rank/selection replay differs",
+            )
+            is_correct = ranking[0] in array(case["expected"])
+            require(result["correct"] is is_correct, "Correctness replay differs")
+            correct += is_correct
+            gate = compare(scores(ref["legacy_logits"]), actual, ids)
+            reference_prob, _ = decide(scores(ref["legacy_logits"]), ids)
+            gate["serialized_probabilities_passed"] = all(
+                abs(a - b) <= 1e-4
+                for a, b in zip(reference_prob, serialized, strict=True)
+            )
+            quality &= passed(gate) and gate["serialized_probabilities_passed"] is True
+            current.append(actual)
+            outcomes.append(
+                {
+                    "index": index,
+                    "id": result["id"],
+                    "expected": case["expected"],
+                    "candidate_ids": cast(Json, ids),
+                    "scores": cast(Json, actual),
+                    "probabilities": cast(Json, serialized),
+                    "ranking": cast(Json, ranking),
+                    "selected": ranking[0],
+                    "correct": is_correct,
+                    "reference_gate": gate,
+                }
+            )
+        require(
+            row["unknown_case_ids"] == unknown
+            and cycle["failed"] == len(unknown)
+            and cycle["correct"] == correct,
+            "Failure/accuracy bookkeeping differs",
+        )
+        correct_total += correct
+        for anchor_arm, anchor in anchors.items():
+            for ref, a, b in zip(refs, anchor, current, strict=True):
+                if a is None or b is None:
+                    quality = False
+                    continue
+                gate = compare(a, b, [text(v) for v in array(ref["candidate_ids"])])
+                quality &= passed(gate)
+                paired_gates.append(
+                    {
+                        "stage": stage,
+                        "index": index,
+                        "anchor_arm": anchor_arm,
+                        "id": ref["id"],
+                        "gate": gate,
+                    }
+                )
+        anchors.setdefault(arm, current)
+        groups.setdefault((stage, repeat), {})[arm] = current
+    for (stage, repeat), group in groups.items():
+        if len(group) != 2:
+            continue
+        for ref, a, b in zip(refs, group["retained"], group["selected"], strict=True):
+            if a is None or b is None:
+                quality = False
+                continue
+            gate = compare(a, b, [text(v) for v in array(ref["candidate_ids"])])
+            quality &= passed(gate)
+            paired_gates.append(
+                {"stage": stage, "repeat": repeat, "id": ref["id"], "gate": gate}
+            )
+    complete = len(cycles) == 14
+    observed: Object = {}
+    speed = False
+    ratios: list[float] = []
+    require(
+        main["pending_cohorts"] == list(range(len(cycles), 14)),
+        "Unstarted cohorts differ",
+    )
+    if complete and main["completed"] is True:
+        left = measured["retained"]
+        right = measured["selected"]
+        require(len(left) == len(right) == 5, "Five complete pairs required")
+        ratios = [a / b for a, b in zip(left, right, strict=True)]
+        observed = {
+            "paired_median": percentile(ratios, 0.5),
+            "paired_p05": percentile(ratios, 0.05),
+            "aggregate_throughput_ratio": math.fsum(left) / math.fsum(right),
+            "candidate_cohort_p95_ratio": percentile(right, 0.95)
+            / percentile(left, 0.95),
+        }
+        require(
+            obj(main["performance_observed"]) == observed,
+            "Four raw speed metrics differ",
+        )
+        speed = (
+            cast(float, observed["paired_median"]) >= 1.02
+            and cast(float, observed["paired_p05"]) > 1
+            and cast(float, observed["aggregate_throughput_ratio"]) > 1
+            and cast(float, observed["candidate_cohort_p95_ratio"]) <= 1
+        )
+        require(
+            main["quality_passed"] is quality
+            and main["performance_passed"] is speed
+            and main["accepted"] is (quality and speed),
+            "Selection flags differ",
+        )
+        require(
+            main["threads_restored"] is True
+            and main["source_verified_after"] is True
+            and main["asset_verified_after"] is True,
+            "Restoration/final integrity unsupported",
+        )
+        require(
+            wall["exit_code"] == (0 if quality else 1),
+            "Terminal quality status differs",
+        )
+    else:
+        require(
+            main["completed"] is False
+            and main["quality_passed"] is False
+            and main["performance_passed"] is False
+            and main["accepted"] is False
+            and wall["exit_code"] == 1,
+            "Partial failure unsupported",
+        )
+    return {
+        "audit_passed": True,
+        "mode": "scalar_confirmation",
+        "batch_size": 1,
+        "raw_outcomes": len(outcomes),
+        "correct_outcomes": correct_total,
+        "unique_cases": 77,
+        "complete_schedule": complete,
+        "independent_quality_passed": quality,
+        "independent_performance_passed": speed,
+        "independent_accepted": quality and speed,
+        "raw_reference_gates": outcomes,
+        "raw_paired_and_anchor_gates": paired_gates,
+        "individual_paired_ratios": cast(Json, ratios),
+        "recomputed_performance": observed,
+        "measured_cohort_ms": cast(Json, measured),
+        "raw_failures": sum(
+            1 for row in outcomes if obj(row).get("failed_or_missing") is True
+        ),
+        "unstarted_cohorts": main["pending_cohorts"],
+        "main_sha256": args.main_sha,
+        "journal_sha256": args.journal_sha,
+        "wall_sha256": args.wall_sha,
+        "log_sha256": args.log_sha,
+        "source_archive_sha256": args.archive_sha,
+        "source_gate_sha256": args.source_gate_sha,
+        "core_gate_sha256": CORE_SHA,
+        "screen_review_sha256": SCREEN_REVIEW_SHA,
+        "validated_source_count": len(sources),
+        "source_sha256": cast(Json, sources),
+        "asset_sha256": cast(Json, assets),
+        "history_sha256": main["historical_sha256"],
+        "producer": {
+            "path": str(Path(__file__)),
+            "sha256": sha(Path(__file__)),
+            "text": Path(__file__).read_text(),
+        },
+        "limits": [
+            "Training-source77 cases; checkpoint exposure unknown",
+            (
+                "Scalar assay unprofiled: native dispatch evidence belongs "
+                "to prior first8 B8 captures"
+            ),
+            (
+                "Sample p05 is interpolation, not a confidence bound "
+                "or all-pairs speed guarantee"
+            ),
+            "Source/build metadata does not attest every imported object/native binary",
+            (
+                "Fresh token equality source-attested by runner; auditor "
+                "validates frozen vectors and recorded geometry"
+            ),
+            (
+                "Derived serialized softmax permits two ULP only; "
+                "original engine gates unchanged"
+            ),
+        ],
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("main", type=Path)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--source-gate", type=Path, required=True)
+    parser.add_argument("--source-gate-sha", required=True)
+    for key in ("main", "journal", "wall", "archive", "log"):
+        parser.add_argument("--" + key + "-sha", required=True)
+    args = parser.parse_args(namespace=Arguments())
+    require(not args.output.exists(), "Preserve existing audit")
+    result = audit(args)
+    with args.output.open("x") as handle:
+        json.dump(result, handle, indent=2, allow_nan=False)
+        handle.write("\n")
+    print(
+        json.dumps(
+            {
+                key: result[key]
+                for key in (
+                    "audit_passed",
+                    "raw_outcomes",
+                    "independent_quality_passed",
+                    "independent_performance_passed",
+                    "independent_accepted",
+                )
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

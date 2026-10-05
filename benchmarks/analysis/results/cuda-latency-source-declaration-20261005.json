@@ -1,0 +1,7 @@
+{
+  "benchmarks/analysis/cuda/latency/__init__.py": "325640684bb19484bc79445ff4891e9a6d62a94bd57e8b5c3a9d7d4686f70273",
+  "benchmarks/analysis/cuda/latency/study.py": "bc05180187e224c79a85bd323689a674796e5aecd3ed316f5203a8c1e2a48e0a",
+  "benchmarks/analysis/cuda/latency/run.py": "5a2dca5b3e9f3880905a26831be66890ec03bfbb24d4dc80686fdc408103ed55",
+  "tests/analysis/test_cuda_latency.py": "3e92b411501359868fd189d6147a73b79f0770e43c39099388ce2a4cf7a61fc6",
+  "docs/analysis/latency.md": "a55aae2b48b1363b123bb9963a1e5f95ae239fb0fe988f134cba8a565e4a9938"
+}

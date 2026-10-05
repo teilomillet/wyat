@@ -1,0 +1,217 @@
+"""Stdlib identity check and amended source gate for owned-parent sidecars."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import sys
+from pathlib import Path
+from typing import cast
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULTS = ROOT / "benchmarks/analysis/results"
+
+
+def digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read(path: Path) -> dict[str, object]:
+    value: object = json.loads(path.read_text())
+    assert isinstance(value, dict)
+    return cast(dict[str, object], value)
+
+
+def table(value: object) -> dict[str, str]:
+    assert isinstance(value, dict)
+    assert all(isinstance(k, str) and isinstance(v, str) for k, v in value.items())
+    return cast(dict[str, str], value)
+
+
+def main() -> None:
+    old_path = RESULTS / "torch-qkv-independent-review.json"
+    old_sha = "aee9289012153219e133e4baafe6a4c13639629d7cfefb9306479249bec4a36d"
+    assert digest(old_path) == old_sha
+    old = read(old_path)
+    focused_path = RESULTS / "torch-qkv-focused-repair.json"
+    focused_sha = "86f78d4b4e4511eb22baf2eb11cf7a6ac7c08e07135174d4cf8230d1e5d79233"
+    assert digest(focused_path) == focused_sha
+    focused = read(focused_path)
+    sources = table(focused["source_after"])
+    assert len(sources) == 28 and sources == table(focused["source_before"])
+    assert focused["source_unchanged"] is True
+    assert focused["exit_code"] == 0 and focused["timed_out"] is False
+    assert focused["reaped"] is True and focused["cap_seconds"] == 60
+    elapsed = focused["elapsed_seconds"]
+    assert isinstance(elapsed, float) and 0 < elapsed < 60
+    assert "18 passed in 2.52s" in cast(str, focused["stdout"])
+    assert {name: digest(ROOT / name) for name in sources} == sources
+    prior = table(old["source_sha256"])
+    changed = {name for name in sources if prior[name] != sources[name]}
+    expected = {
+        "benchmarks/analysis/torch/projection/study.py": (
+            "b93cc46e898df16a563fde5e948836326ee02cc3d415046cfd1301a93367bd95"
+        ),
+        "tests/analysis/cpu/projection/test_qkv.py": (
+            "2784edd518a7e99a08dddedfb2b9aa45e2484e8ff57cd856c2ab2c6dedc2d798"
+        ),
+    }
+    assert changed == set(expected)
+    assert {name: sources[name] for name in expected} == expected
+    production = table(old["production_source_sha256"])
+    assert len(production) == 22
+    assert {name: sources[name] for name in production} == production
+    failed = table(focused["failed_initial_parent_files_before"])
+    assert failed == table(focused["failed_initial_parent_files_after"])
+    assert len(failed) == 2
+    assert {name: digest(ROOT / name) for name in failed} == failed
+    wall = read(RESULTS / "torch-qkv-primitive.wall.json")
+    assert wall["completed"] is False and wall["timed_out"] is False
+    assert wall["exit_code"] == 1 and wall["timeout_seconds"] == 120
+    assert not (RESULTS / "torch-qkv-primitive.json").exists()
+    assert (
+        "FileExistsError: Preserve existing primitive receipts"
+        in (RESULTS / "torch-qkv-primitive.log").read_text()
+    )
+    producer = cast(dict[str, object], focused["producer"])
+    producer_sha = hashlib.sha256(cast(str, producer["text"]).encode()).hexdigest()
+    assert producer_sha == producer["sha256"]
+    assert producer_sha == (
+        "049a91524a6649556a8242f027714778de4f83432e80291d5ca6a20adeb0b1e5"
+    )
+    assert not any(
+        name.split(".")[0] in {"torch", "transformers", "mlx", "numpy"}
+        for name in sys.modules
+    )
+    script = Path(__file__)
+    script_sha = digest(script)
+    archive_name = f"torch-qkv-independent-repair-review.source-{script_sha[:16]}.txt"
+    archive = RESULTS / archive_name
+    output = RESULTS / "torch-qkv-independent-repair-review.json"
+    assert not output.exists() and not archive.exists()
+    receipt: dict[str, object] = {
+        "schema_version": 1,
+        "passed": True,
+        "scope_approved": (
+            "source_only_authentic_layer0_fp32_projection_primitive_after_parent_sidecar_repair"
+        ),
+        "reviewer": "/root/contracts",
+        "reviewer_runtime_tests_performed": False,
+        "reviewer_model_jobs_performed": False,
+        "source_sha256": sources,
+        "scoped_source_sha256": {
+            name: sources[name] for name in table(old["scoped_source_sha256"])
+        },
+        "production_source_sha256": production,
+        "production_files_unchanged": 22,
+        "prior_source_review": {
+            "path": str(old_path.relative_to(ROOT)),
+            "sha256": old_sha,
+            "historical_bytes_preserved": True,
+        },
+        "changed_scoped_source_sha256": expected,
+        "focused_receipt": {
+            "path": str(focused_path.relative_to(ROOT)),
+            "sha256": focused_sha,
+            "command": focused["command"],
+            "cap_seconds": 60,
+            "elapsed_seconds": elapsed,
+            "exit_code": 0,
+            "timed_out": False,
+            "reaped": True,
+            "stdout": focused["stdout"],
+            "source_before_after_current_match": True,
+            "embedded_producer_sha256": producer_sha,
+            "embedded_producer_identity_validated": True,
+            "runtime_scope": focused["runtime_scope"],
+        },
+        "failed_initial_real_launch": {
+            "artifact_sha256": failed,
+            "elapsed_seconds": wall["elapsed_seconds"],
+            "exit_code": 1,
+            "timed_out": False,
+            "cap_seconds": 120,
+            "main_receipt_absent": True,
+            "numerical_or_performance_samples": 0,
+            "classification": (
+                "Harness startup failure before input/checkpoint admission; "
+                "parent-created wall/log rejected by worker collision guard."
+            ),
+            "source_review_miss": (
+                "Prior review did not connect parent-created sidecars to worker"
+                " startup guard; original source gate remains historical."
+            ),
+            "all_failed_artifact_bytes_preserved": True,
+        },
+        "closed_finding": {
+            "parent_owner": (
+                "Existing launch refuses any preexisting output family before "
+                "creating owned wall/log."
+            ),
+            "worker_rule": (
+                "Accept only exact output.with_suffix('.wall.json') and "
+                "output.with_suffix('.log'); reject existing main or every "
+                "other matching output-family path before input_vectors."
+            ),
+            "observed_focused_challenge": (
+                "Fake worker completes all96calls with exact parent sidecar "
+                "bytes preserved; main/raw/source/unknown collision negatives "
+                "forbid admission and retain old bytes."
+            ),
+            "scope": (
+                "Only startup collision handling and focused tests changed; "
+                "projection math, inputs, policy, timing, quality/eligibility "
+                "gates and owned120 cap unchanged."
+            ),
+        },
+        "remaining_blockers": [],
+        "initial_reviewer_helper_failure": read(
+            Path("/private/tmp/wyat-review-qkv-repair.initial-failure.json")
+        ),
+        "declared_worker_cap_seconds": 120,
+        "protocol": old["protocol"],
+        "reviewed_obligations": old["reviewed_obligations"],
+        "limits": [
+            (
+                "Independent source/stdlib identity review only; author "
+                "focused18 tiny/fake/property checks do not establish real "
+                "primitive/model performance."
+            ),
+            (
+                "A new output stem is required for the repaired actual worker; "
+                "initial failed wall/log and all old receipts remain immutable."
+            ),
+            (
+                "Primitive eligibility remains triage only; full model "
+                "logits/probabilities/full ranks and choices require the "
+                "original gates before any engine/server claim."
+            ),
+            (
+                "No framework/model job, benchmark, production edit or "
+                "precision policy change by reviewer."
+            ),
+        ],
+        "identity_verifier": {
+            "command": [str(ROOT / ".venv/bin/python"), "-S", str(script)],
+            "source_archive": str(archive.relative_to(ROOT)),
+            "source_sha256": script_sha,
+            "framework_imports": [],
+        },
+    }
+    with archive.open("x") as handle:
+        handle.write(script.read_text())
+    with output.open("x") as handle:
+        handle.write(json.dumps(receipt, indent=2, allow_nan=False) + "\n")
+    print(
+        json.dumps(
+            {
+                "path": str(output),
+                "sha256": digest(output),
+                "reviewer_source_sha256": script_sha,
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

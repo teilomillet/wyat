@@ -1,0 +1,11 @@
+import json,subprocess,time
+from pathlib import Path
+start=time.monotonic()
+cmd=['/Users/teilomillet/Code/wyat/.venv/bin/python','-m','pytest','-q','tests/analysis/test_cpu_prefix_production.py']
+try:
+ r=subprocess.run(cmd,capture_output=True,text=True,timeout=60)
+ d={'command':cmd,'exit_code':r.returncode,'timed_out':False,'reaped':True,'elapsed_seconds':time.monotonic()-start,'cap_seconds':60,'stdout':r.stdout,'stderr':r.stderr}
+except subprocess.TimeoutExpired as e:
+ d={'command':cmd,'exit_code':None,'timed_out':True,'reaped':True,'elapsed_seconds':time.monotonic()-start,'cap_seconds':60,'stdout':str(e.stdout),'stderr':str(e.stderr)}
+with Path('/private/tmp/wyat-cpu-prefix-production-tests-second.json').open('x') as f: json.dump(d,f,indent=2)
+print(json.dumps(d))

@@ -1,0 +1,59 @@
+{
+  "attempts": [
+    {
+      "attempt": 1,
+      "wall_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-1.wall.json",
+      "wall_sha256": "1434388b7447eed011b8e3cf9a9bcd699668057d6eb57ce7c39deeb28a4633c0",
+      "helper_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-1.helper-6e030ce199589478.txt",
+      "helper_sha256": "6e030ce199589478fe9df46722e596f863b09741c7a03171905a13f3aa823ccf",
+      "helper_lineage": "Exact Python stdin from retained tool invocation; hash derived at archival time",
+      "source_identity_observed_after_execution": null,
+      "historical_before_after_source_hashes": "Not collected; unknown",
+      "scope": "Then-executed fake-engine unit contracts only; no real model/CUDA/speed evidence",
+      "current_final_source_validity": false
+    },
+    {
+      "attempt": 2,
+      "wall_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-2.wall.json",
+      "wall_sha256": "fa2fb938048ec42fb6441c9160a6f31e51ed5f6a8dbdd658273dc6a5c92b68d6",
+      "helper_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-2.helper-528f7c70693dd62e.txt",
+      "helper_sha256": "528f7c70693dd62e9202ce4ce1c604d09a086fff636dbebf97b39b0e8587172a",
+      "helper_lineage": "Exact Python stdin from retained tool invocation; hash derived at archival time",
+      "source_identity_observed_after_execution": null,
+      "historical_before_after_source_hashes": "Not collected; unknown",
+      "scope": "Then-executed fake-engine unit contracts only; no real model/CUDA/speed evidence",
+      "current_final_source_validity": false
+    },
+    {
+      "attempt": 3,
+      "wall_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-3.wall.json",
+      "wall_sha256": "020854b153b8b39ebc69b8b356ab86c721e3b7d58e4836e9b47f65b9976156e6",
+      "helper_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-3.helper-8e901b46d0685fe6.txt",
+      "helper_sha256": "8e901b46d0685fe695d4d75ed577ebad4c04aa49ec85483451e1f795fc758ee0",
+      "helper_lineage": "Exact Python stdin from retained tool invocation; hash derived at archival time",
+      "source_identity_observed_after_execution": {
+        "study": "39099c87e0cdad76d5015a7b4a4ab151c3daedd9b62935352ab1d5053c8c86b5",
+        "test": "193a72ea91ed9f7445c37ed1521c120508d8798204f4ea16e1b755c420ba9372"
+      },
+      "historical_before_after_source_hashes": "Not collected; unknown",
+      "scope": "Then-executed fake-engine unit contracts only; no real model/CUDA/speed evidence",
+      "current_final_source_validity": false
+    },
+    {
+      "attempt": 4,
+      "wall_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-4.wall.json",
+      "wall_sha256": "e992166d66afc3ed1f81bd06accf5aa65f7e842f6bc78bbc76a06a4d5540d6c7",
+      "helper_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-4.helper-d390afe1f28dae91.txt",
+      "helper_sha256": "d390afe1f28dae91247aa62973bf592c9d42d7dceb29e13a027c00dbff0168a1",
+      "helper_lineage": "Exact Python stdin from retained tool invocation; hash derived at archival time",
+      "source_identity_observed_after_execution": {
+        "study": "df4b457f58a1629c8c909900851a99cda72d87b987e65d0ed95ca3fc5a8d468b",
+        "test": "193a72ea91ed9f7445c37ed1521c120508d8798204f4ea16e1b755c420ba9372"
+      },
+      "historical_before_after_source_hashes": "Not collected; unknown",
+      "scope": "Then-executed fake-engine unit contracts only; no real model/CUDA/speed evidence",
+      "current_final_source_validity": false
+    }
+  ],
+  "limits": "Earlier sources changed subsequently; no earlier pass is claimed to validate current final bytes. Attempt3 inventory failure retained."
+}

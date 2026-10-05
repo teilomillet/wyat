@@ -1,0 +1,348 @@
+{
+  "scope": "posthoc descriptive sensitivity; no timings removed or repeated",
+  "original_receipt_sha256": "432060d334e3b335c40d194fbd8ccb07709d38da424ca3fbf88c074d05035c60",
+  "original_source_sha256": {
+    "runner": "3288bf6051f5be38bd7615b13c274e312593854d6d3e7ea7e3c64102f917ba11",
+    "scaling": "938f0f469cb60927a9a81de2c5a118c705d7a45351dab23968511478597db4fa",
+    "mlx_backend": "ca16fe05006edb02e191e60dee84fa00e9e6da724ef50c90d055b9679dba731d"
+  },
+  "analysis_source_sha256": {
+    "calculator": "999f3b18b2a2e8539e213407ed5a230854b460fbad4bed945942a92df127abd4",
+    "scaling": "2fe60ada4a770a75c43d6d80ce8ba2b18d8e84e39014f8b675edd16619c10e40"
+  },
+  "sizes": {
+    "1": {
+      "cycle_ms_in_original_order": [
+        5256.391417,
+        5937.257125,
+        7999.862083,
+        4920.861333,
+        5595.226916,
+        3438.471084
+      ],
+      "mean_cycle_ms": 5524.678326333334,
+      "median_cycle_ms": 5425.809166499999,
+      "largest_cycle": {
+        "zero_based_repeat": 2,
+        "cycle_ms": 7999.862083,
+        "failed": 0,
+        "correct": 67,
+        "peak_rss_before_bytes": 2052882432,
+        "peak_rss_after_bytes": 2052882432,
+        "slowest_batch_residence_ms": 4295.6755,
+        "slowest_batch_case_ids": [
+          "banking77-train-08638"
+        ]
+      }
+    },
+    "2": {
+      "cycle_ms_in_original_order": [
+        3218.083,
+        3566.642875,
+        3616.746208,
+        3210.636875,
+        23817.930458,
+        3073.985334
+      ],
+      "mean_cycle_ms": 6750.670791666666,
+      "median_cycle_ms": 3392.3629375,
+      "largest_cycle": {
+        "zero_based_repeat": 4,
+        "cycle_ms": 23817.930458,
+        "failed": 0,
+        "correct": 67,
+        "peak_rss_before_bytes": 2052882432,
+        "peak_rss_after_bytes": 2052882432,
+        "slowest_batch_residence_ms": 18281.099417,
+        "slowest_batch_case_ids": [
+          "banking77-train-04562",
+          "banking77-train-01221"
+        ]
+      }
+    },
+    "4": {
+      "cycle_ms_in_original_order": [
+        2945.913709,
+        3245.157125,
+        3408.58625,
+        3097.210333,
+        3141.948959,
+        3643.748666
+      ],
+      "mean_cycle_ms": 3247.0941736666664,
+      "median_cycle_ms": 3193.553042,
+      "largest_cycle": {
+        "zero_based_repeat": 5,
+        "cycle_ms": 3643.748666,
+        "failed": 0,
+        "correct": 67,
+        "peak_rss_before_bytes": 2052882432,
+        "peak_rss_after_bytes": 2052882432,
+        "slowest_batch_residence_ms": 847.330708,
+        "slowest_batch_case_ids": [
+          "banking77-train-04562",
+          "banking77-train-01221",
+          "banking77-train-08638",
+          "banking77-train-03357"
+        ]
+      }
+    },
+    "8": {
+      "cycle_ms_in_original_order": [
+        2915.871791,
+        2985.287625,
+        2874.137334,
+        3070.172291,
+        3105.370291,
+        3443.225709
+      ],
+      "mean_cycle_ms": 3065.6775068333336,
+      "median_cycle_ms": 3027.729958,
+      "largest_cycle": {
+        "zero_based_repeat": 5,
+        "cycle_ms": 3443.225709,
+        "failed": 0,
+        "correct": 67,
+        "peak_rss_before_bytes": 2052882432,
+        "peak_rss_after_bytes": 2052882432,
+        "slowest_batch_residence_ms": 773.955875,
+        "slowest_batch_case_ids": [
+          "banking77-train-02539",
+          "banking77-train-03502",
+          "banking77-train-00566",
+          "banking77-train-06271",
+          "banking77-train-09360",
+          "banking77-train-08940",
+          "banking77-train-06901",
+          "banking77-train-04517"
+        ]
+      }
+    },
+    "16": {
+      "cycle_ms_in_original_order": [
+        3043.602625,
+        2940.956584,
+        3431.175375,
+        2990.448959,
+        2977.505208,
+        3609.479042
+      ],
+      "mean_cycle_ms": 3165.5279655,
+      "median_cycle_ms": 3017.025792,
+      "largest_cycle": {
+        "zero_based_repeat": 5,
+        "cycle_ms": 3609.479042,
+        "failed": 0,
+        "correct": 67,
+        "peak_rss_before_bytes": 2052882432,
+        "peak_rss_after_bytes": 2052882432,
+        "slowest_batch_residence_ms": 966.90875,
+        "slowest_batch_case_ids": [
+          "banking77-train-02539",
+          "banking77-train-03502",
+          "banking77-train-00566",
+          "banking77-train-06271",
+          "banking77-train-09360",
+          "banking77-train-08940",
+          "banking77-train-06901",
+          "banking77-train-04517",
+          "banking77-train-01792",
+          "banking77-train-09999",
+          "banking77-train-05841",
+          "banking77-train-05021",
+          "banking77-train-05613",
+          "banking77-train-04677",
+          "banking77-train-04426",
+          "banking77-train-03650"
+        ]
+      }
+    },
+    "32": {
+      "cycle_ms_in_original_order": [
+        2992.439333,
+        2953.225667,
+        2939.960709,
+        3055.228417,
+        3171.574125,
+        2986.725042
+      ],
+      "mean_cycle_ms": 3016.5255488333332,
+      "median_cycle_ms": 2989.5821875,
+      "largest_cycle": {
+        "zero_based_repeat": 4,
+        "cycle_ms": 3171.574125,
+        "failed": 0,
+        "correct": 67,
+        "peak_rss_before_bytes": 2052882432,
+        "peak_rss_after_bytes": 2052882432,
+        "slowest_batch_residence_ms": 1324.217375,
+        "slowest_batch_case_ids": [
+          "banking77-train-05698",
+          "banking77-train-09214",
+          "banking77-train-01636",
+          "banking77-train-09708",
+          "banking77-train-04562",
+          "banking77-train-01221",
+          "banking77-train-08638",
+          "banking77-train-03357",
+          "banking77-train-07093",
+          "banking77-train-02116",
+          "banking77-train-09630",
+          "banking77-train-03152",
+          "banking77-train-00022",
+          "banking77-train-01110",
+          "banking77-train-00263",
+          "banking77-train-01314",
+          "banking77-train-02539",
+          "banking77-train-03502",
+          "banking77-train-00566",
+          "banking77-train-06271",
+          "banking77-train-09360",
+          "banking77-train-08940",
+          "banking77-train-06901",
+          "banking77-train-04517",
+          "banking77-train-01792",
+          "banking77-train-09999",
+          "banking77-train-05841",
+          "banking77-train-05021",
+          "banking77-train-05613",
+          "banking77-train-04677",
+          "banking77-train-04426",
+          "banking77-train-03650"
+        ]
+      }
+    }
+  },
+  "reciprocal_mean_cycle_fit": {
+    "alpha": 0.5332272698725389,
+    "beta": -3.278048348331569e-05,
+    "parameters_valid": false,
+    "baseline_throughput": 13.937463043410173,
+    "rows": [
+      {
+        "load": 1,
+        "observed_throughput": 13.937463043410173,
+        "predicted_throughput": null,
+        "throughput_residual": null,
+        "transformed_residual": 0.0
+      },
+      {
+        "load": 2,
+        "observed_throughput": 11.406273891337182,
+        "predicted_throughput": null,
+        "throughput_residual": null,
+        "transformed_residual": 0.91066230868099
+      },
+      {
+        "load": 4,
+        "observed_throughput": 23.713509951283758,
+        "predicted_throughput": null,
+        "throughput_residual": null,
+        "transformed_residual": -0.2483141558183284
+      },
+      {
+        "load": 8,
+        "observed_throughput": 25.11679712832434,
+        "predicted_throughput": null,
+        "throughput_residual": null,
+        "transformed_residual": -0.2915066672791042
+      },
+      {
+        "load": 16,
+        "observed_throughput": 24.32453632986235,
+        "predicted_throughput": null,
+        "throughput_residual": null,
+        "transformed_residual": 0.1771318330466417
+      },
+      {
+        "load": 32,
+        "observed_throughput": 25.52605597183833,
+        "predicted_throughput": null,
+        "throughput_residual": null,
+        "transformed_residual": -0.025230666644300882
+      }
+    ],
+    "transformed_sse": 1.0079541703179093,
+    "capacity_rmse": null,
+    "capacity_r_squared": null,
+    "max_relative_error": null,
+    "normalized_gram_condition": 55.058560982823344,
+    "predicted_peak_load": null,
+    "warnings": [
+      "Normalized fit inherits uncertainty from the measured load-1 baseline.",
+      "No confidence intervals or mechanistic identifiability established.",
+      "Transformed least squares weights raw throughput errors unequally.",
+      "Estimated parameters violate USL bounds; no curve or peak admitted."
+    ]
+  },
+  "reciprocal_median_cycle_fit": {
+    "alpha": 0.4965715287517587,
+    "beta": 0.0012756134910094177,
+    "parameters_valid": true,
+    "baseline_throughput": 14.191431662472203,
+    "rows": [
+      {
+        "load": 1,
+        "observed_throughput": 14.191431662472203,
+        "predicted_throughput": 14.191431662472203,
+        "throughput_residual": 0.0,
+        "transformed_residual": 0.0
+      },
+      {
+        "load": 2,
+        "observed_throughput": 22.69804305100241,
+        "predicted_throughput": 18.932981449575692,
+        "throughput_residual": 3.7650616014267193,
+        "transformed_residual": -0.24866855308872018
+      },
+      {
+        "load": 4,
+        "observed_throughput": 24.1110759669042,
+        "predicted_throughput": 22.66077017483635,
+        "throughput_residual": 1.450305792067848,
+        "transformed_residual": -0.15067962315916972
+      },
+      {
+        "load": 8,
+        "observed_throughput": 25.431594319218345,
+        "predicted_throughput": 24.966041709828527,
+        "throughput_residual": 0.46555260938981746,
+        "transformed_residual": -0.08324567583657012
+      },
+      {
+        "load": 16,
+        "observed_throughput": 25.521823580088242,
+        "predicted_throughput": 25.936055317963888,
+        "throughput_residual": -0.41423173787564593,
+        "transformed_residual": 0.14209341032740014
+      },
+      {
+        "load": 32,
+        "observed_throughput": 25.756107432654414,
+        "predicted_throughput": 25.71621120194788,
+        "throughput_residual": 0.03989623070653536,
+        "transformed_residual": -0.02735400004802835
+      }
+    ],
+    "transformed_sse": 0.1124090192532128,
+    "capacity_rmse": 0.11744995855694859,
+    "capacity_r_squared": 0.8312357861484692,
+    "max_relative_error": 0.1658760445984987,
+    "normalized_gram_condition": 55.058560982823344,
+    "predicted_peak_load": 19.865949849475054,
+    "warnings": [
+      "Normalized fit inherits uncertainty from the measured load-1 baseline.",
+      "No confidence intervals or mechanistic identifiability established.",
+      "Transformed least squares weights raw throughput errors unequally.",
+      "Weak descriptive fit: capacity R-squared < 0.9 or maximum relative error > 10%; illustrative diagnostics, not an acceptance gate."
+    ]
+  },
+  "limits": [
+    "Reciprocal mean cycle time equals overall successful throughput here; reciprocal median describes a typical cycle, not overall capacity.",
+    "No physical fit accepted by changing the summary statistic.",
+    "Historical normalized_design_condition denotes normalized Gram condition; current field correctly names that quantity.",
+    "No OS pressure, queue telemetry or cycle wall timestamps were captured; cause of large delays is unknown.",
+    "Cumulative RSS is shared process high-water, not current Metal memory.",
+    "Fresh predeclared paired timing confirmation remains necessary before a batching recommendation."
+  ]
+}

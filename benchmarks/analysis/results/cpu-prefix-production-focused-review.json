@@ -1,0 +1,73 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/backends/cpu/test_prefix.py"
+  ],
+  "cap_seconds": 60,
+  "wall_seconds": 2.8334947919938713,
+  "exit_code": 0,
+  "reaped": true,
+  "timed_out": false,
+  "before": {
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "tests/backends/cpu/test_prefix.py": "4426ff61f72f2070e18bc913b4a6e78eef6d76861538b3a30ea301472633a1a6"
+  },
+  "after": {
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "tests/backends/cpu/test_prefix.py": "4426ff61f72f2070e18bc913b4a6e78eef6d76861538b3a30ea301472633a1a6"
+  },
+  "checks": [
+    {
+      "command": [
+        ".venv/bin/ruff",
+        "check",
+        "tests/backends/cpu/test_prefix.py"
+      ],
+      "cap_seconds": 60,
+      "exit_code": 0,
+      "reaped": true,
+      "wall_seconds": 0.010167207976337522,
+      "stdout": "All checks passed!\n"
+    },
+    {
+      "command": [
+        ".venv/bin/ruff",
+        "format",
+        "--check",
+        "tests/backends/cpu/test_prefix.py"
+      ],
+      "cap_seconds": 60,
+      "exit_code": 0,
+      "reaped": true,
+      "wall_seconds": 0.010739624965935946,
+      "stdout": "1 file already formatted\n"
+    },
+    {
+      "command": [
+        ".venv/bin/mypy",
+        "--strict",
+        "--ignore-missing-imports",
+        "--follow-imports=silent",
+        "tests/backends/cpu/test_prefix.py"
+      ],
+      "cap_seconds": 60,
+      "exit_code": 0,
+      "reaped": true,
+      "wall_seconds": 15.38808754197089,
+      "stdout": "Success: no issues found in 1 source file\n"
+    }
+  ],
+  "installed_versions": {
+    "torch": "2.14.1",
+    "transformers": "5.18.0",
+    "pytest": "9.1.1",
+    "hypothesis": "6.168.3"
+  }
+}

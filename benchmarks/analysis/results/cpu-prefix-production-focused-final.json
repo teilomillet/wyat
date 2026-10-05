@@ -1,0 +1,21 @@
+{
+  "wall": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-5.wall.json",
+    "sha256": "ec6cd01a9625b530a4fba609c93f735c1c17bf8180a4315b3b9278f75471a527"
+  },
+  "helper": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-prefix-production-focus-5.helper-7294c54049ba4a45.txt",
+    "sha256": "7294c54049ba4a4544301dea81600480560c16b636e5d9cce9732a3919789b69",
+    "lineage": "Exact executed Python stdin, archived afterward"
+  },
+  "source_sha256_observed_after_execution": {
+    "benchmarks/analysis/torch/prefix/production/__init__.py": "e66ca66b4793e07169c5dd0c7199a102c972f7a2017ffca7c1b3d458d77a1688",
+    "benchmarks/analysis/torch/prefix/production/run.py": "ac044a4860d7209695942926fac84b77298b87bcbc4dd775413405c496ac4494",
+    "benchmarks/analysis/torch/prefix/production/study.py": "33da6b96ece624a95192743661094a1ae0e5472cac3cdf16370495da9029d74e",
+    "tests/analysis/test_cpu_prefix_production.py": "555a873785f1cc9cfed7c2babec928906fe9c4eb360dfeb5b69244104175c7da"
+  },
+  "scope": "39 fake-engine unit tests, including invalid timing persistence and thread restore failure; no real model/CUDA/speed claim",
+  "historical_before_after_source_snapshots": "Not captured by inline launcher; final observed SHA values are post-execution facts",
+  "strict_mypy": "4 sources passed before focused fifth run",
+  "earlier_attempt_archive_sha256": "68fce325da7c03f09dce9bf91404f19452fc19692e4425306709205c6baf631e"
+}

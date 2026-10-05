@@ -1,0 +1,11 @@
+{
+  "scope": "Read-only availability observation; no CUDA inference executed",
+  "command": "ssh gpu nvidia-smi --query-gpu=timestamp,name,memory.total,memory.used,utilization.gpu --format=csv,noheader",
+  "process_exit_code": 0,
+  "device_reported_timestamp": "2026/10/05 05:34:39.822",
+  "device": "NVIDIA GeForce RTX 4070 Ti",
+  "total_memory_mib": 12282,
+  "used_memory_mib": 6362,
+  "utilization_percent": 99,
+  "decision": "Device remains busy; no weights transferred or workload launched"
+}

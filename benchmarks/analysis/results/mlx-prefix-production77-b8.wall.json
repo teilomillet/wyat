@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/tmp/wyat-mlx-only/bin/python",
+    "-m",
+    "benchmarks.analysis.mlx.combined",
+    "--batch-size",
+    "8",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-prefix-production77-b8.json"
+  ],
+  "started_wall_time_ns": 1791167314238299000,
+  "timeout_seconds": 180,
+  "timed_out": false,
+  "completed": true,
+  "sources_sha256": {
+    "launcher": "7818c2a4af8f78b51f8666432b8227de0882ec7491c52c45eebf1a5dd6036298"
+  },
+  "sources_archive": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-prefix-production77-b8.wall.sources-c096d0b4b84e6dc9.json",
+    "sha256": "c096d0b4b84e6dc9416b036b899ce97b0f37371ff073377d867b3aecc20b33fe"
+  },
+  "scope": "Parent process status; child study owns numerical/performance gates",
+  "process_exit_code": 0,
+  "elapsed_seconds": 39.56272116699256,
+  "finished_wall_time_ns": 1791167353801015000
+}

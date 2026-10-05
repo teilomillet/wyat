@@ -1,0 +1,129 @@
+{
+  "passed": true,
+  "captured_utc": "2026-10-05T11:33:21.100615+00:00",
+  "source_sha256": {
+    "benchmarks/analysis/cuda/shape/__init__.py": "b4c374bc76c8903552aa7c8aa6b648d53d48acaa0c37685ae722fc02dfbda3bf",
+    "benchmarks/analysis/cuda/shape/run.py": "146cfac6c8f6f7f666e49de1febd4ad9fe06a6f69d3e2634f04807b2e022f4a5",
+    "benchmarks/analysis/cuda/shape/study.py": "e11b1d1eb8362e9ce0bd50f12d13adab7ccbf815edeccf0a8ae49a40651cb16e",
+    "tests/analysis/test_cuda_shape.py": "86a6d5dbc6562e6622b3b3abb537c8c4e1efd44d47b1192aa950af8207a774f6",
+    "docs/analysis/shape.md": "4169486706652020a6388db6b88b94f80a8dd7a95de3e4aba2ca2f1ca31143cc"
+  },
+  "checks": {
+    "pytest": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/pytest",
+        "-q",
+        "-rs",
+        "tests/analysis/test_cuda_shape.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "cap_seconds": 120,
+      "elapsed_seconds": 2.3748775420244783,
+      "stdout": ".................................................                        [100%]\n49 passed in 1.88s\n",
+      "stderr": ""
+    },
+    "mypy": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/mypy",
+        "--strict",
+        "benchmarks/analysis/cuda/shape/__init__.py",
+        "benchmarks/analysis/cuda/shape/run.py",
+        "benchmarks/analysis/cuda/shape/study.py",
+        "tests/analysis/test_cuda_shape.py",
+        "/private/tmp/wyat-cuda-shape-transport.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "cap_seconds": 120,
+      "elapsed_seconds": 15.997969374991953,
+      "stdout": "Success: no issues found in 5 source files\n",
+      "stderr": ""
+    },
+    "ruff": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/ruff",
+        "check",
+        "benchmarks/analysis/cuda/shape/__init__.py",
+        "benchmarks/analysis/cuda/shape/run.py",
+        "benchmarks/analysis/cuda/shape/study.py",
+        "tests/analysis/test_cuda_shape.py",
+        "/private/tmp/wyat-cuda-shape-transport.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "cap_seconds": 60,
+      "elapsed_seconds": 0.01165912498254329,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    "format": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/ruff",
+        "format",
+        "--check",
+        "benchmarks/analysis/cuda/shape/__init__.py",
+        "benchmarks/analysis/cuda/shape/run.py",
+        "benchmarks/analysis/cuda/shape/study.py",
+        "tests/analysis/test_cuda_shape.py",
+        "/private/tmp/wyat-cuda-shape-transport.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "cap_seconds": 60,
+      "elapsed_seconds": 0.011017166951205581,
+      "stdout": "5 files already formatted\n",
+      "stderr": ""
+    },
+    "stdlib_parent_help": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/python",
+        "-S",
+        "-m",
+        "benchmarks.analysis.cuda.shape.run",
+        "--help"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "cap_seconds": 60,
+      "elapsed_seconds": 0.0276229580049403,
+      "stdout": "usage: run.py [-h] --output OUTPUT --sources SOURCES --sources-sha256\n              SOURCES_SHA256 [--worker]\n              model\n\nStdlib-only owner of one fresh, bounded real-shape worker.\n\npositional arguments:\n  model\n\noptions:\n  -h, --help            show this help message and exit\n  --output OUTPUT\n  --sources SOURCES\n  --sources-sha256 SOURCES_SHA256\n  --worker\n",
+      "stderr": ""
+    }
+  },
+  "old_python_sources_unchanged": 133,
+  "production_files_unchanged": 20,
+  "artifact_sha256": {
+    "/Users/teilomillet/Code/wyat/benchmarks/real/engine-cuda-latency-verification.json": "67930b46739fdd3f35fbc00c425bdee3879c2008dc3a3ee57c51ae1893bc7cdf",
+    "/private/tmp/wyat-cuda-shape-transport.py": "c704af3f1f8e75a8394575478feb98ba61362969d20e695267ada3483d79dd37",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-shape-source-declaration-20261005.json": "16067a59ecebe08ff86fb6e101f8af568dd96d16a49bc6f62e4ad1aee31db79b"
+  },
+  "source_count": 137,
+  "audit_script": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-shape-source-review.audit-b21a2e88205c2665.txt",
+    "sha256": "b21a2e88205c2665447122f1c1fadeb4b0240fdd99223526dcc5bf8393d8e9d8",
+    "text": "\"\"\"Independent source gate; focused CPU fakes do not establish native CUDA behavior.\"\"\"\n\nfrom __future__ import annotations\n\nimport hashlib\nimport json\nimport os\nimport signal\nimport subprocess\nimport sys\nimport time\nfrom datetime import UTC, datetime\nfrom pathlib import Path\nfrom typing import cast\n\nROOT = Path(\"/Users/teilomillet/Code/wyat\")\nRESULT = ROOT / \"benchmarks/analysis/results/cuda-shape-source-review.json\"\nFILES = (\n    \"benchmarks/analysis/cuda/shape/__init__.py\",\n    \"benchmarks/analysis/cuda/shape/run.py\",\n    \"benchmarks/analysis/cuda/shape/study.py\",\n    \"tests/analysis/test_cuda_shape.py\",\n    \"docs/analysis/shape.md\",\n)\nTRANSPORT = Path(\"/private/tmp/wyat-cuda-shape-transport.py\")\nPRIOR = ROOT / \"benchmarks/real/engine-cuda-latency-verification.json\"\n\n\ndef sha(path: Path) -> str:\n    return hashlib.sha256(path.read_bytes()).hexdigest()\n\n\ndef obj(value: object) -> dict[str, object]:\n    assert isinstance(value, dict)\n    return cast(dict[str, object], value)\n\n\ndef read(path: Path) -> dict[str, object]:\n    return obj(json.loads(path.read_bytes()))\n\n\ndef run(args: list[str], cap: int) -> dict[str, object]:\n    start = time.monotonic()\n    child = subprocess.Popen(\n        args,\n        cwd=ROOT,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n        start_new_session=True,\n    )\n    timed_out = False\n    try:\n        stdout, stderr = child.communicate(timeout=cap)\n    except subprocess.TimeoutExpired:\n        timed_out = True\n        try:\n            os.killpg(child.pid, signal.SIGKILL)\n        except ProcessLookupError:\n            pass\n        stdout, stderr = child.communicate()\n    return dict(\n        command=args,\n        exit_code=child.returncode,\n        timed_out=timed_out,\n        reaped=child.poll() is not None,\n        cap_seconds=cap,\n        elapsed_seconds=time.monotonic() - start,\n        stdout=stdout,\n        stderr=stderr,\n    )\n\n\ndef main() -> None:\n    assert not RESULT.exists()\n    before = {name: sha(ROOT / name) for name in FILES}\n    assert (\n        before[\"tests/analysis/test_cuda_shape.py\"]\n        == \"86a6d5dbc6562e6622b3b3abb537c8c4e1efd44d47b1192aa950af8207a774f6\"\n    )\n    assert (\n        before[\"benchmarks/analysis/cuda/shape/study.py\"]\n        == \"e11b1d1eb8362e9ce0bd50f12d13adab7ccbf815edeccf0a8ae49a40651cb16e\"\n    )\n    assert (\n        sha(TRANSPORT)\n        == \"c704af3f1f8e75a8394575478feb98ba61362969d20e695267ada3483d79dd37\"\n    )\n    assert (\n        sha(PRIOR) == \"67930b46739fdd3f35fbc00c425bdee3879c2008dc3a3ee57c51ae1893bc7cdf\"\n    )\n    declaration = (\n        ROOT / \"benchmarks/analysis/results/cuda-shape-source-declaration-20261005.json\"\n    )\n    assert (\n        sha(declaration)\n        == \"16067a59ecebe08ff86fb6e101f8af568dd96d16a49bc6f62e4ad1aee31db79b\"\n    )\n    assert read(declaration) == before\n    previous = read(PRIOR)\n    old = obj(previous[\"source_sha256\"])\n    assert len(old) == 133 and all(\n        sha(ROOT / name) == checksum for name, checksum in old.items()\n    )\n    production = [name for name in old if name.startswith(\"wyat/\")]\n    assert len(production) == 20\n    python_files = [name for name in FILES if name.endswith(\".py\")]\n    checks = {\n        \"pytest\": run(\n            [\n                str(ROOT / \".venv/bin/pytest\"),\n                \"-q\",\n                \"-rs\",\n                \"tests/analysis/test_cuda_shape.py\",\n            ],\n            120,\n        ),\n        \"mypy\": run(\n            [str(ROOT / \".venv/bin/mypy\"), \"--strict\", *python_files, str(TRANSPORT)],\n            120,\n        ),\n        \"ruff\": run(\n            [str(ROOT / \".venv/bin/ruff\"), \"check\", *python_files, str(TRANSPORT)], 60\n        ),\n        \"format\": run(\n            [\n                str(ROOT / \".venv/bin/ruff\"),\n                \"format\",\n                \"--check\",\n                *python_files,\n                str(TRANSPORT),\n            ],\n            60,\n        ),\n        \"stdlib_parent_help\": run(\n            [\n                sys.executable,\n                \"-S\",\n                \"-m\",\n                \"benchmarks.analysis.cuda.shape.run\",\n                \"--help\",\n            ],\n            60,\n        ),\n    }\n    after = {name: sha(ROOT / name) for name in FILES}\n    assert before == after and all(\n        sha(ROOT / name) == checksum for name, checksum in old.items()\n    )\n    assert (\n        sha(TRANSPORT)\n        == \"c704af3f1f8e75a8394575478feb98ba61362969d20e695267ada3483d79dd37\"\n    )\n    assert all(\n        item[\"exit_code\"] == 0 and item[\"timed_out\"] is False and item[\"reaped\"] is True\n        for item in checks.values()\n    )\n    source = Path(__file__).read_bytes()\n    source_sha = hashlib.sha256(source).hexdigest()\n    archive = RESULT.with_suffix(f\".audit-{source_sha[:16]}.txt\")\n    with archive.open(\"xb\") as target:\n        target.write(source)\n    result = dict(\n        passed=True,\n        captured_utc=datetime.now(UTC).isoformat(),\n        source_sha256=before,\n        checks=checks,\n        old_python_sources_unchanged=133,\n        production_files_unchanged=20,\n        artifact_sha256={\n            str(PRIOR): sha(PRIOR),\n            str(TRANSPORT): sha(TRANSPORT),\n            str(declaration): sha(declaration),\n            str(declaration): sha(declaration),\n        },\n        source_count=137,\n        audit_script=dict(path=str(archive), sha256=source_sha, text=source.decode()),\n        frameworks_imported=[\n            name\n            for name in (\"torch\", \"transformers\", \"mlx\", \"numpy\")\n            if name in sys.modules\n        ],\n        review_findings_resolved=[\n            \"Raw Chrome export/hash/bytes only; actual schema interpretation deferred.\",\n            (\n                \"Exact shape association provenance admitted; prior \"\n                \"input/control/screen/confirmation/timing source pins \"\n                \"retained.\"\n            ),\n            (\n                \"Math28 comparator and reviewed efficient28 dispatch remain \"\n                \"strict; no policy or numerical gate relaxation.\"\n            ),\n            (\n                \"Twelve pending outcomes seeded before admission; retained \"\n                \"partial rows/export/cleanup failures and finite timing \"\n                \"checks.\"\n            ),\n            (\n                \"Phase and worker wall values separate from call/body \"\n                \"intervals; context exit precedes native export.\"\n            ),\n            (\n                \"Empty native export remains negative; final twelve ordered \"\n                \"outputs/four profiles/raw byte identities/source checks \"\n                \"required.\"\n            ),\n            (\n                \"Eight-file transfer whitelist, two exact historyreview \"\n                \"hashes, exclusive source paths, bounded reaped groups and \"\n                \"archive/trace no-symlink guards.\"\n            ),\n            \"Timeout/kill race repaired in new helper; old helper/archive unchanged.\",\n            (\n                \"Nonuniform equal geometry distributions retain \"\n                \"layer-permutation uncertainty; no \"\n                \"causal/clock-domain/precision inference.\"\n            ),\n        ],\n        limits=[\n            (\n                \"Focused49 CPU-only fake tests establish lifecycle/contract \"\n                \"behavior, not native CUDA quality, launch geometry, speed or \"\n                \"actual trace schema.\"\n            ),\n            (\n                \"Full137/nativeCPU/Metal/DMBench regression owned separately \"\n                \"by root; not inferred from this source gate.\"\n            ),\n            \"No model, native CUDA capture or network execution occurred in this gate.\",\n        ],\n    )\n    assert result[\"frameworks_imported\"] == []\n    with RESULT.open(\"x\") as target:\n        json.dump(result, target, indent=2, allow_nan=False)\n        target.write(\"\\n\")\n    print(\n        json.dumps(\n            dict(\n                path=str(RESULT),\n                sha256=sha(RESULT),\n                checks={\n                    k: {\n                        x: v[x]\n                        for x in (\"exit_code\", \"timed_out\", \"reaped\", \"elapsed_seconds\")\n                    }\n                    for k, v in checks.items()\n                },\n                source_sha256=source_sha,\n            )\n        )\n    )\n\n\nif __name__ == \"__main__\":\n    main()\n"
+  },
+  "frameworks_imported": [],
+  "review_findings_resolved": [
+    "Raw Chrome export/hash/bytes only; actual schema interpretation deferred.",
+    "Exact shape association provenance admitted; prior input/control/screen/confirmation/timing source pins retained.",
+    "Math28 comparator and reviewed efficient28 dispatch remain strict; no policy or numerical gate relaxation.",
+    "Twelve pending outcomes seeded before admission; retained partial rows/export/cleanup failures and finite timing checks.",
+    "Phase and worker wall values separate from call/body intervals; context exit precedes native export.",
+    "Empty native export remains negative; final twelve ordered outputs/four profiles/raw byte identities/source checks required.",
+    "Eight-file transfer whitelist, two exact historyreview hashes, exclusive source paths, bounded reaped groups and archive/trace no-symlink guards.",
+    "Timeout/kill race repaired in new helper; old helper/archive unchanged.",
+    "Nonuniform equal geometry distributions retain layer-permutation uncertainty; no causal/clock-domain/precision inference."
+  ],
+  "limits": [
+    "Focused49 CPU-only fake tests establish lifecycle/contract behavior, not native CUDA quality, launch geometry, speed or actual trace schema.",
+    "Full137/nativeCPU/Metal/DMBench regression owned separately by root; not inferred from this source gate.",
+    "No model, native CUDA capture or network execution occurred in this gate."
+  ]
+}

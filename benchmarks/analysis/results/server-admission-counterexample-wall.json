@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "/private/tmp/wyat-server-admission-repro/reproduce.py",
+    "--worker"
+  ],
+  "cap_seconds": 60,
+  "elapsed_seconds": 0.3412330829887651,
+  "timed_out": false,
+  "reaped": true,
+  "exit_code": 0,
+  "stdout": "{\"observed_statuses\": [200, 200], \"contract_met\": false}\n",
+  "stderr": "",
+  "script_sha256": "c709d774c9804e3af7664b5148eb09dfa63a3bf23c6b18a054385398f97e0847"
+}

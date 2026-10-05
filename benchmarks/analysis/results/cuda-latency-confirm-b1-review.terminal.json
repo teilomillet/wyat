@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-S",
+    "/private/tmp/wyat-cuda-latency-audit.py",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-confirm-b1.json",
+    "c41d4d08665c9089f1e279814d6caf47a5dbe1c4fe31df2d5ffacd9763a7ed4b",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-confirm-b1-review.json",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-source-declaration-20261005.json",
+    "a26d5be45598c29e9fe6f1a0d0e620c22d0101f060eda730274d404498c7a0a4"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "cap_seconds": 60,
+  "elapsed_seconds": 0.6328061249805614,
+  "stdout": "{\"path\": \"/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-confirm-b1-review.json\", \"sha256\": \"b25958e32c9dffebb9c773b99c4e822a8776261f35426a927c154043fafd5c7d\", \"attempted_rows\": 156, \"numerical_passed\": true, \"performance\": null}\n",
+  "stderr": "",
+  "script_sha256": "0af6e6efaa3795378d7d41de5f0b739f8f6f2d74fee035cb0de3c867dc8ed793"
+}

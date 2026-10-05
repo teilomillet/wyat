@@ -1,0 +1,640 @@
+{
+  "attribution": "PolyAI; Casanueva et al. (2020), Efficient Intent Detection with Dual Sentence Encoders, https://arxiv.org/abs/2003.04807",
+  "candidate_recipe": "wyat-banking77-menu-v1: hashed source-row/negative intent; positive inserted at hashed slot; underscores changed to spaces",
+  "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "groups": [
+    {
+      "group_id": "23f7890e8523ad1f976155cae93809a7de8187be3b718b573611aa1a96655cee",
+      "id": "banking77-train-05698",
+      "label": "Refund_not_showing_up",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 5698,
+      "source_text_sha256": "03d25b82d81cd2bf581a1572212005609b37e8acbf6a1379ba73fa6be05ee26b"
+    },
+    {
+      "group_id": "31f556528566e092f53992f93abac113cac55c9e5ba04dca26eabd134f4bc1a6",
+      "id": "banking77-train-09214",
+      "label": "activate_my_card",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 9214,
+      "source_text_sha256": "0016f81ef4b1c75bacb8c8098868d43a0d2f584d1ddc270c46b9b14e1933c2a6"
+    },
+    {
+      "group_id": "9bffcfa4379e1ffec3ca2e201246f7cbc6548d5da89c9a641eb7774be061021d",
+      "id": "banking77-train-01636",
+      "label": "age_limit",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 1636,
+      "source_text_sha256": "014a45190de97dcc1c8bf4e8df2f2660f3df0086ebf8cc5ea3eb89630c3bd62d"
+    },
+    {
+      "group_id": "db19f6a2211223a47649b776bfc11449175bd28b020ded7c982c0a88030b75c4",
+      "id": "banking77-train-09708",
+      "label": "apple_pay_or_google_pay",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 9708,
+      "source_text_sha256": "057707ae406306f3521a0c41c84b844965ea87c20b7c3f6e6fdca247428aa136"
+    },
+    {
+      "group_id": "8b70a6556ac3616fd8c7dc976d8b3d614cd684af108665ab609e519d827da8e7",
+      "id": "banking77-train-04562",
+      "label": "atm_support",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 4562,
+      "source_text_sha256": "0981578e14d5f0e4d8f9ea8bb327c3f9f7b4e7c6aa0ad1277f73075c0731e448"
+    },
+    {
+      "group_id": "4e418fc3025d27f5a5072e8784dfda281e8f34de081275b48c2bd9d0acd7ff54",
+      "id": "banking77-train-01221",
+      "label": "automatic_top_up",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 1221,
+      "source_text_sha256": "0175880bc16366ebb4420b6a856fac129592a4c15f20b80eb2dbddaf863b8376"
+    },
+    {
+      "group_id": "6c4195243934a6a5c6e189259dfacaf6882c630488e0f71a82c47d738c0c82f1",
+      "id": "banking77-train-08638",
+      "label": "balance_not_updated_after_bank_transfer",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 8638,
+      "source_text_sha256": "02c24693de123414b9145751d6fa72a1a2026f4fcdc73b60e7829a96a750dd43"
+    },
+    {
+      "group_id": "f27f6ac5b361c3ac7ef339055533ec13812e0aa0674ef4c64405ba99bca73d11",
+      "id": "banking77-train-03357",
+      "label": "balance_not_updated_after_cheque_or_cash_deposit",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 3357,
+      "source_text_sha256": "005af510d6c3203d329ec7610353b3b55b63dc382b4d21d79e63e1ec5f9a057c"
+    },
+    {
+      "group_id": "9162d707384fa40778335e01a001499d4e8c18188247ab9c09994df6f02e220a",
+      "id": "banking77-train-07093",
+      "label": "beneficiary_not_allowed",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 7093,
+      "source_text_sha256": "0157fd16699a580fd2c4c0a77e9d20464bd47c62b868f9cc37d24b87872f4570"
+    },
+    {
+      "group_id": "c81eaa92793f2a882feab61aedf6b75cec5e44bce8f435f906b20db7596acbce",
+      "id": "banking77-train-02116",
+      "label": "cancel_transfer",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 2116,
+      "source_text_sha256": "00166743f28dd337f0c778cff6b8728095d11d9fe561b1a2993da5949b4efe62"
+    },
+    {
+      "group_id": "190469120d024b2e4e4814b1b29a038a59c92c5d9c85aac5c7f5df3306b0bfa8",
+      "id": "banking77-train-09630",
+      "label": "card_about_to_expire",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 9630,
+      "source_text_sha256": "0077601e31869ee199db802b2536bb224129b9fcfb2abb33dcc6b91406a5be87"
+    },
+    {
+      "group_id": "98c40610a129a6930d649448257f66ee4f1175c478407fcdb03c28e9ab4c0e99",
+      "id": "banking77-train-03152",
+      "label": "card_acceptance",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 3152,
+      "source_text_sha256": "0a85b412f1c3ba9e9a2faf0abab0d9926df478acd4e68c119c77370b58d2005b"
+    },
+    {
+      "group_id": "70a1cc3cd3fae797c0324b7b7acc0f06bb729bb003b97e15cf280ebbc866f664",
+      "id": "banking77-train-00022",
+      "label": "card_arrival",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 22,
+      "source_text_sha256": "010cf0d459a9d83d55e474600be88cb89e66879cebeff7a26063d217a3000885"
+    },
+    {
+      "group_id": "49b83bb1318bb3cd54e8c8c5a41a6703be06b9a5d6842d4b851dc4a4dd0eadea",
+      "id": "banking77-train-01110",
+      "label": "card_delivery_estimate",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 1110,
+      "source_text_sha256": "000db9e10aefecde09f0016b5ca86a77b7d90e526ddccfffb7570ff46a94e2df"
+    },
+    {
+      "group_id": "a089d131a0947f524bd0280dec6431b6a142b7b7a6245f9b4a080ec40170e9b0",
+      "id": "banking77-train-00263",
+      "label": "card_linking",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 263,
+      "source_text_sha256": "00b49407b054893be2a6614fe6586d03bdc4961badd781c025b1dbe4804d4727"
+    },
+    {
+      "group_id": "ec97e0dbf92e8d7e3227c2c54d9bc5863b47eb2f09d999f5a6cf3a4e2a1712af",
+      "id": "banking77-train-01314",
+      "label": "card_not_working",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 1314,
+      "source_text_sha256": "040a7927fec684e9367c92cff07d5bbb998d9eaa5b9fb18c557e703027e0d619"
+    },
+    {
+      "group_id": "06f07fb78be5c6b5326f00d23aed68ca2373ee6b106ee1d2594e58a34842b524",
+      "id": "banking77-train-02539",
+      "label": "card_payment_fee_charged",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 2539,
+      "source_text_sha256": "032387e2bb3102a2b96471213ce8a6a15d10465a210593f1158cc08ce7e33fc6"
+    },
+    {
+      "group_id": "01b4724e01c4dd0c49c799d64e707630549e260da074cff02245e8979f9a61f6",
+      "id": "banking77-train-03502",
+      "label": "card_payment_not_recognised",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 3502,
+      "source_text_sha256": "01b4724e01c4dd0c49c799d64e707630549e260da074cff02245e8979f9a61f6"
+    },
+    {
+      "group_id": "21b1938b327fa17d3c8e2761f6f1fac610378b4e9285afad5b265b9f4d3ab0ca",
+      "id": "banking77-train-00566",
+      "label": "card_payment_wrong_exchange_rate",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 566,
+      "source_text_sha256": "005566f80b77651f0dfd3309fc51feab5f9f193d2e1bbc8134df5a7d6dbed088"
+    },
+    {
+      "group_id": "0d8d062c771c25a6098e0faa82c81dbfdfe77cc4ffcc3e223f8a8035909a0860",
+      "id": "banking77-train-06271",
+      "label": "card_swallowed",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 6271,
+      "source_text_sha256": "02ebbe19198108486f77cf99f9fac5eaea6d4bcc41807f0f2c1cfda842596b62"
+    },
+    {
+      "group_id": "4983810e9af236c73ff16364734f032c217082b063bdd3740d4be459f1b97e8f",
+      "id": "banking77-train-09360",
+      "label": "cash_withdrawal_charge",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 9360,
+      "source_text_sha256": "03ff18a3361e77d4a552752cc6e74f2457e317a033b431c34278dbf9b6ea2703"
+    },
+    {
+      "group_id": "cb1a033341893c7c6ca13c734f39a176f381d29b4f2486e4699ba7189e5db1cb",
+      "id": "banking77-train-08940",
+      "label": "cash_withdrawal_not_recognised",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 8940,
+      "source_text_sha256": "034c4a19536069c48c41335049b8c86bd0f6e097f15ad04a429323303e8a0feb"
+    },
+    {
+      "group_id": "136069cb16b3d0d14c05974b79ade53d3a2f618eebe4e1f3c33cdd3304856213",
+      "id": "banking77-train-06901",
+      "label": "change_pin",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 6901,
+      "source_text_sha256": "0046b6b308eb2a30bc8040ab7fd3456bd77f1279584dfde994f336c03391931c"
+    },
+    {
+      "group_id": "c0aba85a16991d76f22ec9528402a652613ea8341c3c5006cc6f66403f712990",
+      "id": "banking77-train-04517",
+      "label": "compromised_card",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 4517,
+      "source_text_sha256": "0232f61ade187e72531042d6a5d090733961d2b87651d5d1446f21bc0b97869a"
+    },
+    {
+      "group_id": "18ebb3106cb5ea3f38dd397aad9db53c719bc9a67b728e7d4fd6ee13ad1bb16b",
+      "id": "banking77-train-01792",
+      "label": "contactless_not_working",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 1792,
+      "source_text_sha256": "06c79e08598a53ffca0c434c9b5462bd44a4f800588e8c457ab9dcaae4baa557"
+    },
+    {
+      "group_id": "a757378fcd44af8cf121397e4b71483a947d1a30722b1f57ad94cde4750d7206",
+      "id": "banking77-train-09999",
+      "label": "country_support",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 9999,
+      "source_text_sha256": "005c4745c36782113c28c8f55cea7e58b5e36f602d5c7f5a8f933951ed1923b5"
+    },
+    {
+      "group_id": "8214d417cf9aba0625f3c7c3cb26a0f62e53508dbf89db42d93b1c7a3c1b74d0",
+      "id": "banking77-train-05841",
+      "label": "declined_card_payment",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 5841,
+      "source_text_sha256": "022d0bd42299821efad15ce278c63fec607380ebeeb276224f87af03007925ae"
+    },
+    {
+      "group_id": "22ee88acc760373cd67d5301ee4d809b7defa8423060651678149c3780b574a5",
+      "id": "banking77-train-05021",
+      "label": "declined_cash_withdrawal",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 5021,
+      "source_text_sha256": "010726f66edc9ffaf0704b1174fbdab143f69ad10ec39869e716dcdee6df6ab6"
+    },
+    {
+      "group_id": "41722db28e40d4bcf000487515b95d501b8673ab7705de2c9da58d5d24ec7bc8",
+      "id": "banking77-train-05613",
+      "label": "declined_transfer",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 5613,
+      "source_text_sha256": "02b914f8542583b8f409fc56380819c5d6baa42a71e4ecba74a1bd52162fa614"
+    },
+    {
+      "group_id": "02485eb6b16394f6b67e02f81f0759c7c474a818944280afbee60835860e4786",
+      "id": "banking77-train-04677",
+      "label": "direct_debit_payment_not_recognised",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 4677,
+      "source_text_sha256": "02485eb6b16394f6b67e02f81f0759c7c474a818944280afbee60835860e4786"
+    },
+    {
+      "group_id": "5197b9d7a23102f3099401a60fead64feb3837d506a1df6658679e276860dc95",
+      "id": "banking77-train-04426",
+      "label": "disposable_card_limits",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 4426,
+      "source_text_sha256": "01b63920c1cd11a4fcff2ef14d7d5fb057b2faeb3d5744888aa393e705173501"
+    },
+    {
+      "group_id": "4878d6581b40dafbc04491600f617e464568c7a639bf303f481e1c9d931b1ce4",
+      "id": "banking77-train-03650",
+      "label": "edit_personal_details",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 3650,
+      "source_text_sha256": "02da5c590ffd490eb0c9494115988b935eafea067621dca440994ff2c21671a2"
+    },
+    {
+      "group_id": "63051e69397b8508e618491d67f6893f78c56793f2192bf5ec528ae6cb9b4d35",
+      "id": "banking77-train-09023",
+      "label": "exchange_charge",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 9023,
+      "source_text_sha256": "00ef4f6872cbfffd2235e21e6e9824362249b3b35921f8314d9a3effac9ef6c1"
+    },
+    {
+      "group_id": "fdd637dda6ce306fe6edf0cbc181a281a1fb680c135033015710fefa3afdfb26",
+      "id": "banking77-train-00350",
+      "label": "exchange_rate",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 350,
+      "source_text_sha256": "00d920dc31a6fd10c5533c39121ecc262a82370e00258f6cedb4fe96ee649879"
+    },
+    {
+      "group_id": "6579f1e3af4bb427f477556d8cd3c9fae48b0ca4605adec15136b0279bb8d950",
+      "id": "banking77-train-01466",
+      "label": "exchange_via_app",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 1466,
+      "source_text_sha256": "01eca188c68b26967a8e250e6d6d811838143054878fe85ce2a2dfbf0c06160d"
+    },
+    {
+      "group_id": "4f20b37428075eef0f26e17cc310795fab1b1fd1cd3c9539c29598b6758e2f10",
+      "id": "banking77-train-00595",
+      "label": "extra_charge_on_statement",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 595,
+      "source_text_sha256": "01253e63a3ebce5de23af720006f7aa62579e32b3f58d8dca34ab241e0e99adf"
+    },
+    {
+      "group_id": "03331d57a25849a0ea56af39fd9b2bba0027797c16788331ac939cb49cbf5c40",
+      "id": "banking77-train-07560",
+      "label": "failed_transfer",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 7560,
+      "source_text_sha256": "03331d57a25849a0ea56af39fd9b2bba0027797c16788331ac939cb49cbf5c40"
+    },
+    {
+      "group_id": "4923ae14949a114a3747829dd15502e43e6954c35a683cf26d64bf5b22d340dd",
+      "id": "banking77-train-00972",
+      "label": "fiat_currency_support",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 972,
+      "source_text_sha256": "01ee5b4332622675a3d632cf8b3b29b31299a6db892e94e4f4a5f5e48b96dff7"
+    },
+    {
+      "group_id": "02d109f2a74ff8677d3554fb9e2b162b7cb8a40a34157bd2e75354cd16f0578e",
+      "id": "banking77-train-08412",
+      "label": "get_disposable_virtual_card",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 8412,
+      "source_text_sha256": "02d109f2a74ff8677d3554fb9e2b162b7cb8a40a34157bd2e75354cd16f0578e"
+    },
+    {
+      "group_id": "fd46bf9a3a7da1a98f05d7093941c6c2baf5337250962585fdd508910175c018",
+      "id": "banking77-train-04006",
+      "label": "get_physical_card",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 4006,
+      "source_text_sha256": "0059c03657dc449a4cd75373ba2edaf92ac5738cccfd52d619fd6e098cea3cc7"
+    },
+    {
+      "group_id": "29bd485a3cc2dc8f58e3d62bada610a09f8e3b676b035d160354fdeb5d9fc76d",
+      "id": "banking77-train-07922",
+      "label": "getting_spare_card",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 7922,
+      "source_text_sha256": "007f656883c3805f5fdec219c28a9df1760486aa93d46d5e6ca399de974786ed"
+    },
+    {
+      "group_id": "468827a3d2a4030e40f22b7321cc38ef5044b9e234d55c1140f0bd4b29c17521",
+      "id": "banking77-train-03060",
+      "label": "getting_virtual_card",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 3060,
+      "source_text_sha256": "021e1839bf2fe33b8ecbc16c0219caaa41d1c7cc1e0c63dc6f4091d3e46f48e9"
+    },
+    {
+      "group_id": "fbe3a848cc420f55c9fab623619183b2d3cb98491f7cd9ce939e1cfccaff0909",
+      "id": "banking77-train-01498",
+      "label": "lost_or_stolen_card",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 1498,
+      "source_text_sha256": "0134354d54caa33f8fdee46e88026eebf363a8d94ae51a73068b384403ae40d5"
+    },
+    {
+      "group_id": "54ca5a8b2756d0f208d959c2e0f2a94e5963175b9a7ff70ea34dcb5ffffa3689",
+      "id": "banking77-train-05253",
+      "label": "lost_or_stolen_phone",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 5253,
+      "source_text_sha256": "0105501dee6ae7ab4a5bfd3ed4460dcbe4e87bb6fa86b9df164a4c5526f19d46"
+    },
+    {
+      "group_id": "5d3edd7eccc3e6b3e1f02bf1a890c531a715ec447b606b96ad473b5256e12bf2",
+      "id": "banking77-train-08137",
+      "label": "order_physical_card",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 8137,
+      "source_text_sha256": "03b93249b1a261bc4922ba5d227eda8a59b4ea7fdad23a30356a542c04edf680"
+    },
+    {
+      "group_id": "b8606f673fe40081f35f419db29187fef3a3bc8769695a003efbb68c9634f8f5",
+      "id": "banking77-train-04886",
+      "label": "passcode_forgotten",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 4886,
+      "source_text_sha256": "013b4cf4e48a619ec709b2f8c3d68974d76c0843773febfb3b28498ca240d4ca"
+    },
+    {
+      "group_id": "73d6df48fc3ca1dd47669c21eb8ef9bafe6259a610b69834c8a0a625e68a3c97",
+      "id": "banking77-train-05193",
+      "label": "pending_card_payment",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 5193,
+      "source_text_sha256": "01059c34c68e3776a222b4076391d373d9c8fdd0419680b65d6392701682f6cb"
+    },
+    {
+      "group_id": "68c35ab2969a2af60ba18bd8af6591717a77e576c4f295689597d89352165842",
+      "id": "banking77-train-00758",
+      "label": "pending_cash_withdrawal",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 758,
+      "source_text_sha256": "00eeaff5918f24a5db986ff17a032da5b8d4d17274d56a6e460d7d898bcdbf22"
+    },
+    {
+      "group_id": "489936985618d4e53c575d6148296e8b562bc44f7af0087e9eeb9a6bfa45e41e",
+      "id": "banking77-train-02049",
+      "label": "pending_top_up",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 2049,
+      "source_text_sha256": "024d31f9277f3f1a2117df1c3e1d2c92ee4b0ed909bee03f7c5031b36be7c151"
+    },
+    {
+      "group_id": "e1e72dda354adc236f2f81334e243e6b5287eac3e4821be10e0e89b3e82afe5f",
+      "id": "banking77-train-06061",
+      "label": "pending_transfer",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 6061,
+      "source_text_sha256": "02dd896af3616ab0c1b99fd987fbee56768d50ba6f70f432a7432e92214c3b47"
+    },
+    {
+      "group_id": "a435388d3295251eaa7bdfee92e85e31bedc11eb7aae6974d3c049b94eb3c86e",
+      "id": "banking77-train-01726",
+      "label": "pin_blocked",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 1726,
+      "source_text_sha256": "006c05a15fd13a35fa2d758f6e9a2e87d2e54f87fa6406365256bae593bab749"
+    },
+    {
+      "group_id": "71bfbb05e01afc419ba28e13bbffc9b827b763a34d1daff17272909b2fe06ee2",
+      "id": "banking77-train-07335",
+      "label": "receiving_money",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 7335,
+      "source_text_sha256": "03669ac909fbc7708cd6aa91b89c4c386012ddad796474681eb21e44221fd75f"
+    },
+    {
+      "group_id": "e4533b010e280e598084e0c26a6611d25255ad44bb300fed0d5bd3c8a8f9862a",
+      "id": "banking77-train-05395",
+      "label": "request_refund",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 5395,
+      "source_text_sha256": "0069d5cb55526a289e0dddc8ac12b9decdb5a9429d9227a7fb2b363855c3860e"
+    },
+    {
+      "group_id": "5eb49e34c96cefc75c016519662477afb8ceea5cc0f1ad32a56e1c1b8efbb554",
+      "id": "banking77-train-06858",
+      "label": "reverted_card_payment?",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 6858,
+      "source_text_sha256": "00b693315d463bcf1237441c3d3c2c631b8f4e68b999ecda206514a45e1a757e"
+    },
+    {
+      "group_id": "55621ec98448e0cdf7d9536cfd00c93dcaf813794c4b21e2b6252f38e3b4fb2d",
+      "id": "banking77-train-02943",
+      "label": "supported_cards_and_currencies",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 2943,
+      "source_text_sha256": "00b68e7bc894c2c144c49afbba9991fdf844a8ae4257ba76091cf7ef8118b312"
+    },
+    {
+      "group_id": "2efe6d968239acb50220dde28028b638a51b3dbe4c6c99b0b0b7918424539fe6",
+      "id": "banking77-train-06227",
+      "label": "terminate_account",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 6227,
+      "source_text_sha256": "02c798abeb0bdc4cc34527a95700c27009ff727e7af47b1f3b106e5ea227d4f0"
+    },
+    {
+      "group_id": "c75b2dd0a5b8144794ea1d0ce9ad26a199cbce28c1bc6c55be759d9e8fa42df1",
+      "id": "banking77-train-01873",
+      "label": "top_up_by_bank_transfer_charge",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 1873,
+      "source_text_sha256": "01c80efa5eadea5fab6e028ebb4a29e591ac1598e35389615df406d040b4e680"
+    },
+    {
+      "group_id": "e8d4232cd2ec865bf43c2f4e82bed34f334e1c7442201c26d12db8d5cbd7bf8e",
+      "id": "banking77-train-09168",
+      "label": "top_up_by_card_charge",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 9168,
+      "source_text_sha256": "00d9c213682d22ff5832bbd601fa5b56f86f0c81809dfe5ca729295bfc7629a5"
+    },
+    {
+      "group_id": "02846cd0b400ea4285fe63d170c60c435b409e8d7a5824842b3c4bd722c2cb35",
+      "id": "banking77-train-07988",
+      "label": "top_up_by_cash_or_cheque",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 7988,
+      "source_text_sha256": "001d62d903bf5d0732bce18a1982c105801934aabeed41814bf95349270fa33e"
+    },
+    {
+      "group_id": "eb8f49e4fbc40b84d89d6169191d3b59aac84631b4c660bc6fe0fd474a3b91b5",
+      "id": "banking77-train-08499",
+      "label": "top_up_failed",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 8499,
+      "source_text_sha256": "009953df4b9084c6715323a87acd0e80e9efaeec00e76fdf493c98332dba6c09"
+    },
+    {
+      "group_id": "7aae93abed38cbbfa458e4b9523a79b85a312a289c67fc30912c7dc22dbe3be1",
+      "id": "banking77-train-02239",
+      "label": "top_up_limits",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 2239,
+      "source_text_sha256": "04d001ca0d54db595537d1947b588e3297a3e4ce3a83f2b6cd0e327e59656eb4"
+    },
+    {
+      "group_id": "800c7a530dc6b550b1625d52d70231e2a0ac11113d97eab944a20476a206228d",
+      "id": "banking77-train-03275",
+      "label": "top_up_reverted",
+      "positive_slot_zero_based": 1,
+      "source_row_zero_based": 3275,
+      "source_text_sha256": "0028cd6bf59fe281ac81dff24a68328e256902d0fc4e3425ce6a42a8f7125d76"
+    },
+    {
+      "group_id": "6a388ab237b505fc244dcb74e6dfba1a9772dc7cc6a2202b1e94887fd7a13613",
+      "id": "banking77-train-04276",
+      "label": "topping_up_by_card",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 4276,
+      "source_text_sha256": "00dd32fc6801495e75761d06f2d986e9494525d4ee7715545d6be0ac840b57ab"
+    },
+    {
+      "group_id": "b869f101151fb7e9fbc624eac9b7e356af204e048a87c8304cfeadfb1bc75062",
+      "id": "banking77-train-06467",
+      "label": "transaction_charged_twice",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 6467,
+      "source_text_sha256": "008f72bd79add0fdaf161194d1046540c2ef316d2d7e511f311427431d130097"
+    },
+    {
+      "group_id": "d4db8fbab52ed1de9cf12f65cadfe464e007679d074c5abc163bff6e3cb178df",
+      "id": "banking77-train-07323",
+      "label": "transfer_fee_charged",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 7323,
+      "source_text_sha256": "015a8d87299a782ffdb4566970eb8a24e411748bf1b42a0ce220386bd2617ba7"
+    },
+    {
+      "group_id": "92ae85c143aca9e8a3d269e8001f8e0072bd2d42353cd3ee630db7ba4db85c37",
+      "id": "banking77-train-07600",
+      "label": "transfer_into_account",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 7600,
+      "source_text_sha256": "00886a58b18ad97441c8de93dc6e139ee8ed3d0decb91add2145adebdcaa3e87"
+    },
+    {
+      "group_id": "037c9624168889312d5ae690175355dca49b910dd9db3e4c8282da6032a1c255",
+      "id": "banking77-train-02793",
+      "label": "transfer_not_received_by_recipient",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 2793,
+      "source_text_sha256": "003228972e6ff76b81e4e747c20ade2167aed89287aed9bda64ac85b28ac1321"
+    },
+    {
+      "group_id": "539095d1b05a7ce5a8cbea32da99e76c58d0194bf95009103428978616205ad7",
+      "id": "banking77-train-06710",
+      "label": "transfer_timing",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 6710,
+      "source_text_sha256": "002ca04e45691bf22dabe6f1c3928595d2a035ab018b475f3db4b632e67c7c1f"
+    },
+    {
+      "group_id": "3f57ce80fa2a542daf4cd2bd471d1c9b6437b472b836c89526042581f0938de9",
+      "id": "banking77-train-03956",
+      "label": "unable_to_verify_identity",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 3956,
+      "source_text_sha256": "01b621c9317079517cfed13986ddc11d27d042baa9d33d1f3c58d7db5689b399"
+    },
+    {
+      "group_id": "53bd9bf477ce681339d6b0ee4ef58d6dc0ed17d13993d598c30bdddd9bd3af6b",
+      "id": "banking77-train-09779",
+      "label": "verify_my_identity",
+      "positive_slot_zero_based": 2,
+      "source_row_zero_based": 9779,
+      "source_text_sha256": "002f57b10ee22368504bf9897a6a77f0c844f21a8a5d1bee872bca89bfbde8a4"
+    },
+    {
+      "group_id": "c1178fd6bee50279c79e6b7885bf83e53d9c4176b49d578e7ffa5f03a52a6809",
+      "id": "banking77-train-06546",
+      "label": "verify_source_of_funds",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 6546,
+      "source_text_sha256": "009dd98dd89c44426344a3ba34f7584b1906ad08e3fe579cad206c69e11e8882"
+    },
+    {
+      "group_id": "1b2fdc340feb9f5fde139ae3401e009eeea265bf47253259aac6061b3869aa63",
+      "id": "banking77-train-07733",
+      "label": "verify_top_up",
+      "positive_slot_zero_based": 5,
+      "source_row_zero_based": 7733,
+      "source_text_sha256": "00784d3f01e609ec54c06ceea46a624fac615e940cf6d2fb929f2f2b4d4e4a3a"
+    },
+    {
+      "group_id": "19970c91c9cc443b66a9a27c7d810cf01f6874d9815760eac33121e123cad2f4",
+      "id": "banking77-train-08199",
+      "label": "virtual_card_not_working",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 8199,
+      "source_text_sha256": "19970c91c9cc443b66a9a27c7d810cf01f6874d9815760eac33121e123cad2f4"
+    },
+    {
+      "group_id": "11d740a3b285f808ad440211e7941f35c8253ce9f8bd972cc147c47bf7c44664",
+      "id": "banking77-train-04211",
+      "label": "visa_or_mastercard",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 4211,
+      "source_text_sha256": "00e2c28477babc52dab4c27e77dd5ab6af61d7c985b32c9d8ed0238805ac7c61"
+    },
+    {
+      "group_id": "4989076dd112ffd66d4147c624559947ad7c3446a1cb8facd36387c6f77db2ac",
+      "id": "banking77-train-03835",
+      "label": "why_verify_identity",
+      "positive_slot_zero_based": 4,
+      "source_row_zero_based": 3835,
+      "source_text_sha256": "00cc3b9c961e8cbc767c89aac9d631e42dec4eb6a74df19241491b35f5d9d85f"
+    },
+    {
+      "group_id": "1bb097546e7e359628f4c04cdf38eb596ab385ac5d5a43b170ca68809f388adc",
+      "id": "banking77-train-02413",
+      "label": "wrong_amount_of_cash_received",
+      "positive_slot_zero_based": 3,
+      "source_row_zero_based": 2413,
+      "source_text_sha256": "00b433b4cab9b2e569facad7022779af950283427e3ea352c4b756b195cf94b1"
+    },
+    {
+      "group_id": "eccbb67b538c65a474b5d7559b40d491789b4f78a661a70e5abd5725fcd89138",
+      "id": "banking77-train-08275",
+      "label": "wrong_exchange_rate_for_cash_withdrawal",
+      "positive_slot_zero_based": 0,
+      "source_row_zero_based": 8275,
+      "source_text_sha256": "0045cf18490132977e16dc1d637f5330c0608bcf4dd69335a068cab54ac53c91"
+    }
+  ],
+  "license": "CC-BY-4.0",
+  "limits": [
+    "Training data exposure in the released model is unknown.",
+    "Menus contain the labeled intent plus sampled negatives.",
+    "Source annotations may contain label errors; no relabeling performed.",
+    "No official test or reserved Kayak confirmation examples accessed."
+  ],
+  "menu_size": 6,
+  "purpose": "runtime development assay; not an official BANKING77 score",
+  "schema_version": 1,
+  "selection": "one lowest text-SHA256 unique normalized utterance per intent, tie-break by source row; labels sorted lexicographically",
+  "source_revision": "57ec275d8078af65b7731c2a98be812d844a6d6b",
+  "source_rows": 10003,
+  "source_sha256": "b06e26ac675513959a63135f11b94ea7786ed02da65db93a5650d8838cbc664b",
+  "source_split": "train",
+  "source_url": "https://raw.githubusercontent.com/PolyAI-LDN/task-specific-datasets/57ec275d8078af65b7731c2a98be812d844a6d6b/banking_data/train.csv",
+  "total": 77
+}

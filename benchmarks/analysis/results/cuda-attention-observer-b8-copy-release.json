@@ -1,0 +1,142 @@
+{
+  "transport_path": "benchmarks/analysis/results/cuda-attention-observer-b8-transport.json",
+  "files": [
+    {
+      "bytes": 2102475,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b8.json",
+      "sha256": "dda922388386aa04a8deb072fc9da782afd0662a25865dedd64d5bbfafbf0e49"
+    },
+    {
+      "bytes": 1043,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b8.wall.json",
+      "sha256": "fd4c0d48c6e876fda60e7ff51e14b02818c86f26c4d4afa16943c531de4a6a2c"
+    },
+    {
+      "bytes": 1373,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b8.log",
+      "sha256": "108c3c190c09761fe42d2075b9c4b8678de65524232b3f58e10ec0d326e2c7f9"
+    },
+    {
+      "bytes": 352063,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b8.sources-686a18493cecf093.json",
+      "sha256": "686a18493cecf0930c788160cb7032c5f559575ec5c725f780a707449d38a97a"
+    }
+  ],
+  "release_queries": [
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=memory.used,utilization.gpu",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "finished_utc": "2026-10-05T08:33:01.535714+00:00",
+      "started_utc": "2026-10-05T08:33:01.512551+00:00",
+      "stderr": "",
+      "stdout": "128, 0\n"
+    },
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "finished_utc": "2026-10-05T08:33:01.555378+00:00",
+      "started_utc": "2026-10-05T08:33:01.535726+00:00",
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "pgrep",
+        "-af",
+        "benchmarks.analysis.cuda.attention.run"
+      ],
+      "exit_code": 1,
+      "finished_utc": "2026-10-05T08:33:01.568223+00:00",
+      "started_utc": "2026-10-05T08:33:01.555391+00:00",
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "summary": {
+    "case_ids": [
+      "banking77-train-05698",
+      "banking77-train-09214",
+      "banking77-train-01636",
+      "banking77-train-09708",
+      "banking77-train-04562",
+      "banking77-train-01221",
+      "banking77-train-08638",
+      "banking77-train-03357"
+    ],
+    "completed": true,
+    "dispatch_passed": true,
+    "efficient_drift": {
+      "cpu_reference": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 1.1861324310302734e-05,
+        "max_abs_probability_difference": 1.0654642948887405e-06,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      },
+      "cuda_control": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 9.894371032714844e-06,
+        "max_abs_probability_difference": 1.3008294684757615e-06,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      }
+    },
+    "error": null,
+    "math_drift": {
+      "cpu_reference": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 1.1861324310302734e-05,
+        "max_abs_probability_difference": 1.2320580826674643e-06,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      },
+      "cuda_control": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 7.748603820800781e-06,
+        "max_abs_probability_difference": 3.816821784186075e-07,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      }
+    },
+    "phase": "completed",
+    "quality_passed": true,
+    "unknown_case_ids": {
+      "efficient_ordinary": [],
+      "efficient_profile": [],
+      "math_ordinary": [],
+      "math_profile": []
+    }
+  }
+}

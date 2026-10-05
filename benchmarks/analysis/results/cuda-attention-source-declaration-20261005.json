@@ -1,0 +1,9 @@
+{
+  "benchmarks/analysis/cuda/attention/__init__.py": "1b7deed2d2e3c2891f25d222b735a9a1729ae5e94562a2a93159115929f8367f",
+  "benchmarks/analysis/cuda/attention/run.py": "2e687c7b41172aaddb61489c581e7640e54bd94d375c6828b0548bf76f7ad66e",
+  "benchmarks/analysis/cuda/attention/scorer.py": "e2ae77ccee9cda98fc706adb87d9b87927ac7dc693bc5b96d04b9ea8be0d3750",
+  "benchmarks/analysis/cuda/attention/study.py": "48d71fcfcde7964045e9b8dde506701cdd19521bc0e268980962ee4252577da4",
+  "benchmarks/analysis/cuda/attention/trace.py": "342ed138b4a8d12769248492ff9edb7b6181181db0e95d60045cb176724f942f",
+  "docs/analysis/attention.md": "18851501e2b9335f0a88ca43d7d3426b40cab5959ba6a89156e855c694a028bb",
+  "tests/analysis/test_cuda_attention.py": "6d998054a2f0e72f7844d19369cea1ba22085a76003cc65c313e259a641ad0c6"
+}

@@ -1,0 +1,114 @@
+{
+  "mechanics_receipt": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cpu-readout-mechanics.json",
+    "sha256": "51e47437f7fbf67686bc49bb1d7b186d160e743e90b17d9b8b27728bd19a46aa"
+  },
+  "source_archive_verified": true,
+  "source_before_and_after_static_checks_unchanged": true,
+  "runtime_metadata": {
+    "python": "3.12.11 (main, Jun 26 2025, 21:44:36) [Clang 20.1.4 ]",
+    "executable": "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "packages": {
+      "torch": "2.14.1",
+      "transformers": "5.18.0",
+      "pytest": "9.1.1",
+      "hypothesis": "6.168.3",
+      "numpy": "2.5.3"
+    }
+  },
+  "production_after_tiny_matches_native_baseline": true,
+  "production_sha256": {
+    "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+    "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+    "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+    "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+    "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+    "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+    "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+    "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "checks": {
+    "ruff_lint": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/ruff",
+        "check",
+        "benchmarks/analysis/torch/readout",
+        "tests/analysis/test_cpu_readout_block.py"
+      ],
+      "cap_seconds": 60,
+      "pid": 78384,
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "seconds": 0.011317208991385996,
+      "stdout": "All checks passed!\n",
+      "stderr": ""
+    },
+    "ruff_format": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/ruff",
+        "format",
+        "--check",
+        "benchmarks/analysis/torch/readout",
+        "tests/analysis/test_cpu_readout_block.py"
+      ],
+      "cap_seconds": 60,
+      "pid": 78385,
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "seconds": 0.010809708037413657,
+      "stdout": "3 files already formatted\n",
+      "stderr": ""
+    },
+    "mypy": {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/mypy",
+        "--strict",
+        "--ignore-missing-imports",
+        "--follow-imports=silent",
+        "benchmarks/analysis/torch/readout",
+        "tests/analysis/test_cpu_readout_block.py"
+      ],
+      "cap_seconds": 60,
+      "pid": 78386,
+      "exit_code": 0,
+      "timed_out": false,
+      "reaped": true,
+      "seconds": 0.5867202910012566,
+      "stdout": "Success: no issues found in 3 source files\n",
+      "stderr": ""
+    }
+  },
+  "producer_sources": [
+    {
+      "path": "/private/tmp/wyat-cpu-readout-provenance.py",
+      "sha256": "29a986a7309047c982b14c0ff6c3d59c989708f6e637a1984e0812a0f4f40f15",
+      "text": "\"\"\"Complete metadata/static checks without rerunning model mechanics.\"\"\"\n\nfrom __future__ import annotations\n\nimport hashlib\nimport json\nimport os\nimport signal\nimport subprocess\nimport sys\nimport time\nfrom importlib.metadata import version\nfrom pathlib import Path\nfrom typing import cast\n\nROOT = Path(\"/Users/teilomillet/Code/wyat\")\nRESULT = ROOT / \"benchmarks/analysis/results/cpu-readout-mechanics.provenance.json\"\n\n\ndef checksum(path: Path) -> str:\n    return hashlib.sha256(path.read_bytes()).hexdigest()\n\n\ndef owned(command: list[str]) -> dict[str, object]:\n    started = time.perf_counter()\n    child = subprocess.Popen(\n        command,\n        cwd=ROOT,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n        start_new_session=True,\n    )\n    timed_out = False\n    try:\n        stdout, stderr = child.communicate(timeout=60)\n    except subprocess.TimeoutExpired:\n        timed_out = True\n        os.killpg(child.pid, signal.SIGKILL)\n        stdout, stderr = child.communicate()\n    finally:\n        child.wait()\n    return {\n        \"command\": command,\n        \"cap_seconds\": 60,\n        \"pid\": child.pid,\n        \"exit_code\": child.returncode,\n        \"timed_out\": timed_out,\n        \"reaped\": True,\n        \"seconds\": time.perf_counter() - started,\n        \"stdout\": stdout,\n        \"stderr\": stderr,\n    }\n\n\ndef main() -> None:\n    if RESULT.exists():\n        raise ValueError(\"Preserve previous provenance\")\n    receipt = ROOT / \"benchmarks/analysis/results/cpu-readout-mechanics.json\"\n    record = cast(dict[str, object], json.loads(receipt.read_bytes()))\n    descriptor = cast(dict[str, str], record[\"source_archive\"])\n    archive = cast(dict[str, object], json.loads(Path(descriptor[\"path\"]).read_bytes()))\n    source_rows = cast(list[dict[str, str]], archive[\"files\"])\n    stable = all(checksum(Path(row[\"path\"])) == row[\"sha256\"] for row in source_rows)\n    baseline = (\n        ROOT / \"benchmarks/real/engine-cpu-prefix-production-verification-final.json\"\n    )\n    if (\n        checksum(baseline)\n        != \"5aa107ec9736714138a28b45900bb93140eb663b69c8c12d81499a46c0f01b07\"\n    ):\n        raise ValueError(\"Native baseline differs\")\n    baseline_record = cast(dict[str, object], json.loads(baseline.read_bytes()))\n    table = cast(dict[str, str], baseline_record[\"source_sha256\"])\n    production = {\n        name: checksum(ROOT / name) for name in table if name.startswith(\"wyat/\")\n    }\n    targets = [\n        \"benchmarks/analysis/torch/readout\",\n        \"tests/analysis/test_cpu_readout_block.py\",\n    ]\n    checks = {\n        \"ruff_lint\": owned([str(ROOT / \".venv/bin/ruff\"), \"check\", *targets]),\n        \"ruff_format\": owned(\n            [str(ROOT / \".venv/bin/ruff\"), \"format\", \"--check\", *targets]\n        ),\n        \"mypy\": owned(\n            [\n                str(ROOT / \".venv/bin/mypy\"),\n                \"--strict\",\n                \"--ignore-missing-imports\",\n                \"--follow-imports=silent\",\n                *targets,\n            ]\n        ),\n    }\n    files = [Path(__file__), Path(\"/private/tmp/wyat-cpu-readout-check.py\")]\n    output = {\n        \"mechanics_receipt\": {\"path\": str(receipt), \"sha256\": checksum(receipt)},\n        \"source_archive_verified\": checksum(Path(descriptor[\"path\"]))\n        == descriptor[\"sha256\"],\n        \"source_before_and_after_static_checks_unchanged\": stable\n        and all(checksum(Path(row[\"path\"])) == row[\"sha256\"] for row in source_rows),\n        \"runtime_metadata\": {\n            \"python\": sys.version,\n            \"executable\": sys.executable,\n            \"packages\": {\n                name: version(name)\n                for name in (\"torch\", \"transformers\", \"pytest\", \"hypothesis\", \"numpy\")\n            },\n        },\n        \"production_after_tiny_matches_native_baseline\": len(production) == 22\n        and all(value == table[name] for name, value in production.items()),\n        \"production_sha256\": production,\n        \"checks\": checks,\n        \"producer_sources\": [\n            {\"path\": str(path), \"sha256\": checksum(path), \"text\": path.read_text()}\n            for path in files\n        ],\n        \"limits\": [\n            \"Production identity checked after tiny execution against immutable prior baseline\",\n            \"Package versions do not attest every imported object or native binary\",\n            \"No trained checkpoint or physical-memory/performance experiment ran\",\n        ],\n    }\n    with RESULT.open(\"x\") as stream:\n        json.dump(output, stream, indent=2, allow_nan=False)\n        stream.write(\"\\n\")\n    print(json.dumps({name: item[\"exit_code\"] for name, item in checks.items()}))\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    },
+    {
+      "path": "/private/tmp/wyat-cpu-readout-check.py",
+      "sha256": "d3c98158e3c568e746120682065ffb697e4fe4bb19252674923b82fe22ce469a",
+      "text": "\"\"\"Own one bounded tiny mechanics child and immutable source/raw evidence.\"\"\"\n\nfrom __future__ import annotations\n\nimport hashlib\nimport json\nimport os\nimport signal\nimport subprocess\nimport time\nfrom pathlib import Path\n\nROOT = Path(\"/Users/teilomillet/Code/wyat\")\nRESULT = ROOT / \"benchmarks/analysis/results/cpu-readout-mechanics.json\"\nBASE = Path(\"/private/tmp/wyat-cpu-readout-mechanics-20261005\")\nSOURCES = [\n    ROOT / name\n    for name in (\n        \"benchmarks/analysis/torch/readout/__init__.py\",\n        \"benchmarks/analysis/torch/readout/block.py\",\n        \"tests/analysis/test_cpu_readout_block.py\",\n    )\n] + [\n    ROOT / \".venv/lib/python3.12/site-packages\" / name\n    for name in (\n        \"transformers/models/qwen3/modeling_qwen3.py\",\n        \"transformers/cache_utils.py\",\n        \"transformers/integrations/sdpa_attention.py\",\n        \"transformers/masking_utils.py\",\n        \"torch/nn/modules/module.py\",\n        \"torch/nn/functional.py\",\n    )\n]\n\n\ndef checksum(path: Path) -> str:\n    return hashlib.sha256(path.read_bytes()).hexdigest()\n\n\ndef main() -> None:\n    if RESULT.exists() or BASE.exists():\n        raise ValueError(\"Preserve existing evidence\")\n    records = [\n        {\"path\": str(path), \"text\": path.read_text(), \"sha256\": checksum(path)}\n        for path in SOURCES\n    ]\n    payload = json.dumps({\"files\": records}, indent=2).encode()\n    archive_sha = hashlib.sha256(payload).hexdigest()\n    archive = RESULT.with_name(RESULT.stem + \".sources-\" + archive_sha[:16] + \".json\")\n    with archive.open(\"xb\") as stream:\n        stream.write(payload)\n    command = [\n        str(ROOT / \".venv/bin/pytest\"),\n        \"-q\",\n        \"-rs\",\n        \"tests/analysis/test_cpu_readout_block.py\",\n        \"--basetemp\",\n        str(BASE),\n    ]\n    started = time.perf_counter()\n    child = subprocess.Popen(\n        command,\n        cwd=ROOT,\n        stdout=subprocess.PIPE,\n        stderr=subprocess.PIPE,\n        text=True,\n        start_new_session=True,\n    )\n    timed_out = False\n    try:\n        stdout, stderr = child.communicate(timeout=60)\n    except subprocess.TimeoutExpired:\n        timed_out = True\n        os.killpg(child.pid, signal.SIGKILL)\n        stdout, stderr = child.communicate()\n    finally:\n        child.wait()\n    result = {\n        \"command\": command,\n        \"cwd\": str(ROOT),\n        \"pid\": child.pid,\n        \"cap_seconds\": 60,\n        \"seconds\": time.perf_counter() - started,\n        \"exit_code\": child.returncode,\n        \"timed_out\": timed_out,\n        \"reaped\": True,\n        \"stdout\": stdout,\n        \"stderr\": stderr,\n        \"source_archive\": {\"path\": str(archive), \"sha256\": archive_sha},\n        \"source_unchanged\": all(\n            checksum(Path(row[\"path\"])) == row[\"sha256\"] for row in records\n        ),\n        \"raw_outputs\": [\n            {\"path\": str(path), \"sha256\": checksum(path), \"text\": path.read_text()}\n            for path in sorted(BASE.rglob(\"*.json\"))\n        ],\n        \"limits\": [\n            \"Synthetic tiny mechanics/head geometry, not learned-model quality or latency\",\n            \"Actual CPU dispatch applies only to the two separately profiled calls\",\n        ],\n    }\n    with RESULT.open(\"x\") as stream:\n        json.dump(result, stream, indent=2, allow_nan=False)\n        stream.write(\"\\n\")\n    print(\n        json.dumps(\n            {k: result[k] for k in (\"exit_code\", \"seconds\", \"timed_out\", \"reaped\")}\n        )\n    )\n    print(stdout)\n    print(stderr)\n\n\nif __name__ == \"__main__\":\n    main()\n"
+    }
+  ],
+  "limits": [
+    "Production identity checked after tiny execution against immutable prior baseline",
+    "Package versions do not attest every imported object or native binary",
+    "No trained checkpoint or physical-memory/performance experiment ran"
+  ]
+}

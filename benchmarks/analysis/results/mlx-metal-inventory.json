@@ -1,0 +1,186 @@
+{
+  "target_process_pid": 57111,
+  "scope": "Owned process compiled shader inventory only; artifact loading and validation included. No shader timing attribution.",
+  "shader_timeline": "disabled",
+  "counter_set": null,
+  "raw_exports_sha256": {
+    "mlx-metal-shaders.xml": "662b390f9ad9d3e7d83ffc8c0bc2f14e553229c0ca7875a0cd5ac672556d4b1b",
+    "mlx-metal-gpu-intervals.xml": "21fd0e391fba798f66549b92d7c13feb48a19bfc105dae6201752c636c8ff548"
+  },
+  "shaders": [
+    {
+      "shader_name": "vsn_Equalbfloat16 (7)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2362293458
+    },
+    {
+      "shader_name": "vvn_NotEqualbfloat16 (10)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2362506250
+    },
+    {
+      "shader_name": "vvn_LogicalOrbool_ (11)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2362541333
+    },
+    {
+      "shader_name": "vn_LogicalNotbool_bool_ (12)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2362581875
+    },
+    {
+      "shader_name": "all_reduce_andbool_ (13)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2362615500
+    },
+    {
+      "shader_name": "vs_Equalfloat32 (14)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2366818916
+    },
+    {
+      "shader_name": "vv_NotEqualfloat32 (15)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2366877875
+    },
+    {
+      "shader_name": "vv_LogicalOrbool_ (16)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2366903541
+    },
+    {
+      "shader_name": "v_LogicalNotbool_bool_ (17)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2366930833
+    },
+    {
+      "shader_name": "vsn_Equalfloat32 (18)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2564679208
+    },
+    {
+      "shader_name": "vvn_NotEqualfloat32 (19)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2564771375
+    },
+    {
+      "shader_name": "vn_copybfloat16float32 (20)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2670477833
+    },
+    {
+      "shader_name": "gather_frontfloat32_int32_int_1 (21)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2707165583
+    },
+    {
+      "shader_name": "rmsfloat32 (22)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2707284416
+    },
+    {
+      "shader_name": "steel_gemm_fused_nt_float32_float32_bm64_bn64_bk16_wm2_wn2_has_batch_n_use_out_source_n_do_axpby_n_align_M_t_align_N_t_align_K_t (23)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2707402416
+    },
+    {
+      "shader_name": "rope_float32_transpose (24)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2707514833
+    },
+    {
+      "shader_name": "steel_attention_float32_bq32_bk16_bd128_bv128_wm4_wn1_maskfloat32_align_Q_t_align_K_t_has_mask_n_do_causal_t_has_sinks_n (25)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2707610041
+    },
+    {
+      "shader_name": "vvn_Addfloat32 (26)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2707654250
+    },
+    {
+      "shader_name": "Cf4ISigmoidADf4IBroadcastACEf4IBroadcastCAFf4IMultiplyDEGf4IBroadcastFBHf4IBroadcastBFIf4OMultiplyGH_VV_f4f4_11160318154034397263_contiguous (27)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2708130333
+    },
+    {
+      "shader_name": "arangeint32 (28)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2893864916
+    },
+    {
+      "shader_name": "gatherfloat32int32_2_1_int (29)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894105958
+    },
+    {
+      "shader_name": "gatherfloat32int32_2_2_int (30)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894294875
+    },
+    {
+      "shader_name": "layer_normfloat32 (31)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894342416
+    },
+    {
+      "shader_name": "steel_gemm_splitk_nt_float32_float32_bm16_bn32_bk16_wm2_wn2_MN_naligned_K_taligned (32)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894402500
+    },
+    {
+      "shader_name": "steel_gemm_splitk_accum_float32_float32 (33)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894430416
+    },
+    {
+      "shader_name": "steel_gemm_splitk_nt_float32_float32_bm32_bn32_bk16_wm2_wn2_MN_naligned_K_taligned (34)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894482208
+    },
+    {
+      "shader_name": "steel_gemm_splitk_accum_float32_float32_axbpy (35)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894513833
+    },
+    {
+      "shader_name": "g3_Addfloat32 (36)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894562250
+    },
+    {
+      "shader_name": "Ef4IBroadcastABFf4IBroadcastBAGf4IDivideEFHf4IErfGIf4IBroadcastHCJf4IBroadcastCHKf4IAddIJLf4IBroadcastAKMf4IBroadcastKANf4IMultiplyLMOf4IBroadcastNDPf4IBroadcastDNQf4ODivideOP_VCCC_f4_9980304959113967881_contiguous (37)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2894990708
+    },
+    {
+      "shader_name": "g3_Multiplyfloat32 (38)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2895019458
+    },
+    {
+      "shader_name": "gemv_float32_bm4_bn1_sm1_sn32_tm4_tn4_nc0_axpby0 (39)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2895066250
+    },
+    {
+      "shader_name": "row_reduce_simple_sumfloat32 (40)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2895095916
+    },
+    {
+      "shader_name": "vs_Dividefloat32 (41)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2895122750
+    },
+    {
+      "shader_name": "vv_Addfloat32 (42)",
+      "shader_type": "Compute",
+      "first_seen_ns": 2895144041
+    }
+  ],
+  "gpu_intervals": {
+    "owned_rows": 969,
+    "timing_attribution": "Not analyzed: inference markers unavailable and load/validation overlap target process."
+  }
+}

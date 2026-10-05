@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "scope": "read-only independent arithmetic reconstruction from both retained raw outputs; no model rerun",
+  "audits": [
+    {
+      "receipt": "torch-causal-confirm-batch1.json",
+      "receipt_sha256": "eeefe63003912c47770f3d82e40b25738235285d39f3536f38f0df3e60fa36e0",
+      "input_digest_recomputed": true,
+      "raw_logit_ranking_softmax_and_labeled_correctness_recomputed": true,
+      "repeated_case_count": 112,
+      "unique_case_count": 16,
+      "correct_recomputed": {
+        "baseline": 91,
+        "candidate": 91
+      },
+      "selected_equal": 112,
+      "ranking_equal": 112,
+      "max_logit_drift": 5.960464477539062e-07,
+      "max_probability_drift": 6.236426747241453e-08,
+      "paired_speedup_median_recomputed": 1.0209563067836076,
+      "successful_throughput_recomputed": {
+        "baseline": 7.570929618930207,
+        "candidate": 7.556200569297874
+      },
+      "timing_scope": "offline full-cohort cycles; no HTTP; repetitions are same16cases",
+      "performance_conclusion": "no robust mask-removal speed benefit established; near-unit speedups within variation"
+    },
+    {
+      "receipt": "torch-causal-confirm-batch8.json",
+      "receipt_sha256": "c3c2c425177d45630608c6580a1f455efbe6d8b2c3f16eedcdfbd0b1eea21489",
+      "input_digest_recomputed": true,
+      "raw_logit_ranking_softmax_and_labeled_correctness_recomputed": true,
+      "repeated_case_count": 112,
+      "unique_case_count": 16,
+      "correct_recomputed": {
+        "baseline": 91,
+        "candidate": 91
+      },
+      "selected_equal": 112,
+      "ranking_equal": 112,
+      "max_logit_drift": 4.76837158203125e-07,
+      "max_probability_drift": 2.9150456326565433e-08,
+      "paired_speedup_median_recomputed": 1.0174200128673043,
+      "successful_throughput_recomputed": {
+        "baseline": 12.118387940083283,
+        "candidate": 12.293313915347383
+      },
+      "timing_scope": "offline full-cohort cycles; no HTTP; repetitions are same16cases",
+      "performance_conclusion": "no robust mask-removal speed benefit established; near-unit speedups within variation"
+    }
+  ]
+}

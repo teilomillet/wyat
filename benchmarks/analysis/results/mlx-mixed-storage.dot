@@ -1,0 +1,61 @@
+digraph {
+{ 529236761096 [label ="Arange", shape=rectangle]; }
+{ "C"; }
+529236761096 -> "C"
+{ 529239781912 [label ="Reshape", shape=rectangle]; }
+"C" -> 529239781912
+{ "D"; }
+529239781912 -> "D"
+{ rank=source; "E"; }
+{ 529237262872 [label ="Broadcast", shape=rectangle]; }
+"E" -> 529237262872
+{ "F"; }
+529237262872 -> "F"
+{ 529236856744 [label ="Divide", shape=rectangle]; }
+"D" -> 529236856744
+"F" -> 529236856744
+{ "x"; }
+529236856744 -> "x"
+{ 529236761176 [label ="Arange", shape=rectangle]; }
+{ "G"; }
+529236761176 -> "G"
+{ 529239782168 [label ="Reshape", shape=rectangle]; }
+"G" -> 529239782168
+{ "H"; }
+529239782168 -> "H"
+{ rank=source; "I"; }
+{ 529237263000 [label ="Broadcast", shape=rectangle]; }
+"I" -> 529237263000
+{ "J"; }
+529237263000 -> "J"
+{ 529236856792 [label ="Divide", shape=rectangle]; }
+"H" -> 529236856792
+"J" -> 529236856792
+{ "K"; }
+529236856792 -> "K"
+{ 529237303576 [label ="AsType", shape=rectangle]; }
+"K" -> 529237303576
+{ "L"; }
+529237303576 -> "L"
+{ 529237303640 [label ="AsType", shape=rectangle]; }
+"L" -> 529237303640
+{ "M"; }
+529237303640 -> "M"
+{ 529237303704 [label ="AsType", shape=rectangle]; }
+"M" -> 529237303704
+{ "half"; }
+529237303704 -> "half"
+{ 529235113672 [label ="Transpose", shape=rectangle]; }
+"half" -> 529235113672
+{ "N"; }
+529235113672 -> "N"
+{ 529237303768 [label ="AsType", shape=rectangle]; }
+"N" -> 529237303768
+{ "O"; }
+529237303768 -> "O"
+{ 529246466216 [label ="Matmul", shape=rectangle]; }
+"x" -> 529246466216
+"O" -> 529246466216
+{ rank=sink; "P"; }
+529246466216 -> "P"
+}

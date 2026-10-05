@@ -1,0 +1,46 @@
+{
+  "scope": "Observed single real FP32 projection dispatch; no complete-engine performance claim",
+  "log_path": "benchmarks/analysis/results/torch-autotune-projection.log",
+  "log_sha256": "d2c0624fd6d3373dbecdafa1f4cd79bd8d94cc23bf034fe2ff539f9061a7dc10",
+  "log_bytes": 14109,
+  "excerpts": [
+    {
+      "line": 7,
+      "text": "{\"num_choices\": 2, \"num_triton_choices\": 0, \"best_kernel\": \"mm\", \"best_time\": 3.12883299193345}"
+    },
+    {
+      "line": 8,
+      "text": "AUTOTUNE mm(1536x1024, 1024x3072)"
+    },
+    {
+      "line": 9,
+      "text": "strides: [1024, 1], [1, 1024]"
+    },
+    {
+      "line": 10,
+      "text": "dtypes: torch.float32, torch.float32"
+    },
+    {
+      "line": 11,
+      "text": "  mm 3.1288 ms 100.0% "
+    },
+    {
+      "line": 12,
+      "text": "  cpp_CppMicroGemmFP32Vec_0 9.9839 ms 31.3% "
+    },
+    {
+      "line": 13,
+      "text": "SingleProcess AUTOTUNE benchmarking takes 0.3427 seconds and 1.6529 seconds precompiling for 2 choices"
+    },
+    {
+      "line": 67,
+      "text": "V1005 05:13:34.668000 5602 .venv/lib/python3.12/site-packages/torch/_inductor/graph.py:3114] [0/0] [__output_code]         extern_kernels.mm(arg1_1, _frozen_param1, out=buf0)"
+    }
+  ],
+  "selected": "extern_kernels.mm",
+  "rejected_cpp_micro_gemm_ms": 9.9839,
+  "selected_mm_ms": 3.1288,
+  "compiler_choice_timing_scope": "Inductor internal autotune kernel measurements; separate from retained paired call timings",
+  "warm_paired_median_speedup": 0.9840449185725665,
+  "conclusion": "Maintained CPP candidate was slower at this pinned shape; no full-backbone max-autotune promoted."
+}

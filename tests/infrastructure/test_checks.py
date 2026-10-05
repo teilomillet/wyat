@@ -1,0 +1,56 @@
+"""Check failure propagation and ownership, independently of inference behavior."""
+
+from __future__ import annotations
+
+import os
+import signal
+import sys
+from pathlib import Path
+
+import pytest
+
+from scripts.checks import main as checks
+
+
+def test_child_failure_status_is_preserved() -> None:
+    assert checks.run((sys.executable, "-c", "raise SystemExit(7)")) == 7
+
+
+@pytest.mark.skipif(os.name != "posix", reason="POSIX process-group lifetime")
+def test_timeout_reaps_owned_process_group(tmp_path: Path) -> None:
+    identity = tmp_path / "child.pid"
+    source = (
+        "import os,pathlib,time;"
+        f"pathlib.Path({str(identity)!r}).write_text(str(os.getpid()));"
+        "time.sleep(30)"
+    )
+    assert checks.run((sys.executable, "-c", source), timeout=1) == 124
+    pid = int(identity.read_text())
+    with pytest.raises(ProcessLookupError):
+        os.kill(pid, 0)
+    with pytest.raises(ProcessLookupError):
+        os.killpg(pid, signal.SIGTERM)
+
+
+def test_failed_check_stops_later_effects(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(checks, "ROOT", tmp_path)
+    monkeypatch.setattr(sys, "argv", ["checks"])
+    calls: list[tuple[str, ...]] = []
+
+    def fail(command: tuple[str, ...], timeout: int = 180) -> int:
+        calls.append(command)
+        return 3
+
+    monkeypatch.setattr(checks, "run", fail)
+    assert checks.main() == 3
+    assert len(calls) == 1
+
+
+def test_mlx_requirement_rejects_unsupported_platform_before_checks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["checks", "--require-mlx"])
+    monkeypatch.setattr(sys, "platform", "linux")
+    assert checks.main() == 1

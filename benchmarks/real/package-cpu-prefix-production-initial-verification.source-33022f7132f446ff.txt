@@ -1,0 +1,676 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import signal
+import subprocess
+import sys
+import tarfile
+import tempfile
+import time
+import zipfile
+from pathlib import Path
+from typing import cast
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+OUT = Path("/private/tmp/wyat-cpu-prefix-production-package-check")
+RECEIPT = ROOT / "benchmarks/real/package-cpu-prefix-production-verification.json"
+TOOLING_AUDIT = (
+    ROOT / "benchmarks/analysis/results/cpu-prefix-production-focused-review.json"
+)
+TOOLING_RECEIPT = (
+    ROOT / "benchmarks/real/engine-cpu-prefix-production-verification-final.json"
+)
+AUDIT_SHA256 = "e11929d814fdc0ddd9f63b80565ce63868565bbca72f11ff2b25e0b05071ba63"
+DECLARATION = (
+    ROOT / "benchmarks/analysis/results/cuda-shape-source-declaration-20261005.json"
+)
+DECLARATION_SHA256 = "16067a59ecebe08ff86fb6e101f8af568dd96d16a49bc6f62e4ad1aee31db79b"
+TOOLING_RECEIPT_SHA256 = (
+    "5aa107ec9736714138a28b45900bb93140eb663b69c8c12d81499a46c0f01b07"
+)
+PREVIOUS_WHEEL_SHA256 = (
+    "86980043ce29bfb8b4bbb045535fa0dc1dfb365d9050e0f9b6a9fb23a7a79a86"
+)
+RELOCATION = ROOT / "benchmarks/analysis/results/cuda-fp32-b1-audit-relocation.json"
+BUILD = [
+    "/Users/teilomillet/.local/bin/uv",
+    "build",
+    "--offline",
+    "--cache-dir",
+    "/private/tmp/wyat-uv-build-cache",
+    "--python",
+    str(ROOT / ".venv/bin/python"),
+    "--no-python-downloads",
+    "--out-dir",
+    str(OUT),
+    "--no-create-gitignore",
+    str(ROOT),
+]
+CURRENT_SERVER_SHA256 = (
+    "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145"
+)
+PRIOR_RECEIPT = ROOT / "benchmarks/real/package-server-admission-verification.json"
+PRIOR_RECEIPT_SHA256 = (
+    "74b3ea679b942c333874dcc3ada6c3909f5dcb650abfee6f85ba792c40eef377"
+)
+HISTORY_REVIEW = ROOT / "benchmarks/analysis/results/cpu-prefix-history-review.json"
+HISTORY_REVIEW_SHA256 = (
+    "8c2d8fbb30e70e6a406cdc0ba0ceedf9639f8a6b9cca4a5ee685477cc9869599"
+)
+HISTORICAL_CHANGES = {
+    "benchmarks/analysis/torch/prefix/pairs.py",
+    "benchmarks/analysis/torch/prefix/memory/study.py",
+    "benchmarks/analysis/torch/prefix/latency/study.py",
+}
+NEW_SOURCES = {
+    "wyat/backends/kai/cpu/__init__.py",
+    "wyat/backends/kai/cpu/prefix.py",
+    "benchmarks/analysis/torch/prefix/production/__init__.py",
+    "benchmarks/analysis/torch/prefix/production/run.py",
+    "benchmarks/analysis/torch/prefix/production/study.py",
+    "tests/backends/cpu/test_reuse.py",
+    "tests/analysis/test_cpu_prefix_production.py",
+    "tests/analysis/test_cpu_prefix_history.py",
+}
+NATIVE_AUDITS = {
+    "torch-prefix-production-first8-review.json": (
+        "44c7d225fbc52165a71c45a710d5e9efd4298ea67e152fb3d8a7cc76c45c84ec"
+    ),
+    "torch-prefix-production77-b8-review.json": (
+        "d517fde53de0e60898b31d613524f46effcfebe8f4de18a04035cc8950dd2650"
+    ),
+    "torch-prefix-production77-b1-review.json": (
+        "1e4e1f8ac0062444cd5e661609c9e5ba47c4f4ed82cd72e61a310ce00911dc12"
+    ),
+}
+SHAPE = (
+    "benchmarks/analysis/cuda/shape/__init__.py",
+    "benchmarks/analysis/cuda/shape/run.py",
+    "benchmarks/analysis/cuda/shape/study.py",
+    "tests/analysis/test_cuda_shape.py",
+)
+
+ISOLATED = """from __future__ import annotations
+import json
+import sys
+from collections.abc import Sequence
+import wyat
+import wyat.interop.dmbench
+from wyat.core import Candidate, Model, Request
+from wyat.evaluation import EvaluationCase, evaluate
+
+class ControlledScorer:
+    def score_many(self, requests: Sequence[Request]) -> tuple[tuple[float, ...], ...]:
+        return tuple((0.0, 1.0) for _ in requests)
+
+request = Request('question', (Candidate('a', 'first'), Candidate('b', 'second')))
+model = Model(ControlledScorer(), 'package-check')
+decision = model.decide(request)
+assert decision.selected == 'b'
+assert evaluate(model, (EvaluationCase('one', request, ('b',)),)).accuracy == 1.0
+blocked = {'torch', 'mlx', 'mlx_lm', 'transformers', 'huggingface_hub',
+           'fastapi', 'dmbench', 'safetensors'}
+assert not blocked.intersection(name.split('.')[0] for name in sys.modules)
+print(json.dumps({'wyat_path': wyat.__file__, 'selected': decision.selected,
+                  'forbidden_import_roots': sorted(blocked),
+                  'forbidden_imports_present': []}))
+"""
+
+
+def sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def digest(path: Path) -> str:
+    return sha(path.read_bytes())
+
+
+def inventory(paths: list[Path]) -> dict[str, str]:
+    return {str(path.relative_to(ROOT)): digest(path) for path in sorted(paths)}
+
+
+def source_paths() -> list[Path]:
+    return [
+        path
+        for directory in ("wyat", "benchmarks", "tests")
+        for path in (ROOT / directory).rglob("*.py")
+        if not forbidden(str(path))
+    ]
+
+
+def evidence_paths() -> list[Path]:
+    result_root = ROOT / "benchmarks/analysis/results"
+    return sorted(
+        {
+            path
+            for pattern in (
+                "server-admission*",
+                "cpu-prefix*",
+                "torch-prefix-production*",
+                "cuda-policy*",
+                "cuda-shape*",
+                "cuda-latency*",
+                "cuda-profile-cost*",
+            )
+            for path in result_root.glob(pattern)
+            if path.is_file() and path.suffix in {".json", ".txt", ".jsonl", ".log"}
+        }
+    )
+
+
+def document_paths() -> list[Path]:
+    documents = [
+        ROOT / "pyproject.toml",
+        ROOT / "README.md",
+        ROOT / "NOTICE",
+        ROOT / "LICENSE",
+        ROOT / "open-question.md",
+        ROOT / "wyat/py.typed",
+    ]
+    documents.extend((ROOT / "docs").rglob("*.md"))
+    documents.extend(evidence_paths())
+    admitted_xml = ROOT / "benchmarks/analysis/results/mlx-metal-first8-toc.xml"
+    if admitted_xml.exists():
+        documents.append(admitted_xml)
+    if RELOCATION.exists():
+        relocation = cast(dict[str, object], json.loads(RELOCATION.read_bytes()))
+        files = cast(list[dict[str, object]], relocation["files"])
+        documents.append(RELOCATION)
+        for entry in files:
+            archive = ROOT / cast(str, entry["archive_path"])
+            assert digest(archive) == entry["sha256"]
+            assert archive.stat().st_size == entry["bytes"]
+            documents.append(archive)
+        review = cast(dict[str, str], relocation["immutable_review"])
+        review_path = ROOT / review["path"]
+        assert digest(review_path) == review["sha256"]
+        documents.append(review_path)
+    if TOOLING_AUDIT.exists():
+        documents.extend((TOOLING_AUDIT, TOOLING_RECEIPT, DECLARATION))
+        receipt = cast(dict[str, object], json.loads(TOOLING_RECEIPT.read_bytes()))
+        tooling_archive_record = cast(dict[str, str], receipt["source_archive"])
+        tooling_archive_path = Path(tooling_archive_record["path"])
+        assert digest(tooling_archive_path) == tooling_archive_record["sha256"]
+        documents.append(tooling_archive_path)
+    documents.extend((ROOT / "benchmarks/real").glob("engine-cpu-prefix-production*"))
+    return documents
+
+
+def forbidden(name: str) -> bool:
+    path = Path(name)
+    parts = path.parts
+    return (
+        any(part.endswith((".trace", ".gputrace")) for part in parts)
+        or any(
+            part in {".models", ".venv", "venv", "__pycache__", ".env", ".aws"}
+            for part in parts
+        )
+        or name.endswith(".raw.xml")
+        or path.suffix.lower()
+        in {
+            ".safetensors",
+            ".pt",
+            ".pth",
+            ".onnx",
+            ".bin",
+            ".pyc",
+            ".pyo",
+        }
+    )
+
+
+COMMAND_LIFETIMES: list[dict[str, object]] = []
+
+
+def run_owned(
+    args: list[str],
+    *,
+    cwd: Path | str,
+    capture_output: bool,
+    text: bool,
+    timeout: int,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    assert capture_output is True and text is True and 0 < timeout <= 120
+    started = time.monotonic()
+    child = subprocess.Popen(
+        args,
+        cwd=cwd,
+        env=env,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    timed_out = False
+    try:
+        stdout, stderr = child.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        try:
+            os.killpg(child.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        stdout, stderr = child.communicate()
+    COMMAND_LIFETIMES.append(
+        {
+            "command": args,
+            "pid": child.pid,
+            "cap_seconds": timeout,
+            "elapsed_seconds": time.monotonic() - started,
+            "timed_out": timed_out,
+            "exit_code": child.returncode,
+            "reaped": child.poll() is not None,
+        }
+    )
+    if timed_out:
+        raise RuntimeError(f"Owned subprocess exceeded {timeout}s and was reaped")
+    return subprocess.CompletedProcess(args, child.returncode, stdout, stderr)
+
+
+def command_record(result: subprocess.CompletedProcess[str]) -> dict[str, object]:
+    return {
+        "command": result.args,
+        "exit_code": result.returncode,
+        "stdout": result.stdout,
+        "stderr": result.stderr,
+    }
+
+
+def main() -> None:
+    if sys.argv[1:] != ["--build-released"]:
+        raise RuntimeError("Build held: explicit root release required")
+    if TOOLING_RECEIPT_SHA256 == "PENDING_ROOT_RELEASE":
+        raise RuntimeError("Build held: terminal independent review pin required")
+    if RECEIPT.exists() or OUT.exists():
+        raise FileExistsError("Preserve prior receipts and build directories")
+    script_checks: list[dict[str, object]] = []
+    for args in (
+        [str(ROOT / ".venv/bin/ruff"), "check", __file__],
+        [str(ROOT / ".venv/bin/ruff"), "format", "--check", __file__],
+        [str(ROOT / ".venv/bin/mypy"), "--strict", "--follow-imports=skip", __file__],
+    ):
+        checked = run_owned(args, cwd=ROOT, capture_output=True, text=True, timeout=30)
+        script_checks.append(command_record(checked))
+        assert checked.returncode == 0, checked.stdout + checked.stderr
+    production = sorted((ROOT / "wyat").rglob("*.py"))
+    expected = {str(path.relative_to(ROOT)): path.read_bytes() for path in production}
+    assert len(expected) == 22
+    assert digest(PRIOR_RECEIPT) == PRIOR_RECEIPT_SHA256
+    prior = cast(dict[str, object], json.loads(PRIOR_RECEIPT.read_bytes()))
+    previous_production = cast(dict[str, str], prior["production_source_sha256"])
+    assert len(previous_production) == 20
+    production_changes = {
+        name: {"previous": previous_production[name], "current": digest(ROOT / name)}
+        for name in previous_production
+        if digest(ROOT / name) != previous_production[name]
+    }
+    assert set(production_changes) == {"wyat/backends/kai/torch.py"}
+    assert digest(ROOT / "wyat/server.py") == CURRENT_SERVER_SHA256
+    assert set(expected) - set(previous_production) == {
+        "wyat/backends/kai/cpu/__init__.py",
+        "wyat/backends/kai/cpu/prefix.py",
+    }
+    assert digest(TOOLING_AUDIT) == AUDIT_SHA256
+    tooling_audit = cast(dict[str, object], json.loads(TOOLING_AUDIT.read_bytes()))
+    assert tooling_audit["exit_code"] == 0
+    assert tooling_audit["timed_out"] is False and tooling_audit["reaped"] is True
+    assert tooling_audit["cap_seconds"] == 60
+    assert tooling_audit["before"] == tooling_audit["after"]
+    runtime_reviewed = cast(dict[str, str], tooling_audit["after"])
+    for name, checksum in runtime_reviewed.items():
+        current_name = (
+            "tests/backends/cpu/test_reuse.py"
+            if name == "tests/backends/cpu/test_prefix.py"
+            else name
+        )
+        assert digest(ROOT / current_name) == checksum
+    for check in cast(list[dict[str, object]], tooling_audit["checks"]):
+        assert check["exit_code"] == 0 and check["reaped"] is True
+    assert digest(HISTORY_REVIEW) == HISTORY_REVIEW_SHA256
+    history_review = cast(dict[str, object], json.loads(HISTORY_REVIEW.read_bytes()))
+    assert history_review["exit_code"] == 0 and history_review["reaped"] is True
+    assert history_review["timed_out"] is False
+    assert history_review["before"] == history_review["after"]
+    for name, checksum in cast(dict[str, str], history_review["after"]).items():
+        assert digest(ROOT / name) == checksum
+    assert digest(TOOLING_RECEIPT) == TOOLING_RECEIPT_SHA256
+    tooling = cast(dict[str, object], json.loads(TOOLING_RECEIPT.read_bytes()))
+    assert tooling["completed"] is True
+    full_checks = cast(dict[str, dict[str, object]], tooling["checks"])
+    for full_check in full_checks.values():
+        assert full_check["exit_code"] == 0 and full_check["timed_out"] is False
+        assert full_check["reaped"] is True
+    assert "971 passed" in cast(str, full_checks["pytest"]["stdout"])
+    assert " skipped" not in cast(str, full_checks["pytest"]["stdout"])
+    maintained = cast(dict[str, str], tooling["source_sha256"])
+    assert len(maintained) == 146
+    assert inventory([ROOT / name for name in maintained]) == maintained
+    archive_record = cast(dict[str, str], tooling["source_archive"])
+    source_archive = Path(archive_record["path"])
+    assert digest(source_archive) == archive_record["sha256"]
+    assert (
+        archive_record["sha256"]
+        == "e5bcac492cc29ab4702c14d765509bd9badf4bba0e1bd2c004b0eb8b740dc3f1"
+    )
+    archive_values = cast(dict[str, object], json.loads(source_archive.read_bytes()))
+    archived_sources = cast(list[dict[str, str]], archive_values["files"])
+    assert len(archived_sources) == len(maintained)
+    assert {entry["path"] for entry in archived_sources} == maintained.keys()
+    for archived_entry in archived_sources:
+        assert (
+            sha(archived_entry["text"].encode()) == maintained[archived_entry["path"]]
+        )
+        assert archived_entry["sha256"] == maintained[archived_entry["path"]]
+    native_audits: dict[str, object] = {}
+    for audit_name, audit_pin in NATIVE_AUDITS.items():
+        audit_path = ROOT / "benchmarks/analysis/results" / audit_name
+        assert digest(audit_path) == audit_pin
+        audit = cast(dict[str, object], json.loads(audit_path.read_bytes()))
+        assert audit["audit_passed"] is True
+        assert audit["native_baseline_sha256"] == TOOLING_RECEIPT_SHA256
+        stem = audit_name.removesuffix("-review.json")
+        main_path = audit_path.with_name(stem + ".json")
+        assert digest(main_path) == audit["main_sha256"]
+        assert (
+            digest(audit_path.with_name(stem + ".cycles.jsonl"))
+            == audit["journal_sha256"]
+        )
+        assert digest(audit_path.with_name(stem + ".wall.json")) == audit["wall_sha256"]
+        (native_archive,) = audit_path.parent.glob(stem + ".sources-*.json")
+        assert digest(native_archive) == audit["source_archive_sha256"]
+        audit_source = cast(dict[str, str], audit["source"])
+        assert sha(audit_source["text"].encode()) == audit_source["sha256"]
+        native_audits[audit_name] = {
+            "sha256": audit_pin,
+            "main_sha256": audit["main_sha256"],
+            "journal_sha256": audit["journal_sha256"],
+            "wall_sha256": audit["wall_sha256"],
+            "source_archive_sha256": audit["source_archive_sha256"],
+            "audit_source_sha256": audit_source["sha256"],
+            "audit_passed": True,
+        }
+    assert digest(DECLARATION) == DECLARATION_SHA256
+    declaration = cast(dict[str, str], json.loads(DECLARATION.read_bytes()))
+    assert set(declaration) == {*SHAPE, "docs/analysis/shape.md"}
+    assert inventory([ROOT / name for name in declaration]) == declaration
+    assert {name: digest(ROOT / name) for name in SHAPE} == {
+        name: declaration[name] for name in SHAPE
+    }
+    sources, documents = source_paths(), document_paths()
+    assert len(sources) == 162
+    old_sources = cast(dict[str, str], prior["source_and_document_sha256"])
+    old_python = {
+        name: value for name, value in old_sources.items() if name.endswith(".py")
+    }
+    assert len(old_python) == 154
+    allowed_changes = HISTORICAL_CHANGES | {"wyat/backends/kai/torch.py"}
+    assert {
+        name for name, checksum in old_python.items() if digest(ROOT / name) != checksum
+    } == allowed_changes
+    assert {str(path.relative_to(ROOT)) for path in sources} - set(
+        old_python
+    ) == NEW_SOURCES
+    assert set(old_python) <= {str(path.relative_to(ROOT)) for path in sources}
+    before = inventory(sources + documents)
+    assert NEW_SOURCES <= before.keys()
+    assert HISTORICAL_CHANGES <= before.keys()
+    preserved_paths = list((ROOT / "benchmarks/real").glob("package*verification*"))
+    preserved_paths.extend(
+        path for path in (ROOT / "dist").rglob("*") if path.is_file()
+    )
+    preserved = inventory(preserved_paths)
+    OUT.mkdir()
+    build = run_owned(BUILD, cwd=ROOT, capture_output=True, text=True, timeout=120)
+    (OUT / "build.stdout").write_text(build.stdout)
+    (OUT / "build.stderr").write_text(build.stderr)
+    assert build.returncode == 0, build.stderr
+    assert inventory(source_paths() + document_paths()) == before, (
+        "Source changed during build"
+    )
+    assert inventory(preserved_paths) == preserved, "Historical bytes changed"
+    (wheel,) = OUT.glob("*.whl")
+    (sdist,) = OUT.glob("*.tar.gz")
+    assert digest(wheel) != PREVIOUS_WHEEL_SHA256
+    checks: list[dict[str, object]] = []
+    with zipfile.ZipFile(wheel) as archive:
+        wheel_names = archive.namelist()
+        assert len(wheel_names) == 29
+        assert not [name for name in wheel_names if forbidden(name)]
+        assert {
+            name
+            for name in wheel_names
+            if name.startswith("wyat/") and name.endswith(".py")
+        } == expected.keys()
+        for name, data in expected.items():
+            assert archive.read(name) == data, name
+        assert archive.read("wyat/py.typed") == (ROOT / "wyat/py.typed").read_bytes()
+        for name in ("NOTICE", "LICENSE"):
+            (entry,) = (
+                item for item in wheel_names if item.endswith("/licenses/" + name)
+            )
+            assert archive.read(entry) == (ROOT / name).read_bytes()
+        prior_wheel = cast(dict[str, object], prior["wheel"])
+        prior_wheel_path = Path(cast(str, prior_wheel["path"]))
+        assert digest(prior_wheel_path) == PREVIOUS_WHEEL_SHA256
+        with zipfile.ZipFile(prior_wheel_path) as old_wheel:
+            old_names = set(old_wheel.namelist())
+            assert set(wheel_names) - old_names == {
+                "wyat/backends/kai/cpu/__init__.py",
+                "wyat/backends/kai/cpu/prefix.py",
+            }
+            assert old_names <= set(wheel_names)
+            changed_members = {
+                name for name in old_names if old_wheel.read(name) != archive.read(name)
+            }
+            assert changed_members == {
+                "wyat/backends/kai/torch.py",
+                "wyat-0.0.1.dist-info/RECORD",
+            }
+        with tempfile.TemporaryDirectory(
+            prefix="wyat-cpu-prefix-production-isolated-", dir="/private/tmp"
+        ) as isolated:
+            archive.extractall(isolated)
+            environment = {
+                **os.environ,
+                "PYTHONPATH": isolated,
+                "PYTHONDONTWRITEBYTECODE": "1",
+            }
+            for args in (
+                [sys.executable, "-S", "-c", ISOLATED],
+                [sys.executable, "-S", "-m", "wyat", "--help"],
+            ):
+                checked = run_owned(
+                    args,
+                    cwd=isolated,
+                    env=environment,
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                )
+                checks.append(command_record(checked))
+                assert checked.returncode == 0, checked.stderr
+            assert "usage: wyat" in cast(str, checks[-1]["stdout"])
+    with tarfile.open(sdist, "r:gz") as archive:
+        members = archive.getnames()
+        assert not [name for name in members if forbidden(name)]
+        prefix = members[0].split("/")[0]
+        for name, expected_hash in before.items():
+            member = archive.extractfile(f"{prefix}/{name}")
+            assert member is not None, name
+            assert sha(member.read()) == expected_hash, name
+    assert inventory(source_paths() + document_paths()) == before, (
+        "Source changed during verification"
+    )
+    assert inventory(preserved_paths) == preserved, "Historical bytes changed"
+    script = Path(__file__).read_bytes()
+    archive_data: dict[str, object] = {
+        "schema_version": 1,
+        "files": [
+            {
+                "name": "verification_script",
+                "path": str(Path(__file__)),
+                "sha256": sha(script),
+                "text": script.decode("utf-8"),
+            },
+            {
+                "name": "independent_tooling_audit",
+                "path": str(TOOLING_AUDIT),
+                "sha256": digest(TOOLING_AUDIT),
+                "text": TOOLING_AUDIT.read_text(),
+            },
+            {
+                "name": "historical_shape_source_declaration",
+                "path": str(DECLARATION),
+                "sha256": digest(DECLARATION),
+                "text": DECLARATION.read_text(),
+            },
+            *[
+                {
+                    "name": name,
+                    "path": str(ROOT / name),
+                    "sha256": before[name],
+                    "text": (ROOT / name).read_text(),
+                }
+                for name in sorted(
+                    NEW_SOURCES | HISTORICAL_CHANGES | {"wyat/backends/kai/torch.py"}
+                )
+            ],
+        ],
+    }
+    archive_bytes = (
+        json.dumps(archive_data, ensure_ascii=False, indent=2) + "\n"
+    ).encode()
+    archive_hash = sha(archive_bytes)
+    archive_name = (
+        f"package-cpu-prefix-production-verification.sources-{archive_hash[:16]}.json"
+    )
+    archive_path = ROOT / "benchmarks/real" / archive_name
+    with archive_path.open("xb") as output:
+        output.write(archive_bytes)
+    record: dict[str, object] = {
+        "schema_version": 1,
+        "scope": (
+            "CPU-only offline local packaging verification; "
+            "no publication or device/framework execution"
+        ),
+        "build": command_record(build),
+        "owned_subprocess_lifetimes": COMMAND_LIFETIMES,
+        "wheel": {
+            "path": str(wheel),
+            "sha256": digest(wheel),
+            "bytes": wheel.stat().st_size,
+            "members": wheel_names,
+        },
+        "sdist": {
+            "path": str(sdist),
+            "sha256": digest(sdist),
+            "bytes": sdist.stat().st_size,
+            "member_count": len(members),
+            "members": members,
+        },
+        "production_python_files": len(expected),
+        "wheel_byte_identical_previous": False,
+        "declared_production_changes": production_changes,
+        "prior_19_runtime_sources_unchanged": True,
+        "production_source_sha256": inventory(production),
+        "inventoried_python_source_count": len(sources),
+        "maintained_python_source_count": len(maintained),
+        "previous_154_python_source_sha256": old_python,
+        "previous_150_python_sources_unchanged": True,
+        "excluded_capture_policy": (
+            "Every .trace/.gputrace subtree excluded, "
+            "including all four native Chrome exports"
+        ),
+        "source_and_document_sha256": before,
+        "cpu_prefix_source_sha256": {
+            name: before[name] for name in sorted(NEW_SOURCES)
+        },
+        "historical_admission_source_sha256": {
+            name: before[name] for name in sorted(HISTORICAL_CHANGES)
+        },
+        "project_config_sha256": before["pyproject.toml"],
+        "notice_sha256": before["NOTICE"],
+        "license_sha256": before["LICENSE"],
+        "verification_script_sha256": sha(script),
+        "verification_script_checks": script_checks,
+        "focused_runtime_test_execution": tooling_audit,
+        "historical_admission_review": history_review,
+        "terminal_native_result_audit_sha256": native_audits,
+        "prior_wheel_changed_members": sorted(changed_members),
+        "prior_package_receipt_sha256": PRIOR_RECEIPT_SHA256,
+        "result_evidence_sha256": inventory(evidence_paths()),
+        "unchanged_shape_study_source_declaration": {
+            "path": str(DECLARATION.relative_to(ROOT)),
+            "sha256": digest(DECLARATION),
+            "declared_sha256": declaration,
+            "four_python_sources_match": True,
+            "current_shape_doc_sha256": before["docs/analysis/shape.md"],
+            "documentation_scope": (
+                "Declaration pins prospective study documentation. Final docs may "
+                "append terminal observations, captured separately in this package."
+            ),
+        },
+        "cuda_b1_auditor_relocation": (
+            None
+            if not RELOCATION.exists()
+            else {
+                "path": str(RELOCATION.relative_to(ROOT)),
+                "sha256": digest(RELOCATION),
+                "mapping": json.loads(RELOCATION.read_bytes()),
+                "mapped_archive_bytes_and_review_hash_verified": True,
+            }
+        ),
+        "verification_script_archive": {
+            "path": str(archive_path.relative_to(ROOT)),
+            "sha256": archive_hash,
+        },
+        "previous_receipts_and_dist_sha256": preserved,
+        "isolated_checks": checks,
+        "all_production_bytes_match": True,
+        "sdist_current_sources_and_docs_match": True,
+        "typed_marker_and_notice_license_match": True,
+        "wheel_and_sdist_no_weights_raw_capture_raw_xml_tensors_venv": True,
+        "admitted_sanitized_xml_members": [
+            name for name in members if name.endswith(".xml")
+        ],
+        "historical_receipts_and_dist_preserved": True,
+        "source_stable_across_build_and_verification": True,
+        "limitations": [
+            (
+                "Packaging integrity and dependency-free entrypoints only; "
+                "no inference/device/quality/performance check."
+            ),
+            (
+                "The Python inventory includes historical/archive source; "
+                "its count is not a maintained-scope validation claim."
+            ),
+            (
+                "Sources reflect only the exact inventoried build snapshot; "
+                "later source changes require separate verification."
+            ),
+            (
+                "This receipt and source archive were created after this build "
+                "and cannot be included in their own sdist."
+            ),
+        ],
+    }
+    with RECEIPT.open("x") as output:
+        output.write(json.dumps(record, ensure_ascii=False, indent=2) + "\n")
+    print(
+        json.dumps(
+            {
+                "receipt": str(RECEIPT),
+                "wheel_sha256": digest(wheel),
+                "sdist_sha256": digest(sdist),
+                "source_count": len(sources),
+                "sdist_members": len(members),
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

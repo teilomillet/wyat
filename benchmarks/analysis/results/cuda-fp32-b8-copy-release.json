@@ -1,0 +1,44 @@
+{
+  "captured_utc": "2026-10-05T07:09:01.717314+00:00",
+  "scope": "Unchanged raw result copy plus terminal GPU/process ownership probe",
+  "files": {
+    "benchmarks/analysis/results/cuda-fp32-b8.json": "62368fb71577c952f0ebdf5ca014e1009f9e60039cbb3b478529feaf2b33057f",
+    "benchmarks/analysis/results/cuda-fp32-b8.wall.json": "0b8bfc3eb336311a305b13cc9c267d315639fba39f77cbe09cdb17d0d56758f8",
+    "benchmarks/analysis/results/cuda-fp32-b8.log": "d7537e6be14570375501584271935657c37645bfec1a0f3f5f848205d4094f4d",
+    "benchmarks/analysis/results/cuda-fp32-b8.sources-ae4a797635edfbd1.json": "ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf"
+  },
+  "wall": {
+    "command": [
+      "/home/teilo/tmp/wyat-cuda-20261005/env/bin/python",
+      "-m",
+      "benchmarks.analysis.cuda.run",
+      ".models/Decision-2.0-Kai-0.6B",
+      "--output",
+      "/home/teilo/tmp/wyat-cuda-20261005/benchmarks/analysis/results/cuda-fp32-b8.json",
+      "--manifest",
+      "benchmarks/analysis/results/cuda-transfer-manifest-v2-20261005.json",
+      "--manifest-sha256",
+      "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866",
+      "--arm",
+      "fp32",
+      "--batch-size",
+      "8",
+      "--control",
+      "benchmarks/analysis/results/cuda-fp32-b1.json",
+      "--control-sha256",
+      "d528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167",
+      "--worker"
+    ],
+    "timeout_seconds": 180,
+    "completed": true,
+    "timed_out": false,
+    "inductor_cache": null,
+    "exit_code": 0,
+    "elapsed_seconds": 8.579797457001405
+  },
+  "occupancy_release": {
+    "exit_code": 1,
+    "stdout": "128, 0\n",
+    "stderr": ""
+  }
+}

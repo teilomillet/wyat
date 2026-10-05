@@ -1,0 +1,276 @@
+"""Independent stdlib-only scalar confirmation source/receipt identity check."""
+
+from __future__ import annotations
+
+import ast
+import hashlib
+import json
+import sys
+from pathlib import Path
+from typing import cast
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULTS = ROOT / "benchmarks/analysis/results"
+FOCUSED_SHA = "81cd02ab6089263f72d8021e08b48816ba26199a11ce65eecf68830e31655989"
+DOC = "docs/analysis/cpu/readout/confirm.md"
+PINS = {
+    "benchmarks/analysis/torch/readout/confirm.py": (
+        "51366161a8e7044ad81ba95c835d8c73431af889b3f1f13e5ba3c36a7385bfb5"
+    ),
+    "tests/analysis/cpu/readout/test_confirm.py": (
+        "682e514e6ac7d52b55aae3567b72dcdc761c766e110bbb6d6de29e5155769bab"
+    ),
+    DOC: "3675cfd26182a3e52a9d4ac2f9f181d96c10ab60121dc83990339f406328ff0f",
+}
+
+
+def digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def read(path: Path) -> dict[str, object]:
+    value: object = json.loads(path.read_text())
+    assert isinstance(value, dict)
+    return cast(dict[str, object], value)
+
+
+def verified(path: Path, expected: str) -> dict[str, object]:
+    assert digest(path) == expected, path
+    return read(path)
+
+
+def string_table(value: object) -> dict[str, str]:
+    assert isinstance(value, dict)
+    assert all(isinstance(k, str) and isinstance(v, str) for k, v in value.items())
+    return cast(dict[str, str], value)
+
+
+def main() -> None:
+    focused = verified(RESULTS / "cpu-readout-confirm-focused.json", FOCUSED_SHA)
+    before = string_table(focused["source_before"])
+    after = string_table(focused["source_after"])
+    assert len(after) == 33 and before == after
+    assert focused["source_unchanged"] is True
+    assert focused["exit_code"] == 0 and focused["timed_out"] is False
+    assert focused["child_reaped"] is True and focused["cap_seconds"] == 60
+    elapsed = focused["elapsed_seconds"]
+    assert isinstance(elapsed, float) and 0 < elapsed < 60
+    assert "16 passed in 6.28s" in cast(str, focused["stdout"])
+    helper = cast(dict[str, object], focused["helper"])
+    assert (
+        hashlib.sha256(cast(str, helper["text"]).encode()).hexdigest()
+        == helper["sha256"]
+    )
+    current = {name: digest(ROOT / name) for name in after}
+    assert [name for name in after if after[name] != current[name]] == [DOC]
+    assert {name: current[name] for name in PINS} == PINS
+    previous = verified(
+        RESULTS / "cpu-readout-screen-independent-review.json",
+        "2e61de4a860ded3eedf08d8f48997c4799b0d69369f6696561acecf657c53b2b",
+    )
+    old_sources = string_table(previous["source_sha256"])
+    assert len(old_sources) == 30
+    assert {name: current[name] for name in old_sources} == old_sources
+    assert set(current) - set(old_sources) == set(PINS)
+    production = string_table(previous["production_source_sha256"])
+    package_path = (
+        ROOT / "benchmarks/real/package-cpu-prefix-production-verification.json"
+    )
+    package = verified(
+        package_path,
+        "3a2a6e0999dee44fe71a06905efb35158d5b935b582b02c28043bec30acc2975",
+    )
+    assert len(production) == 22
+    assert production == string_table(package["production_source_sha256"])
+    assert {name: current[name] for name in production} == production
+    core_path = RESULTS / "cpu-readout-core-review.json"
+    core = verified(
+        core_path, "53a776840ce6d406a710b5beca586a38d4ae17e1a2e55e3f0c35e605fd7e1c2e"
+    )
+    assert core["passed"] is True
+    for name, sha in string_table(core["source_sha256"]).items():
+        assert current[name] == sha
+    source = ROOT / "benchmarks/analysis/torch/readout/confirm.py"
+    tree = ast.parse(source.read_text())
+    assignment = next(
+        node
+        for node in tree.body
+        if isinstance(node, ast.Assign)
+        and any(
+            isinstance(target, ast.Name) and target.id == "SCREEN_HISTORY"
+            for target in node.targets
+        )
+    )
+    history = string_table(ast.literal_eval(assignment.value))
+    assert len(history) == 6
+    for name, sha in history.items():
+        assert digest(RESULTS / name) == sha
+    saved = read(RESULTS / "torch-readout-first8.json")
+    archive = read(RESULTS / "torch-readout-first8.sources-7a31a5ea873ab0e2.json")
+    archived: dict[str, str] = {}
+    for item in cast(list[dict[str, object]], archive["files"]):
+        name = cast(str, item["name"])
+        assert name not in archived
+        sha = hashlib.sha256(cast(str, item["text"]).encode()).hexdigest()
+        assert item["sha256"] == sha
+        archived[name] = sha
+    assert archived == string_table(saved["source_sha256"])
+    raw = read(RESULTS / "torch-readout-first8-review.json")
+    assert raw["audit_passed"] is True
+    assert raw["independent_quality_passed"] is True
+    assert raw["independent_dispatch_passed"] is True
+    assert raw["raw_outcomes"] == 88
+    assert raw["main_sha256"] == history["torch-readout-first8.json"]
+    assert (
+        raw["source_archive_sha256"]
+        == history["torch-readout-first8.sources-7a31a5ea873ab0e2.json"]
+    )
+    assert not any(
+        name.split(".")[0] in {"torch", "transformers", "mlx", "numpy"}
+        for name in sys.modules
+    )
+    script = Path(__file__)
+    script_sha = digest(script)
+    script_archive = (
+        RESULTS / f"cpu-readout-confirm-independent-review.source-{script_sha[:16]}.txt"
+    )
+    output = RESULTS / "cpu-readout-confirm-independent-review.json"
+    assert not output.exists() and not script_archive.exists()
+    receipt: dict[str, object] = {
+        "schema_version": 1,
+        "passed": True,
+        "scope_approved": "source_only_scalar_full77_confirmation_protocol",
+        "reviewer": "/root/contracts",
+        "reviewer_runtime_tests_performed": False,
+        "reviewer_model_jobs_performed": False,
+        "source_sha256": current,
+        "production_source_sha256": production,
+        "production_files_unchanged": 22,
+        "prior_screen_source_files_unchanged": 30,
+        "focused_receipt": {
+            "path": str(
+                (RESULTS / "cpu-readout-confirm-focused.json").relative_to(ROOT)
+            ),
+            "sha256": FOCUSED_SHA,
+            "cap_seconds": 60,
+            "elapsed_seconds": elapsed,
+            "exit_code": 0,
+            "timed_out": False,
+            "child_reaped": True,
+            "stdout": focused["stdout"],
+            "source_before_after_match": True,
+            "embedded_helper_sha256": helper["sha256"],
+            "embedded_helper_identity_validated": True,
+        },
+        "post_focused_documentation_only_delta": {
+            "path": DOC,
+            "focused_sha256": after[DOC],
+            "final_sha256": current[DOC],
+            "meaning": (
+                "Complete scalar cohort is attempted before raw persistence and"
+                " validation; failure stops subsequent cohorts."
+            ),
+            "code_and_test_bytes_unchanged": True,
+            "runtime_repeat_performed": False,
+        },
+        "core_review_sha256": digest(core_path),
+        "prior_screen_source_gate_sha256": (
+            "2e61de4a860ded3eedf08d8f48997c4799b0d69369f6696561acecf657c53b2b"
+        ),
+        "package_baseline_sha256": digest(package_path),
+        "screen_history_sha256": history,
+        "executed_screen_archive_identity_validated": True,
+        "findings": [],
+        "reviewed_obligations": [
+            (
+                "Historical first8 admission uses exact executed archive "
+                "text/hash inventory and sealed raw audit; current added "
+                "confirm file is independently frozen."
+            ),
+            (
+                "Scalar only: screen R/S, warm R/S, then five AB/BA/AB/BA/AB "
+                "measured pairs; 14 cohorts and 1078 possible outcomes; owned "
+                "parent cap180."
+            ),
+            (
+                "No ordinary arm, B8 API, timed profiler, model identity "
+                "change, numerical/rank gate relaxation or production edit."
+            ),
+            (
+                "Raw cohort journal flush and main persistence precede "
+                "timing/reference/anchor gates; failed cases remain in the "
+                "cohort denominator and later cohorts remain pending."
+            ),
+            (
+                "All five measured pairs precede unchanged original speed gate:"
+                " median>=1.02, interpolated p05>1, aggregate ratio>1 and "
+                "candidate cohort p95<=baseline."
+            ),
+            (
+                "Performance-only negative completes a quality-valid assay with"
+                " performance/accepted false and exit0; exit0 does not mean "
+                "accepted."
+            ),
+            (
+                "Current source/archive/history/process policy verified outside"
+                " each cohort and at completion; original asset hashes "
+                "rechecked before completion."
+            ),
+            (
+                "Original thread count restored and verified before positive "
+                "receipt; source, policy, quality, timing, restoration and "
+                "final-save failures clear positive flags."
+            ),
+            (
+                "Current scalar dispatch is explicitly unobserved; prior B8 "
+                "screen profiles remain historical evidence only."
+            ),
+        ],
+        "limits": [
+            (
+                "Source review and preserved author tiny/fake focused checks "
+                "only; no new reviewer test, native model or performance "
+                "execution."
+            ),
+            (
+                "No full77 learned quality, measured benefit, B8 confirmation, "
+                "promotion, memory ceiling, online/server capacity, GPU or20x "
+                "claim."
+            ),
+            (
+                "Source hashes attest on-disk text; native binaries and "
+                "already-imported runtime objects are not independently "
+                "attested."
+            ),
+            (
+                "Stopping boundary is between complete cohorts, not an "
+                "interruption of individual failed scalar rows inside the "
+                "existing measured runner."
+            ),
+        ],
+        "identity_verifier": {
+            "command": [str(ROOT / ".venv/bin/python"), "-S", str(script)],
+            "source_archive": str(script_archive.relative_to(ROOT)),
+            "source_sha256": script_sha,
+            "framework_imports": [],
+        },
+    }
+    with script_archive.open("x") as handle:
+        handle.write(script.read_text())
+    with output.open("x") as handle:
+        handle.write(json.dumps(receipt, indent=2, allow_nan=False) + "\n")
+    print(
+        json.dumps(
+            {
+                "path": str(output),
+                "sha256": digest(output),
+                "verifier_sha256": script_sha,
+                "source_count": len(current),
+                "runtime_count": len(production),
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

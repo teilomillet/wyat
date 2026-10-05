@@ -1,0 +1,344 @@
+"""Private CPU mechanics probe; no full model, CUDA allocation or speed claim."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import struct
+import weakref
+from collections.abc import Callable, Iterator
+from pathlib import Path
+from typing import cast
+
+import pytest
+import torch
+from hypothesis import given, settings
+from hypothesis import strategies as st
+from safetensors import safe_open
+from torch import nn
+from transformers import Qwen3Config
+from transformers.models.qwen3.modeling_qwen3 import Qwen3MLP
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RECEIPT = Path("/private/tmp/wyat_cuda_alias_feasibility.json")
+REAL_GATE = {
+    "atol": 1e-3,
+    "rtol": 1e-3,
+    "rule": "absdiff <= max(atol, rtol*max(abs(reference),abs(actual)))",
+}
+
+
+class PackedMLP(nn.Module):
+    """Packed parameter and baseline views share one owned backing allocation."""
+
+    def __init__(self, original: Qwen3MLP, weight: torch.Tensor) -> None:
+        super().__init__()
+        gate = original.gate_proj
+        self.width = gate.out_features
+        self.gate_up = nn.Linear(
+            gate.in_features, 2 * self.width, bias=False, device="meta"
+        )
+        self.gate_up.weight = nn.Parameter(weight, requires_grad=False)
+        self.down_proj = original.down_proj
+        self.activation = cast(Callable[[torch.Tensor], torch.Tensor], original.act_fn)
+        self.training = False
+        self.gate_up.training = False
+
+    def forward(self, value: torch.Tensor) -> torch.Tensor:
+        gate, up = self.gate_up(value).split(self.width, dim=-1)
+        return cast(torch.Tensor, self.down_proj(self.activation(gate) * up))
+
+
+def tensor_sha(value: torch.Tensor) -> str:
+    return hashlib.sha256(value.detach().contiguous().numpy().tobytes()).hexdigest()
+
+
+def storage(value: torch.Tensor) -> tuple[int, int]:
+    backing = value.untyped_storage()
+    return backing.data_ptr(), backing.nbytes()
+
+
+def pack(original: Qwen3MLP) -> PackedMLP:
+    """Effect boundary: a fresh inference-only owner's two parameters are replaced.
+
+    No caller-held parameter/optimizer references are supported. Preflight errors
+    occur before mutation. Both replacement views preserve value/shape/stride;
+    up changes storage offset. Candidate construction completes before rebinding.
+    """
+    gate, up, down = (
+        cast(nn.Linear, getattr(original, name))
+        for name in ("gate_proj", "up_proj", "down_proj")
+    )
+    if torch.is_grad_enabled() or any(p.requires_grad for p in original.parameters()):
+        raise ValueError("Inference-only owner required before mutation")
+    if any(
+        module.training
+        or module._forward_hooks
+        or module._forward_pre_hooks
+        or module._backward_hooks
+        for module in original.modules()
+    ):
+        raise ValueError("Unhooked eval owner required")
+    if (
+        gate.bias is not None
+        or up.bias is not None
+        or down.bias is not None
+        or gate.weight.shape != up.weight.shape
+        or any(
+            p.dtype != torch.float32
+            or p.device.type != "cpu"
+            or not torch.isfinite(p).all().item()
+            for p in original.parameters()
+        )
+    ):
+        raise ValueError("Matching finite biasless CPU FP32 projections required")
+    combined = torch.cat((gate.weight, up.weight), dim=0)
+    width = gate.out_features
+    if not (
+        torch.equal(combined[:width].view(torch.int32), gate.weight.view(torch.int32))
+        and torch.equal(combined[width:].view(torch.int32), up.weight.view(torch.int32))
+    ):
+        raise ValueError("Source weight bits changed")
+    packed = PackedMLP(original, combined)
+    gate_view = nn.Parameter(combined[:width], requires_grad=False)
+    up_view = nn.Parameter(combined[width:], requires_grad=False)
+    gate.weight, up.weight = gate_view, up_view
+    return packed
+
+
+def layer(hidden: int, intermediate: int) -> Qwen3MLP:
+    config = Qwen3Config(
+        hidden_size=hidden, intermediate_size=intermediate, hidden_act="silu"
+    )
+    result = Qwen3MLP(config)  # type: ignore[no-untyped-call]  # HF initializer.
+    result.requires_grad_(False).eval()
+    return result
+
+
+def quality(
+    expected: torch.Tensor, actual: torch.Tensor, *, atol: float, rtol: float
+) -> dict[str, object]:
+    error = (actual - expected).abs()
+    limit = torch.maximum(
+        torch.full_like(error, atol), rtol * torch.maximum(actual.abs(), expected.abs())
+    )
+    finite = bool(torch.isfinite(expected).all() and torch.isfinite(actual).all())
+    return {
+        "passed": finite and bool((error <= limit).all()),
+        "finite": finite,
+        "max_abs_error": error.max().item(),
+        "atol": atol,
+        "rtol": rtol,
+    }
+
+
+@pytest.fixture(autouse=True, scope="module")
+def process_threads() -> Iterator[None]:
+    previous = torch.get_num_threads()
+    torch.set_num_threads(1)
+    yield
+    torch.set_num_threads(previous)
+
+
+@settings(max_examples=20, deadline=None, derandomize=True)
+@given(
+    hidden=st.integers(1, 16),
+    intermediate=st.integers(1, 24),
+    batch=st.integers(1, 3),
+    length=st.integers(1, 5),
+    seed=st.integers(0, 65535),
+)
+def test_shared_storage_and_outputs(
+    hidden: int, intermediate: int, batch: int, length: int, seed: int
+) -> None:
+    torch.manual_seed(seed)
+    base = layer(hidden, intermediate)
+    gate, up = base.gate_proj, base.up_proj
+    gate_sha, up_sha = tensor_sha(gate.weight), tensor_sha(up.weight)
+    gate_shape, gate_stride = gate.weight.shape, gate.weight.stride()
+    down = base.down_proj
+    old_gate, old_up = weakref.ref(gate.weight), weakref.ref(up.weight)
+    value = torch.randn(batch, length, hidden)
+    with torch.inference_mode():
+        expected = base(value)
+        candidate = pack(base)
+        actual = candidate(value)
+        control = base(value)
+    assert old_gate() is None and old_up() is None
+    assert tensor_sha(gate.weight) == gate_sha and tensor_sha(up.weight) == up_sha
+    assert gate.weight.shape == gate_shape and gate.weight.stride() == gate_stride
+    assert (
+        storage(gate.weight) == storage(up.weight) == storage(candidate.gate_up.weight)
+    )
+    assert up.weight.storage_offset() == hidden * intermediate
+    assert candidate.down_proj is down and not base.training and not candidate.training
+    assert storage(candidate.gate_up.weight)[1] == 2 * hidden * intermediate * 4
+    assert quality(expected, control, atol=1e-5, rtol=1e-5)["passed"]
+    assert quality(expected, actual, atol=1e-5, rtol=1e-5)["passed"]
+
+
+@pytest.mark.parametrize(
+    "invalid",
+    [
+        "grad_context",
+        "grad_weight",
+        "training",
+        "hook",
+        "child_hook",
+        "dtype",
+        "nonfinite",
+    ],
+)
+def test_reject_before_mutation(invalid: str) -> None:
+    base = layer(8, 12)
+    gate = base.gate_proj
+    if invalid == "grad_weight":
+        gate.weight.requires_grad_(True)
+    elif invalid == "training":
+        base.train()
+    elif invalid == "hook":
+        base.register_forward_hook(lambda _m, _i, _o: None)
+    elif invalid == "child_hook":
+        gate.register_forward_pre_hook(lambda _m, _i: None)
+    elif invalid == "dtype":
+        base.double()
+    elif invalid == "nonfinite":
+        with torch.no_grad():
+            gate.weight[0, 0] = math.nan
+    before = [
+        (name, id(value), storage(value)) for name, value in base.named_parameters()
+    ]
+    if invalid == "grad_context":
+        with pytest.raises(ValueError, match="Inference-only"):
+            pack(base)
+    else:
+        with torch.inference_mode(), pytest.raises(ValueError):
+            pack(base)
+    assert [
+        (name, id(value), storage(value)) for name, value in base.named_parameters()
+    ] == before
+
+
+def tensor_identity(path: Path, key: str) -> dict[str, object]:
+    with path.open("rb") as handle:
+        header_length = struct.unpack("<Q", handle.read(8))[0]
+        header = cast(
+            dict[str, dict[str, object]], json.loads(handle.read(header_length))
+        )
+        item = header[key]
+        start, end = cast(list[int], item["data_offsets"])
+        handle.seek(8 + header_length + start)
+        raw = handle.read(end - start)
+    return {
+        "file": str(path),
+        "key": key,
+        "dtype": item["dtype"],
+        "shape": item["shape"],
+        "payload_bytes": end - start,
+        "sha256": hashlib.sha256(raw).hexdigest(),
+    }
+
+
+def test_real_first_layer_and_cached_activation() -> None:
+    weights = ROOT / ".models/Decision-2.0-Kai-0.6B/backbone/model.safetensors"
+    capture = (
+        ROOT
+        / "benchmarks/analysis/results/torch-autotune-projection.tensors.safetensors"
+    )
+    evidence = ROOT / "benchmarks/analysis/results/torch-autotune-projection.json"
+    if (
+        hashlib.sha256(evidence.read_bytes()).hexdigest()
+        != "7f183c24e6199df75a0343b805a1b3840fd038732589b8de421cabff2f5068c6"
+    ):
+        raise ValueError("Original cached-activation provenance changed")
+    if (
+        hashlib.sha256(capture.read_bytes()).hexdigest()
+        != "8f2e89b7d77b13cc9eb1b985383229ceef2dd9e1cfffc334eee9df9cc245ac02"
+    ):
+        raise ValueError("Cached activation asset changed")
+    keys = [f"layers.0.mlp.{role}_proj.weight" for role in ("gate", "up", "down")]
+    identities = [tensor_identity(weights, key) for key in keys] + [
+        tensor_identity(capture, "input")
+    ]
+    payload: dict[str, object] = {
+        "completed": False,
+        "scope": (
+            "One real Kai layer-zero MLP and cached first-eight batch activation; "
+            "CPU structural/local-output proof only"
+        ),
+        "tensor_identities": identities,
+        "gate": REAL_GATE,
+        "threads": 1,
+        "limits": [
+            (
+                "No whole-backbone loading, inference decisions, CUDA kernels, "
+                "speed measurement or production claim"
+            ),
+            "Old Parameter wrappers expire; allocator/RSS release is not established",
+            (
+                "Shared storage changes original parameter identities; "
+                "no external aliases/optimizer/autograd supported"
+            ),
+        ],
+        "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+    }
+    RECEIPT.write_text(json.dumps(payload, indent=2) + "\n")
+    try:
+        base = layer(1024, 3072)
+        with safe_open(weights, framework="pt", device="cpu") as source:
+            for role, key in zip(("gate", "up", "down"), keys, strict=True):
+                linear = cast(nn.Linear, getattr(base, f"{role}_proj"))
+                tensor = source.get_tensor(key)
+                if tensor.dtype != torch.bfloat16:
+                    raise ValueError("Expected released BF16 storage")
+                linear.weight = nn.Parameter(tensor.float(), requires_grad=False)
+        with safe_open(capture, framework="pt", device="cpu") as source:
+            value = source.get_tensor("input")
+            if value.shape != (1536, 1024) or value.dtype != torch.float32:
+                raise ValueError("Exact captured full input required")
+            if not torch.equal(base.gate_proj.weight, source.get_tensor("weight")):
+                raise ValueError("Captured gate weight differs from model tensor")
+        gate, up = base.gate_proj, base.up_proj
+        gate_sha, up_sha = tensor_sha(gate.weight), tensor_sha(up.weight)
+        old_gate, old_up = weakref.ref(gate.weight), weakref.ref(up.weight)
+        with torch.inference_mode():
+            expected = base(value)
+            candidate = pack(base)
+            control = base(value)
+            actual = candidate(value)
+        payload.update(
+            storage_only_quality=quality(expected, control, atol=1e-3, rtol=1e-3),
+            packed_quality=quality(expected, actual, atol=1e-3, rtol=1e-3),
+            weight_bits_preserved=(
+                tensor_sha(gate.weight) == gate_sha and tensor_sha(up.weight) == up_sha
+            ),
+            old_parameters_expired=old_gate() is None and old_up() is None,
+            alias_equal=storage(gate.weight)
+            == storage(up.weight)
+            == storage(candidate.gate_up.weight),
+            shared_gate_up_bytes=storage(gate.weight)[1],
+            nominal_duplicate_parameter_bytes=sum(
+                p.numel() * p.element_size()
+                for p in (gate.weight, up.weight, candidate.gate_up.weight)
+            ),
+            outputs={
+                "original_sha256": tensor_sha(expected),
+                "storage_only_sha256": tensor_sha(control),
+                "packed_sha256": tensor_sha(actual),
+                "shape": list(actual.shape),
+            },
+            completed=True,
+        )
+        RECEIPT.write_text(json.dumps(payload, indent=2, allow_nan=False) + "\n")
+        assert (
+            payload["weight_bits_preserved"]
+            and payload["old_parameters_expired"]
+            and payload["alias_equal"]
+        )
+        assert cast(dict[str, object], payload["storage_only_quality"])["passed"]
+        assert cast(dict[str, object], payload["packed_quality"])["passed"]
+    except Exception as error:
+        payload.update(completed=False, error=f"{type(error).__name__}: {error}")
+        RECEIPT.write_text(json.dumps(payload, indent=2, allow_nan=False) + "\n")
+        raise

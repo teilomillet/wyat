@@ -1,0 +1,51 @@
+{
+  "scope": "Current local distribution verification; no publication",
+  "wheel": {
+    "path": "/private/tmp/wyat-prefix-release-check/wyat-0.0.1-py3-none-any.whl",
+    "sha256": "3c2397b691e1568c11c0ace0866b2ee5da36903f1198dfc3bb0b345a09ab3360",
+    "bytes": 41993
+  },
+  "sdist": {
+    "path": "/private/tmp/wyat-prefix-release-check/wyat-0.0.1.tar.gz",
+    "sha256": "e881ca074dd5a12db587d11d5dc265c4586a671a69cbdc15a1f9218a60420e20",
+    "bytes": 9710991,
+    "members": 215
+  },
+  "production_python_files": 20,
+  "production_source_sha256": {
+    "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+    "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+    "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+    "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+    "wyat/backends/kai/torch.py": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+    "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+    "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+    "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+    "wyat/server.py": "f1ca44abf7dbaf8bb0c729cd70dc3bdc54b23242eec86af94da5271b0f9a94f1",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "project_config_sha256": "a1975a70c86d05b409b0350ea06e1e435fe6807896ec2fdc357a55c648dd5b29",
+  "notice_sha256": "2cd35c9c3328d4ca40aa36ffbf80d93c12ccd57b86c37d6fbb7a7b916c92a4e8",
+  "license_sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+  "verification_script_sha256": "285f8087b5e82a5479c0ea191bb2511154b4ac4af2f1a5a76c781595aab8aeed",
+  "all_production_bytes_match": true,
+  "sdist_production_bytes_and_final_usage_docs_match": true,
+  "typed_marker_and_notice_match": true,
+  "wheel_contains_no_model_weights": true,
+  "sdist_contains_no_weights_venv_or_raw_instruments_capture": true,
+  "isolated_core_interop_import_and_cli_help": true,
+  "verification_script_archive": {
+    "path": "benchmarks/real/package-prefix-verification.sources-86087cb7b22e3fc2.json",
+    "sha256": "86087cb7b22e3fc2e580c4bfe1c369d7d9e2a9d01bc0bf50077c6e9442a1a51a"
+  }
+}

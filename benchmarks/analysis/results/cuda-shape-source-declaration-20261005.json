@@ -1,0 +1,7 @@
+{
+  "benchmarks/analysis/cuda/shape/__init__.py": "b4c374bc76c8903552aa7c8aa6b648d53d48acaa0c37685ae722fc02dfbda3bf",
+  "benchmarks/analysis/cuda/shape/study.py": "e11b1d1eb8362e9ce0bd50f12d13adab7ccbf815edeccf0a8ae49a40651cb16e",
+  "benchmarks/analysis/cuda/shape/run.py": "146cfac6c8f6f7f666e49de1febd4ad9fe06a6f69d3e2634f04807b2e022f4a5",
+  "tests/analysis/test_cuda_shape.py": "86a6d5dbc6562e6622b3b3abb537c8c4e1efd44d47b1192aa950af8207a774f6",
+  "docs/analysis/shape.md": "4169486706652020a6388db6b88b94f80a8dd7a95de3e4aba2ca2f1ca31143cc"
+}

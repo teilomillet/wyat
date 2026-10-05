@@ -1,0 +1,219 @@
+{
+  "created_utc": "2026-10-05T11:50:11.713051+00:00",
+  "scope": "Companion provenance only; no probe/test/model rerun or framework imports",
+  "files_current_verified": [
+    {
+      "path": "/private/tmp/wyat_cuda_alias_probe.py",
+      "bytes": 13314,
+      "sha256": "29e39581ac8d39e5c34c33484dd113515fd964615dae732c5709c1ca37050a7d",
+      "expected_sha256": "29e39581ac8d39e5c34c33484dd113515fd964615dae732c5709c1ca37050a7d"
+    },
+    {
+      "path": "/private/tmp/wyat_alias_probe_owned/test_alias_probe.py",
+      "bytes": 13314,
+      "sha256": "29e39581ac8d39e5c34c33484dd113515fd964615dae732c5709c1ca37050a7d",
+      "expected_sha256": "29e39581ac8d39e5c34c33484dd113515fd964615dae732c5709c1ca37050a7d"
+    },
+    {
+      "path": "/private/tmp/wyat_cuda_alias_feasibility.json",
+      "bytes": 2902,
+      "sha256": "20b4e8b71bfa332e431d08bf633cd3e6908abe87e2219238c51c2f32284b09f1",
+      "expected_sha256": "20b4e8b71bfa332e431d08bf633cd3e6908abe87e2219238c51c2f32284b09f1"
+    },
+    {
+      "path": "/private/tmp/wyat_cuda_alias_probe.owned-wall.json",
+      "bytes": 237,
+      "sha256": "5b612293d594d7d9bab961d391f927d66a92e6c2c19a7d87c385cd7357fdc46e",
+      "expected_sha256": "5b612293d594d7d9bab961d391f927d66a92e6c2c19a7d87c385cd7357fdc46e"
+    },
+    {
+      "path": "/private/tmp/wyat_cuda_alias_probe.wall.json",
+      "bytes": 1647,
+      "sha256": "2bec3b19914aec261e71e53013545186214fe5b24df1e931dd06f5b1d95d2909",
+      "expected_sha256": "2bec3b19914aec261e71e53013545186214fe5b24df1e931dd06f5b1d95d2909"
+    },
+    {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-autotune-projection.json",
+      "bytes": 15976,
+      "sha256": "7f183c24e6199df75a0343b805a1b3840fd038732589b8de421cabff2f5068c6",
+      "expected_sha256": "7f183c24e6199df75a0343b805a1b3840fd038732589b8de421cabff2f5068c6"
+    },
+    {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-autotune-projection.tensors.safetensors",
+      "bytes": 75497952,
+      "sha256": "8f2e89b7d77b13cc9eb1b985383229ceef2dd9e1cfffc334eee9df9cc245ac02",
+      "expected_sha256": "8f2e89b7d77b13cc9eb1b985383229ceef2dd9e1cfffc334eee9df9cc245ac02"
+    },
+    {
+      "path": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "bytes": 1503429208,
+      "sha256": "43369a2bfddb61495beb7cea6bf30d7564a5c5caff31f4dbf2e6cfce48423b69",
+      "expected_sha256": "43369a2bfddb61495beb7cea6bf30d7564a5c5caff31f4dbf2e6cfce48423b69"
+    }
+  ],
+  "tensor_identities_current_verified": [
+    {
+      "file": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "key": "layers.0.mlp.gate_proj.weight",
+      "dtype": "BF16",
+      "shape": [
+        3072,
+        1024
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+    },
+    {
+      "file": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "key": "layers.0.mlp.up_proj.weight",
+      "dtype": "BF16",
+      "shape": [
+        3072,
+        1024
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "e5eb93967f1743e95d8d89b2be046e2baa21a187853c97bfbdd06ce8907da01e"
+    },
+    {
+      "file": "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "key": "layers.0.mlp.down_proj.weight",
+      "dtype": "BF16",
+      "shape": [
+        1024,
+        3072
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "ca67515b27ffb5508f2a07e2d01d9cd315e9b1456482cb45c866b7bb9ef49cd7"
+    },
+    {
+      "file": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-autotune-projection.tensors.safetensors",
+      "key": "input",
+      "dtype": "F32",
+      "shape": [
+        1536,
+        1024
+      ],
+      "payload_bytes": 6291456,
+      "sha256": "f7d4e3b1e9a6f552479293db2af66ce48e83b2d87ef7ab3139873ca54d52e669"
+    }
+  ],
+  "local_runtime_current_metadata": {
+    "sys_executable": "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "resolved_executable": "/Users/teilomillet/.local/share/uv/python/cpython-3.12.11-macos-aarch64-none/bin/python3.12",
+    "python_version": "3.12.11 (main, Jun 26 2025, 21:44:36) [Clang 20.1.4 ]",
+    "implementation": "CPython",
+    "platform": "macOS-27.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "packages": {
+      "torch": "2.14.1",
+      "transformers": "5.18.0",
+      "safetensors": "0.8.0",
+      "numpy": "2.5.3",
+      "pytest": "9.1.1",
+      "hypothesis": "6.168.3"
+    },
+    "torch_build_source": {
+      "path": "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/torch/version.py",
+      "bytes": 309,
+      "sha256": "a3fcf46a2c44d102a5565f1f4735ccbb10055a423ff083610ceb81bb9e3abfa8"
+    },
+    "torch_build_assignments": {
+      "__all__": "['__version__', 'debug', 'cuda', 'git_version', 'hip', 'rocm', 'xpu']",
+      "__version__": "'2.14.1'",
+      "debug": "False",
+      "cuda": "None",
+      "git_version": "'5c4886908584029761b579af026dcfb627c84070'",
+      "hip": "None",
+      "rocm": "None",
+      "xpu": "None"
+    },
+    "framework_imports": false
+  },
+  "commands_from_observed_tool_execution": {
+    "successful": {
+      "argv": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "-c",
+        "/dev/null",
+        "--rootdir",
+        "/private/tmp/wyat_alias_probe_owned",
+        "--confcutdir",
+        "/private/tmp/wyat_alias_probe_owned",
+        "/private/tmp/wyat_alias_probe_owned/test_alias_probe.py",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": "/private/tmp/wyat_alias_probe_owned",
+      "wall_identity": {
+        "path": "/private/tmp/wyat_cuda_alias_probe.owned-wall.json",
+        "bytes": 237,
+        "sha256": "5b612293d594d7d9bab961d391f927d66a92e6c2c19a7d87c385cd7357fdc46e"
+      },
+      "raw_wall": {
+        "exit_code": 0,
+        "timed_out": false,
+        "elapsed_seconds": 2.9152441670303233,
+        "cap_seconds": 60,
+        "stdout": ".........                                                                [100%]\n9 passed in 2.50s\n",
+        "stderr": ""
+      }
+    },
+    "failed_initial_collection": {
+      "argv": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "/private/tmp/wyat_cuda_alias_probe.py",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": "/Users/teilomillet/Code/wyat",
+      "wall_identity": {
+        "path": "/private/tmp/wyat_cuda_alias_probe.wall.json",
+        "bytes": 1647,
+        "sha256": "2bec3b19914aec261e71e53013545186214fe5b24df1e931dd06f5b1d95d2909"
+      },
+      "raw_wall": {
+        "exit_code": 4,
+        "timed_out": false,
+        "elapsed_seconds": 0.2428796250023879,
+        "cap_seconds": 60,
+        "stdout": "\n==================================== ERRORS ====================================\n______________________________ ERROR collecting . ______________________________\n.venv/lib/python3.12/site-packages/pluggy/_hooks.py:512: in __call__\n    return self._hookexec(self.name, self._hookimpls.copy(), kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n.venv/lib/python3.12/site-packages/pluggy/_manager.py:120: in _hookexec\n    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n.venv/lib/python3.12/site-packages/_pytest/main.py:467: in pytest_ignore_collect\n    if collection_path.is_dir():\n       ^^^^^^^^^^^^^^^^^^^^^^^^\n../../.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/pathlib.py:875: in is_dir\n    return S_ISDIR(self.stat().st_mode)\n                   ^^^^^^^^^^^\n../../.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/pathlib.py:840: in stat\n    return os.stat(self, follow_symlinks=follow_symlinks)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nE   PermissionError: [Errno 1] Operation not permitted: '/private/tmp/codex-daemon-501'\n=========================== short test summary info ============================\nERROR ../../../../private/tmp - PermissionError: [Errno 1] Operation not perm...\n1 error in 0.09s\n",
+        "stderr": "ERROR: found no collectors for /private/tmp/wyat_cuda_alias_probe.py\n\n"
+      }
+    },
+    "parent": "subprocess.run(capture_output=True, text=True, timeout=60); return reaps direct child",
+    "historical_environment": "Inherited environment; complete environment values were not captured",
+    "environment_overrides": "No explicit env argument supplied to historical child launcher",
+    "historical_before_after_full_file_hashes": "Not collected; current rechecks do not manufacture them"
+  },
+  "identity_lineage": {
+    "model_full_sha": "Current stream hash matches original canonical pin; not an executed-probe pre-load full-file check",
+    "capture_and_provenance": "Executed probe hard-pinned both full-file hashes before safe_open",
+    "per_key": "Recorded before tensor load; gate/up/down SHA values were observed identities, not predeclared hard pins",
+    "captured_weight": "Executed probe also checked cached gate weight equals loaded checkpoint gate",
+    "source": "Executed result recorded source SHA; owned copy matches current original source bytes"
+  },
+  "limits": [
+    "Local CPU Torch 2.14.1 metadata differs from frozen remote CUDA Torch 2.12.1+cu130",
+    "No remote CUDA execution, alias preservation after device move, GPU quality, speed or physical memory claim",
+    "Current package metadata supports the local environment; the test wall did not independently snapshot every package",
+    "Initial collection failure and its raw output are retained; no tests ran in that failed collection",
+    "Weakref expiry proves wrapper lifetime only; selected backing storage and allocator/RSS are distinct"
+  ],
+  "verification_script": {
+    "path": "/private/tmp/wyat_cuda_alias_provenance.py",
+    "bytes": 7687,
+    "sha256": "0040bd89a564bb79031faabb84c20221267c30d16afd961023b15d605c005e95"
+  },
+  "current_selected_environment": {
+    "PYTHONPATH": null,
+    "PYTEST_ADDOPTS": null,
+    "OMP_NUM_THREADS": null,
+    "MKL_NUM_THREADS": null
+  }
+}

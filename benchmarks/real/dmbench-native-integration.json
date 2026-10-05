@@ -1,0 +1,56 @@
+{
+  "adapter": "wyat.interop.dmbench.as_dmbench",
+  "adapter_recipe": "dmbench-native-choice-v1",
+  "batch_adapter": "wyat.interop.dmbench.as_dmbench_batch",
+  "checks": {
+    "actual_encoder_65_candidates_and_context_overflow_whole_chunk_rejection": true,
+    "actual_evaluator_ordered_batch_and_gold_isolation": true,
+    "actual_peer_criterion_mismatch_rejects_whole_chunk": true,
+    "additional_native_pytest_cases_passed": 20,
+    "canonical_object_and_conversation_list_state": true,
+    "hypothesis_string_state_and_instruction_preservation": true,
+    "malformed_roles_and_unsupported_tasks_rejected_before_model": true,
+    "original_verbatim_pytest_cases_passed": 10,
+    "peer_fixture_cases_observed": 2,
+    "peer_fixture_checks_skipped": 0,
+    "ruff": "passed",
+    "strict_mypy": "passed with canonical DMBench source on MYPYPATH",
+    "unknown_recipe_rejected_at_construction": true
+  },
+  "contract": {
+    "admission_owner": "actual dmbench.adapters.native.native_request; no independent parser or duplicate native schema policy",
+    "batch": "entire chunk projected before decide_many; empty returns empty; scalar delegates same batch path",
+    "choices": "exact public.choices IDs/text/order",
+    "context": "string state verbatim; object/list through actual dmbench.api.canonical_json",
+    "dependencies": "optional module import unchanged; native helper/serializer imported only on native request path",
+    "gold": "expected/groups/source IDs remain evaluator-owned and absent from model Request",
+    "limits": "Kai encoder retains artifact max_options and max_length with no truncation or menu reduction",
+    "probabilities": "native choice softmax mapped by original ID; no calibrated-confidence claim",
+    "query": "question.instructions verbatim after peer validation",
+    "task": "only jevbench/choice; actual peer native_request also enforces question.type choice",
+    "usage": null
+  },
+  "dmbench_source": "/Users/teilomillet/Code/dmbench",
+  "dmbench_source_files_sha256": {
+    "src/dmbench/adapters/native.py": "6f5cf9e59b0547d7a4435787ef3c0febe019689f5bd5e12f62482121f1835eb5",
+    "src/dmbench/api.py": "9b409120ce3d94164fa9d3a60ceb115074689521753c38a6796da90155246496",
+    "src/dmbench/evaluation.py": "f3a20ed6687cf437890b8e20416064e62c390f4c0d3648cef9e59d3216effa54",
+    "tests/fixtures/native-role-requests.jsonl": "bddd51f10640cf37f48884c828e2d0faad8c6b219b6c07923e62ac5c41f5d784"
+  },
+  "dmbench_version": "0.2.0",
+  "limits": [
+    "Peer source-checkout fixture absence is an explicit skip, not an integration pass.",
+    "No real model or accelerator work performed; this establishes adapter mechanics only.",
+    "Original verbatim integration and native pilot receipts remain unchanged."
+  ],
+  "observed_at_utc": "2026-10-05T01:12:21.936356+00:00",
+  "schema_version": 1,
+  "scope": "Opt-in native-role choice interoperability using actual peer source; no model loads, quality or hardware timing claim",
+  "unchanged_default_recipe": "dmbench-verbatim-choice-v1",
+  "wyat_source_files_sha256": {
+    "docs/dmbench-integration.md": "2ea1a50e5210d4f37a9194c26491b6ecbc1e61dbb306348683768564690cc43c",
+    "tests/interop/dmbench/test_native.py": "f9adac1c6919a08b7fdd40aba7af7c1aa7996426dfc66d28aa43d29d7397e49b",
+    "tests/test_dmbench.py": "e3d9f5fabe18dcda461512bc16c43fd4e0eed33db5e30571f47924a252ac2fd9",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd"
+  }
+}

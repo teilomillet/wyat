@@ -1,0 +1,526 @@
+{
+  "completed": false,
+  "command": [
+    "/usr/bin/gpudebug",
+    "--oneshot",
+    "--json",
+    "--timeout",
+    "45",
+    "-t",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-replay32.gputrace",
+    "-o",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-profile32-resources",
+    "-c",
+    "status",
+    "-c",
+    "profile run --exec serial --gpu-state default",
+    "-c",
+    "go /performance/shaders",
+    "-c",
+    "list --all",
+    "-c",
+    "info --all",
+    "-c",
+    "go /performance/commands",
+    "-c",
+    "list --all",
+    "-c",
+    "info --all",
+    "-c",
+    "go /resources/compute_pipelines",
+    "-c",
+    "list --all",
+    "-c",
+    "info cps0 --all",
+    "-c",
+    "find wyat",
+    "-c",
+    "profile"
+  ],
+  "timeout_seconds": 120,
+  "timed_out": true,
+  "profiled_selection_timing": false,
+  "script_source": {
+    "sha256": "b34dfe6c8caa42e4b47078b8c18e57e774c6c04e7211c6213501b608880ffc7f",
+    "text": "\"\"\"One bounded owned replay client; preserve raw capture and all tool failures.\"\"\"\n\nfrom __future__ import annotations\n\nimport hashlib\nimport json\nimport os\nimport runpy\nimport shutil\nimport signal\nimport subprocess\nimport time\nfrom collections.abc import Callable\nfrom pathlib import Path\nfrom typing import cast\n\ntype Object = dict[str, object]\nROOT = Path(\"/Users/teilomillet/Code/wyat/benchmarks/analysis/results\")\nSOURCE = ROOT / \"mlx-ready-capture2-tile32-bf16.gputrace\"\nCOPY = ROOT / \"mlx-ready-replay32.gputrace\"\nOUTPUT = ROOT / \"mlx-ready-profile32.json\"\nhelper = runpy.run_path(\n    \"/private/tmp/wyat-metal-ready-capture.py\", run_name=\"inventory_only\"\n)\ninventory = cast(Callable[[Path], Object], helper[\"inventory\"])\noriginal = inventory(SOURCE)\nassert not OUTPUT.exists() and not COPY.exists()\nshutil.copytree(SOURCE, COPY, symlinks=True)\ncopied = inventory(COPY)\nassert original[\"manifest_sha256\"] == copied[\"manifest_sha256\"]\ncommands = [\n    \"status\",\n    \"profile run --exec serial --gpu-state default\",\n    \"go /performance/shaders\",\n    \"list --all\",\n    \"info --all\",\n    \"go /performance/commands\",\n    \"list --all\",\n    \"info --all\",\n    \"go /resources/compute_pipelines\",\n    \"list --all\",\n    \"info cps0 --all\",\n    \"find wyat\",\n    \"profile\",\n]\nargv = [\n    \"/usr/bin/gpudebug\",\n    \"--oneshot\",\n    \"--json\",\n    \"--timeout\",\n    \"45\",\n    \"-t\",\n    str(COPY),\n    \"-o\",\n    str(ROOT / \"mlx-ready-profile32-resources\"),\n]\nfor command in commands:\n    argv.extend([\"-c\", command])\npayload: Object = {\n    \"completed\": False,\n    \"command\": argv,\n    \"timeout_seconds\": 120,\n    \"timed_out\": False,\n    \"profiled_selection_timing\": False,\n    \"script_source\": {\n        \"sha256\": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),\n        \"text\": Path(__file__).read_text(),\n    },\n    \"original_capture\": original,\n    \"replay_copy_before\": copied,\n    \"no_embed_requested\": True,\n    \"process_cleanup_scope\": \"owned client process group only\",\n    \"session_cleanup_observed\": False,\n    \"session_cleanup_limit\": \"Oneshot automatic server cleanup is documented, but actual server termination requires independent observation.\",\n}\n\n\ndef save() -> None:\n    OUTPUT.write_text(json.dumps(payload, indent=2, allow_nan=False) + \"\\n\")\n\n\nsave()\nstarted = time.perf_counter()\nwith (\n    OUTPUT.with_suffix(\".stdout.log\").open(\"x\") as stdout,\n    OUTPUT.with_suffix(\".stderr.log\").open(\"x\") as stderr,\n):\n    child = subprocess.Popen(argv, stdout=stdout, stderr=stderr, start_new_session=True)\n    payload[\"client_pid\"] = child.pid\n    payload[\"client_session_leader\"] = child.pid\n    save()\n    try:\n        code = child.wait(timeout=120)\n    except subprocess.TimeoutExpired:\n        payload[\"timed_out\"] = True\n        code = 124\n    finally:\n        try:\n            os.killpg(child.pid, signal.SIGKILL)\n        except ProcessLookupError:\n            pass\n        child.wait()\npayload.update(\n    exit_code=code,\n    completed=code == 0,\n    client_reaped=True,\n    elapsed_seconds=time.perf_counter() - started,\n    original_capture_after=inventory(SOURCE),\n    replay_copy_after=inventory(COPY),\n)\nassert (\n    cast(Object, payload[\"original_capture_after\"])[\"manifest_sha256\"]\n    == original[\"manifest_sha256\"]\n)\nfor field, suffix in [(\"stdout\", \".stdout.log\"), (\"stderr\", \".stderr.log\")]:\n    path = OUTPUT.with_suffix(suffix)\n    raw = path.read_bytes()\n    payload[field] = {\n        \"path\": str(path),\n        \"sha256\": hashlib.sha256(raw).hexdigest(),\n        \"bytes\": len(raw),\n    }\nsave()\nprint(\n    json.dumps(\n        {\n            key: value\n            for key, value in payload.items()\n            if key\n            in [\n                \"command\",\n                \"timeout_seconds\",\n                \"timed_out\",\n                \"exit_code\",\n                \"client_pid\",\n                \"client_reaped\",\n                \"elapsed_seconds\",\n                \"completed\",\n                \"session_cleanup_observed\",\n            ]\n        }\n    )\n)\n"
+  },
+  "original_capture": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2-tile32-bf16.gputrace",
+    "files": [
+      {
+        "name": "670D212238943B50",
+        "bytes": 190319536,
+        "sha256": "95974b7de464ec2be7833a914ca5a53d283a70789470fd84218738fc8fcea3e1"
+      },
+      {
+        "name": "AB46D623D1C8E590",
+        "bytes": 55531,
+        "sha256": "7088fde51254c2b0900e9ad10a9ba41a7c63fce884441a90ac535739baa6e5a0"
+      },
+      {
+        "name": "B1CFEB7EE506F1EC",
+        "bytes": 58152,
+        "sha256": "db46bbd941d354361add46dde7f6429a78b859562c1a77dce1e8f482661d6faa"
+      },
+      {
+        "name": "BAA5C47BDE72810E",
+        "bytes": 55521,
+        "sha256": "04f5fc0ac92d1481e60102776c741f3e5667221a24758f80e22d040cfa17fc3c"
+      },
+      {
+        "name": "CAE1CB3D36CFA8E3",
+        "bytes": 58077,
+        "sha256": "d48b5a9b3a855b79acba939ea17a43f69a629e1064217e060dce773bdcd524da"
+      },
+      {
+        "name": "EED04F8E19924644",
+        "bytes": 58067,
+        "sha256": "310be93b3c0f7872c31052a9afe0581f93aaa8cb996536d108b474e08d27028e"
+      },
+      {
+        "name": "MTLBuffer-11-0",
+        "bytes": 6291456,
+        "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+      },
+      {
+        "name": "MTLBuffer-18-0",
+        "bytes": 12582912,
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d"
+      },
+      {
+        "name": "MTLBuffer-45-0",
+        "bytes": 16416768,
+        "sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3"
+      },
+      {
+        "name": "MTLBuffer-8-0",
+        "bytes": 5472256,
+        "sha256": "54ccdea8ec7397001f9f5d0330a03d1d4f0f686c978b679b12da66d615684c80"
+      },
+      {
+        "name": "MTLBuffer-9-0",
+        "kind": "internal-symlink",
+        "link": "MTLBuffer-18-0",
+        "target": "MTLBuffer-18-0",
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d",
+        "bytes": 0
+      },
+      {
+        "name": "capture",
+        "bytes": 2276,
+        "sha256": "2027d4f1ad01348a9804449f6b388b846b258d612f74db5938c0a0e3e37f633e"
+      },
+      {
+        "name": "delta-device-resources-0x102aa8e50",
+        "bytes": 56,
+        "sha256": "5650c32b7149fe2561f3d96ab314bce49af2d6bb98240f251d953c613896977e"
+      },
+      {
+        "name": "device-resources-0x102aa8e50",
+        "bytes": 7500,
+        "sha256": "159ffeaa7271fca4324410ab2630a0afcae7b527f469e8d71098893a9bd922b9"
+      },
+      {
+        "name": "index",
+        "bytes": 14177,
+        "sha256": "43a793b168cd99e1d22ca21c9e572729f0696f86dd2c1f79416f30c661447d52"
+      },
+      {
+        "name": "metadata",
+        "bytes": 1136,
+        "sha256": "10538871271e02797542b3496624326819fb16924bf2b23afd9cd17528966eb6"
+      },
+      {
+        "name": "startup-0-platform",
+        "bytes": 76,
+        "sha256": "7cdb9f53e04464a006a6a42d1c768cf158aba260bc6aca226a6ac7c8beeccf08"
+      },
+      {
+        "name": "startup-1-platform",
+        "bytes": 8,
+        "sha256": "307bca216804762e9741cc4d56a78333351e51a2b9ba29b1b623c5c07df79550"
+      },
+      {
+        "name": "store0",
+        "bytes": 23326,
+        "sha256": "106602fe4bb7721a405a82c87b7108114d307e3fff3725b8c8aca98332a3a3f9"
+      },
+      {
+        "name": "unsorted-capture",
+        "bytes": 7076,
+        "sha256": "959de1396379169ee58573308ff225c34e793742899d7aa575a44fa1b7b4b1cd"
+      },
+      {
+        "name": "unused-device-resources-0x102aa8e50",
+        "bytes": 32704,
+        "sha256": "5bddf6a099b7f4ab3dc5c301364e8f66987803293293a746d0d2b30f94240eac"
+      }
+    ],
+    "manifest_sha256": "948e2299e24188eb7bc2950471b661e71caf2779583c459ed7c3bef3d488ce90",
+    "bytes": 231456611
+  },
+  "replay_copy_before": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-replay32.gputrace",
+    "files": [
+      {
+        "name": "670D212238943B50",
+        "bytes": 190319536,
+        "sha256": "95974b7de464ec2be7833a914ca5a53d283a70789470fd84218738fc8fcea3e1"
+      },
+      {
+        "name": "AB46D623D1C8E590",
+        "bytes": 55531,
+        "sha256": "7088fde51254c2b0900e9ad10a9ba41a7c63fce884441a90ac535739baa6e5a0"
+      },
+      {
+        "name": "B1CFEB7EE506F1EC",
+        "bytes": 58152,
+        "sha256": "db46bbd941d354361add46dde7f6429a78b859562c1a77dce1e8f482661d6faa"
+      },
+      {
+        "name": "BAA5C47BDE72810E",
+        "bytes": 55521,
+        "sha256": "04f5fc0ac92d1481e60102776c741f3e5667221a24758f80e22d040cfa17fc3c"
+      },
+      {
+        "name": "CAE1CB3D36CFA8E3",
+        "bytes": 58077,
+        "sha256": "d48b5a9b3a855b79acba939ea17a43f69a629e1064217e060dce773bdcd524da"
+      },
+      {
+        "name": "EED04F8E19924644",
+        "bytes": 58067,
+        "sha256": "310be93b3c0f7872c31052a9afe0581f93aaa8cb996536d108b474e08d27028e"
+      },
+      {
+        "name": "MTLBuffer-11-0",
+        "bytes": 6291456,
+        "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+      },
+      {
+        "name": "MTLBuffer-18-0",
+        "bytes": 12582912,
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d"
+      },
+      {
+        "name": "MTLBuffer-45-0",
+        "bytes": 16416768,
+        "sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3"
+      },
+      {
+        "name": "MTLBuffer-8-0",
+        "bytes": 5472256,
+        "sha256": "54ccdea8ec7397001f9f5d0330a03d1d4f0f686c978b679b12da66d615684c80"
+      },
+      {
+        "name": "MTLBuffer-9-0",
+        "kind": "internal-symlink",
+        "link": "MTLBuffer-18-0",
+        "target": "MTLBuffer-18-0",
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d",
+        "bytes": 0
+      },
+      {
+        "name": "capture",
+        "bytes": 2276,
+        "sha256": "2027d4f1ad01348a9804449f6b388b846b258d612f74db5938c0a0e3e37f633e"
+      },
+      {
+        "name": "delta-device-resources-0x102aa8e50",
+        "bytes": 56,
+        "sha256": "5650c32b7149fe2561f3d96ab314bce49af2d6bb98240f251d953c613896977e"
+      },
+      {
+        "name": "device-resources-0x102aa8e50",
+        "bytes": 7500,
+        "sha256": "159ffeaa7271fca4324410ab2630a0afcae7b527f469e8d71098893a9bd922b9"
+      },
+      {
+        "name": "index",
+        "bytes": 14177,
+        "sha256": "43a793b168cd99e1d22ca21c9e572729f0696f86dd2c1f79416f30c661447d52"
+      },
+      {
+        "name": "metadata",
+        "bytes": 1136,
+        "sha256": "10538871271e02797542b3496624326819fb16924bf2b23afd9cd17528966eb6"
+      },
+      {
+        "name": "startup-0-platform",
+        "bytes": 76,
+        "sha256": "7cdb9f53e04464a006a6a42d1c768cf158aba260bc6aca226a6ac7c8beeccf08"
+      },
+      {
+        "name": "startup-1-platform",
+        "bytes": 8,
+        "sha256": "307bca216804762e9741cc4d56a78333351e51a2b9ba29b1b623c5c07df79550"
+      },
+      {
+        "name": "store0",
+        "bytes": 23326,
+        "sha256": "106602fe4bb7721a405a82c87b7108114d307e3fff3725b8c8aca98332a3a3f9"
+      },
+      {
+        "name": "unsorted-capture",
+        "bytes": 7076,
+        "sha256": "959de1396379169ee58573308ff225c34e793742899d7aa575a44fa1b7b4b1cd"
+      },
+      {
+        "name": "unused-device-resources-0x102aa8e50",
+        "bytes": 32704,
+        "sha256": "5bddf6a099b7f4ab3dc5c301364e8f66987803293293a746d0d2b30f94240eac"
+      }
+    ],
+    "manifest_sha256": "948e2299e24188eb7bc2950471b661e71caf2779583c459ed7c3bef3d488ce90",
+    "bytes": 231456611
+  },
+  "no_embed_requested": true,
+  "process_cleanup_scope": "owned client process group only",
+  "session_cleanup_observed": false,
+  "session_cleanup_limit": "Oneshot automatic server cleanup is documented, but actual server termination requires independent observation.",
+  "client_pid": 33386,
+  "client_session_leader": 33386,
+  "exit_code": 124,
+  "client_reaped": true,
+  "elapsed_seconds": 120.00820129201747,
+  "original_capture_after": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2-tile32-bf16.gputrace",
+    "files": [
+      {
+        "name": "670D212238943B50",
+        "bytes": 190319536,
+        "sha256": "95974b7de464ec2be7833a914ca5a53d283a70789470fd84218738fc8fcea3e1"
+      },
+      {
+        "name": "AB46D623D1C8E590",
+        "bytes": 55531,
+        "sha256": "7088fde51254c2b0900e9ad10a9ba41a7c63fce884441a90ac535739baa6e5a0"
+      },
+      {
+        "name": "B1CFEB7EE506F1EC",
+        "bytes": 58152,
+        "sha256": "db46bbd941d354361add46dde7f6429a78b859562c1a77dce1e8f482661d6faa"
+      },
+      {
+        "name": "BAA5C47BDE72810E",
+        "bytes": 55521,
+        "sha256": "04f5fc0ac92d1481e60102776c741f3e5667221a24758f80e22d040cfa17fc3c"
+      },
+      {
+        "name": "CAE1CB3D36CFA8E3",
+        "bytes": 58077,
+        "sha256": "d48b5a9b3a855b79acba939ea17a43f69a629e1064217e060dce773bdcd524da"
+      },
+      {
+        "name": "EED04F8E19924644",
+        "bytes": 58067,
+        "sha256": "310be93b3c0f7872c31052a9afe0581f93aaa8cb996536d108b474e08d27028e"
+      },
+      {
+        "name": "MTLBuffer-11-0",
+        "bytes": 6291456,
+        "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+      },
+      {
+        "name": "MTLBuffer-18-0",
+        "bytes": 12582912,
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d"
+      },
+      {
+        "name": "MTLBuffer-45-0",
+        "bytes": 16416768,
+        "sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3"
+      },
+      {
+        "name": "MTLBuffer-8-0",
+        "bytes": 5472256,
+        "sha256": "54ccdea8ec7397001f9f5d0330a03d1d4f0f686c978b679b12da66d615684c80"
+      },
+      {
+        "name": "MTLBuffer-9-0",
+        "kind": "internal-symlink",
+        "link": "MTLBuffer-18-0",
+        "target": "MTLBuffer-18-0",
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d",
+        "bytes": 0
+      },
+      {
+        "name": "capture",
+        "bytes": 2276,
+        "sha256": "2027d4f1ad01348a9804449f6b388b846b258d612f74db5938c0a0e3e37f633e"
+      },
+      {
+        "name": "delta-device-resources-0x102aa8e50",
+        "bytes": 56,
+        "sha256": "5650c32b7149fe2561f3d96ab314bce49af2d6bb98240f251d953c613896977e"
+      },
+      {
+        "name": "device-resources-0x102aa8e50",
+        "bytes": 7500,
+        "sha256": "159ffeaa7271fca4324410ab2630a0afcae7b527f469e8d71098893a9bd922b9"
+      },
+      {
+        "name": "index",
+        "bytes": 14177,
+        "sha256": "43a793b168cd99e1d22ca21c9e572729f0696f86dd2c1f79416f30c661447d52"
+      },
+      {
+        "name": "metadata",
+        "bytes": 1136,
+        "sha256": "10538871271e02797542b3496624326819fb16924bf2b23afd9cd17528966eb6"
+      },
+      {
+        "name": "startup-0-platform",
+        "bytes": 76,
+        "sha256": "7cdb9f53e04464a006a6a42d1c768cf158aba260bc6aca226a6ac7c8beeccf08"
+      },
+      {
+        "name": "startup-1-platform",
+        "bytes": 8,
+        "sha256": "307bca216804762e9741cc4d56a78333351e51a2b9ba29b1b623c5c07df79550"
+      },
+      {
+        "name": "store0",
+        "bytes": 23326,
+        "sha256": "106602fe4bb7721a405a82c87b7108114d307e3fff3725b8c8aca98332a3a3f9"
+      },
+      {
+        "name": "unsorted-capture",
+        "bytes": 7076,
+        "sha256": "959de1396379169ee58573308ff225c34e793742899d7aa575a44fa1b7b4b1cd"
+      },
+      {
+        "name": "unused-device-resources-0x102aa8e50",
+        "bytes": 32704,
+        "sha256": "5bddf6a099b7f4ab3dc5c301364e8f66987803293293a746d0d2b30f94240eac"
+      }
+    ],
+    "manifest_sha256": "948e2299e24188eb7bc2950471b661e71caf2779583c459ed7c3bef3d488ce90",
+    "bytes": 231456611
+  },
+  "replay_copy_after": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-replay32.gputrace",
+    "files": [
+      {
+        "name": "670D212238943B50",
+        "bytes": 190319536,
+        "sha256": "95974b7de464ec2be7833a914ca5a53d283a70789470fd84218738fc8fcea3e1"
+      },
+      {
+        "name": "AB46D623D1C8E590",
+        "bytes": 55531,
+        "sha256": "7088fde51254c2b0900e9ad10a9ba41a7c63fce884441a90ac535739baa6e5a0"
+      },
+      {
+        "name": "B1CFEB7EE506F1EC",
+        "bytes": 58152,
+        "sha256": "db46bbd941d354361add46dde7f6429a78b859562c1a77dce1e8f482661d6faa"
+      },
+      {
+        "name": "BAA5C47BDE72810E",
+        "bytes": 55521,
+        "sha256": "04f5fc0ac92d1481e60102776c741f3e5667221a24758f80e22d040cfa17fc3c"
+      },
+      {
+        "name": "CAE1CB3D36CFA8E3",
+        "bytes": 58077,
+        "sha256": "d48b5a9b3a855b79acba939ea17a43f69a629e1064217e060dce773bdcd524da"
+      },
+      {
+        "name": "EED04F8E19924644",
+        "bytes": 58067,
+        "sha256": "310be93b3c0f7872c31052a9afe0581f93aaa8cb996536d108b474e08d27028e"
+      },
+      {
+        "name": "MTLBuffer-11-0",
+        "bytes": 6291456,
+        "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+      },
+      {
+        "name": "MTLBuffer-18-0",
+        "bytes": 12582912,
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d"
+      },
+      {
+        "name": "MTLBuffer-45-0",
+        "bytes": 16416768,
+        "sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3"
+      },
+      {
+        "name": "MTLBuffer-8-0",
+        "bytes": 5472256,
+        "sha256": "54ccdea8ec7397001f9f5d0330a03d1d4f0f686c978b679b12da66d615684c80"
+      },
+      {
+        "name": "MTLBuffer-9-0",
+        "kind": "internal-symlink",
+        "link": "MTLBuffer-18-0",
+        "target": "MTLBuffer-18-0",
+        "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d",
+        "bytes": 0
+      },
+      {
+        "name": "capture",
+        "bytes": 2276,
+        "sha256": "2027d4f1ad01348a9804449f6b388b846b258d612f74db5938c0a0e3e37f633e"
+      },
+      {
+        "name": "delta-device-resources-0x102aa8e50",
+        "bytes": 56,
+        "sha256": "5650c32b7149fe2561f3d96ab314bce49af2d6bb98240f251d953c613896977e"
+      },
+      {
+        "name": "device-resources-0x102aa8e50",
+        "bytes": 7500,
+        "sha256": "159ffeaa7271fca4324410ab2630a0afcae7b527f469e8d71098893a9bd922b9"
+      },
+      {
+        "name": "index",
+        "bytes": 14177,
+        "sha256": "43a793b168cd99e1d22ca21c9e572729f0696f86dd2c1f79416f30c661447d52"
+      },
+      {
+        "name": "metadata",
+        "bytes": 1136,
+        "sha256": "10538871271e02797542b3496624326819fb16924bf2b23afd9cd17528966eb6"
+      },
+      {
+        "name": "startup-0-platform",
+        "bytes": 76,
+        "sha256": "7cdb9f53e04464a006a6a42d1c768cf158aba260bc6aca226a6ac7c8beeccf08"
+      },
+      {
+        "name": "startup-1-platform",
+        "bytes": 8,
+        "sha256": "307bca216804762e9741cc4d56a78333351e51a2b9ba29b1b623c5c07df79550"
+      },
+      {
+        "name": "store0",
+        "bytes": 23326,
+        "sha256": "106602fe4bb7721a405a82c87b7108114d307e3fff3725b8c8aca98332a3a3f9"
+      },
+      {
+        "name": "unsorted-capture",
+        "bytes": 7076,
+        "sha256": "959de1396379169ee58573308ff225c34e793742899d7aa575a44fa1b7b4b1cd"
+      },
+      {
+        "name": "unused-device-resources-0x102aa8e50",
+        "bytes": 32704,
+        "sha256": "5bddf6a099b7f4ab3dc5c301364e8f66987803293293a746d0d2b30f94240eac"
+      }
+    ],
+    "manifest_sha256": "948e2299e24188eb7bc2950471b661e71caf2779583c459ed7c3bef3d488ce90",
+    "bytes": 231456611
+  },
+  "stdout": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-profile32.stdout.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  },
+  "stderr": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-profile32.stderr.log",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "bytes": 0
+  }
+}

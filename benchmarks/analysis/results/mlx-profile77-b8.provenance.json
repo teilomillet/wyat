@@ -1,0 +1,13 @@
+{
+  "receipt_sha256": "08f0121ac5e7b9bb1b5a5bd34414af2e43d8de47877ef85655deb505d86ce931",
+  "receipt_unchanged": true,
+  "provenance_recorded_after_run": true,
+  "warning": "Original runner bytes were not archived. Runner later gained trace-only/case-limit branches, explicit source and denominator metadata, and canonical reference validation. These source hashes describe the retained reproducer, not exact original executed bytes; the original timing receipt is unchanged.",
+  "sources_sha256": {
+    "benchmarks/analysis/mlx/profile.py": "256cd23c5d67586e759da92b18b1739e2c7bd9a513dd7b5fbff7353c308560b7",
+    "wyat/backends/kai/mlx.py": "ca16fe05006edb02e191e60dee84fa00e9e6da724ef50c90d055b9679dba731d",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "benchmarks/analysis/reference.py": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394"
+  }
+}

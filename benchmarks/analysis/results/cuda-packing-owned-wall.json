@@ -1,0 +1,8 @@
+{
+  "exit_code": 0,
+  "timed_out": false,
+  "elapsed_seconds": 2.9152441670303233,
+  "cap_seconds": 60,
+  "stdout": ".........                                                                [100%]\n9 passed in 2.50s\n",
+  "stderr": ""
+}

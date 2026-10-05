@@ -1,0 +1,223 @@
+"""Event-controlled admission counterexample; no model weights or network sockets."""
+
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import importlib.metadata
+import json
+import os
+import platform
+import signal
+import subprocess
+import sys
+import time
+from collections.abc import Sequence
+from pathlib import Path
+from threading import Event, Lock
+
+import anyio.to_thread
+import httpx
+
+from wyat import Model, Request
+from wyat.server import create_app
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+OUT = Path("/private/tmp/wyat-server-admission-repro")
+BODY = {
+    "query": "question",
+    "candidates": [{"id": "a", "text": "first"}, {"id": "b", "text": "second"}],
+}
+
+
+def digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+class ControlledScorer:
+    def __init__(self) -> None:
+        self.entered = Event()
+        self.release = Event()
+        self.finished = Event()
+        self.lock = Lock()
+        self.calls = 0
+
+    def score_many(self, requests: Sequence[Request]) -> tuple[tuple[float, ...], ...]:
+        with self.lock:
+            self.calls += 1
+            ordinal = self.calls
+        if ordinal == 1:
+            self.entered.set()
+            try:
+                if not self.release.wait(10):
+                    raise RuntimeError("Owned reproduction release timeout")
+            finally:
+                self.finished.set()
+        return tuple((0.0, 1.0) for _ in requests)
+
+
+async def worker() -> dict[str, object]:
+    before = {
+        str(path.relative_to(ROOT)): digest(path)
+        for path in sorted((ROOT / "wyat").rglob("*.py"))
+    }
+    assert len(before) == 20
+    limiter = anyio.to_thread.current_default_thread_limiter()
+    original_tokens = limiter.total_tokens
+    scorer = ControlledScorer()
+    limiter.total_tokens = 1
+    first: asyncio.Task[httpx.Response] | None = None
+    second: asyncio.Task[httpx.Response] | None = None
+    started = time.monotonic()
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(
+                app=create_app(Model(scorer, "admission-repro"))
+            ),
+            base_url="http://asgi.invalid",
+        ) as client:
+            first = asyncio.create_task(client.post("/v1/decide", json=BODY))
+            assert await asyncio.to_thread(scorer.entered.wait, 3), (
+                "Active worker never entered"
+            )
+            second = asyncio.create_task(client.post("/v1/decide", json=BODY))
+
+            async def queued() -> None:
+                while limiter.statistics().tasks_waiting != 1:
+                    if second is None or second.done():
+                        raise AssertionError(
+                            "Concurrent handler did not queue at limiter"
+                        )
+                    await asyncio.sleep(0)
+
+            await asyncio.wait_for(queued(), timeout=3)
+            statistics = limiter.statistics()
+            observed_before_release = {
+                "borrowed_tokens": statistics.borrowed_tokens,
+                "waiting_tasks": statistics.tasks_waiting,
+                "first_model_entered": scorer.entered.is_set(),
+                "first_model_finished": scorer.finished.is_set(),
+                "second_http_completed": second.done(),
+                "model_calls": scorer.calls,
+            }
+            assert observed_before_release == {
+                "borrowed_tokens": 1,
+                "waiting_tasks": 1,
+                "first_model_entered": True,
+                "first_model_finished": False,
+                "second_http_completed": False,
+                "model_calls": 1,
+            }
+            scorer.release.set()
+            responses = await asyncio.wait_for(asyncio.gather(first, second), timeout=3)
+            statuses = [response.status_code for response in responses]
+            assert statuses == [200, 200], statuses
+            assert scorer.calls == 2 and scorer.finished.is_set()
+    finally:
+        scorer.release.set()
+        for task in (first, second):
+            if task is not None and not task.done():
+                task.cancel()
+        outstanding = [task for task in (first, second) if task is not None]
+        if outstanding:
+            await asyncio.wait_for(
+                asyncio.gather(*outstanding, return_exceptions=True), timeout=3
+            )
+        limiter.total_tokens = original_tokens
+    after = {
+        str(path.relative_to(ROOT)): digest(path)
+        for path in sorted((ROOT / "wyat").rglob("*.py"))
+    }
+    assert before == after
+    return {
+        "schema_version": 1,
+        "scope": (
+            "Actual current Wyat/HTTPX ASGI/AnyIO event-controlled admission "
+            "counterexample; no sockets/model/device/network execution"
+        ),
+        "production_source_sha256": before,
+        "source_stable": True,
+        "script_sha256": digest(Path(__file__)),
+        "versions": {
+            name: importlib.metadata.version(name)
+            for name in ("anyio", "httpx", "fastapi", "starlette")
+        },
+        "python": sys.version,
+        "platform": platform.platform(),
+        "configured_thread_tokens": 1,
+        "original_thread_tokens_restored": original_tokens,
+        "before_release": observed_before_release,
+        "observed_http_statuses": statuses,
+        "model_calls": scorer.calls,
+        "expected_concurrent_status": 503,
+        "concurrent_admission_contract_met": statuses[1] == 503,
+        "elapsed_seconds": time.monotonic() - started,
+        "limitations": [
+            (
+                "Controlled saturated pool; no capacity/throughput/latency "
+                "measurement or model-quality claim"
+            ),
+            "ASGI transport bypasses network sockets",
+            "No production mutation",
+        ],
+    }
+
+
+def main() -> None:
+    if sys.argv[1:] == ["--worker"]:
+        value = asyncio.run(worker())
+        with (OUT / "counterexample.json").open("x") as stream:
+            json.dump(value, stream, indent=2, allow_nan=False)
+            stream.write("\n")
+        print(
+            json.dumps(
+                {
+                    "observed_statuses": value["observed_http_statuses"],
+                    "contract_met": value["concurrent_admission_contract_met"],
+                }
+            )
+        )
+        return
+    assert sys.argv[1:] == []
+    command = [sys.executable, str(Path(__file__)), "--worker"]
+    started = time.monotonic()
+    child = subprocess.Popen(
+        command,
+        cwd=ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    timed_out = False
+    try:
+        stdout, stderr = child.communicate(timeout=60)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        try:
+            os.killpg(child.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        stdout, stderr = child.communicate()
+    record: dict[str, object] = {
+        "command": command,
+        "cap_seconds": 60,
+        "elapsed_seconds": time.monotonic() - started,
+        "timed_out": timed_out,
+        "reaped": child.poll() is not None,
+        "exit_code": child.returncode,
+        "stdout": stdout,
+        "stderr": stderr,
+        "script_sha256": digest(Path(__file__)),
+    }
+    with (OUT / "owned-execution.json").open("x") as stream:
+        json.dump(record, stream, indent=2, allow_nan=False)
+        stream.write("\n")
+    assert not timed_out and child.returncode == 0 and record["reaped"] is True, cast(
+        str, stderr
+    )
+    print(json.dumps(record))
+
+
+if __name__ == "__main__":
+    main()

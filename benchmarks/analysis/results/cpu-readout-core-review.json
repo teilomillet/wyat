@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope_approved": "experimental_core_mechanics_only",
+  "scope": "Independent read-only review and seeded tiny CPU verification; no learned checkpoint, performance claim or screen-run approval",
+  "source_sha256": {
+    "benchmarks/analysis/torch/readout/block.py": "6e3880835b0d7759936d8a369cc23b7e743f6bb243ee812ef44a9efeb6672f3e",
+    "benchmarks/analysis/torch/readout/__init__.py": "261e2a1f09e6e4d560a62c26123f8a43c1890638d443b217be6718ad16f43efa",
+    "tests/analysis/cpu/readout/test_block.py": "49a901f508642c83c284fa6da4a763c73ccdfd43e0419f15d56c76d599062cb7"
+  },
+  "production_source_sha256": {
+    "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+    "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+    "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+    "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+    "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+    "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+    "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+    "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "production_files_unchanged": 22,
+  "baseline_package_receipt_sha256": "3a2a6e0999dee44fe71a06905efb35158d5b935b582b02c28043bec30acc2975",
+  "author_mechanics_receipt": {
+    "path": "benchmarks/analysis/results/cpu-readout-mechanics-final.json",
+    "sha256": "5ef3405721681a5204b13a2db177ad859276145ebaccc4ce7dcc34588dc0ae1c"
+  },
+  "checks": {
+    "native": {
+      "receipt_sha256": "4849f4dc02dee6e73c33ca0a2574a2bbe51d027aa7a003836fb664b9b975352e",
+      "execution": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/analysis/cpu/readout/test_block.py",
+          "--basetemp",
+          "/private/tmp/wyat-readout-core-native-review/pytest"
+        ],
+        "cap_seconds": 60,
+        "elapsed_seconds": 2.07332804199541,
+        "exit_code": 0,
+        "reaped": true,
+        "timed_out": false,
+        "stdout": "................                                                         [100%]\n16 passed in 1.63s\n",
+        "stderr": "",
+        "source_before": {
+          "benchmarks/analysis/torch/readout/block.py": "6e3880835b0d7759936d8a369cc23b7e743f6bb243ee812ef44a9efeb6672f3e",
+          "benchmarks/analysis/torch/readout/__init__.py": "261e2a1f09e6e4d560a62c26123f8a43c1890638d443b217be6718ad16f43efa",
+          "tests/analysis/cpu/readout/test_block.py": "49a901f508642c83c284fa6da4a763c73ccdfd43e0419f15d56c76d599062cb7"
+        },
+        "source_after": {
+          "benchmarks/analysis/torch/readout/block.py": "6e3880835b0d7759936d8a369cc23b7e743f6bb243ee812ef44a9efeb6672f3e",
+          "benchmarks/analysis/torch/readout/__init__.py": "261e2a1f09e6e4d560a62c26123f8a43c1890638d443b217be6718ad16f43efa",
+          "tests/analysis/cpu/readout/test_block.py": "49a901f508642c83c284fa6da4a763c73ccdfd43e0419f15d56c76d599062cb7"
+        },
+        "production_before": {
+          "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+          "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+          "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+          "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+          "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+          "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+          "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+          "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+          "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+          "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+          "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+          "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+          "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+          "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+          "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+          "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+          "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+          "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+          "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+          "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+          "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+          "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+        },
+        "production_after": {
+          "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+          "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+          "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+          "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+          "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+          "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+          "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+          "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+          "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+          "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+          "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+          "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+          "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+          "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+          "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+          "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+          "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+          "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+          "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+          "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+          "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+          "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+        },
+        "baseline_receipt_sha256": "3a2a6e0999dee44fe71a06905efb35158d5b935b582b02c28043bec30acc2975",
+        "limits": [
+          "Tiny seeded causal mechanics and actual two CPU dispatch observations only",
+          "No learned model quality, online serving or speed claim"
+        ],
+        "source_review": {
+          "absolute_position_mask_full_suffix_kv_and_selected_queries": true,
+          "target_final_layer_prefix_length_not_updated_lower_layer0": true,
+          "duplicate_and_ragged_indices_preserved": true,
+          "invalid_tuple_arity_and_norm_width_reject_before_effects": true,
+          "native_only_skips_unconditional_mathematics": true,
+          "no_material_findings": true
+        }
+      }
+    },
+    "sandbox": {
+      "receipt_sha256": "01fed2dc9e9a128f675be2cab66e787e98815bced9354a710f49f7dd45b21b34",
+      "execution": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/analysis/cpu/readout/test_block.py",
+          "--basetemp",
+          "/private/tmp/wyat-readout-core-review/pytest"
+        ],
+        "cap_seconds": 60,
+        "elapsed_seconds": 2.08984008297557,
+        "exit_code": 0,
+        "reaped": true,
+        "timed_out": false,
+        "stdout": "..............ss                                                         [100%]\n14 passed, 2 skipped in 1.68s\n",
+        "stderr": "",
+        "source_before": {
+          "benchmarks/analysis/torch/readout/block.py": "6e3880835b0d7759936d8a369cc23b7e743f6bb243ee812ef44a9efeb6672f3e",
+          "benchmarks/analysis/torch/readout/__init__.py": "261e2a1f09e6e4d560a62c26123f8a43c1890638d443b217be6718ad16f43efa",
+          "tests/analysis/cpu/readout/test_block.py": "49a901f508642c83c284fa6da4a763c73ccdfd43e0419f15d56c76d599062cb7"
+        },
+        "source_after": {
+          "benchmarks/analysis/torch/readout/block.py": "6e3880835b0d7759936d8a369cc23b7e743f6bb243ee812ef44a9efeb6672f3e",
+          "benchmarks/analysis/torch/readout/__init__.py": "261e2a1f09e6e4d560a62c26123f8a43c1890638d443b217be6718ad16f43efa",
+          "tests/analysis/cpu/readout/test_block.py": "49a901f508642c83c284fa6da4a763c73ccdfd43e0419f15d56c76d599062cb7"
+        },
+        "production_before": {
+          "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+          "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+          "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+          "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+          "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+          "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+          "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+          "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+          "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+          "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+          "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+          "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+          "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+          "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+          "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+          "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+          "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+          "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+          "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+          "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+          "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+          "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+        },
+        "production_after": {
+          "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+          "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+          "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+          "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+          "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+          "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+          "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+          "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+          "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+          "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+          "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+          "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+          "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+          "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+          "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+          "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+          "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+          "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+          "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+          "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+          "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+          "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+        },
+        "baseline_receipt_sha256": "3a2a6e0999dee44fe71a06905efb35158d5b935b582b02c28043bec30acc2975",
+        "limits": [
+          "Tiny seeded causal mechanics and actual two CPU dispatch observations only",
+          "No learned model quality, online serving or speed claim"
+        ],
+        "source_review": {
+          "absolute_position_mask_full_suffix_kv_and_selected_queries": true,
+          "target_final_layer_prefix_length_not_updated_lower_layer0": true,
+          "duplicate_and_ragged_indices_preserved": true,
+          "invalid_tuple_arity_and_norm_width_reject_before_effects": true,
+          "native_only_skips_unconditional_mathematics": true,
+          "no_material_findings": true
+        }
+      }
+    }
+  },
+  "source_archive": {
+    "path": "benchmarks/analysis/results/cpu-readout-core-review.sources-813e4677dadf4435.json",
+    "sha256": "813e4677dadf44354aa5a1da1d842a417141020bf3a34191be557516dd793026"
+  },
+  "native_observations": "16 passed with zero skips in native Mac CPU context; the two dispatch observations apply only to those calls",
+  "sandbox_observations": "14 mechanics cases passed; 2 native observation cases explicitly unsupported and skipped, never counted as dispatch passes",
+  "review": {
+    "absolute_position_mask_full_suffix_kv_and_selected_queries": true,
+    "target_final_layer_prefix_length_not_updated_lower_layer0": true,
+    "duplicate_and_ragged_indices_preserved": true,
+    "invalid_tuple_arity_and_norm_width_reject_before_effects": true,
+    "native_only_skips_unconditional_mathematics": true,
+    "no_material_findings": true
+  },
+  "limits": [
+    "Tiny seeded stock Qwen3 causal math and cache ownership only",
+    "Caller must keep stock modules fixed and compute full suffix absolute RoPE before lower-layer updates",
+    "Disposable passed cache consumed on post-append failure; retained seeds preserved",
+    "No real-model quality, throughput, universal dispatch, deployment or 20x claim"
+  ]
+}

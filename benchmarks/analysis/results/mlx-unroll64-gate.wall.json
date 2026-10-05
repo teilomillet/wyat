@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "benchmarks.analysis.mlx.unroll.run",
+    ".models/Decision-2.0-Kai-0.6B",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-unroll64-gate.json",
+    "--worker"
+  ],
+  "timeout_seconds": 180,
+  "completed": false,
+  "timed_out": false,
+  "inductor_cache": null,
+  "exit_code": 1,
+  "elapsed_seconds": 9.819077584019396
+}

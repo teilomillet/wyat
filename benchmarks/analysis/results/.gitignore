@@ -1,0 +1,4 @@
+# Preserve local Instruments captures without committing large binary bundles.
+*.trace/
+*.gputrace/
+*.raw.xml

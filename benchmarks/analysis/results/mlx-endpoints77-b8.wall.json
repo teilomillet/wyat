@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/tmp/wyat-mlx-only/bin/python",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/mlx/endpoints.py",
+    "--batch-size",
+    "8",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-endpoints77-b8.json"
+  ],
+  "started_wall_time_ns": 1791164375950986000,
+  "timeout_seconds": 180,
+  "wrapper_sha256": "0b5fb96881cfe48a92e4cfb209cf3d046b6a5f60d7ccc367966cc1dd92955745",
+  "timed_out": false,
+  "process_exit_code": 0,
+  "elapsed_seconds": 41.26398683403386,
+  "finished_wall_time_ns": 1791164417214921000
+}

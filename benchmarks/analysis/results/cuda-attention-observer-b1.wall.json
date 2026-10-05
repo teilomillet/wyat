@@ -1,0 +1,31 @@
+{
+  "command": [
+    "/home/teilo/tmp/wyat-cuda-20261005/env/bin/python",
+    "-m",
+    "benchmarks.analysis.cuda.attention.run",
+    ".models/Decision-2.0-Kai-0.6B",
+    "--output",
+    "/home/teilo/tmp/wyat-cuda-20261005/benchmarks/analysis/results/cuda-attention-observer-b1.json",
+    "--manifest",
+    "benchmarks/analysis/results/cuda-transfer-manifest-v2-20261005.json",
+    "--manifest-sha256",
+    "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866",
+    "--sources",
+    "benchmarks/analysis/results/cuda-attention-source-declaration-v2-20261005.json",
+    "--sources-sha256",
+    "589a45fe5f941d13311ec2668889186fd14557cc173071c0de3e0cea333dfe8f",
+    "--control",
+    "benchmarks/analysis/results/cuda-fp32-b1.json",
+    "--control-sha256",
+    "d528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167",
+    "--batch-size",
+    "1",
+    "--worker"
+  ],
+  "timeout_seconds": 180,
+  "completed": true,
+  "timed_out": false,
+  "inductor_cache": null,
+  "exit_code": 0,
+  "elapsed_seconds": 9.580736983014503
+}

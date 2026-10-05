@@ -1,0 +1,19 @@
+{
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "python3 -"
+  ],
+  "seconds": 3.1382004159968346,
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "stdout": "{\"utc\": \"2026-10-05T10:22:37.028832+00:00\", \"samples\": [{\"repeat\": 0, \"seconds\": 0.055381831974955276, \"queries\": [{\"command\": [\"nvidia-smi\", \"--query-gpu=name,uuid,memory.total,memory.used,utilization.gpu\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"NVIDIA GeForce RTX 4070 Ti, GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7, 12282, 128, 0\\n\", \"stderr\": \"\"}, {\"command\": [\"nvidia-smi\", \"--query-compute-apps=pid,process_name,used_memory\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"\", \"stderr\": \"\"}]}, {\"repeat\": 1, \"seconds\": 0.03706023798440583, \"queries\": [{\"command\": [\"nvidia-smi\", \"--query-gpu=name,uuid,memory.total,memory.used,utilization.gpu\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"NVIDIA GeForce RTX 4070 Ti, GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7, 12282, 128, 0\\n\", \"stderr\": \"\"}, {\"command\": [\"nvidia-smi\", \"--query-compute-apps=pid,process_name,used_memory\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"\", \"stderr\": \"\"}]}, {\"repeat\": 2, \"seconds\": 0.03786437801318243, \"queries\": [{\"command\": [\"nvidia-smi\", \"--query-gpu=name,uuid,memory.total,memory.used,utilization.gpu\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"NVIDIA GeForce RTX 4070 Ti, GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7, 12282, 128, 0\\n\", \"stderr\": \"\"}, {\"command\": [\"nvidia-smi\", \"--query-compute-apps=pid,process_name,used_memory\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"\", \"stderr\": \"\"}]}, {\"repeat\": 3, \"seconds\": 0.038414604001445696, \"queries\": [{\"command\": [\"nvidia-smi\", \"--query-gpu=name,uuid,memory.total,memory.used,utilization.gpu\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"NVIDIA GeForce RTX 4070 Ti, GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7, 12282, 128, 0\\n\", \"stderr\": \"\"}, {\"command\": [\"nvidia-smi\", \"--query-compute-apps=pid,process_name,used_memory\", \"--format=csv,noheader,nounits\"], \"exit_code\": 0, \"stdout\": \"\", \"stderr\": \"\"}]}], \"scope\": \"Read-only ownership-query timing; no framework/model/allocation/job\"}\n",
+  "stderr": "",
+  "remote_source": "import json, signal, subprocess, time\nfrom datetime import UTC, datetime\nsignal.alarm(20)\ncommands = [\n    [\"nvidia-smi\", \"--query-gpu=name,uuid,memory.total,memory.used,utilization.gpu\", \"--format=csv,noheader,nounits\"],\n    [\"nvidia-smi\", \"--query-compute-apps=pid,process_name,used_memory\", \"--format=csv,noheader,nounits\"],\n]\nsamples = []\nfor repeat in range(4):\n    start = time.perf_counter()\n    queries = []\n    for command in commands:\n        result = subprocess.run(command, capture_output=True, text=True, timeout=5, check=False)\n        queries.append({\"command\":command,\"exit_code\":result.returncode,\"stdout\":result.stdout,\"stderr\":result.stderr})\n    samples.append({\"repeat\":repeat,\"seconds\":time.perf_counter()-start,\"queries\":queries})\nprint(json.dumps({\"utc\":datetime.now(UTC).isoformat(),\"samples\":samples,\"scope\":\"Read-only ownership-query timing; no framework/model/allocation/job\"}))\n",
+  "verifier_sha256": "92614e965b88fa44dfd5ce29ec77785d13f10ad93cb170d801d110440dc3857e"
+}

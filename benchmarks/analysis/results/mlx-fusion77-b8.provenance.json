@@ -1,0 +1,13 @@
+{
+  "receipt_sha256": "aafcee0bec0b5247439796f227d3c55e40b804cc52e38b494fc9cc5d8d6d95c0",
+  "receipt_unchanged": true,
+  "executed_source_snapshot": "benchmarks/analysis/results/mlx-fusion77-b8.executed.py",
+  "executed_source_sha256": "51eab8152414a913051d92f07f5030fd987addff576725f1868d90abc3c89016",
+  "retained_runner_changed_after_run": [
+    "packed_backbone extracted for mechanics tests",
+    "canonical reference validation including candidate IDs adopted",
+    "explicit deletion of BenchmarkReport and gc.collect between arms added"
+  ],
+  "memory_limit": "Measured process retains paired baseline and experimental arms, including bound forward reference cycles. Active/peak allocator values are whole-process cumulative evidence, not eventual production packed-model footprint. No memory saving or production speed claim is made.",
+  "measured_result": "All arms strict-quality pass, none positive median speedup; no promotion."
+}

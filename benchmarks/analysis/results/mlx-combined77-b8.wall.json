@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/tmp/wyat-mlx-only/bin/python",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/mlx/combined.py",
+    "--batch-size",
+    "8",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-combined77-b8.json"
+  ],
+  "started_wall_time_ns": 1791166310999453000,
+  "timeout_seconds": 180,
+  "wrapper_sha256": "74c6b90f16e89aff946197269ae835b76f08cfcddc2c33e901e7771209850560",
+  "timed_out": false,
+  "process_exit_code": 0,
+  "elapsed_seconds": 39.55030770896701,
+  "finished_wall_time_ns": 1791166350549730000
+}

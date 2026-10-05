@@ -1,0 +1,256 @@
+"""Independent source gate; focused CPU fakes do not establish native CUDA behavior."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import signal
+import subprocess
+import sys
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import cast
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULT = ROOT / "benchmarks/analysis/results/cuda-shape-source-review.json"
+FILES = (
+    "benchmarks/analysis/cuda/shape/__init__.py",
+    "benchmarks/analysis/cuda/shape/run.py",
+    "benchmarks/analysis/cuda/shape/study.py",
+    "tests/analysis/test_cuda_shape.py",
+    "docs/analysis/shape.md",
+)
+TRANSPORT = Path("/private/tmp/wyat-cuda-shape-transport.py")
+PRIOR = ROOT / "benchmarks/real/engine-cuda-latency-verification.json"
+
+
+def sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def obj(value: object) -> dict[str, object]:
+    assert isinstance(value, dict)
+    return cast(dict[str, object], value)
+
+
+def read(path: Path) -> dict[str, object]:
+    return obj(json.loads(path.read_bytes()))
+
+
+def run(args: list[str], cap: int) -> dict[str, object]:
+    start = time.monotonic()
+    child = subprocess.Popen(
+        args,
+        cwd=ROOT,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    timed_out = False
+    try:
+        stdout, stderr = child.communicate(timeout=cap)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        try:
+            os.killpg(child.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        stdout, stderr = child.communicate()
+    return dict(
+        command=args,
+        exit_code=child.returncode,
+        timed_out=timed_out,
+        reaped=child.poll() is not None,
+        cap_seconds=cap,
+        elapsed_seconds=time.monotonic() - start,
+        stdout=stdout,
+        stderr=stderr,
+    )
+
+
+def main() -> None:
+    assert not RESULT.exists()
+    before = {name: sha(ROOT / name) for name in FILES}
+    assert (
+        before["tests/analysis/test_cuda_shape.py"]
+        == "86a6d5dbc6562e6622b3b3abb537c8c4e1efd44d47b1192aa950af8207a774f6"
+    )
+    assert (
+        before["benchmarks/analysis/cuda/shape/study.py"]
+        == "e11b1d1eb8362e9ce0bd50f12d13adab7ccbf815edeccf0a8ae49a40651cb16e"
+    )
+    assert (
+        sha(TRANSPORT)
+        == "c704af3f1f8e75a8394575478feb98ba61362969d20e695267ada3483d79dd37"
+    )
+    assert (
+        sha(PRIOR) == "67930b46739fdd3f35fbc00c425bdee3879c2008dc3a3ee57c51ae1893bc7cdf"
+    )
+    declaration = (
+        ROOT / "benchmarks/analysis/results/cuda-shape-source-declaration-20261005.json"
+    )
+    assert (
+        sha(declaration)
+        == "16067a59ecebe08ff86fb6e101f8af568dd96d16a49bc6f62e4ad1aee31db79b"
+    )
+    assert read(declaration) == before
+    previous = read(PRIOR)
+    old = obj(previous["source_sha256"])
+    assert len(old) == 133 and all(
+        sha(ROOT / name) == checksum for name, checksum in old.items()
+    )
+    production = [name for name in old if name.startswith("wyat/")]
+    assert len(production) == 20
+    python_files = [name for name in FILES if name.endswith(".py")]
+    checks = {
+        "pytest": run(
+            [
+                str(ROOT / ".venv/bin/pytest"),
+                "-q",
+                "-rs",
+                "tests/analysis/test_cuda_shape.py",
+            ],
+            120,
+        ),
+        "mypy": run(
+            [str(ROOT / ".venv/bin/mypy"), "--strict", *python_files, str(TRANSPORT)],
+            120,
+        ),
+        "ruff": run(
+            [str(ROOT / ".venv/bin/ruff"), "check", *python_files, str(TRANSPORT)], 60
+        ),
+        "format": run(
+            [
+                str(ROOT / ".venv/bin/ruff"),
+                "format",
+                "--check",
+                *python_files,
+                str(TRANSPORT),
+            ],
+            60,
+        ),
+        "stdlib_parent_help": run(
+            [
+                sys.executable,
+                "-S",
+                "-m",
+                "benchmarks.analysis.cuda.shape.run",
+                "--help",
+            ],
+            60,
+        ),
+    }
+    after = {name: sha(ROOT / name) for name in FILES}
+    assert before == after and all(
+        sha(ROOT / name) == checksum for name, checksum in old.items()
+    )
+    assert (
+        sha(TRANSPORT)
+        == "c704af3f1f8e75a8394575478feb98ba61362969d20e695267ada3483d79dd37"
+    )
+    assert all(
+        item["exit_code"] == 0 and item["timed_out"] is False and item["reaped"] is True
+        for item in checks.values()
+    )
+    source = Path(__file__).read_bytes()
+    source_sha = hashlib.sha256(source).hexdigest()
+    archive = RESULT.with_suffix(f".audit-{source_sha[:16]}.txt")
+    with archive.open("xb") as target:
+        target.write(source)
+    result = dict(
+        passed=True,
+        captured_utc=datetime.now(UTC).isoformat(),
+        source_sha256=before,
+        checks=checks,
+        old_python_sources_unchanged=133,
+        production_files_unchanged=20,
+        artifact_sha256={
+            str(PRIOR): sha(PRIOR),
+            str(TRANSPORT): sha(TRANSPORT),
+            str(declaration): sha(declaration),
+            str(declaration): sha(declaration),
+        },
+        source_count=137,
+        audit_script=dict(path=str(archive), sha256=source_sha, text=source.decode()),
+        frameworks_imported=[
+            name
+            for name in ("torch", "transformers", "mlx", "numpy")
+            if name in sys.modules
+        ],
+        review_findings_resolved=[
+            "Raw Chrome export/hash/bytes only; actual schema interpretation deferred.",
+            (
+                "Exact shape association provenance admitted; prior "
+                "input/control/screen/confirmation/timing source pins "
+                "retained."
+            ),
+            (
+                "Math28 comparator and reviewed efficient28 dispatch remain "
+                "strict; no policy or numerical gate relaxation."
+            ),
+            (
+                "Twelve pending outcomes seeded before admission; retained "
+                "partial rows/export/cleanup failures and finite timing "
+                "checks."
+            ),
+            (
+                "Phase and worker wall values separate from call/body "
+                "intervals; context exit precedes native export."
+            ),
+            (
+                "Empty native export remains negative; final twelve ordered "
+                "outputs/four profiles/raw byte identities/source checks "
+                "required."
+            ),
+            (
+                "Eight-file transfer whitelist, two exact historyreview "
+                "hashes, exclusive source paths, bounded reaped groups and "
+                "archive/trace no-symlink guards."
+            ),
+            "Timeout/kill race repaired in new helper; old helper/archive unchanged.",
+            (
+                "Nonuniform equal geometry distributions retain "
+                "layer-permutation uncertainty; no "
+                "causal/clock-domain/precision inference."
+            ),
+        ],
+        limits=[
+            (
+                "Focused49 CPU-only fake tests establish lifecycle/contract "
+                "behavior, not native CUDA quality, launch geometry, speed or "
+                "actual trace schema."
+            ),
+            (
+                "Full137/nativeCPU/Metal/DMBench regression owned separately "
+                "by root; not inferred from this source gate."
+            ),
+            "No model, native CUDA capture or network execution occurred in this gate.",
+        ],
+    )
+    assert result["frameworks_imported"] == []
+    with RESULT.open("x") as target:
+        json.dump(result, target, indent=2, allow_nan=False)
+        target.write("\n")
+    print(
+        json.dumps(
+            dict(
+                path=str(RESULT),
+                sha256=sha(RESULT),
+                checks={
+                    k: {
+                        x: v[x]
+                        for x in ("exit_code", "timed_out", "reaped", "elapsed_seconds")
+                    }
+                    for k, v in checks.items()
+                },
+                source_sha256=source_sha,
+            )
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

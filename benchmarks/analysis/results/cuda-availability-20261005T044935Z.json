@@ -1,0 +1,24 @@
+{
+  "captured_after_utc": "2026-10-05T04:49:35.926405+00:00",
+  "requested_handle": "gpu",
+  "scope": "Bounded read-only occupancy recheck; no transfer, model loading or GPU workload",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "nvidia-smi",
+    "--query-gpu=name,memory.total,memory.used,utilization.gpu",
+    "--format=csv,noheader,nounits"
+  ],
+  "exit_code": 0,
+  "stdout": "NVIDIA GeForce RTX 4070 Ti, 12282, 2930, 71\n",
+  "process_wall_seconds": 1.535993041,
+  "device_name": "NVIDIA GeForce RTX 4070 Ti",
+  "memory_total_MiB": 12282,
+  "memory_used_MiB": 2930,
+  "gpu_utilization_percent": 71,
+  "interpretation": "Occupied at query; exclusive compute availability and job identity remain unknown."
+}

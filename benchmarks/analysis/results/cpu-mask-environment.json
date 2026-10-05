@@ -1,0 +1,29 @@
+{
+  "scope": "Flag-only subprocess observations; no model weights or tensor computation",
+  "command": ".venv/bin/python importing torch and transformers.integrations.sdpa_attention; report MPS build/availability and maintained HF flags",
+  "observations": [
+    {
+      "environment": "workspace sandbox",
+      "exit_code": 0,
+      "torch": "2.14.1",
+      "mps_built": true,
+      "hf_xpu": false,
+      "hf_ge_2_13": true,
+      "mps_available": false,
+      "hf_mps": false
+    },
+    {
+      "environment": "native macOS via approved escalation",
+      "exit_code": 0,
+      "torch": "2.14.1",
+      "mps_built": true,
+      "hf_xpu": false,
+      "hf_ge_2_13": true,
+      "mps_available": true,
+      "hf_mps": true
+    }
+  ],
+  "source_path": "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py",
+  "source_sha256": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad",
+  "conclusion": "Maintained masked GQA eligibility differs by runtime; actual CPU dispatch and model parity remain to be measured"
+}

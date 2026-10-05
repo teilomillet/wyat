@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "scope": "Independent CPU/fake source/protocol review; no CUDA or model allocation; no native runtime or speed claim",
+  "completed": true,
+  "source_gate_passed": true,
+  "utc": "2026-10-05T10:38:12.749774+00:00",
+  "reviewer": "independent_review",
+  "owned_check_cap_seconds": 120,
+  "source_sha256": {
+    "benchmarks/analysis/cuda/latency/__init__.py": "325640684bb19484bc79445ff4891e9a6d62a94bd57e8b5c3a9d7d4686f70273",
+    "benchmarks/analysis/cuda/latency/run.py": "5a2dca5b3e9f3880905a26831be66890ec03bfbb24d4dc80686fdc408103ed55",
+    "benchmarks/analysis/cuda/latency/study.py": "bc05180187e224c79a85bd323689a674796e5aecd3ed316f5203a8c1e2a48e0a",
+    "docs/analysis/latency.md": "a55aae2b48b1363b123bb9963a1e5f95ae239fb0fe988f134cba8a565e4a9938",
+    "tests/analysis/test_cuda_latency.py": "3e92b411501359868fd189d6147a73b79f0770e43c39099388ce2a4cf7a61fc6"
+  },
+  "source_archive": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-local-review.sources-6cbfdcb348569922.json",
+    "sha256": "6cbfdcb3485699220bb2d456a275b7d31af882b61c4aae139e650fe9ba5646fd"
+  },
+  "declaration_sha256": "a26d5be45598c29e9fe6f1a0d0e620c22d0101f060eda730274d404498c7a0a4",
+  "checks": [
+    {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/analysis/test_cuda_latency.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 16.161699583986774,
+      "output": "...............................................................          [100%]\n63 passed in 15.63s\n",
+      "owned_group_reaped": true
+    },
+    {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/ruff",
+        "check",
+        "benchmarks/analysis/cuda/latency",
+        "tests/analysis/test_cuda_latency.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.021231040998827666,
+      "output": "All checks passed!\n",
+      "owned_group_reaped": true
+    },
+    {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/ruff",
+        "format",
+        "--check",
+        "benchmarks/analysis/cuda/latency",
+        "tests/analysis/test_cuda_latency.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 0.020663208968471736,
+      "output": "4 files already formatted\n",
+      "owned_group_reaped": true
+    },
+    {
+      "command": [
+        "/Users/teilomillet/Code/wyat/.venv/bin/mypy",
+        "--strict",
+        "benchmarks/analysis/cuda/latency",
+        "tests/analysis/test_cuda_latency.py"
+      ],
+      "exit_code": 0,
+      "timed_out": false,
+      "elapsed_seconds": 17.19993370899465,
+      "output": "Success: no issues found in 4 source files\n",
+      "owned_group_reaped": true
+    }
+  ],
+  "source_bytes_unchanged_after_checks": true,
+  "preserved": {
+    "old_python_count": 129,
+    "old_python_receipt": "benchmarks/real/engine-attention-observer-verification.json",
+    "old_python_receipt_sha256": "96afbbdf568001c845f4892b4693f07a626911f479d3e99c338cf5657499d27e",
+    "observer_v2_files": 7,
+    "observer_v2_declaration_sha256": "589a45fe5f941d13311ec2668889186fd14557cc173071c0de3e0cea333dfe8f",
+    "frozen_assets": 44,
+    "manifest_sha256": "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866"
+  },
+  "review_findings": {
+    "confirmation_main_and_wall_external_pins": "resolved",
+    "original_control_main_and_wall_exact_pins": "resolved",
+    "invalid_timing_json_safe_and_rejected": "resolved",
+    "canonical_timer_sum_and_balanced_six_pairs": "supported",
+    "all_outputs_and_partial_failures_strict_gates": "supported",
+    "timing_dispatch_provenance_prior_confirmation_only": "supported"
+  },
+  "limits": [
+    "Only CPU/fake executions in this independent check",
+    "Fresh full77 CUDA confirmation and ordinary paired latency remain unknown until new native execution",
+    "Six cohort percentiles are descriptive; telemetry-paced body latency excludes gaps and does not establish online tails or unpaced throughput"
+  ]
+}

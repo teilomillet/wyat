@@ -1,0 +1,7206 @@
+{
+  "scope": "first8 fixed training-source BANKING77 cases; exposure unknown",
+  "hypothesis": "One-use cache reduces selected live KV ownership and observed peak current RSS without numerical/flash drift",
+  "completed": true,
+  "quality_passed": true,
+  "screen_passed": true,
+  "accepted": false,
+  "phase": "complete",
+  "arm": "one-use",
+  "repeat": 0,
+  "protocol": {
+    "pairs": 3,
+    "order": [
+      "retained/one-use",
+      "one-use/retained",
+      "retained/one-use"
+    ],
+    "owned_child_cap_seconds": 180,
+    "dtype": "float32",
+    "device": "cpu",
+    "threads": 8,
+    "batch_size": 8,
+    "max_length": 512,
+    "token_cache_size": 0,
+    "prefix_length": 25,
+    "full_final_block": true,
+    "cycles": [
+      "screen",
+      "warmup",
+      "ordinary",
+      "ordinary",
+      "memory",
+      "profile"
+    ],
+    "timing": "prefix build excluded; fresh cache copying included; ordinary only",
+    "memory_observer": "own-PID RSS via ps; separate memory cycle; profile LAST",
+    "sample_interval_ms": 20,
+    "minimum_interior_valid_samples": 3,
+    "maximum_body_gap_ms": 100,
+    "resource_gate": "all three pairs reduction >= max(64MiB,5% retained sampled peak), plus lower observed selected live KV storage",
+    "promotion": "none; ordinary timings descriptive; failed/missing sampling unsupported",
+    "common_path_change": "both use_cache=False; same private owner kept through head; only cache lifetime differs"
+  },
+  "quality_gate": {
+    "logit_atol": 0.001,
+    "logit_rtol": 0.001,
+    "probability_atol": 0.0001
+  },
+  "cycles": [
+    {
+      "stage": "screen",
+      "cycle": {
+        "latency_ms": 559.300416,
+        "peak_rss_before_bytes": 3770531840,
+        "peak_rss_after_bytes": 3951263744,
+        "correct": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "id": "banking77-train-05698",
+            "expected": [
+              "Refund_not_showing_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "request_refund",
+              "ranking": [
+                "request_refund",
+                "Refund_not_showing_up",
+                "atm_support",
+                "declined_transfer",
+                "topping_up_by_card",
+                "extra_charge_on_statement"
+              ],
+              "scores": [
+                -3.1669068336486816,
+                -2.461191415786743,
+                -3.787862777709961,
+                2.3231537342071533,
+                -4.077081680297852,
+                0.39244988560676575
+              ],
+              "probabilities": [
+                0.0035539426114831025,
+                0.007197782553304205,
+                0.001909996936166343,
+                0.8610203589690528,
+                0.0014302978872900588,
+                0.12488762104270347
+              ]
+            },
+            "correct": false,
+            "latency_ms": 559.284583,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09214",
+            "expected": [
+              "activate_my_card"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "activate_my_card",
+              "ranking": [
+                "activate_my_card",
+                "failed_transfer",
+                "verify_my_identity",
+                "compromised_card",
+                "top_up_by_cash_or_cheque",
+                "card_arrival"
+              ],
+              "scores": [
+                -3.4449665546417236,
+                -3.8815603256225586,
+                -3.230292320251465,
+                -0.34991133213043213,
+                -4.063047409057617,
+                -3.850277900695801
+              ],
+              "probabilities": [
+                0.038197246943208654,
+                0.024684355749018932,
+                0.04734388553173413,
+                0.8437182956688476,
+                0.020587468985906385,
+                0.025468747121284406
+              ]
+            },
+            "correct": true,
+            "latency_ms": 559.284583,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01636",
+            "expected": [
+              "age_limit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "age_limit",
+              "ranking": [
+                "age_limit",
+                "balance_not_updated_after_bank_transfer",
+                "unable_to_verify_identity",
+                "verify_my_identity",
+                "get_physical_card",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -2.9672255516052246,
+                0.49894770979881287,
+                -3.790041923522949,
+                -4.4801926612854,
+                -3.8496875762939453,
+                -4.080417633056641
+              ],
+              "probabilities": [
+                0.029056490464475105,
+                0.930214443199865,
+                0.012761406643134486,
+                0.006399851407823649,
+                0.012022499559860067,
+                0.00954530872484159
+              ]
+            },
+            "correct": true,
+            "latency_ms": 559.284583,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09708",
+            "expected": [
+              "apple_pay_or_google_pay"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "apple_pay_or_google_pay",
+              "ranking": [
+                "apple_pay_or_google_pay",
+                "top_up_limits",
+                "failed_transfer",
+                "transaction_charged_twice",
+                "verify_my_identity",
+                "lost_or_stolen_phone"
+              ],
+              "scores": [
+                -4.4141411781311035,
+                -4.663081645965576,
+                -1.7976429462432861,
+                -4.8229780197143555,
+                -2.976647138595581,
+                1.377693772315979
+              ],
+              "probabilities": [
+                0.002873930573593446,
+                0.0022405921034010954,
+                0.03933752360819872,
+                0.0019095045090617886,
+                0.012099627538453353,
+                0.9415388216672916
+              ]
+            },
+            "correct": true,
+            "latency_ms": 559.284583,
+            "error": null
+          },
+          {
+            "id": "banking77-train-04562",
+            "expected": [
+              "atm_support"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "atm_support",
+              "ranking": [
+                "atm_support",
+                "cash_withdrawal_not_recognised",
+                "topping_up_by_card",
+                "activate_my_card",
+                "declined_card_payment",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -3.7090072631835938,
+                -3.3830487728118896,
+                -4.52322244644165,
+                -3.7994096279144287,
+                -2.507612466812134,
+                2.035512924194336
+              ],
+              "probabilities": [
+                0.0031294954974885204,
+                0.004335471191505963,
+                0.0013863253665130206,
+                0.0028589929399331485,
+                0.01040479341260245,
+                0.9778849215919568
+              ]
+            },
+            "correct": true,
+            "latency_ms": 559.284583,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01221",
+            "expected": [
+              "automatic_top_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "automatic_top_up",
+              "ranking": [
+                "automatic_top_up",
+                "pending_top_up",
+                "declined_transfer",
+                "pending_transfer",
+                "balance_not_updated_after_bank_transfer",
+                "reverted_card_payment?"
+              ],
+              "scores": [
+                -3.81489634513855,
+                2.337200880050659,
+                -4.059388160705566,
+                -3.41957950592041,
+                -3.805978775024414,
+                -1.4661062955856323
+              ],
+              "probabilities": [
+                0.002064191274834688,
+                0.9695535816233574,
+                0.001616473136403747,
+                0.003065023861337137,
+                0.002082681165172873,
+                0.021618048938894102
+              ]
+            },
+            "correct": true,
+            "latency_ms": 559.284583,
+            "error": null
+          },
+          {
+            "id": "banking77-train-08638",
+            "expected": [
+              "balance_not_updated_after_bank_transfer"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_bank_transfer",
+              "ranking": [
+                "balance_not_updated_after_bank_transfer",
+                "fiat_currency_support",
+                "top_up_by_cash_or_cheque",
+                "transaction_charged_twice",
+                "activate_my_card",
+                "getting_spare_card"
+              ],
+              "scores": [
+                -3.687864303588867,
+                -3.2543795108795166,
+                -2.350207805633545,
+                0.22739019989967346,
+                -3.7143547534942627,
+                -4.659238815307617
+              ],
+              "probabilities": [
+                0.017281011261154108,
+                0.02665810085403234,
+                0.06584245095987085,
+                0.8668472570982684,
+                0.016829239732238897,
+                0.006541940094435462
+              ]
+            },
+            "correct": true,
+            "latency_ms": 559.284583,
+            "error": null
+          },
+          {
+            "id": "banking77-train-03357",
+            "expected": [
+              "balance_not_updated_after_cheque_or_cash_deposit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+              "ranking": [
+                "balance_not_updated_after_cheque_or_cash_deposit",
+                "transfer_not_received_by_recipient",
+                "declined_card_payment",
+                "lost_or_stolen_card",
+                "extra_charge_on_statement",
+                "exchange_rate"
+              ],
+              "scores": [
+                -3.191016912460327,
+                2.189988851547241,
+                -4.7480340003967285,
+                -4.029576778411865,
+                -4.212471961975098,
+                -2.636833667755127
+              ],
+              "probabilities": [
+                0.0045252074426637865,
+                0.983059044335348,
+                0.0009537500269251008,
+                0.001956395117123396,
+                0.0016293943319375176,
+                0.007876208746002176
+              ]
+            },
+            "correct": true,
+            "latency_ms": 559.284583,
+            "error": null
+          }
+        ]
+      },
+      "quality": {
+        "total": 8,
+        "comparable": 8,
+        "selected_equal": 8,
+        "ranking_equal": 8,
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "max_abs_logit_difference": 6.079673767089844e-06,
+        "max_abs_probability_difference": 7.617853475805347e-07,
+        "logits_within_tolerance": true,
+        "probabilities_within_tolerance": true,
+        "passed": true
+      },
+      "passed": true,
+      "operator_self_times": []
+    },
+    {
+      "stage": "warmup",
+      "cycle": {
+        "latency_ms": 542.359834,
+        "peak_rss_before_bytes": 3951263744,
+        "peak_rss_after_bytes": 3966566400,
+        "correct": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "id": "banking77-train-05698",
+            "expected": [
+              "Refund_not_showing_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "request_refund",
+              "ranking": [
+                "request_refund",
+                "Refund_not_showing_up",
+                "atm_support",
+                "declined_transfer",
+                "topping_up_by_card",
+                "extra_charge_on_statement"
+              ],
+              "scores": [
+                -3.1669068336486816,
+                -2.461191415786743,
+                -3.787862777709961,
+                2.3231537342071533,
+                -4.077081680297852,
+                0.39244988560676575
+              ],
+              "probabilities": [
+                0.0035539426114831025,
+                0.007197782553304205,
+                0.001909996936166343,
+                0.8610203589690528,
+                0.0014302978872900588,
+                0.12488762104270347
+              ]
+            },
+            "correct": false,
+            "latency_ms": 542.350292,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09214",
+            "expected": [
+              "activate_my_card"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "activate_my_card",
+              "ranking": [
+                "activate_my_card",
+                "failed_transfer",
+                "verify_my_identity",
+                "compromised_card",
+                "top_up_by_cash_or_cheque",
+                "card_arrival"
+              ],
+              "scores": [
+                -3.4449665546417236,
+                -3.8815603256225586,
+                -3.230292320251465,
+                -0.34991133213043213,
+                -4.063047409057617,
+                -3.850277900695801
+              ],
+              "probabilities": [
+                0.038197246943208654,
+                0.024684355749018932,
+                0.04734388553173413,
+                0.8437182956688476,
+                0.020587468985906385,
+                0.025468747121284406
+              ]
+            },
+            "correct": true,
+            "latency_ms": 542.350292,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01636",
+            "expected": [
+              "age_limit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "age_limit",
+              "ranking": [
+                "age_limit",
+                "balance_not_updated_after_bank_transfer",
+                "unable_to_verify_identity",
+                "verify_my_identity",
+                "get_physical_card",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -2.9672255516052246,
+                0.49894770979881287,
+                -3.790041923522949,
+                -4.4801926612854,
+                -3.8496875762939453,
+                -4.080417633056641
+              ],
+              "probabilities": [
+                0.029056490464475105,
+                0.930214443199865,
+                0.012761406643134486,
+                0.006399851407823649,
+                0.012022499559860067,
+                0.00954530872484159
+              ]
+            },
+            "correct": true,
+            "latency_ms": 542.350292,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09708",
+            "expected": [
+              "apple_pay_or_google_pay"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "apple_pay_or_google_pay",
+              "ranking": [
+                "apple_pay_or_google_pay",
+                "top_up_limits",
+                "failed_transfer",
+                "transaction_charged_twice",
+                "verify_my_identity",
+                "lost_or_stolen_phone"
+              ],
+              "scores": [
+                -4.4141411781311035,
+                -4.663081645965576,
+                -1.7976429462432861,
+                -4.8229780197143555,
+                -2.976647138595581,
+                1.377693772315979
+              ],
+              "probabilities": [
+                0.002873930573593446,
+                0.0022405921034010954,
+                0.03933752360819872,
+                0.0019095045090617886,
+                0.012099627538453353,
+                0.9415388216672916
+              ]
+            },
+            "correct": true,
+            "latency_ms": 542.350292,
+            "error": null
+          },
+          {
+            "id": "banking77-train-04562",
+            "expected": [
+              "atm_support"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "atm_support",
+              "ranking": [
+                "atm_support",
+                "cash_withdrawal_not_recognised",
+                "topping_up_by_card",
+                "activate_my_card",
+                "declined_card_payment",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -3.7090072631835938,
+                -3.3830487728118896,
+                -4.52322244644165,
+                -3.7994096279144287,
+                -2.507612466812134,
+                2.035512924194336
+              ],
+              "probabilities": [
+                0.0031294954974885204,
+                0.004335471191505963,
+                0.0013863253665130206,
+                0.0028589929399331485,
+                0.01040479341260245,
+                0.9778849215919568
+              ]
+            },
+            "correct": true,
+            "latency_ms": 542.350292,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01221",
+            "expected": [
+              "automatic_top_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "automatic_top_up",
+              "ranking": [
+                "automatic_top_up",
+                "pending_top_up",
+                "declined_transfer",
+                "pending_transfer",
+                "balance_not_updated_after_bank_transfer",
+                "reverted_card_payment?"
+              ],
+              "scores": [
+                -3.81489634513855,
+                2.337200880050659,
+                -4.059388160705566,
+                -3.41957950592041,
+                -3.805978775024414,
+                -1.4661062955856323
+              ],
+              "probabilities": [
+                0.002064191274834688,
+                0.9695535816233574,
+                0.001616473136403747,
+                0.003065023861337137,
+                0.002082681165172873,
+                0.021618048938894102
+              ]
+            },
+            "correct": true,
+            "latency_ms": 542.350292,
+            "error": null
+          },
+          {
+            "id": "banking77-train-08638",
+            "expected": [
+              "balance_not_updated_after_bank_transfer"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_bank_transfer",
+              "ranking": [
+                "balance_not_updated_after_bank_transfer",
+                "fiat_currency_support",
+                "top_up_by_cash_or_cheque",
+                "transaction_charged_twice",
+                "activate_my_card",
+                "getting_spare_card"
+              ],
+              "scores": [
+                -3.687864303588867,
+                -3.2543795108795166,
+                -2.350207805633545,
+                0.22739019989967346,
+                -3.7143547534942627,
+                -4.659238815307617
+              ],
+              "probabilities": [
+                0.017281011261154108,
+                0.02665810085403234,
+                0.06584245095987085,
+                0.8668472570982684,
+                0.016829239732238897,
+                0.006541940094435462
+              ]
+            },
+            "correct": true,
+            "latency_ms": 542.350292,
+            "error": null
+          },
+          {
+            "id": "banking77-train-03357",
+            "expected": [
+              "balance_not_updated_after_cheque_or_cash_deposit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+              "ranking": [
+                "balance_not_updated_after_cheque_or_cash_deposit",
+                "transfer_not_received_by_recipient",
+                "declined_card_payment",
+                "lost_or_stolen_card",
+                "extra_charge_on_statement",
+                "exchange_rate"
+              ],
+              "scores": [
+                -3.191016912460327,
+                2.189988851547241,
+                -4.7480340003967285,
+                -4.029576778411865,
+                -4.212471961975098,
+                -2.636833667755127
+              ],
+              "probabilities": [
+                0.0045252074426637865,
+                0.983059044335348,
+                0.0009537500269251008,
+                0.001956395117123396,
+                0.0016293943319375176,
+                0.007876208746002176
+              ]
+            },
+            "correct": true,
+            "latency_ms": 542.350292,
+            "error": null
+          }
+        ]
+      },
+      "quality": {
+        "total": 8,
+        "comparable": 8,
+        "selected_equal": 8,
+        "ranking_equal": 8,
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "max_abs_logit_difference": 6.079673767089844e-06,
+        "max_abs_probability_difference": 7.617853475805347e-07,
+        "logits_within_tolerance": true,
+        "probabilities_within_tolerance": true,
+        "passed": true
+      },
+      "passed": true,
+      "operator_self_times": []
+    },
+    {
+      "stage": "ordinary",
+      "cycle": {
+        "latency_ms": 553.7255,
+        "peak_rss_before_bytes": 3966566400,
+        "peak_rss_after_bytes": 3968466944,
+        "correct": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "id": "banking77-train-05698",
+            "expected": [
+              "Refund_not_showing_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "request_refund",
+              "ranking": [
+                "request_refund",
+                "Refund_not_showing_up",
+                "atm_support",
+                "declined_transfer",
+                "topping_up_by_card",
+                "extra_charge_on_statement"
+              ],
+              "scores": [
+                -3.1669068336486816,
+                -2.461191415786743,
+                -3.787862777709961,
+                2.3231537342071533,
+                -4.077081680297852,
+                0.39244988560676575
+              ],
+              "probabilities": [
+                0.0035539426114831025,
+                0.007197782553304205,
+                0.001909996936166343,
+                0.8610203589690528,
+                0.0014302978872900588,
+                0.12488762104270347
+              ]
+            },
+            "correct": false,
+            "latency_ms": 553.709625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09214",
+            "expected": [
+              "activate_my_card"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "activate_my_card",
+              "ranking": [
+                "activate_my_card",
+                "failed_transfer",
+                "verify_my_identity",
+                "compromised_card",
+                "top_up_by_cash_or_cheque",
+                "card_arrival"
+              ],
+              "scores": [
+                -3.4449665546417236,
+                -3.8815603256225586,
+                -3.230292320251465,
+                -0.34991133213043213,
+                -4.063047409057617,
+                -3.850277900695801
+              ],
+              "probabilities": [
+                0.038197246943208654,
+                0.024684355749018932,
+                0.04734388553173413,
+                0.8437182956688476,
+                0.020587468985906385,
+                0.025468747121284406
+              ]
+            },
+            "correct": true,
+            "latency_ms": 553.709625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01636",
+            "expected": [
+              "age_limit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "age_limit",
+              "ranking": [
+                "age_limit",
+                "balance_not_updated_after_bank_transfer",
+                "unable_to_verify_identity",
+                "verify_my_identity",
+                "get_physical_card",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -2.9672255516052246,
+                0.49894770979881287,
+                -3.790041923522949,
+                -4.4801926612854,
+                -3.8496875762939453,
+                -4.080417633056641
+              ],
+              "probabilities": [
+                0.029056490464475105,
+                0.930214443199865,
+                0.012761406643134486,
+                0.006399851407823649,
+                0.012022499559860067,
+                0.00954530872484159
+              ]
+            },
+            "correct": true,
+            "latency_ms": 553.709625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09708",
+            "expected": [
+              "apple_pay_or_google_pay"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "apple_pay_or_google_pay",
+              "ranking": [
+                "apple_pay_or_google_pay",
+                "top_up_limits",
+                "failed_transfer",
+                "transaction_charged_twice",
+                "verify_my_identity",
+                "lost_or_stolen_phone"
+              ],
+              "scores": [
+                -4.4141411781311035,
+                -4.663081645965576,
+                -1.7976429462432861,
+                -4.8229780197143555,
+                -2.976647138595581,
+                1.377693772315979
+              ],
+              "probabilities": [
+                0.002873930573593446,
+                0.0022405921034010954,
+                0.03933752360819872,
+                0.0019095045090617886,
+                0.012099627538453353,
+                0.9415388216672916
+              ]
+            },
+            "correct": true,
+            "latency_ms": 553.709625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-04562",
+            "expected": [
+              "atm_support"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "atm_support",
+              "ranking": [
+                "atm_support",
+                "cash_withdrawal_not_recognised",
+                "topping_up_by_card",
+                "activate_my_card",
+                "declined_card_payment",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -3.7090072631835938,
+                -3.3830487728118896,
+                -4.52322244644165,
+                -3.7994096279144287,
+                -2.507612466812134,
+                2.035512924194336
+              ],
+              "probabilities": [
+                0.0031294954974885204,
+                0.004335471191505963,
+                0.0013863253665130206,
+                0.0028589929399331485,
+                0.01040479341260245,
+                0.9778849215919568
+              ]
+            },
+            "correct": true,
+            "latency_ms": 553.709625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01221",
+            "expected": [
+              "automatic_top_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "automatic_top_up",
+              "ranking": [
+                "automatic_top_up",
+                "pending_top_up",
+                "declined_transfer",
+                "pending_transfer",
+                "balance_not_updated_after_bank_transfer",
+                "reverted_card_payment?"
+              ],
+              "scores": [
+                -3.81489634513855,
+                2.337200880050659,
+                -4.059388160705566,
+                -3.41957950592041,
+                -3.805978775024414,
+                -1.4661062955856323
+              ],
+              "probabilities": [
+                0.002064191274834688,
+                0.9695535816233574,
+                0.001616473136403747,
+                0.003065023861337137,
+                0.002082681165172873,
+                0.021618048938894102
+              ]
+            },
+            "correct": true,
+            "latency_ms": 553.709625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-08638",
+            "expected": [
+              "balance_not_updated_after_bank_transfer"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_bank_transfer",
+              "ranking": [
+                "balance_not_updated_after_bank_transfer",
+                "fiat_currency_support",
+                "top_up_by_cash_or_cheque",
+                "transaction_charged_twice",
+                "activate_my_card",
+                "getting_spare_card"
+              ],
+              "scores": [
+                -3.687864303588867,
+                -3.2543795108795166,
+                -2.350207805633545,
+                0.22739019989967346,
+                -3.7143547534942627,
+                -4.659238815307617
+              ],
+              "probabilities": [
+                0.017281011261154108,
+                0.02665810085403234,
+                0.06584245095987085,
+                0.8668472570982684,
+                0.016829239732238897,
+                0.006541940094435462
+              ]
+            },
+            "correct": true,
+            "latency_ms": 553.709625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-03357",
+            "expected": [
+              "balance_not_updated_after_cheque_or_cash_deposit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+              "ranking": [
+                "balance_not_updated_after_cheque_or_cash_deposit",
+                "transfer_not_received_by_recipient",
+                "declined_card_payment",
+                "lost_or_stolen_card",
+                "extra_charge_on_statement",
+                "exchange_rate"
+              ],
+              "scores": [
+                -3.191016912460327,
+                2.189988851547241,
+                -4.7480340003967285,
+                -4.029576778411865,
+                -4.212471961975098,
+                -2.636833667755127
+              ],
+              "probabilities": [
+                0.0045252074426637865,
+                0.983059044335348,
+                0.0009537500269251008,
+                0.001956395117123396,
+                0.0016293943319375176,
+                0.007876208746002176
+              ]
+            },
+            "correct": true,
+            "latency_ms": 553.709625,
+            "error": null
+          }
+        ]
+      },
+      "quality": {
+        "total": 8,
+        "comparable": 8,
+        "selected_equal": 8,
+        "ranking_equal": 8,
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "max_abs_logit_difference": 6.079673767089844e-06,
+        "max_abs_probability_difference": 7.617853475805347e-07,
+        "logits_within_tolerance": true,
+        "probabilities_within_tolerance": true,
+        "passed": true
+      },
+      "passed": true,
+      "operator_self_times": []
+    },
+    {
+      "stage": "ordinary",
+      "cycle": {
+        "latency_ms": 543.427208,
+        "peak_rss_before_bytes": 3968466944,
+        "peak_rss_after_bytes": 3968565248,
+        "correct": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "id": "banking77-train-05698",
+            "expected": [
+              "Refund_not_showing_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "request_refund",
+              "ranking": [
+                "request_refund",
+                "Refund_not_showing_up",
+                "atm_support",
+                "declined_transfer",
+                "topping_up_by_card",
+                "extra_charge_on_statement"
+              ],
+              "scores": [
+                -3.1669068336486816,
+                -2.461191415786743,
+                -3.787862777709961,
+                2.3231537342071533,
+                -4.077081680297852,
+                0.39244988560676575
+              ],
+              "probabilities": [
+                0.0035539426114831025,
+                0.007197782553304205,
+                0.001909996936166343,
+                0.8610203589690528,
+                0.0014302978872900588,
+                0.12488762104270347
+              ]
+            },
+            "correct": false,
+            "latency_ms": 543.418625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09214",
+            "expected": [
+              "activate_my_card"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "activate_my_card",
+              "ranking": [
+                "activate_my_card",
+                "failed_transfer",
+                "verify_my_identity",
+                "compromised_card",
+                "top_up_by_cash_or_cheque",
+                "card_arrival"
+              ],
+              "scores": [
+                -3.4449665546417236,
+                -3.8815603256225586,
+                -3.230292320251465,
+                -0.34991133213043213,
+                -4.063047409057617,
+                -3.850277900695801
+              ],
+              "probabilities": [
+                0.038197246943208654,
+                0.024684355749018932,
+                0.04734388553173413,
+                0.8437182956688476,
+                0.020587468985906385,
+                0.025468747121284406
+              ]
+            },
+            "correct": true,
+            "latency_ms": 543.418625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01636",
+            "expected": [
+              "age_limit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "age_limit",
+              "ranking": [
+                "age_limit",
+                "balance_not_updated_after_bank_transfer",
+                "unable_to_verify_identity",
+                "verify_my_identity",
+                "get_physical_card",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -2.9672255516052246,
+                0.49894770979881287,
+                -3.790041923522949,
+                -4.4801926612854,
+                -3.8496875762939453,
+                -4.080417633056641
+              ],
+              "probabilities": [
+                0.029056490464475105,
+                0.930214443199865,
+                0.012761406643134486,
+                0.006399851407823649,
+                0.012022499559860067,
+                0.00954530872484159
+              ]
+            },
+            "correct": true,
+            "latency_ms": 543.418625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09708",
+            "expected": [
+              "apple_pay_or_google_pay"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "apple_pay_or_google_pay",
+              "ranking": [
+                "apple_pay_or_google_pay",
+                "top_up_limits",
+                "failed_transfer",
+                "transaction_charged_twice",
+                "verify_my_identity",
+                "lost_or_stolen_phone"
+              ],
+              "scores": [
+                -4.4141411781311035,
+                -4.663081645965576,
+                -1.7976429462432861,
+                -4.8229780197143555,
+                -2.976647138595581,
+                1.377693772315979
+              ],
+              "probabilities": [
+                0.002873930573593446,
+                0.0022405921034010954,
+                0.03933752360819872,
+                0.0019095045090617886,
+                0.012099627538453353,
+                0.9415388216672916
+              ]
+            },
+            "correct": true,
+            "latency_ms": 543.418625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-04562",
+            "expected": [
+              "atm_support"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "atm_support",
+              "ranking": [
+                "atm_support",
+                "cash_withdrawal_not_recognised",
+                "topping_up_by_card",
+                "activate_my_card",
+                "declined_card_payment",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -3.7090072631835938,
+                -3.3830487728118896,
+                -4.52322244644165,
+                -3.7994096279144287,
+                -2.507612466812134,
+                2.035512924194336
+              ],
+              "probabilities": [
+                0.0031294954974885204,
+                0.004335471191505963,
+                0.0013863253665130206,
+                0.0028589929399331485,
+                0.01040479341260245,
+                0.9778849215919568
+              ]
+            },
+            "correct": true,
+            "latency_ms": 543.418625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01221",
+            "expected": [
+              "automatic_top_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "automatic_top_up",
+              "ranking": [
+                "automatic_top_up",
+                "pending_top_up",
+                "declined_transfer",
+                "pending_transfer",
+                "balance_not_updated_after_bank_transfer",
+                "reverted_card_payment?"
+              ],
+              "scores": [
+                -3.81489634513855,
+                2.337200880050659,
+                -4.059388160705566,
+                -3.41957950592041,
+                -3.805978775024414,
+                -1.4661062955856323
+              ],
+              "probabilities": [
+                0.002064191274834688,
+                0.9695535816233574,
+                0.001616473136403747,
+                0.003065023861337137,
+                0.002082681165172873,
+                0.021618048938894102
+              ]
+            },
+            "correct": true,
+            "latency_ms": 543.418625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-08638",
+            "expected": [
+              "balance_not_updated_after_bank_transfer"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_bank_transfer",
+              "ranking": [
+                "balance_not_updated_after_bank_transfer",
+                "fiat_currency_support",
+                "top_up_by_cash_or_cheque",
+                "transaction_charged_twice",
+                "activate_my_card",
+                "getting_spare_card"
+              ],
+              "scores": [
+                -3.687864303588867,
+                -3.2543795108795166,
+                -2.350207805633545,
+                0.22739019989967346,
+                -3.7143547534942627,
+                -4.659238815307617
+              ],
+              "probabilities": [
+                0.017281011261154108,
+                0.02665810085403234,
+                0.06584245095987085,
+                0.8668472570982684,
+                0.016829239732238897,
+                0.006541940094435462
+              ]
+            },
+            "correct": true,
+            "latency_ms": 543.418625,
+            "error": null
+          },
+          {
+            "id": "banking77-train-03357",
+            "expected": [
+              "balance_not_updated_after_cheque_or_cash_deposit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+              "ranking": [
+                "balance_not_updated_after_cheque_or_cash_deposit",
+                "transfer_not_received_by_recipient",
+                "declined_card_payment",
+                "lost_or_stolen_card",
+                "extra_charge_on_statement",
+                "exchange_rate"
+              ],
+              "scores": [
+                -3.191016912460327,
+                2.189988851547241,
+                -4.7480340003967285,
+                -4.029576778411865,
+                -4.212471961975098,
+                -2.636833667755127
+              ],
+              "probabilities": [
+                0.0045252074426637865,
+                0.983059044335348,
+                0.0009537500269251008,
+                0.001956395117123396,
+                0.0016293943319375176,
+                0.007876208746002176
+              ]
+            },
+            "correct": true,
+            "latency_ms": 543.418625,
+            "error": null
+          }
+        ]
+      },
+      "quality": {
+        "total": 8,
+        "comparable": 8,
+        "selected_equal": 8,
+        "ranking_equal": 8,
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "max_abs_logit_difference": 6.079673767089844e-06,
+        "max_abs_probability_difference": 7.617853475805347e-07,
+        "logits_within_tolerance": true,
+        "probabilities_within_tolerance": true,
+        "passed": true
+      },
+      "passed": true,
+      "operator_self_times": []
+    },
+    {
+      "stage": "memory",
+      "cycle": {
+        "latency_ms": 845.567375,
+        "peak_rss_before_bytes": 3968598016,
+        "peak_rss_after_bytes": 4000137216,
+        "correct": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "id": "banking77-train-05698",
+            "expected": [
+              "Refund_not_showing_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "request_refund",
+              "ranking": [
+                "request_refund",
+                "Refund_not_showing_up",
+                "atm_support",
+                "declined_transfer",
+                "topping_up_by_card",
+                "extra_charge_on_statement"
+              ],
+              "scores": [
+                -3.1669068336486816,
+                -2.461191415786743,
+                -3.787862777709961,
+                2.3231537342071533,
+                -4.077081680297852,
+                0.39244988560676575
+              ],
+              "probabilities": [
+                0.0035539426114831025,
+                0.007197782553304205,
+                0.001909996936166343,
+                0.8610203589690528,
+                0.0014302978872900588,
+                0.12488762104270347
+              ]
+            },
+            "correct": false,
+            "latency_ms": 845.550291,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09214",
+            "expected": [
+              "activate_my_card"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "activate_my_card",
+              "ranking": [
+                "activate_my_card",
+                "failed_transfer",
+                "verify_my_identity",
+                "compromised_card",
+                "top_up_by_cash_or_cheque",
+                "card_arrival"
+              ],
+              "scores": [
+                -3.4449665546417236,
+                -3.8815603256225586,
+                -3.230292320251465,
+                -0.34991133213043213,
+                -4.063047409057617,
+                -3.850277900695801
+              ],
+              "probabilities": [
+                0.038197246943208654,
+                0.024684355749018932,
+                0.04734388553173413,
+                0.8437182956688476,
+                0.020587468985906385,
+                0.025468747121284406
+              ]
+            },
+            "correct": true,
+            "latency_ms": 845.550291,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01636",
+            "expected": [
+              "age_limit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "age_limit",
+              "ranking": [
+                "age_limit",
+                "balance_not_updated_after_bank_transfer",
+                "unable_to_verify_identity",
+                "verify_my_identity",
+                "get_physical_card",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -2.9672255516052246,
+                0.49894770979881287,
+                -3.790041923522949,
+                -4.4801926612854,
+                -3.8496875762939453,
+                -4.080417633056641
+              ],
+              "probabilities": [
+                0.029056490464475105,
+                0.930214443199865,
+                0.012761406643134486,
+                0.006399851407823649,
+                0.012022499559860067,
+                0.00954530872484159
+              ]
+            },
+            "correct": true,
+            "latency_ms": 845.550291,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09708",
+            "expected": [
+              "apple_pay_or_google_pay"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "apple_pay_or_google_pay",
+              "ranking": [
+                "apple_pay_or_google_pay",
+                "top_up_limits",
+                "failed_transfer",
+                "transaction_charged_twice",
+                "verify_my_identity",
+                "lost_or_stolen_phone"
+              ],
+              "scores": [
+                -4.4141411781311035,
+                -4.663081645965576,
+                -1.7976429462432861,
+                -4.8229780197143555,
+                -2.976647138595581,
+                1.377693772315979
+              ],
+              "probabilities": [
+                0.002873930573593446,
+                0.0022405921034010954,
+                0.03933752360819872,
+                0.0019095045090617886,
+                0.012099627538453353,
+                0.9415388216672916
+              ]
+            },
+            "correct": true,
+            "latency_ms": 845.550291,
+            "error": null
+          },
+          {
+            "id": "banking77-train-04562",
+            "expected": [
+              "atm_support"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "atm_support",
+              "ranking": [
+                "atm_support",
+                "cash_withdrawal_not_recognised",
+                "topping_up_by_card",
+                "activate_my_card",
+                "declined_card_payment",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -3.7090072631835938,
+                -3.3830487728118896,
+                -4.52322244644165,
+                -3.7994096279144287,
+                -2.507612466812134,
+                2.035512924194336
+              ],
+              "probabilities": [
+                0.0031294954974885204,
+                0.004335471191505963,
+                0.0013863253665130206,
+                0.0028589929399331485,
+                0.01040479341260245,
+                0.9778849215919568
+              ]
+            },
+            "correct": true,
+            "latency_ms": 845.550291,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01221",
+            "expected": [
+              "automatic_top_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "automatic_top_up",
+              "ranking": [
+                "automatic_top_up",
+                "pending_top_up",
+                "declined_transfer",
+                "pending_transfer",
+                "balance_not_updated_after_bank_transfer",
+                "reverted_card_payment?"
+              ],
+              "scores": [
+                -3.81489634513855,
+                2.337200880050659,
+                -4.059388160705566,
+                -3.41957950592041,
+                -3.805978775024414,
+                -1.4661062955856323
+              ],
+              "probabilities": [
+                0.002064191274834688,
+                0.9695535816233574,
+                0.001616473136403747,
+                0.003065023861337137,
+                0.002082681165172873,
+                0.021618048938894102
+              ]
+            },
+            "correct": true,
+            "latency_ms": 845.550291,
+            "error": null
+          },
+          {
+            "id": "banking77-train-08638",
+            "expected": [
+              "balance_not_updated_after_bank_transfer"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_bank_transfer",
+              "ranking": [
+                "balance_not_updated_after_bank_transfer",
+                "fiat_currency_support",
+                "top_up_by_cash_or_cheque",
+                "transaction_charged_twice",
+                "activate_my_card",
+                "getting_spare_card"
+              ],
+              "scores": [
+                -3.687864303588867,
+                -3.2543795108795166,
+                -2.350207805633545,
+                0.22739019989967346,
+                -3.7143547534942627,
+                -4.659238815307617
+              ],
+              "probabilities": [
+                0.017281011261154108,
+                0.02665810085403234,
+                0.06584245095987085,
+                0.8668472570982684,
+                0.016829239732238897,
+                0.006541940094435462
+              ]
+            },
+            "correct": true,
+            "latency_ms": 845.550291,
+            "error": null
+          },
+          {
+            "id": "banking77-train-03357",
+            "expected": [
+              "balance_not_updated_after_cheque_or_cash_deposit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+              "ranking": [
+                "balance_not_updated_after_cheque_or_cash_deposit",
+                "transfer_not_received_by_recipient",
+                "declined_card_payment",
+                "lost_or_stolen_card",
+                "extra_charge_on_statement",
+                "exchange_rate"
+              ],
+              "scores": [
+                -3.191016912460327,
+                2.189988851547241,
+                -4.7480340003967285,
+                -4.029576778411865,
+                -4.212471961975098,
+                -2.636833667755127
+              ],
+              "probabilities": [
+                0.0045252074426637865,
+                0.983059044335348,
+                0.0009537500269251008,
+                0.001956395117123396,
+                0.0016293943319375176,
+                0.007876208746002176
+              ]
+            },
+            "correct": true,
+            "latency_ms": 845.550291,
+            "error": null
+          }
+        ]
+      },
+      "quality": {
+        "total": 8,
+        "comparable": 8,
+        "selected_equal": 8,
+        "ranking_equal": 8,
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "max_abs_logit_difference": 6.079673767089844e-06,
+        "max_abs_probability_difference": 7.617853475805347e-07,
+        "logits_within_tolerance": true,
+        "probabilities_within_tolerance": true,
+        "passed": true
+      },
+      "passed": true,
+      "operator_self_times": [],
+      "memory": {
+        "completed": true,
+        "requested_interval_ns": 20000000,
+        "max_samples": 512,
+        "max_seconds": 30,
+        "sample_limit_reached": false,
+        "time_limit_reached": false,
+        "collection_elapsed_ns": 211075080,
+        "observed_gaps_ns": [
+          37840000,
+          40234042,
+          38706000,
+          31749167,
+          35618000,
+          40685000,
+          40235625,
+          38491416,
+          32245500,
+          39038292,
+          38417750,
+          38249042,
+          38354750,
+          38515291,
+          38379750,
+          38694667,
+          37582208,
+          39066667,
+          39073917,
+          38373000,
+          30596125,
+          38957125,
+          24365916
+        ],
+        "body_start_ns": 396239387126208,
+        "body_end_ns": 396240232720833,
+        "interior_valid_samples": 22,
+        "body_gaps_ns": [
+          40184500,
+          48879500,
+          47727958,
+          40384042,
+          46208916,
+          50838333,
+          49678416,
+          47199666,
+          41204417,
+          47411542,
+          46623208,
+          46514875,
+          46816250,
+          46847791,
+          47006917,
+          47196542,
+          46606833,
+          48051625,
+          47392542,
+          46783333,
+          39452291,
+          47739708,
+          24313583
+        ],
+        "observer_errors": [],
+        "body_error": null,
+        "sampled_peak_rss_bytes": 4000137216,
+        "samples": [
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040480605000,
+            "perf_counter_ns": 396239379303916,
+            "rss_bytes": 3968565248,
+            "peak_rss_bytes": 3968565248,
+            "collection_elapsed_ns": 7697292,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040518445000,
+            "perf_counter_ns": 396239417143916,
+            "rss_bytes": 4000104448,
+            "peak_rss_bytes": 4000104448,
+            "collection_elapsed_ns": 10166792,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040558679000,
+            "perf_counter_ns": 396239457377958,
+            "rss_bytes": 4000104448,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8645458,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040597385000,
+            "perf_counter_ns": 396239496083958,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 9021958,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040629134000,
+            "perf_counter_ns": 396239527833125,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8634875,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040664752000,
+            "perf_counter_ns": 396239563451125,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 10590916,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040705437000,
+            "perf_counter_ns": 396239604136125,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 10153333,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040745672000,
+            "perf_counter_ns": 396239644371750,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 9442791,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040784164000,
+            "perf_counter_ns": 396239682863166,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8708250,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040816409000,
+            "perf_counter_ns": 396239715108666,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8958917,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040855447000,
+            "perf_counter_ns": 396239754146958,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8373250,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040893865000,
+            "perf_counter_ns": 396239792564708,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8205458,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040932114000,
+            "perf_counter_ns": 396239830813750,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8265833,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175040970468000,
+            "perf_counter_ns": 396239869168500,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8461500,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041008984000,
+            "perf_counter_ns": 396239907683791,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8332500,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041047363000,
+            "perf_counter_ns": 396239946063541,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8627167,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041086058000,
+            "perf_counter_ns": 396239984758208,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8501875,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041123640000,
+            "perf_counter_ns": 396240022340416,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 9024625,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041162706000,
+            "perf_counter_ns": 396240061407083,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8984958,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041201781000,
+            "perf_counter_ns": 396240100481000,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8318625,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041240154000,
+            "perf_counter_ns": 396240138854000,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8410333,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041270749000,
+            "perf_counter_ns": 396240169450125,
+            "rss_bytes": 4000120832,
+            "peak_rss_bytes": 4000120832,
+            "collection_elapsed_ns": 8856166,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041309708000,
+            "perf_counter_ns": 396240208407250,
+            "rss_bytes": 4000137216,
+            "peak_rss_bytes": 4000137216,
+            "collection_elapsed_ns": 8782583,
+            "error": null
+          },
+          {
+            "pid": 18428,
+            "wall_time_ns": 1791175041334072000,
+            "perf_counter_ns": 396240232773166,
+            "rss_bytes": 4000104448,
+            "peak_rss_bytes": 4000137216,
+            "collection_elapsed_ns": 7909625,
+            "error": null
+          }
+        ]
+      },
+      "selected_kv_storage": [
+        {
+          "layer": null,
+          "cache_owned_bytes": 45875200,
+          "returned_logical_bytes": 0,
+          "combined_unique_storage_bytes": 51609600
+        },
+        {
+          "layer": 0,
+          "cache_owned_bytes": 44236800,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 62554112
+        },
+        {
+          "layer": 1,
+          "cache_owned_bytes": 42598400,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 60915712
+        },
+        {
+          "layer": 2,
+          "cache_owned_bytes": 40960000,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 59277312
+        },
+        {
+          "layer": 3,
+          "cache_owned_bytes": 39321600,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 57638912
+        },
+        {
+          "layer": 4,
+          "cache_owned_bytes": 37683200,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 56000512
+        },
+        {
+          "layer": 5,
+          "cache_owned_bytes": 36044800,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 54362112
+        },
+        {
+          "layer": 6,
+          "cache_owned_bytes": 34406400,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 52723712
+        },
+        {
+          "layer": 7,
+          "cache_owned_bytes": 32768000,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 51085312
+        },
+        {
+          "layer": 8,
+          "cache_owned_bytes": 31129600,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 49446912
+        },
+        {
+          "layer": 9,
+          "cache_owned_bytes": 29491200,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 47808512
+        },
+        {
+          "layer": 10,
+          "cache_owned_bytes": 27852800,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 46170112
+        },
+        {
+          "layer": 11,
+          "cache_owned_bytes": 26214400,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 44531712
+        },
+        {
+          "layer": 12,
+          "cache_owned_bytes": 24576000,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 42893312
+        },
+        {
+          "layer": 13,
+          "cache_owned_bytes": 22937600,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 41254912
+        },
+        {
+          "layer": 14,
+          "cache_owned_bytes": 21299200,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 39616512
+        },
+        {
+          "layer": 15,
+          "cache_owned_bytes": 19660800,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 37978112
+        },
+        {
+          "layer": 16,
+          "cache_owned_bytes": 18022400,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 36339712
+        },
+        {
+          "layer": 17,
+          "cache_owned_bytes": 16384000,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 34701312
+        },
+        {
+          "layer": 18,
+          "cache_owned_bytes": 14745600,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 33062912
+        },
+        {
+          "layer": 19,
+          "cache_owned_bytes": 13107200,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 31424512
+        },
+        {
+          "layer": 20,
+          "cache_owned_bytes": 11468800,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 29786112
+        },
+        {
+          "layer": 21,
+          "cache_owned_bytes": 9830400,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 28147712
+        },
+        {
+          "layer": 22,
+          "cache_owned_bytes": 8192000,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 26509312
+        },
+        {
+          "layer": 23,
+          "cache_owned_bytes": 6553600,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 24870912
+        },
+        {
+          "layer": 24,
+          "cache_owned_bytes": 4915200,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 23232512
+        },
+        {
+          "layer": 25,
+          "cache_owned_bytes": 3276800,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 21594112
+        },
+        {
+          "layer": 26,
+          "cache_owned_bytes": 1638400,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 19955712
+        },
+        {
+          "layer": 27,
+          "cache_owned_bytes": 0,
+          "returned_logical_bytes": 12582912,
+          "combined_unique_storage_bytes": 18317312
+        }
+      ],
+      "memory_reliable": true,
+      "inventory_complete": true,
+      "selected_live_storage_peak_bytes": 62554112
+    },
+    {
+      "stage": "profile",
+      "cycle": {
+        "latency_ms": 557.407875,
+        "peak_rss_before_bytes": 4000481280,
+        "peak_rss_after_bytes": 4004577280,
+        "correct": 7,
+        "failed": 0,
+        "rows": [
+          {
+            "id": "banking77-train-05698",
+            "expected": [
+              "Refund_not_showing_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "request_refund",
+              "ranking": [
+                "request_refund",
+                "Refund_not_showing_up",
+                "atm_support",
+                "declined_transfer",
+                "topping_up_by_card",
+                "extra_charge_on_statement"
+              ],
+              "scores": [
+                -3.1669068336486816,
+                -2.461191415786743,
+                -3.787862777709961,
+                2.3231537342071533,
+                -4.077081680297852,
+                0.39244988560676575
+              ],
+              "probabilities": [
+                0.0035539426114831025,
+                0.007197782553304205,
+                0.001909996936166343,
+                0.8610203589690528,
+                0.0014302978872900588,
+                0.12488762104270347
+              ]
+            },
+            "correct": false,
+            "latency_ms": 557.397,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09214",
+            "expected": [
+              "activate_my_card"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "activate_my_card",
+              "ranking": [
+                "activate_my_card",
+                "failed_transfer",
+                "verify_my_identity",
+                "compromised_card",
+                "top_up_by_cash_or_cheque",
+                "card_arrival"
+              ],
+              "scores": [
+                -3.4449665546417236,
+                -3.8815603256225586,
+                -3.230292320251465,
+                -0.34991133213043213,
+                -4.063047409057617,
+                -3.850277900695801
+              ],
+              "probabilities": [
+                0.038197246943208654,
+                0.024684355749018932,
+                0.04734388553173413,
+                0.8437182956688476,
+                0.020587468985906385,
+                0.025468747121284406
+              ]
+            },
+            "correct": true,
+            "latency_ms": 557.397,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01636",
+            "expected": [
+              "age_limit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "age_limit",
+              "ranking": [
+                "age_limit",
+                "balance_not_updated_after_bank_transfer",
+                "unable_to_verify_identity",
+                "verify_my_identity",
+                "get_physical_card",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -2.9672255516052246,
+                0.49894770979881287,
+                -3.790041923522949,
+                -4.4801926612854,
+                -3.8496875762939453,
+                -4.080417633056641
+              ],
+              "probabilities": [
+                0.029056490464475105,
+                0.930214443199865,
+                0.012761406643134486,
+                0.006399851407823649,
+                0.012022499559860067,
+                0.00954530872484159
+              ]
+            },
+            "correct": true,
+            "latency_ms": 557.397,
+            "error": null
+          },
+          {
+            "id": "banking77-train-09708",
+            "expected": [
+              "apple_pay_or_google_pay"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "apple_pay_or_google_pay",
+              "ranking": [
+                "apple_pay_or_google_pay",
+                "top_up_limits",
+                "failed_transfer",
+                "transaction_charged_twice",
+                "verify_my_identity",
+                "lost_or_stolen_phone"
+              ],
+              "scores": [
+                -4.4141411781311035,
+                -4.663081645965576,
+                -1.7976429462432861,
+                -4.8229780197143555,
+                -2.976647138595581,
+                1.377693772315979
+              ],
+              "probabilities": [
+                0.002873930573593446,
+                0.0022405921034010954,
+                0.03933752360819872,
+                0.0019095045090617886,
+                0.012099627538453353,
+                0.9415388216672916
+              ]
+            },
+            "correct": true,
+            "latency_ms": 557.397,
+            "error": null
+          },
+          {
+            "id": "banking77-train-04562",
+            "expected": [
+              "atm_support"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "atm_support",
+              "ranking": [
+                "atm_support",
+                "cash_withdrawal_not_recognised",
+                "topping_up_by_card",
+                "activate_my_card",
+                "declined_card_payment",
+                "card_delivery_estimate"
+              ],
+              "scores": [
+                -3.7090072631835938,
+                -3.3830487728118896,
+                -4.52322244644165,
+                -3.7994096279144287,
+                -2.507612466812134,
+                2.035512924194336
+              ],
+              "probabilities": [
+                0.0031294954974885204,
+                0.004335471191505963,
+                0.0013863253665130206,
+                0.0028589929399331485,
+                0.01040479341260245,
+                0.9778849215919568
+              ]
+            },
+            "correct": true,
+            "latency_ms": 557.397,
+            "error": null
+          },
+          {
+            "id": "banking77-train-01221",
+            "expected": [
+              "automatic_top_up"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "automatic_top_up",
+              "ranking": [
+                "automatic_top_up",
+                "pending_top_up",
+                "declined_transfer",
+                "pending_transfer",
+                "balance_not_updated_after_bank_transfer",
+                "reverted_card_payment?"
+              ],
+              "scores": [
+                -3.81489634513855,
+                2.337200880050659,
+                -4.059388160705566,
+                -3.41957950592041,
+                -3.805978775024414,
+                -1.4661062955856323
+              ],
+              "probabilities": [
+                0.002064191274834688,
+                0.9695535816233574,
+                0.001616473136403747,
+                0.003065023861337137,
+                0.002082681165172873,
+                0.021618048938894102
+              ]
+            },
+            "correct": true,
+            "latency_ms": 557.397,
+            "error": null
+          },
+          {
+            "id": "banking77-train-08638",
+            "expected": [
+              "balance_not_updated_after_bank_transfer"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_bank_transfer",
+              "ranking": [
+                "balance_not_updated_after_bank_transfer",
+                "fiat_currency_support",
+                "top_up_by_cash_or_cheque",
+                "transaction_charged_twice",
+                "activate_my_card",
+                "getting_spare_card"
+              ],
+              "scores": [
+                -3.687864303588867,
+                -3.2543795108795166,
+                -2.350207805633545,
+                0.22739019989967346,
+                -3.7143547534942627,
+                -4.659238815307617
+              ],
+              "probabilities": [
+                0.017281011261154108,
+                0.02665810085403234,
+                0.06584245095987085,
+                0.8668472570982684,
+                0.016829239732238897,
+                0.006541940094435462
+              ]
+            },
+            "correct": true,
+            "latency_ms": 557.397,
+            "error": null
+          },
+          {
+            "id": "banking77-train-03357",
+            "expected": [
+              "balance_not_updated_after_cheque_or_cash_deposit"
+            ],
+            "status": "ok",
+            "prediction": {
+              "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+              "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+              "ranking": [
+                "balance_not_updated_after_cheque_or_cash_deposit",
+                "transfer_not_received_by_recipient",
+                "declined_card_payment",
+                "lost_or_stolen_card",
+                "extra_charge_on_statement",
+                "exchange_rate"
+              ],
+              "scores": [
+                -3.191016912460327,
+                2.189988851547241,
+                -4.7480340003967285,
+                -4.029576778411865,
+                -4.212471961975098,
+                -2.636833667755127
+              ],
+              "probabilities": [
+                0.0045252074426637865,
+                0.983059044335348,
+                0.0009537500269251008,
+                0.001956395117123396,
+                0.0016293943319375176,
+                0.007876208746002176
+              ]
+            },
+            "correct": true,
+            "latency_ms": 557.397,
+            "error": null
+          }
+        ]
+      },
+      "quality": {
+        "total": 8,
+        "comparable": 8,
+        "selected_equal": 8,
+        "ranking_equal": 8,
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "max_abs_logit_difference": 6.079673767089844e-06,
+        "max_abs_probability_difference": 7.617853475805347e-07,
+        "logits_within_tolerance": true,
+        "probabilities_within_tolerance": true,
+        "passed": true
+      },
+      "passed": true,
+      "operator_self_times": [
+        {
+          "operator": "aten::full",
+          "count": 1,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 6.084000000000287
+        },
+        {
+          "operator": "aten::empty",
+          "count": 200,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 56.62499999972624
+        },
+        {
+          "operator": "aten::fill_",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 3.2079999999998563
+        },
+        {
+          "operator": "aten::zeros",
+          "count": 1,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 2.2489999999997963
+        },
+        {
+          "operator": "aten::zero_",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ]
+          ],
+          "self_cpu_time_us": 0.5
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              147
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.25
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 1,
+          "input_shapes": [
+            [
+              147
+            ]
+          ],
+          "self_cpu_time_us": 0.29099999999994
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              147
+            ]
+          ],
+          "self_cpu_time_us": 0.5419999999999163
+        },
+        {
+          "operator": "detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              147
+            ]
+          ],
+          "self_cpu_time_us": 0.8330000000000837
+        },
+        {
+          "operator": "aten::select",
+          "count": 8,
+          "input_shapes": [
+            [
+              8,
+              167
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 6.251999999999953
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 8,
+          "input_shapes": [
+            [
+              8,
+              167
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.9149999999997362
+        },
+        {
+          "operator": "aten::slice",
+          "count": 7,
+          "input_shapes": [
+            [
+              167
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 5.250999999999976
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 9,
+          "input_shapes": [
+            [
+              167
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.7489999999995689
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              147
+            ],
+            [
+              147
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.95900000000006
+        },
+        {
+          "operator": "aten::to",
+          "count": 8,
+          "input_shapes": [
+            [
+              6
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.33400000000006
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 8,
+          "input_shapes": [
+            [
+              6
+            ]
+          ],
+          "self_cpu_time_us": 0.209999999999809
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 8,
+          "input_shapes": [
+            [
+              6
+            ]
+          ],
+          "self_cpu_time_us": 0.9190000000007785
+        },
+        {
+          "operator": "detach_",
+          "count": 8,
+          "input_shapes": [
+            [
+              6
+            ]
+          ],
+          "self_cpu_time_us": 0.41599999999925785
+        },
+        {
+          "operator": "aten::select",
+          "count": 8,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 3.3739999999997963
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 9,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.8350000000002638
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 8,
+          "input_shapes": [
+            [
+              6
+            ],
+            [
+              6
+            ],
+            []
+          ],
+          "self_cpu_time_us": 2.0410000000001673
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              145
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 1,
+          "input_shapes": [
+            [
+              145
+            ]
+          ],
+          "self_cpu_time_us": 0.0420000000001437
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              145
+            ]
+          ],
+          "self_cpu_time_us": 0.16699999999991633
+        },
+        {
+          "operator": "detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              145
+            ]
+          ],
+          "self_cpu_time_us": 0.04099999999993997
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              145
+            ],
+            [
+              145
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.375
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              151
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 1,
+          "input_shapes": [
+            [
+              151
+            ]
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              151
+            ]
+          ],
+          "self_cpu_time_us": 0.08300000000008367
+        },
+        {
+          "operator": "detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              151
+            ]
+          ],
+          "self_cpu_time_us": 0.08400000000006003
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              151
+            ],
+            [
+              151
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.375
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              148
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 1,
+          "input_shapes": [
+            [
+              148
+            ]
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              148
+            ]
+          ],
+          "self_cpu_time_us": 0.12399999999979627
+        },
+        {
+          "operator": "detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              148
+            ]
+          ],
+          "self_cpu_time_us": 0.0420000000001437
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              148
+            ],
+            [
+              148
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.25
+        },
+        {
+          "operator": "aten::to",
+          "count": 2,
+          "input_shapes": [
+            [
+              155
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08199999999987995
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 2,
+          "input_shapes": [
+            [
+              155
+            ]
+          ],
+          "self_cpu_time_us": 0.04099999999993997
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 2,
+          "input_shapes": [
+            [
+              155
+            ]
+          ],
+          "self_cpu_time_us": 0.2079999999998563
+        },
+        {
+          "operator": "detach_",
+          "count": 2,
+          "input_shapes": [
+            [
+              155
+            ]
+          ],
+          "self_cpu_time_us": 0.08300000000008367
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 2,
+          "input_shapes": [
+            [
+              155
+            ],
+            [
+              155
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.4579999999998563
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              164
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.0420000000001437
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 1,
+          "input_shapes": [
+            [
+              164
+            ]
+          ],
+          "self_cpu_time_us": 0.0420000000001437
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              164
+            ]
+          ],
+          "self_cpu_time_us": 0.12500000000022737
+        },
+        {
+          "operator": "detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              164
+            ]
+          ],
+          "self_cpu_time_us": 0.041999999999916326
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              164
+            ],
+            [
+              164
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.20900000000006003
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              167
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 1,
+          "input_shapes": [
+            [
+              167
+            ]
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              167
+            ]
+          ],
+          "self_cpu_time_us": 0.12500000000022737
+        },
+        {
+          "operator": "detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              167
+            ]
+          ],
+          "self_cpu_time_us": 0.041999999999916326
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              167
+            ],
+            [
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.25
+        },
+        {
+          "operator": "aten::arange",
+          "count": 6,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 4.749999999999545
+        },
+        {
+          "operator": "aten::arange",
+          "count": 6,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [
+              0
+            ]
+          ],
+          "self_cpu_time_us": 9.58400000000006
+        },
+        {
+          "operator": "aten::resize_",
+          "count": 6,
+          "input_shapes": [
+            [
+              0
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 2.041999999999689
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              8
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.041999999999916326
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 1,
+          "input_shapes": [
+            [
+              8
+            ]
+          ],
+          "self_cpu_time_us": 0.0420000000001437
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              8
+            ]
+          ],
+          "self_cpu_time_us": 0.16699999999991633
+        },
+        {
+          "operator": "detach_",
+          "count": 1,
+          "input_shapes": [
+            [
+              8
+            ]
+          ],
+          "self_cpu_time_us": 0.04099999999993997
+        },
+        {
+          "operator": "aten::expand",
+          "count": 56,
+          "input_shapes": [
+            [
+              1,
+              8,
+              25,
+              128
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 16.083000000000084
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 56,
+          "input_shapes": [
+            [
+              1,
+              8,
+              25,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 8.96199999999908
+        },
+        {
+          "operator": "aten::to",
+          "count": 56,
+          "input_shapes": [
+            [
+              0
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 2.33100000000195
+        },
+        {
+          "operator": "aten::lift_fresh",
+          "count": 56,
+          "input_shapes": [
+            [
+              0
+            ]
+          ],
+          "self_cpu_time_us": 1.4149999999967804
+        },
+        {
+          "operator": "aten::detach_",
+          "count": 56,
+          "input_shapes": [
+            [
+              0
+            ]
+          ],
+          "self_cpu_time_us": 1.5009999999970205
+        },
+        {
+          "operator": "aten::cat",
+          "count": 169,
+          "input_shapes": [
+            [],
+            []
+          ],
+          "self_cpu_time_us": 17807.383000000333
+        },
+        {
+          "operator": "aten::narrow",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              8,
+              25,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 17.125000000005002
+        },
+        {
+          "operator": "aten::slice",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              8,
+              25,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 20.791999999998552
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              8,
+              25,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 6.666000000000167
+        },
+        {
+          "operator": "aten::embedding",
+          "count": 1,
+          "input_shapes": [
+            [
+              151936,
+              1024
+            ],
+            [
+              8,
+              167
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 3.917999999998756
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.8760000000002037
+        },
+        {
+          "operator": "aten::view",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.6660000000001673
+        },
+        {
+          "operator": "aten::index_select",
+          "count": 1,
+          "input_shapes": [
+            [
+              151936,
+              1024
+            ],
+            [],
+            [
+              1336
+            ]
+          ],
+          "self_cpu_time_us": 322.83200000000124
+        },
+        {
+          "operator": "aten::select",
+          "count": 1,
+          "input_shapes": [
+            [
+              151936,
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 1.2909999999992579
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              151936,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.9170000000003711
+        },
+        {
+          "operator": "aten::select",
+          "count": 1,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.3760000000002037
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08299999999962893
+        },
+        {
+          "operator": "aten::view",
+          "count": 1,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.29100000000016735
+        },
+        {
+          "operator": "aten::add",
+          "count": 2,
+          "input_shapes": [
+            [
+              167
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 3.3759999999992942
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 2,
+          "input_shapes": [
+            [
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.0820000000012442
+        },
+        {
+          "operator": "aten::add",
+          "count": 1,
+          "input_shapes": [
+            [
+              192
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.4170000000003711
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 2,
+          "input_shapes": [
+            [
+              8
+            ],
+            []
+          ],
+          "self_cpu_time_us": 2.668000000046959
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 2,
+          "input_shapes": [
+            [
+              8
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.41599999996833503
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.3330000000005384
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              1
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.4169999999994616
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              1,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.2919999999994616
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              1,
+              1
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.16700000000037107
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.2919999999994616
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08300000000053842
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.2500000000009095
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08299999999962893
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.24899999999979627
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              1
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08399999999983265
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.5010000000011132
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              167
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.16599999999925785
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.2500000000009095
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 3,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.24899999999979627
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              192
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.20799999999962893
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              192
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.042000000000371074
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              192
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.2070000000003347
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              192
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08399999999983265
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              192
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.2500000000009095
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              192
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08299999999962893
+        },
+        {
+          "operator": "aten::le",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              1,
+              192
+            ],
+            [
+              1,
+              1,
+              167,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 11.582999999999629
+        },
+        {
+          "operator": "aten::expand",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167,
+              192
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.4989999999997963
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167,
+              192
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.45899999999983265
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              64
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.9589999999998327
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              64
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.16600000000016735
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.5
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.08300000000053842
+        },
+        {
+          "operator": "aten::to",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.2920000000003711
+        },
+        {
+          "operator": "aten::expand",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 1.457999999999629
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 3,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.4180000000005748
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.7089999999998327
+        },
+        {
+          "operator": "aten::to",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.9170000000003711
+        },
+        {
+          "operator": "aten::_to_copy",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 1.8739999999997963
+        },
+        {
+          "operator": "aten::empty_strided",
+          "count": 258,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 179.3339999994805
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            [
+              1,
+              1,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.5839999999998327
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            [
+              1,
+              1,
+              167
+            ]
+          ],
+          "self_cpu_time_us": 3.915999999999258
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.2920000000003711
+        },
+        {
+          "operator": "aten::view",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.4579999999996289
+        },
+        {
+          "operator": "aten::expand",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.25
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.125
+        },
+        {
+          "operator": "aten::view",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.125
+        },
+        {
+          "operator": "aten::bmm",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            [
+              1,
+              1,
+              167
+            ]
+          ],
+          "self_cpu_time_us": 14.291000000000167
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 0.042000000000371074
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ]
+          ],
+          "self_cpu_time_us": 0.042000000000371074
+        },
+        {
+          "operator": "aten::select",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              167
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.625
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              64,
+              167
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.5
+        },
+        {
+          "operator": "aten::select",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              1
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.4989999999997963
+        },
+        {
+          "operator": "aten::select",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              1,
+              167
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.20800000000053842
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              64,
+              167
+            ]
+          ],
+          "self_cpu_time_us": 0.0
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              167
+            ]
+          ],
+          "self_cpu_time_us": 0.04199999999946158
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              64,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 0.042000000000371074
+        },
+        {
+          "operator": "aten::_unsafe_view",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              167
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.16699999999946158
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              64,
+              167
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.7089999999998327
+        },
+        {
+          "operator": "aten::narrow",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.3760000000002037
+        },
+        {
+          "operator": "aten::slice",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.4579999999996289
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 57,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 9.253000000151587
+        },
+        {
+          "operator": "aten::cos",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ]
+          ],
+          "self_cpu_time_us": 52.66700000000037
+        },
+        {
+          "operator": "aten::mul",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 23.41700000000037
+        },
+        {
+          "operator": "aten::to",
+          "count": 257,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 130.16000000066379
+        },
+        {
+          "operator": "aten::_to_copy",
+          "count": 229,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 287.04599999945367
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 229,
+          "input_shapes": [
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 203.79000000029828
+        },
+        {
+          "operator": "aten::sin",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ]
+          ],
+          "self_cpu_time_us": 34.5
+        },
+        {
+          "operator": "aten::to",
+          "count": 2,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.25
+        },
+        {
+          "operator": "aten::to",
+          "count": 171,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 49.29199999939465
+        },
+        {
+          "operator": "aten::pow",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 4118.442000000582
+        },
+        {
+          "operator": "aten::result_type",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 19.044999999711763
+        },
+        {
+          "operator": "aten::mean",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 278.2099999996517
+        },
+        {
+          "operator": "aten::sum",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [],
+            [],
+            [],
+            [
+              8,
+              167,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 2824.956999999863
+        },
+        {
+          "operator": "aten::fill_",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 64.33100000030299
+        },
+        {
+          "operator": "aten::div_",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 254.8710000001056
+        },
+        {
+          "operator": "aten::add",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 81.16500000044834
+        },
+        {
+          "operator": "aten::rsqrt",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 65.49599999992824
+        },
+        {
+          "operator": "aten::mul",
+          "count": 57,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 2900.16099999985
+        },
+        {
+          "operator": "aten::mul",
+          "count": 57,
+          "input_shapes": [
+            [
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 3490.9110000000983
+        },
+        {
+          "operator": "aten::linear",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              2048,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 54.99199999992561
+        },
+        {
+          "operator": "aten::t",
+          "count": 28,
+          "input_shapes": [
+            [
+              2048,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 39.79600000001665
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 28,
+          "input_shapes": [
+            [
+              2048,
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 27.168999999900734
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 28,
+          "input_shapes": [
+            [
+              2048,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 17.456000000030144
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              1024,
+              2048
+            ]
+          ],
+          "self_cpu_time_us": 83.49999999982538
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 140,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 92.62800000043353
+        },
+        {
+          "operator": "aten::view",
+          "count": 196,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 81.45699999991666
+        },
+        {
+          "operator": "aten::mm",
+          "count": 28,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ],
+            [
+              1024,
+              2048
+            ]
+          ],
+          "self_cpu_time_us": 52371.44800000012
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 56,
+          "input_shapes": [
+            [
+              1336,
+              2048
+            ]
+          ],
+          "self_cpu_time_us": 2.9589999999861902
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 252,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 14.45099999982267
+        },
+        {
+          "operator": "aten::_unsafe_view",
+          "count": 28,
+          "input_shapes": [
+            [
+              1336,
+              2048
+            ],
+            []
+          ],
+          "self_cpu_time_us": 11.625000000074579
+        },
+        {
+          "operator": "aten::view",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            []
+          ],
+          "self_cpu_time_us": 12.37099999991915
+        },
+        {
+          "operator": "aten::to",
+          "count": 84,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 13.746999999928448
+        },
+        {
+          "operator": "aten::pow",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 3543.0749999998643
+        },
+        {
+          "operator": "aten::result_type",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 6.209000000128071
+        },
+        {
+          "operator": "aten::mean",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 141.07799999979943
+        },
+        {
+          "operator": "aten::sum",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            [],
+            [],
+            [],
+            [
+              8,
+              167,
+              16,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 2060.4530000000414
+        },
+        {
+          "operator": "aten::fill_",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 50.75299999996605
+        },
+        {
+          "operator": "aten::div_",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 165.58400000009533
+        },
+        {
+          "operator": "aten::add",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              1
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 103.57699999989018
+        },
+        {
+          "operator": "aten::rsqrt",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 143.7920000000213
+        },
+        {
+          "operator": "aten::mul",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            [
+              8,
+              167,
+              16,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 1951.955999999922
+        },
+        {
+          "operator": "aten::mul",
+          "count": 28,
+          "input_shapes": [
+            [
+              128
+            ],
+            [
+              8,
+              167,
+              16,
+              128
+            ]
+          ],
+          "self_cpu_time_us": 3009.9950000000936
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 76.53699999973469
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 39.16800000020885
+        },
+        {
+          "operator": "aten::linear",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              1024,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 68.12199999969744
+        },
+        {
+          "operator": "aten::t",
+          "count": 56,
+          "input_shapes": [
+            [
+              1024,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 57.04300000007606
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 56,
+          "input_shapes": [
+            [
+              1024,
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 25.252000000078624
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 56,
+          "input_shapes": [
+            [
+              1024,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 11.247999999937747
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              1024,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 153.63400000025285
+        },
+        {
+          "operator": "aten::mm",
+          "count": 56,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ],
+            [
+              1024,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 53121.320999999974
+        },
+        {
+          "operator": "aten::_unsafe_view",
+          "count": 112,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 80.45299999985764
+        },
+        {
+          "operator": "aten::to",
+          "count": 84,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 13.91499999995176
+        },
+        {
+          "operator": "aten::pow",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 2204.9540000000434
+        },
+        {
+          "operator": "aten::result_type",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 6.374000000054366
+        },
+        {
+          "operator": "aten::mean",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 99.24600000017745
+        },
+        {
+          "operator": "aten::sum",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            [],
+            [],
+            [],
+            [
+              8,
+              167,
+              8,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 1490.2019999997992
+        },
+        {
+          "operator": "aten::fill_",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 34.42100000001483
+        },
+        {
+          "operator": "aten::div_",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 118.87799999991148
+        },
+        {
+          "operator": "aten::add",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              1
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 57.71100000005208
+        },
+        {
+          "operator": "aten::rsqrt",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 82.33199999995122
+        },
+        {
+          "operator": "aten::mul",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            [
+              8,
+              167,
+              8,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 1447.7039999999997
+        },
+        {
+          "operator": "aten::mul",
+          "count": 28,
+          "input_shapes": [
+            [
+              128
+            ],
+            [
+              8,
+              167,
+              8,
+              128
+            ]
+          ],
+          "self_cpu_time_us": 1839.6639999998442
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 52.04900000026464
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              8,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 20.288000000015018
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 56,
+          "input_shapes": [
+            [
+              1,
+              167,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 32.58099999976548
+        },
+        {
+          "operator": "aten::mul",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [
+              1,
+              1,
+              167,
+              128
+            ]
+          ],
+          "self_cpu_time_us": 6853.982999999964
+        },
+        {
+          "operator": "aten::slice",
+          "count": 112,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 93.663000000377
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 196,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 69.50399999982437
+        },
+        {
+          "operator": "aten::neg",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              64
+            ]
+          ],
+          "self_cpu_time_us": 1635.6650000000664
+        },
+        {
+          "operator": "aten::narrow",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 52.20999999972992
+        },
+        {
+          "operator": "aten::add",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 3536.077999999834
+        },
+        {
+          "operator": "aten::mul",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              8,
+              167,
+              128
+            ],
+            [
+              1,
+              1,
+              167,
+              128
+            ]
+          ],
+          "self_cpu_time_us": 4119.614999999791
+        },
+        {
+          "operator": "aten::slice",
+          "count": 112,
+          "input_shapes": [
+            [
+              8,
+              8,
+              167,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 127.21099999941725
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 112,
+          "input_shapes": [
+            [
+              8,
+              8,
+              167,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 38.33400000042093
+        },
+        {
+          "operator": "aten::neg",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              8,
+              167,
+              64
+            ]
+          ],
+          "self_cpu_time_us": 1338.5409999999029
+        },
+        {
+          "operator": "aten::narrow",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              8,
+              167,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 43.82600000003913
+        },
+        {
+          "operator": "aten::add",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              8,
+              167,
+              128
+            ],
+            [
+              8,
+              8,
+              167,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1984.9939999999624
+        },
+        {
+          "operator": "aten::narrow",
+          "count": 112,
+          "input_shapes": [
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 74.20800000010058
+        },
+        {
+          "operator": "aten::slice",
+          "count": 112,
+          "input_shapes": [
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 91.3700000002209
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 168,
+          "input_shapes": [
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 32.46000000001004
+        },
+        {
+          "operator": "aten::scaled_dot_product_attention",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [
+              8,
+              1,
+              167,
+              192
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 279.0360000000255
+        },
+        {
+          "operator": "aten::scalar_tensor",
+          "count": 56,
+          "input_shapes": [
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 53.543000000052416
+        },
+        {
+          "operator": "aten::where",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              1,
+              167,
+              192
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 1587.3359999999848
+        },
+        {
+          "operator": "aten::_scaled_dot_product_flash_attention_for_cpu",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [],
+            [],
+            [
+              8,
+              1,
+              167,
+              192
+            ],
+            []
+          ],
+          "self_cpu_time_us": 48312.41900000065
+        },
+        {
+          "operator": "aten::empty_like",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 40.70499999992171
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 84,
+          "input_shapes": [
+            [
+              8,
+              16,
+              167,
+              128
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 72.6209999995881
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              8,
+              192,
+              128
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 25.629999999498978
+        },
+        {
+          "operator": "aten::view",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              1,
+              167,
+              192
+            ],
+            []
+          ],
+          "self_cpu_time_us": 17.374000000003434
+        },
+        {
+          "operator": "aten::expand",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              1,
+              167,
+              192
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 21.206000000041968
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              1,
+              167,
+              192
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 3.1660000000592845
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 32.334999999802676
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 8.666000000099302
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 31.043999999936204
+        },
+        {
+          "operator": "aten::view",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              16,
+              128
+            ],
+            []
+          ],
+          "self_cpu_time_us": 15.24800000009418
+        },
+        {
+          "operator": "aten::linear",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              1024,
+              2048
+            ],
+            []
+          ],
+          "self_cpu_time_us": 62.12500000014552
+        },
+        {
+          "operator": "aten::t",
+          "count": 28,
+          "input_shapes": [
+            [
+              1024,
+              2048
+            ]
+          ],
+          "self_cpu_time_us": 45.42000000005646
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 28,
+          "input_shapes": [
+            [
+              1024,
+              2048
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 10.36699999992561
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 28,
+          "input_shapes": [
+            [
+              1024,
+              2048
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 4.753999999957159
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              2048,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 118.11700000015844
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            []
+          ],
+          "self_cpu_time_us": 7.338000000047032
+        },
+        {
+          "operator": "aten::mm",
+          "count": 28,
+          "input_shapes": [
+            [
+              1336,
+              2048
+            ],
+            [
+              2048,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 54254.69799999971
+        },
+        {
+          "operator": "aten::add",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 4636.198000000084
+        },
+        {
+          "operator": "aten::linear",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              3072,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 100.78199999949356
+        },
+        {
+          "operator": "aten::t",
+          "count": 56,
+          "input_shapes": [
+            [
+              3072,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 80.88099999983024
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 56,
+          "input_shapes": [
+            [
+              3072,
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 60.07799999998315
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 56,
+          "input_shapes": [
+            [
+              3072,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 31.04600000010032
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 56,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              1024,
+              3072
+            ]
+          ],
+          "self_cpu_time_us": 168.20700000010402
+        },
+        {
+          "operator": "aten::mm",
+          "count": 56,
+          "input_shapes": [
+            [
+              1336,
+              1024
+            ],
+            [
+              1024,
+              3072
+            ]
+          ],
+          "self_cpu_time_us": 157742.9669999998
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 84,
+          "input_shapes": [
+            [
+              1336,
+              3072
+            ]
+          ],
+          "self_cpu_time_us": 5.918000000070606
+        },
+        {
+          "operator": "aten::_unsafe_view",
+          "count": 56,
+          "input_shapes": [
+            [
+              1336,
+              3072
+            ],
+            []
+          ],
+          "self_cpu_time_us": 38.9990000000289
+        },
+        {
+          "operator": "aten::silu",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              3072
+            ]
+          ],
+          "self_cpu_time_us": 13746.392000000214
+        },
+        {
+          "operator": "aten::mul",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              3072
+            ],
+            [
+              8,
+              167,
+              3072
+            ]
+          ],
+          "self_cpu_time_us": 6517.615999999853
+        },
+        {
+          "operator": "aten::linear",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              3072
+            ],
+            [
+              1024,
+              3072
+            ],
+            []
+          ],
+          "self_cpu_time_us": 53.95599999996193
+        },
+        {
+          "operator": "aten::t",
+          "count": 28,
+          "input_shapes": [
+            [
+              1024,
+              3072
+            ]
+          ],
+          "self_cpu_time_us": 45.376000000000204
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 28,
+          "input_shapes": [
+            [
+              1024,
+              3072
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 39.083000000206084
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 28,
+          "input_shapes": [
+            [
+              1024,
+              3072
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 34.8729999998468
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              3072
+            ],
+            [
+              3072,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 167.7130000000907
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              3072
+            ],
+            []
+          ],
+          "self_cpu_time_us": 16.956999999929394
+        },
+        {
+          "operator": "aten::view",
+          "count": 28,
+          "input_shapes": [
+            [
+              8,
+              167,
+              3072
+            ],
+            []
+          ],
+          "self_cpu_time_us": 10.710999999984779
+        },
+        {
+          "operator": "aten::mm",
+          "count": 28,
+          "input_shapes": [
+            [
+              1336,
+              3072
+            ],
+            [
+              3072,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 76399.94599999998
+        },
+        {
+          "operator": "aten::index",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 82.33400000003166
+        },
+        {
+          "operator": "aten::expand",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              1
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 1.7079999999841675
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              167,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.5420000000158325
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            []
+          ],
+          "self_cpu_time_us": 2.83199999993667
+        },
+        {
+          "operator": "aten::_reshape_alias",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 1.084000000031665
+        },
+        {
+          "operator": "aten::view",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.7920000000158325
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 2,
+          "input_shapes": [
+            [
+              8
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.6239999999525025
+        },
+        {
+          "operator": "aten::view",
+          "count": 4,
+          "input_shapes": [
+            [
+              8
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.4170000000158325
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.16599999996833503
+        },
+        {
+          "operator": "aten::layer_norm",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            [],
+            [
+              1024
+            ],
+            [
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 2.000999999931082
+        },
+        {
+          "operator": "aten::native_layer_norm",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            [],
+            [
+              1024
+            ],
+            [
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 49.66500000015367
+        },
+        {
+          "operator": "aten::view",
+          "count": 2,
+          "input_shapes": [
+            [
+              48
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.41699999989941716
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              1024
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.20800000010058284
+        },
+        {
+          "operator": "aten::layer_norm",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              1024
+            ],
+            [],
+            [
+              1024
+            ],
+            [
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.9580000001005828
+        },
+        {
+          "operator": "aten::native_layer_norm",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              1024
+            ],
+            [],
+            [
+              1024
+            ],
+            [
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 34.87400000018533
+        },
+        {
+          "operator": "aten::linear",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            [
+              256,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.1240000000689179
+        },
+        {
+          "operator": "aten::t",
+          "count": 4,
+          "input_shapes": [
+            [
+              256,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 1.709000000031665
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 4,
+          "input_shapes": [
+            [
+              256,
+              1024
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 4.833000000100583
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 4,
+          "input_shapes": [
+            [
+              256,
+              1024
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.7089999997988343
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            [
+              1024,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 1.9990000000689179
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.33399999991524965
+        },
+        {
+          "operator": "aten::view",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.4170000000158325
+        },
+        {
+          "operator": "aten::mm",
+          "count": 1,
+          "input_shapes": [
+            [
+              48,
+              1024
+            ],
+            [
+              1024,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 55.83300000010058
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 2,
+          "input_shapes": [
+            [
+              48,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 0.08299999998416752
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 2,
+          "input_shapes": [
+            [
+              48,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 0.042000000015832484
+        },
+        {
+          "operator": "aten::_unsafe_view",
+          "count": 1,
+          "input_shapes": [
+            [
+              48,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.16700000001583248
+        },
+        {
+          "operator": "aten::linear",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              1024
+            ],
+            [
+              256,
+              1024
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.0410000000847504
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              1024
+            ],
+            [
+              1024,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 0.5829999999841675
+        },
+        {
+          "operator": "aten::mm",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              1024
+            ],
+            [
+              1024,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 67.08499999972992
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 0.042000000015832484
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              1024
+            ]
+          ],
+          "self_cpu_time_us": 0.08200000016950071
+        },
+        {
+          "operator": "aten::unsqueeze",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.4169999998994172
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 2,
+          "input_shapes": [
+            [
+              8,
+              256
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.25
+        },
+        {
+          "operator": "aten::mul",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            [
+              8,
+              1,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 5.41600000008475
+        },
+        {
+          "operator": "aten::sum",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 3.541999999899417
+        },
+        {
+          "operator": "aten::fill_",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.45800000010058284
+        },
+        {
+          "operator": "aten::div",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.8339999999152496
+        },
+        {
+          "operator": "aten::linear",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1024
+            ],
+            [
+              256,
+              1024
+            ],
+            [
+              256
+            ]
+          ],
+          "self_cpu_time_us": 2.5000000001164153
+        },
+        {
+          "operator": "aten::addmm",
+          "count": 1,
+          "input_shapes": [
+            [
+              256
+            ],
+            [
+              48,
+              1024
+            ],
+            [
+              1024,
+              256
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 44.667999999714084
+        },
+        {
+          "operator": "aten::expand",
+          "count": 1,
+          "input_shapes": [
+            [
+              256
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.9160000000847504
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              256
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.125
+        },
+        {
+          "operator": "aten::copy_",
+          "count": 1,
+          "input_shapes": [
+            [
+              48,
+              256
+            ],
+            [
+              48,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 2.6660000000847504
+        },
+        {
+          "operator": "aten::view",
+          "count": 1,
+          "input_shapes": [
+            [
+              48,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.16600000008475035
+        },
+        {
+          "operator": "aten::add",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            [
+              8,
+              1,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 2.75
+        },
+        {
+          "operator": "aten::gelu",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 16.207999999984168
+        },
+        {
+          "operator": "aten::linear",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            [
+              1,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.49899999995250255
+        },
+        {
+          "operator": "aten::t",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              256
+            ]
+          ],
+          "self_cpu_time_us": 0.41800000006332994
+        },
+        {
+          "operator": "aten::transpose",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              256
+            ],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 1.2489999999525025
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              1,
+              256
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.16700000001583248
+        },
+        {
+          "operator": "aten::matmul",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            [
+              256,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 0.9170000000158325
+        },
+        {
+          "operator": "aten::reshape",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.375
+        },
+        {
+          "operator": "aten::view",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              256
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.16599999996833503
+        },
+        {
+          "operator": "aten::mm",
+          "count": 1,
+          "input_shapes": [
+            [
+              48,
+              256
+            ],
+            [
+              256,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 4.6670000000158325
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              48,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 0.042000000015832484
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              256,
+              1
+            ]
+          ],
+          "self_cpu_time_us": 0.04099999996833503
+        },
+        {
+          "operator": "aten::_unsafe_view",
+          "count": 1,
+          "input_shapes": [
+            [
+              48,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.125
+        },
+        {
+          "operator": "aten::squeeze",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1
+            ],
+            []
+          ],
+          "self_cpu_time_us": 1.3739999999525025
+        },
+        {
+          "operator": "aten::as_strided",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6,
+              1
+            ],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.20900000003166497
+        },
+        {
+          "operator": "aten::add",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            [
+              8,
+              6
+            ],
+            []
+          ],
+          "self_cpu_time_us": 0.7920000000158325
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.125
+        },
+        {
+          "operator": "aten::to",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ],
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+          ],
+          "self_cpu_time_us": 0.584000000031665
+        },
+        {
+          "operator": "aten::resolve_conj",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ]
+          ],
+          "self_cpu_time_us": 0.04099999996833503
+        },
+        {
+          "operator": "aten::resolve_neg",
+          "count": 1,
+          "input_shapes": [
+            [
+              8,
+              6
+            ]
+          ],
+          "self_cpu_time_us": 0.125
+        }
+      ],
+      "dispatch": {
+        "flash_calls": 28,
+        "math_calls": 0,
+        "gqa_offset_mask_geometry": true,
+        "passed": true
+      }
+    }
+  ],
+  "full77_admission": {
+    "review_sha256": "48055f286b2a2443da7e194d794258dbfae69bfd1514df7900fca40693443065",
+    "evidence": [
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b8.json",
+          "sha256": "3d333417639b8f7cc5f5d49a4f2ccf4f2e9d3654d8df39b448aa62fb0d375d61"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b8.cycles.jsonl",
+          "sha256": "7aec4c6d8d779b133322df320f9598e1b512687b4f5332bfed2228aae9cb3fc1"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b8.wall.json",
+          "sha256": "cc6fd605d90bf9cf0c7e853a1f0b6e1d02dd8e30d6986dcf61397a1e1ddc89cc"
+        },
+        "source_archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b8.sources-d86eb841ae184bbb.json",
+          "sha256": "d86eb841ae184bbb6413418a86c542dc668eb14a310292b9cecfa1cfc3faeb31"
+        }
+      },
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b1.json",
+          "sha256": "525cfce1066c6c1d3064838de85e9bbf880f71031596e56662c8c1d61badc915"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b1.cycles.jsonl",
+          "sha256": "466d812155eaddf8f1b6aaf7f7808868986c47e7abb2dc59039c13b3dac383f0"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b1.wall.json",
+          "sha256": "b5e5be5fcf07fac2c0bee01070c55affc0aefe24cce2a66a47e5acaed0a9f79e"
+        },
+        "source_archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b1.sources-d86eb841ae184bbb.json",
+          "sha256": "d86eb841ae184bbb6413418a86c542dc668eb14a310292b9cecfa1cfc3faeb31"
+        }
+      }
+    ],
+    "raw_outputs": 2156
+  },
+  "first8_admission": {
+    "receipt_sha256": "532fc2d2ae6daf02e10ab872e9091b41cd52d4fb23043d0f144a748797e030e5",
+    "all_history_sha256": {
+      "json": "532fc2d2ae6daf02e10ab872e9091b41cd52d4fb23043d0f144a748797e030e5",
+      "cycles.jsonl": "12adcc9373e88bf10a77b7b24d7cd357225370a400f31ff16be0c8bb7b836413",
+      "wall.json": "ba18c04ec715f5a96082b96caeb1a3b14bf068a93cd864e1caa9e08fceef26c6",
+      "sources-d6910c77d1e9d422.json": "d6910c77d1e9d422be86cbe7ec17d25fa0089ac80dd80f9c8b2875b5aee80e53"
+    },
+    "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+    "prefix_tokens": [
+      1972,
+      510,
+      1957,
+      1437,
+      279,
+      6002,
+      594,
+      22798,
+      1824,
+      1681,
+      1119,
+      6896,
+      825,
+      315,
+      279,
+      17221,
+      93515,
+      382,
+      6262,
+      943,
+      25,
+      5754,
+      198,
+      14582,
+      510
+    ],
+    "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+    "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+    "raw_outputs": 64
+  },
+  "source_sha256": {
+    "admission": "b6a402179b0ed412b648f8205b02e4a24a2dba0139f42c7ca161a37c1272c08d",
+    "artifact": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "backend": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+    "benchmark": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "core": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "encoding": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "evaluation": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "evidence": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "first8_study": "80c98506a623379cf97ac7e62aa733fb2b4e4022db52f51c42514a782d5ee6fc",
+    "launcher": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+    "maintained_cache": "136b3d85b4496b6c4d614a676bdfd4f32e926b88eafe9a88c7cf1e173e8390b5",
+    "maintained_mask": "100c7fce03f65deeb83031152d5cafd3030c2173b3a8bec1803b6739996d682f",
+    "measure": "cc05245798a682012fcc3fec69e2b12d488692dab32c710ce73c4a80605643f7",
+    "one_use": "1e22e84f8342af0c5104d19bbe9c422a33d0b8ba07e2ec8069eb85e1e9595821",
+    "prefix": "4aa9f8bc2432f47787cb4797b8ce3a87151aecd138b82cef75cfe9c9c270d3d6",
+    "qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "reference": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+    "runner": "9cbc6c7a232bd7fa6a18933cfb54030bb14671adea9e5a7d83ba38c4173eb2d2",
+    "scorer": "aa381f034fae189fde6451d368cd2e85f0ac859a96ad29bb4c0209e965345ce9",
+    "sdpa": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad",
+    "study": "cb86c7d8103dcfaf43f68bbf61689d2ca8116917c73a3d440f82852130819725"
+  },
+  "source_archive": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-0.sources-2ea7fcb085c78c3d.json",
+    "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+  },
+  "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+  "input_sha256": "851fdd16f412aea9be579dbd86665752fb0b6f9b9c75fe9f67cee285aaa9c1ad",
+  "case_ids": [
+    "banking77-train-05698",
+    "banking77-train-09214",
+    "banking77-train-01636",
+    "banking77-train-09708",
+    "banking77-train-04562",
+    "banking77-train-01221",
+    "banking77-train-08638",
+    "banking77-train-03357"
+  ],
+  "sdpa_flags": {
+    "_is_torch_mps_available": true,
+    "_is_torch_greater_or_equal_than_2_13": true
+  },
+  "torch_mps_built": true,
+  "torch_mps_available": true,
+  "versions": {
+    "torch": "2.14.1",
+    "transformers": "5.18.0"
+  },
+  "torch_git_version": "5c4886908584029761b579af026dcfb627c84070",
+  "torch_build": "PyTorch built with:\n  - GCC 4.2\n  - C++ Version: 202002\n  - clang 21.0.0\n  - OpenMP 202011\n  - LAPACK is enabled (usually provided by MKL)\n  - NNPACK is enabled\n  - CPU capability usage: DEFAULT\n  - Build settings: BLAS_INFO=accelerate, BUILD_TYPE=Release, COMMIT_SHA=5c4886908584029761b579af026dcfb627c84070, CUDA_FLAGS= -DLIBCUDACXX_ENABLE_SIMPLIFIED_COMPLEX_OPERATIONS -Xfatbin -compress-all  -Wno-deprecated-gpu-targets --expt-extended-lambda -DCUB_WRAPPED_NAMESPACE=at_cuda_detail -DDISABLE_CUSPARSE_DEPRECATED -DCUDA_HAS_FP16=1 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -DC10_NODEPRECATED, CXX_COMPILER=/usr/bin/c++, CXX_FLAGS= -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DUSE_PYTORCH_QNNPACK -DAT_BUILD_ARM_VEC256_WITH_SLEEF -DUSE_PYTORCH_METAL_EXPORT -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DUSE_COREML_DELEGATE -O2 -fPIC -DC10_NODEPRECATED -Wall -Wextra -Werror=return-type -Werror=non-virtual-dtor -Werror=braced-scalar-init -Werror=range-loop-construct -Werror=bool-operation -Wnarrowing -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-unused-parameter -Wno-strict-overflow -Wno-strict-aliasing -Wvla-extension -Wsuggest-override -Wnewline-eof -Winconsistent-missing-override -Winconsistent-missing-destructor-override -Wno-pass-failed -Wno-error=old-style-cast -Wconstant-conversion -Qunused-arguments -faligned-new -fno-math-errno -fno-trapping-math -Werror=format -fclang-abi-compat=17 -DUSE_MPS -Wno-missing-braces, LAPACK_INFO=accelerate, TORCH_VERSION=2.14.1, USE_CUDA=OFF, USE_CUDNN=OFF, USE_CUSPARSELT=OFF, USE_EIGEN_FOR_BLAS=ON, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_GLOO=ON, USE_HIPSPARSELT=OFF, USE_MKL=OFF, USE_MKLDNN=OFF, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, USE_ROCM_KERNEL_ASSERT=OFF, USE_XCCL=OFF, USE_XPU=OFF, \n",
+  "prior_threads": 8,
+  "interop_threads": 12,
+  "before_load": {
+    "pid": 18428,
+    "wall_time_ns": 1791175037120356000,
+    "perf_counter_ns": 396236019046833,
+    "rss_bytes": 340639744,
+    "peak_rss_bytes": 341426176,
+    "collection_elapsed_ns": 7149250,
+    "error": null
+  },
+  "after_load": {
+    "pid": 18428,
+    "wall_time_ns": 1791175038183922000,
+    "perf_counter_ns": 396237082615791,
+    "rss_bytes": 3760013312,
+    "peak_rss_bytes": 3763929088,
+    "collection_elapsed_ns": 9634750,
+    "error": null
+  },
+  "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+  "prefix_tokens": [
+    1972,
+    510,
+    1957,
+    1437,
+    279,
+    6002,
+    594,
+    22798,
+    1824,
+    1681,
+    1119,
+    6896,
+    825,
+    315,
+    279,
+    17221,
+    93515,
+    382,
+    6262,
+    943,
+    25,
+    5754,
+    198,
+    14582,
+    510
+  ],
+  "token_lengths": [
+    172,
+    170,
+    176,
+    173,
+    180,
+    180,
+    189,
+    192
+  ],
+  "prefix_state_bytes": 5734400,
+  "prefix_build_ms": 69.231834,
+  "after_prefix_build": {
+    "pid": 18428,
+    "wall_time_ns": 1791175038262878000,
+    "perf_counter_ns": 396237161571250,
+    "rss_bytes": 3770515456,
+    "peak_rss_bytes": 3770531840,
+    "collection_elapsed_ns": 6654500,
+    "error": null
+  },
+  "after_warmup": {
+    "pid": 18428,
+    "wall_time_ns": 1791175039372678000,
+    "perf_counter_ns": 396238271374583,
+    "rss_bytes": 3966566400,
+    "peak_rss_bytes": 3966566400,
+    "collection_elapsed_ns": 8001208,
+    "error": null
+  },
+  "ordinary_times_ms": [
+    553.7255,
+    543.427208
+  ],
+  "ordinary_median_ms": 548.576354,
+  "observer_over_ordinary_ratio": {
+    "memory": 1.5413850211268856,
+    "profile": 1.0160989822758564
+  },
+  "after_all_cycles": {
+    "pid": 18428,
+    "wall_time_ns": 1791175042091888000,
+    "perf_counter_ns": 396240990590708,
+    "rss_bytes": 4057923584,
+    "peak_rss_bytes": 4057923584,
+    "collection_elapsed_ns": 10473250,
+    "error": null
+  },
+  "unsupported_reasons": [],
+  "limits": [
+    "Sampled current RSS can miss peaks; selected KV storage excludes activations/transient projection inputs/allocator arenas.",
+    "Cumulative HWM includes cold model load and is not current live RSS.",
+    "Single child supports no paired resource contrast; all three fresh pairs required.",
+    "Observed factories instrument memory cycle only; ordinary times descriptive; no production promotion."
+  ]
+}

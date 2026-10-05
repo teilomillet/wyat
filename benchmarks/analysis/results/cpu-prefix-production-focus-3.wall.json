@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/analysis/test_cpu_prefix_production.py"
+  ],
+  "exit_code": 1,
+  "timed_out": false,
+  "reaped": true,
+  "elapsed_seconds": 4.068208416982088,
+  "cap_seconds": 60,
+  "stdout": "..........F....................                                          [100%]\n=================================== FAILURES ===================================\n_______ test_current_source_inventory_covers_final_runtime_and_benchmark _______\n\n    def test_current_source_inventory_covers_final_runtime_and_benchmark() -> None:\n        paths = assay.source_paths()\n>       assert all(path.is_file() for path in paths.values())\nE       assert False\nE        +  where False = all(<generator object test_current_source_inventory_covers_final_runtime_and_benchmark.<locals>.<genexpr> at 0x108c293c0>)\n\ntests/analysis/test_cpu_prefix_production.py:69: AssertionError\n=========================== short test summary info ============================\nFAILED tests/analysis/test_cpu_prefix_production.py::test_current_source_inventory_covers_final_runtime_and_benchmark\n1 failed, 30 passed in 3.56s\n",
+  "stderr": ""
+}

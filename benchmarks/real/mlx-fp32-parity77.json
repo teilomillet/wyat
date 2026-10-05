@@ -1,0 +1,1646 @@
+{
+  "schema_version": 1,
+  "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+  "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "scope": "real BANKING77 training-source development77; Kai exposure unknown; runtime parity only",
+  "mlx": "0.32.3",
+  "mlx_lm": "0.31.3",
+  "backbone_dtype": "float32",
+  "head_dtype": "float32",
+  "device": "Apple M4 Pro Metal GPU",
+  "batch_size": 8,
+  "load_seconds": 1.554928750032559,
+  "first_scoring_seconds": 3.4867019170196727,
+  "token_ids_and_endpoints_match": true,
+  "max_absolute_logit_error": 1.2874603271484375e-05,
+  "max_absolute_probability_error": 2.461779748663684e-06,
+  "top1_equal": 77,
+  "all_ranking_equal": 77,
+  "correct": 67,
+  "cases": 77,
+  "logit_gate": {
+    "atol": 0.001,
+    "rtol": 0.001
+  },
+  "probability_atol": 0.0001,
+  "passed": true,
+  "rows": [
+    {
+      "id": "banking77-train-05698",
+      "logits": [
+        -3.166907787322998,
+        -2.461195468902588,
+        -3.7878589630126953,
+        2.3231513500213623,
+        -4.077078819274902,
+        0.392448365688324
+      ],
+      "ranking": [
+        "request_refund",
+        "Refund_not_showing_up",
+        "atm_support",
+        "declined_transfer",
+        "topping_up_by_card",
+        "extra_charge_on_statement"
+      ],
+      "selected": "request_refund",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-09214",
+      "logits": [
+        -3.44496488571167,
+        -3.881558895111084,
+        -3.230288028717041,
+        -0.3499142527580261,
+        -4.063047409057617,
+        -3.8502793312072754
+      ],
+      "ranking": [
+        "activate_my_card",
+        "failed_transfer",
+        "verify_my_identity",
+        "compromised_card",
+        "top_up_by_cash_or_cheque",
+        "card_arrival"
+      ],
+      "selected": "activate_my_card",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-01636",
+      "logits": [
+        -2.9672274589538574,
+        0.4989479184150696,
+        -3.7900431156158447,
+        -4.480191230773926,
+        -3.8496832847595215,
+        -4.080413818359375
+      ],
+      "ranking": [
+        "age_limit",
+        "balance_not_updated_after_bank_transfer",
+        "unable_to_verify_identity",
+        "verify_my_identity",
+        "get_physical_card",
+        "card_delivery_estimate"
+      ],
+      "selected": "age_limit",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-09708",
+      "logits": [
+        -4.414140701293945,
+        -4.663080215454102,
+        -1.7976505756378174,
+        -4.8229780197143555,
+        -2.9766483306884766,
+        1.3776894807815552
+      ],
+      "ranking": [
+        "apple_pay_or_google_pay",
+        "top_up_limits",
+        "failed_transfer",
+        "transaction_charged_twice",
+        "verify_my_identity",
+        "lost_or_stolen_phone"
+      ],
+      "selected": "apple_pay_or_google_pay",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-04562",
+      "logits": [
+        -3.7090067863464355,
+        -3.3830482959747314,
+        -4.523221015930176,
+        -3.7994096279144287,
+        -2.5076100826263428,
+        2.0355148315429688
+      ],
+      "ranking": [
+        "atm_support",
+        "cash_withdrawal_not_recognised",
+        "topping_up_by_card",
+        "activate_my_card",
+        "declined_card_payment",
+        "card_delivery_estimate"
+      ],
+      "selected": "atm_support",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-01221",
+      "logits": [
+        -3.814899444580078,
+        2.3371973037719727,
+        -4.059386253356934,
+        -3.4195804595947266,
+        -3.8059768676757812,
+        -1.4661096334457397
+      ],
+      "ranking": [
+        "automatic_top_up",
+        "pending_top_up",
+        "declined_transfer",
+        "pending_transfer",
+        "balance_not_updated_after_bank_transfer",
+        "reverted_card_payment?"
+      ],
+      "selected": "automatic_top_up",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-08638",
+      "logits": [
+        -3.687861204147339,
+        -3.2543797492980957,
+        -2.350209951400757,
+        0.22738882899284363,
+        -3.714353561401367,
+        -4.659237861633301
+      ],
+      "ranking": [
+        "balance_not_updated_after_bank_transfer",
+        "fiat_currency_support",
+        "top_up_by_cash_or_cheque",
+        "transaction_charged_twice",
+        "activate_my_card",
+        "getting_spare_card"
+      ],
+      "selected": "balance_not_updated_after_bank_transfer",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03357",
+      "logits": [
+        -3.191016912460327,
+        2.189990520477295,
+        -4.748035430908203,
+        -4.029576301574707,
+        -4.212470054626465,
+        -2.636836290359497
+      ],
+      "ranking": [
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "transfer_not_received_by_recipient",
+        "declined_card_payment",
+        "lost_or_stolen_card",
+        "extra_charge_on_statement",
+        "exchange_rate"
+      ],
+      "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-07093",
+      "logits": [
+        0.8946318030357361,
+        -4.0961408615112305,
+        -1.956717610359192,
+        -0.6893477439880371,
+        -4.09599494934082,
+        -3.1767427921295166
+      ],
+      "ranking": [
+        "transfer_not_received_by_recipient",
+        "beneficiary_not_allowed",
+        "top_up_failed",
+        "topping_up_by_card",
+        "order_physical_card",
+        "terminate_account"
+      ],
+      "selected": "transfer_not_received_by_recipient",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-02116",
+      "logits": [
+        -2.8063974380493164,
+        -3.320377826690674,
+        -3.1180243492126465,
+        -3.2143380641937256,
+        -4.321621417999268,
+        -4.466948986053467
+      ],
+      "ranking": [
+        "cancel_transfer",
+        "card_acceptance",
+        "top_up_reverted",
+        "top_up_failed",
+        "card_swallowed",
+        "virtual_card_not_working"
+      ],
+      "selected": "cancel_transfer",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-09630",
+      "logits": [
+        1.5884085893630981,
+        -3.7744665145874023,
+        -4.329929828643799,
+        -4.388876914978027,
+        -4.677982330322266,
+        -3.724817991256714
+      ],
+      "ranking": [
+        "card_about_to_expire",
+        "pending_transfer",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "verify_top_up",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "wrong_amount_of_cash_received"
+      ],
+      "selected": "card_about_to_expire",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03152",
+      "logits": [
+        -3.804025888442993,
+        -4.4903364181518555,
+        0.23442158102989197,
+        -1.6076490879058838,
+        -3.6148316860198975,
+        -4.420648097991943
+      ],
+      "ranking": [
+        "card_acceptance",
+        "atm_support",
+        "transfer_not_received_by_recipient",
+        "card_payment_wrong_exchange_rate",
+        "cash_withdrawal_charge",
+        "transaction_charged_twice"
+      ],
+      "selected": "card_acceptance",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-00022",
+      "logits": [
+        -4.125283718109131,
+        -3.808955669403076,
+        -3.0984556674957275,
+        -5.405819892883301,
+        -4.687960147857666,
+        -2.9291281700134277
+      ],
+      "ranking": [
+        "topping_up_by_card",
+        "card_arrival",
+        "verify_top_up",
+        "top_up_by_cash_or_cheque",
+        "getting_virtual_card",
+        "edit_personal_details"
+      ],
+      "selected": "topping_up_by_card",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-01110",
+      "logits": [
+        -4.271498680114746,
+        -4.564896583557129,
+        -4.259734630584717,
+        -4.456006050109863,
+        -4.306207656860352,
+        -3.769083261489868
+      ],
+      "ranking": [
+        "card_delivery_estimate",
+        "contactless_not_working",
+        "card_payment_wrong_exchange_rate",
+        "transfer_fee_charged",
+        "Refund_not_showing_up",
+        "card_payment_fee_charged"
+      ],
+      "selected": "card_delivery_estimate",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-00263",
+      "logits": [
+        -3.684410572052002,
+        -2.01218843460083,
+        -3.7801318168640137,
+        -3.875462770462036,
+        -0.5041147470474243,
+        -3.1851935386657715
+      ],
+      "ranking": [
+        "card_linking",
+        "order_physical_card",
+        "balance_not_updated_after_bank_transfer",
+        "receiving_money",
+        "top_up_by_cash_or_cheque",
+        "verify_top_up"
+      ],
+      "selected": "card_linking",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-01314",
+      "logits": [
+        -2.793034076690674,
+        -2.935209035873413,
+        -4.267865180969238,
+        -3.508770227432251,
+        -4.526449680328369,
+        -0.9986112117767334
+      ],
+      "ranking": [
+        "card_not_working",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "card_about_to_expire",
+        "top_up_limits",
+        "Refund_not_showing_up",
+        "get_disposable_virtual_card"
+      ],
+      "selected": "card_not_working",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-02539",
+      "logits": [
+        -3.9715700149536133,
+        -4.633241653442383,
+        1.983091950416565,
+        -1.4036290645599365,
+        -3.0565428733825684,
+        -4.080479621887207
+      ],
+      "ranking": [
+        "card_payment_fee_charged",
+        "top_up_by_bank_transfer_charge",
+        "card_payment_wrong_exchange_rate",
+        "getting_virtual_card",
+        "transfer_timing",
+        "edit_personal_details"
+      ],
+      "selected": "card_payment_fee_charged",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03502",
+      "logits": [
+        -0.4771105647087097,
+        -3.9205667972564697,
+        -2.697755813598633,
+        -3.6133456230163574,
+        -1.6376571655273438,
+        -4.2283406257629395
+      ],
+      "ranking": [
+        "card_payment_not_recognised",
+        "fiat_currency_support",
+        "beneficiary_not_allowed",
+        "card_payment_wrong_exchange_rate",
+        "top_up_reverted",
+        "card_arrival"
+      ],
+      "selected": "card_payment_not_recognised",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-00566",
+      "logits": [
+        -3.6148691177368164,
+        -3.4757204055786133,
+        2.9758059978485107,
+        -3.8516592979431152,
+        -3.8247385025024414,
+        -3.0636277198791504
+      ],
+      "ranking": [
+        "card_payment_wrong_exchange_rate",
+        "declined_cash_withdrawal",
+        "topping_up_by_card",
+        "transaction_charged_twice",
+        "cancel_transfer",
+        "transfer_timing"
+      ],
+      "selected": "card_payment_wrong_exchange_rate",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-06271",
+      "logits": [
+        -5.307157516479492,
+        -3.94460391998291,
+        -3.570456027984619,
+        -3.8457980155944824,
+        -3.5938735008239746,
+        -2.216958999633789
+      ],
+      "ranking": [
+        "card_swallowed",
+        "card_linking",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "transfer_not_received_by_recipient",
+        "disposable_card_limits",
+        "exchange_rate"
+      ],
+      "selected": "card_swallowed",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-09360",
+      "logits": [
+        -3.4048492908477783,
+        -4.329057693481445,
+        -3.762246608734131,
+        -5.293783664703369,
+        0.8056597113609314,
+        -2.7136106491088867
+      ],
+      "ranking": [
+        "cash_withdrawal_charge",
+        "pending_cash_withdrawal",
+        "exchange_charge",
+        "card_payment_not_recognised",
+        "pending_transfer",
+        "exchange_rate"
+      ],
+      "selected": "cash_withdrawal_charge",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-08940",
+      "logits": [
+        -3.6902503967285156,
+        -2.6416335105895996,
+        -2.878251314163208,
+        -3.588048219680786,
+        0.014388129115104675,
+        -1.7669105529785156
+      ],
+      "ranking": [
+        "cash_withdrawal_not_recognised",
+        "fiat_currency_support",
+        "declined_card_payment",
+        "verify_source_of_funds",
+        "visa_or_mastercard",
+        "activate_my_card"
+      ],
+      "selected": "cash_withdrawal_not_recognised",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-06901",
+      "logits": [
+        -2.7559399604797363,
+        -4.640627384185791,
+        -3.1904354095458984,
+        -4.455866813659668,
+        -3.12188982963562,
+        2.305642604827881
+      ],
+      "ranking": [
+        "change_pin",
+        "card_acceptance",
+        "lost_or_stolen_card",
+        "transfer_into_account",
+        "card_payment_wrong_exchange_rate",
+        "Refund_not_showing_up"
+      ],
+      "selected": "change_pin",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-04517",
+      "logits": [
+        -4.382199764251709,
+        -3.9818246364593506,
+        -1.889601707458496,
+        -3.5241503715515137,
+        -4.629443168640137,
+        -3.5139517784118652
+      ],
+      "ranking": [
+        "compromised_card",
+        "pin_blocked",
+        "topping_up_by_card",
+        "card_payment_wrong_exchange_rate",
+        "exchange_charge",
+        "automatic_top_up"
+      ],
+      "selected": "compromised_card",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-01792",
+      "logits": [
+        -4.104058265686035,
+        -2.0197792053222656,
+        -3.664801597595215,
+        -3.9928231239318848,
+        1.6537411212921143,
+        -3.0820255279541016
+      ],
+      "ranking": [
+        "contactless_not_working",
+        "declined_transfer",
+        "direct_debit_payment_not_recognised",
+        "transfer_not_received_by_recipient",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "lost_or_stolen_phone"
+      ],
+      "selected": "contactless_not_working",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-09999",
+      "logits": [
+        -3.967851400375366,
+        -3.747260093688965,
+        -4.676020622253418,
+        -4.601293563842773,
+        -4.498658657073975,
+        0.17106445133686066
+      ],
+      "ranking": [
+        "country_support",
+        "receiving_money",
+        "pending_transfer",
+        "unable_to_verify_identity",
+        "pending_card_payment",
+        "apple_pay_or_google_pay"
+      ],
+      "selected": "country_support",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-05841",
+      "logits": [
+        -3.5123343467712402,
+        -3.2386651039123535,
+        -3.7373383045196533,
+        -3.0626697540283203,
+        0.9772486090660095,
+        1.4662896394729614
+      ],
+      "ranking": [
+        "declined_card_payment",
+        "card_not_working",
+        "topping_up_by_card",
+        "virtual_card_not_working",
+        "wrong_amount_of_cash_received",
+        "apple_pay_or_google_pay"
+      ],
+      "selected": "declined_card_payment",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-05021",
+      "logits": [
+        -1.9032295942306519,
+        -3.028489112854004,
+        2.5555546283721924,
+        -2.9619052410125732,
+        -0.1052931398153305,
+        -3.9934892654418945
+      ],
+      "ranking": [
+        "declined_cash_withdrawal",
+        "card_not_working",
+        "card_swallowed",
+        "card_arrival",
+        "activate_my_card",
+        "cancel_transfer"
+      ],
+      "selected": "declined_cash_withdrawal",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-05613",
+      "logits": [
+        2.4699270725250244,
+        -3.578251600265503,
+        -3.2554101943969727,
+        -3.8519883155822754,
+        -3.2211508750915527,
+        -5.003446578979492
+      ],
+      "ranking": [
+        "declined_transfer",
+        "top_up_reverted",
+        "why_verify_identity",
+        "lost_or_stolen_card",
+        "verify_top_up",
+        "edit_personal_details"
+      ],
+      "selected": "declined_transfer",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-04677",
+      "logits": [
+        -4.501928806304932,
+        -3.73567533493042,
+        -1.364938497543335,
+        -3.833082675933838,
+        2.4080958366394043,
+        -3.7998197078704834
+      ],
+      "ranking": [
+        "direct_debit_payment_not_recognised",
+        "supported_cards_and_currencies",
+        "pending_card_payment",
+        "disposable_card_limits",
+        "top_up_by_card_charge",
+        "exchange_via_app"
+      ],
+      "selected": "direct_debit_payment_not_recognised",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-04426",
+      "logits": [
+        -3.8882927894592285,
+        -3.5046610832214355,
+        -4.073455333709717,
+        3.081753730773926,
+        -1.5568695068359375,
+        -4.018367767333984
+      ],
+      "ranking": [
+        "disposable_card_limits",
+        "atm_support",
+        "cash_withdrawal_not_recognised",
+        "cancel_transfer",
+        "wrong_amount_of_cash_received",
+        "request_refund"
+      ],
+      "selected": "disposable_card_limits",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03650",
+      "logits": [
+        -4.546661376953125,
+        -3.3797874450683594,
+        0.6592890620231628,
+        -4.304250240325928,
+        -4.8815836906433105,
+        -0.4546562135219574
+      ],
+      "ranking": [
+        "edit_personal_details",
+        "supported_cards_and_currencies",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "passcode_forgotten",
+        "contactless_not_working",
+        "exchange_via_app"
+      ],
+      "selected": "edit_personal_details",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-09023",
+      "logits": [
+        -4.43754243850708,
+        -4.237411975860596,
+        -3.9684298038482666,
+        -0.6990338563919067,
+        -4.461297988891602,
+        -3.3253471851348877
+      ],
+      "ranking": [
+        "exchange_charge",
+        "transfer_into_account",
+        "pending_top_up",
+        "top_up_reverted",
+        "getting_virtual_card",
+        "apple_pay_or_google_pay"
+      ],
+      "selected": "exchange_charge",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-00350",
+      "logits": [
+        -3.1728944778442383,
+        -4.639348030090332,
+        -3.930490493774414,
+        -0.9718824625015259,
+        -2.3546833992004395,
+        -3.980900287628174
+      ],
+      "ranking": [
+        "fiat_currency_support",
+        "exchange_rate",
+        "failed_transfer",
+        "pending_transfer",
+        "activate_my_card",
+        "card_swallowed"
+      ],
+      "selected": "fiat_currency_support",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-01466",
+      "logits": [
+        -2.2933740615844727,
+        -4.234044075012207,
+        0.8368591666221619,
+        -4.164067268371582,
+        -4.495711803436279,
+        -3.7912282943725586
+      ],
+      "ranking": [
+        "exchange_via_app",
+        "country_support",
+        "top_up_failed",
+        "order_physical_card",
+        "contactless_not_working",
+        "request_refund"
+      ],
+      "selected": "exchange_via_app",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-00595",
+      "logits": [
+        -3.550218105316162,
+        -3.478731632232666,
+        -3.9880552291870117,
+        -4.476805686950684,
+        -2.1730153560638428,
+        0.16629572212696075
+      ],
+      "ranking": [
+        "extra_charge_on_statement",
+        "declined_card_payment",
+        "pending_transfer",
+        "card_about_to_expire",
+        "transfer_timing",
+        "passcode_forgotten"
+      ],
+      "selected": "extra_charge_on_statement",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-07560",
+      "logits": [
+        -4.862809658050537,
+        -0.33946874737739563,
+        -2.1617581844329834,
+        3.7908716201782227,
+        -2.994633436203003,
+        -5.067965507507324
+      ],
+      "ranking": [
+        "failed_transfer",
+        "balance_not_updated_after_bank_transfer",
+        "top_up_by_bank_transfer_charge",
+        "verify_source_of_funds",
+        "age_limit",
+        "edit_personal_details"
+      ],
+      "selected": "failed_transfer",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-00972",
+      "logits": [
+        -0.6197004318237305,
+        -3.6064538955688477,
+        -3.311805248260498,
+        -4.214211940765381,
+        0.12850935757160187,
+        -4.2111101150512695
+      ],
+      "ranking": [
+        "supported_cards_and_currencies",
+        "fiat_currency_support",
+        "direct_debit_payment_not_recognised",
+        "top_up_by_bank_transfer_charge",
+        "request_refund",
+        "apple_pay_or_google_pay"
+      ],
+      "selected": "supported_cards_and_currencies",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-08412",
+      "logits": [
+        -3.8571560382843018,
+        -4.682973861694336,
+        -4.581175804138184,
+        -4.314658164978027,
+        -3.9047446250915527,
+        -3.614802360534668
+      ],
+      "ranking": [
+        "receiving_money",
+        "card_payment_fee_charged",
+        "cancel_transfer",
+        "unable_to_verify_identity",
+        "apple_pay_or_google_pay",
+        "get_disposable_virtual_card"
+      ],
+      "selected": "receiving_money",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-04006",
+      "logits": [
+        -3.8356897830963135,
+        -2.2887845039367676,
+        -3.284788131713867,
+        -4.812113285064697,
+        -4.408830165863037,
+        -4.056563377380371
+      ],
+      "ranking": [
+        "get_physical_card",
+        "verify_source_of_funds",
+        "transfer_not_received_by_recipient",
+        "declined_card_payment",
+        "top_up_by_card_charge",
+        "automatic_top_up"
+      ],
+      "selected": "get_physical_card",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-07922",
+      "logits": [
+        -4.244704723358154,
+        -3.182008981704712,
+        -2.5171525478363037,
+        -1.6585209369659424,
+        -4.461003303527832,
+        2.1642816066741943
+      ],
+      "ranking": [
+        "getting_spare_card",
+        "card_acceptance",
+        "topping_up_by_card",
+        "cash_withdrawal_not_recognised",
+        "contactless_not_working",
+        "edit_personal_details"
+      ],
+      "selected": "getting_spare_card",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03060",
+      "logits": [
+        -4.324278831481934,
+        2.383833408355713,
+        -3.5730230808258057,
+        -3.9312148094177246,
+        -3.9274513721466064,
+        -5.123359203338623
+      ],
+      "ranking": [
+        "getting_virtual_card",
+        "visa_or_mastercard",
+        "verify_source_of_funds",
+        "disposable_card_limits",
+        "verify_my_identity",
+        "lost_or_stolen_phone"
+      ],
+      "selected": "getting_virtual_card",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-01498",
+      "logits": [
+        -3.4189648628234863,
+        -4.326828956604004,
+        -2.8239917755126953,
+        -5.293112277984619,
+        2.364610195159912,
+        -1.7094594240188599
+      ],
+      "ranking": [
+        "lost_or_stolen_card",
+        "getting_spare_card",
+        "get_disposable_virtual_card",
+        "country_support",
+        "verify_my_identity",
+        "exchange_charge"
+      ],
+      "selected": "lost_or_stolen_card",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-05253",
+      "logits": [
+        -3.72887921333313,
+        -4.244129180908203,
+        1.9168213605880737,
+        -4.103899955749512,
+        -4.157049655914307,
+        -3.343219757080078
+      ],
+      "ranking": [
+        "lost_or_stolen_phone",
+        "failed_transfer",
+        "reverted_card_payment?",
+        "top_up_limits",
+        "verify_top_up",
+        "transfer_timing"
+      ],
+      "selected": "lost_or_stolen_phone",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-08137",
+      "logits": [
+        -2.945390224456787,
+        -3.811575412750244,
+        -3.7771172523498535,
+        -2.664402484893799,
+        -3.7153372764587402,
+        -1.2372407913208008
+      ],
+      "ranking": [
+        "order_physical_card",
+        "get_physical_card",
+        "getting_spare_card",
+        "declined_transfer",
+        "top_up_by_bank_transfer_charge",
+        "top_up_failed"
+      ],
+      "selected": "order_physical_card",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-04886",
+      "logits": [
+        -3.7265172004699707,
+        3.3998360633850098,
+        -4.307923316955566,
+        -4.120533466339111,
+        -3.6614201068878174,
+        -3.325631618499756
+      ],
+      "ranking": [
+        "passcode_forgotten",
+        "failed_transfer",
+        "top_up_failed",
+        "beneficiary_not_allowed",
+        "cash_withdrawal_charge",
+        "getting_spare_card"
+      ],
+      "selected": "passcode_forgotten",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-05193",
+      "logits": [
+        -3.2541816234588623,
+        -3.546433925628662,
+        -4.096292495727539,
+        -4.048631191253662,
+        -1.045642375946045,
+        -2.25278902053833
+      ],
+      "ranking": [
+        "pending_card_payment",
+        "reverted_card_payment?",
+        "request_refund",
+        "disposable_card_limits",
+        "pin_blocked",
+        "cash_withdrawal_charge"
+      ],
+      "selected": "pending_card_payment",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-00758",
+      "logits": [
+        -5.154201507568359,
+        3.5647568702697754,
+        -3.9402432441711426,
+        -5.251932621002197,
+        -5.039449691772461,
+        -4.5516862869262695
+      ],
+      "ranking": [
+        "pending_cash_withdrawal",
+        "order_physical_card",
+        "card_payment_wrong_exchange_rate",
+        "change_pin",
+        "exchange_rate",
+        "edit_personal_details"
+      ],
+      "selected": "pending_cash_withdrawal",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-02049",
+      "logits": [
+        -3.7687578201293945,
+        -1.2648210525512695,
+        -3.680337429046631,
+        -3.180840492248535,
+        -2.945953130722046,
+        -4.64945650100708
+      ],
+      "ranking": [
+        "pending_top_up",
+        "transfer_timing",
+        "declined_transfer",
+        "card_about_to_expire",
+        "visa_or_mastercard",
+        "Refund_not_showing_up"
+      ],
+      "selected": "pending_top_up",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-06061",
+      "logits": [
+        -3.9630753993988037,
+        1.6105144023895264,
+        -4.351378917694092,
+        -4.547347068786621,
+        -2.818929433822632,
+        -4.440039157867432
+      ],
+      "ranking": [
+        "pending_transfer",
+        "direct_debit_payment_not_recognised",
+        "top_up_by_card_charge",
+        "extra_charge_on_statement",
+        "apple_pay_or_google_pay",
+        "getting_virtual_card"
+      ],
+      "selected": "pending_transfer",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-01726",
+      "logits": [
+        -4.07088565826416,
+        -3.127288341522217,
+        -5.0423383712768555,
+        -4.098317623138428,
+        -4.094276428222656,
+        3.122643232345581
+      ],
+      "ranking": [
+        "pin_blocked",
+        "balance_not_updated_after_bank_transfer",
+        "card_payment_fee_charged",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "pending_top_up",
+        "exchange_charge"
+      ],
+      "selected": "pin_blocked",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-07335",
+      "logits": [
+        -1.9243581295013428,
+        -4.1537604331970215,
+        -4.500406265258789,
+        -4.25101375579834,
+        -4.086220741271973,
+        -3.953519821166992
+      ],
+      "ranking": [
+        "receiving_money",
+        "pending_transfer",
+        "cancel_transfer",
+        "edit_personal_details",
+        "cash_withdrawal_charge",
+        "get_disposable_virtual_card"
+      ],
+      "selected": "receiving_money",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-05395",
+      "logits": [
+        -3.448634386062622,
+        -4.510552883148193,
+        -3.897614002227783,
+        2.647644519805908,
+        -4.252852439880371,
+        -4.624037742614746
+      ],
+      "ranking": [
+        "request_refund",
+        "cash_withdrawal_not_recognised",
+        "pending_top_up",
+        "unable_to_verify_identity",
+        "lost_or_stolen_phone",
+        "pin_blocked"
+      ],
+      "selected": "request_refund",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-06858",
+      "logits": [
+        -0.186545729637146,
+        -1.7658673524856567,
+        -3.0898568630218506,
+        -0.42602306604385376,
+        -3.120295524597168,
+        -4.198337554931641
+      ],
+      "ranking": [
+        "card_payment_not_recognised",
+        "reverted_card_payment?",
+        "card_not_working",
+        "card_arrival",
+        "card_linking",
+        "top_up_limits"
+      ],
+      "selected": "card_payment_not_recognised",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-02943",
+      "logits": [
+        -4.251218795776367,
+        -3.6513147354125977,
+        -4.58030891418457,
+        -0.6069289445877075,
+        -0.5577264428138733,
+        -4.446448802947998
+      ],
+      "ranking": [
+        "supported_cards_and_currencies",
+        "fiat_currency_support",
+        "exchange_charge",
+        "cash_withdrawal_charge",
+        "unable_to_verify_identity",
+        "getting_virtual_card"
+      ],
+      "selected": "supported_cards_and_currencies",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-06227",
+      "logits": [
+        -4.383294105529785,
+        1.290510654449463,
+        -4.927146911621094,
+        -3.8497653007507324,
+        -4.247460842132568,
+        -4.165007591247559
+      ],
+      "ranking": [
+        "terminate_account",
+        "pending_transfer",
+        "top_up_by_cash_or_cheque",
+        "contactless_not_working",
+        "verify_my_identity",
+        "extra_charge_on_statement"
+      ],
+      "selected": "terminate_account",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-01873",
+      "logits": [
+        -3.2970192432403564,
+        -4.323245525360107,
+        -4.559188365936279,
+        -1.9701855182647705,
+        -4.352667331695557,
+        1.0002987384796143
+      ],
+      "ranking": [
+        "top_up_by_bank_transfer_charge",
+        "fiat_currency_support",
+        "verify_source_of_funds",
+        "pending_cash_withdrawal",
+        "getting_virtual_card",
+        "order_physical_card"
+      ],
+      "selected": "top_up_by_bank_transfer_charge",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-09168",
+      "logits": [
+        -3.2520694732666016,
+        0.9421024322509766,
+        -0.6512925624847412,
+        -3.9119930267333984,
+        -5.096627235412598,
+        -4.260893821716309
+      ],
+      "ranking": [
+        "top_up_by_card_charge",
+        "country_support",
+        "receiving_money",
+        "transfer_timing",
+        "disposable_card_limits",
+        "edit_personal_details"
+      ],
+      "selected": "top_up_by_card_charge",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-07988",
+      "logits": [
+        -4.450458526611328,
+        -4.650692939758301,
+        -2.4638376235961914,
+        -3.5028622150421143,
+        -4.038647651672363,
+        0.5957032442092896
+      ],
+      "ranking": [
+        "top_up_by_cash_or_cheque",
+        "top_up_limits",
+        "declined_transfer",
+        "activate_my_card",
+        "compromised_card",
+        "apple_pay_or_google_pay"
+      ],
+      "selected": "top_up_by_cash_or_cheque",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-08499",
+      "logits": [
+        -3.9923009872436523,
+        -4.481998443603516,
+        2.402859926223755,
+        -3.5974063873291016,
+        -4.3387627601623535,
+        -4.840099334716797
+      ],
+      "ranking": [
+        "top_up_failed",
+        "transaction_charged_twice",
+        "Refund_not_showing_up",
+        "age_limit",
+        "get_disposable_virtual_card",
+        "exchange_charge"
+      ],
+      "selected": "top_up_failed",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-02239",
+      "logits": [
+        1.0683428049087524,
+        -3.2107911109924316,
+        -3.2848570346832275,
+        -2.0950639247894287,
+        -4.897863388061523,
+        -5.053750514984131
+      ],
+      "ranking": [
+        "top_up_limits",
+        "verify_top_up",
+        "visa_or_mastercard",
+        "balance_not_updated_after_bank_transfer",
+        "exchange_rate",
+        "age_limit"
+      ],
+      "selected": "top_up_limits",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03275",
+      "logits": [
+        -4.7462592124938965,
+        -2.9897289276123047,
+        -4.692530632019043,
+        -2.6000888347625732,
+        -3.114413261413574,
+        -3.7399115562438965
+      ],
+      "ranking": [
+        "verify_source_of_funds",
+        "top_up_reverted",
+        "transfer_not_received_by_recipient",
+        "cancel_transfer",
+        "verify_my_identity",
+        "exchange_charge"
+      ],
+      "selected": "verify_source_of_funds",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-04276",
+      "logits": [
+        -0.39226871728897095,
+        -4.178440570831299,
+        -3.996474027633667,
+        -4.360228061676025,
+        0.8128306865692139,
+        -1.6129190921783447
+      ],
+      "ranking": [
+        "top_up_failed",
+        "topping_up_by_card",
+        "verify_top_up",
+        "pending_card_payment",
+        "cash_withdrawal_charge",
+        "card_payment_wrong_exchange_rate"
+      ],
+      "selected": "top_up_failed",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-06467",
+      "logits": [
+        -2.923656463623047,
+        -4.150007247924805,
+        0.06665900349617004,
+        -4.4543914794921875,
+        -2.6151607036590576,
+        -3.5302224159240723
+      ],
+      "ranking": [
+        "transaction_charged_twice",
+        "transfer_into_account",
+        "top_up_failed",
+        "card_linking",
+        "order_physical_card",
+        "change_pin"
+      ],
+      "selected": "transaction_charged_twice",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-07323",
+      "logits": [
+        -3.9040040969848633,
+        -3.532055616378784,
+        -1.9326419830322266,
+        -1.574183464050293,
+        -4.194337844848633,
+        -4.407410144805908
+      ],
+      "ranking": [
+        "country_support",
+        "transfer_fee_charged",
+        "pending_cash_withdrawal",
+        "Refund_not_showing_up",
+        "unable_to_verify_identity",
+        "passcode_forgotten"
+      ],
+      "selected": "country_support",
+      "correct": false
+    },
+    {
+      "id": "banking77-train-07600",
+      "logits": [
+        -4.130982398986816,
+        -3.8154656887054443,
+        -1.5500524044036865,
+        -4.421576499938965,
+        -3.2520017623901367,
+        2.2278079986572266
+      ],
+      "ranking": [
+        "transfer_into_account",
+        "balance_not_updated_after_bank_transfer",
+        "declined_cash_withdrawal",
+        "card_payment_not_recognised",
+        "lost_or_stolen_card",
+        "card_swallowed"
+      ],
+      "selected": "transfer_into_account",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-02793",
+      "logits": [
+        -3.048041582107544,
+        -3.799281597137451,
+        -3.7519302368164062,
+        -1.182369589805603,
+        -3.281026840209961,
+        -0.7122455835342407
+      ],
+      "ranking": [
+        "transfer_not_received_by_recipient",
+        "balance_not_updated_after_bank_transfer",
+        "Refund_not_showing_up",
+        "top_up_reverted",
+        "top_up_by_card_charge",
+        "transfer_fee_charged"
+      ],
+      "selected": "transfer_not_received_by_recipient",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-06710",
+      "logits": [
+        -3.1431961059570312,
+        -4.468907833099365,
+        -2.623936653137207,
+        -4.318747520446777,
+        -4.91171407699585,
+        -1.7625575065612793
+      ],
+      "ranking": [
+        "transfer_timing",
+        "declined_cash_withdrawal",
+        "direct_debit_payment_not_recognised",
+        "terminate_account",
+        "get_disposable_virtual_card",
+        "lost_or_stolen_phone"
+      ],
+      "selected": "transfer_timing",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03956",
+      "logits": [
+        -3.622035503387451,
+        -4.16187858581543,
+        -3.0266060829162598,
+        -2.692713499069214,
+        -2.7107303142547607,
+        -1.970731496810913
+      ],
+      "ranking": [
+        "unable_to_verify_identity",
+        "card_acceptance",
+        "card_payment_not_recognised",
+        "beneficiary_not_allowed",
+        "passcode_forgotten",
+        "transfer_timing"
+      ],
+      "selected": "unable_to_verify_identity",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-09779",
+      "logits": [
+        -3.490680456161499,
+        -4.996560096740723,
+        -1.3935288190841675,
+        -5.461684703826904,
+        -4.394716739654541,
+        -4.745020389556885
+      ],
+      "ranking": [
+        "verify_my_identity",
+        "compromised_card",
+        "contactless_not_working",
+        "cash_withdrawal_charge",
+        "transfer_fee_charged",
+        "exchange_rate"
+      ],
+      "selected": "verify_my_identity",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-06546",
+      "logits": [
+        -3.31528639793396,
+        -2.129537582397461,
+        -4.193934917449951,
+        -3.923980236053467,
+        -3.9226598739624023,
+        0.8498955965042114
+      ],
+      "ranking": [
+        "verify_source_of_funds",
+        "fiat_currency_support",
+        "card_not_working",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "cancel_transfer",
+        "top_up_by_card_charge"
+      ],
+      "selected": "verify_source_of_funds",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-07733",
+      "logits": [
+        -4.193631649017334,
+        -4.281040668487549,
+        -3.4167447090148926,
+        -1.8602904081344604,
+        -4.725949287414551,
+        0.9526064991950989
+      ],
+      "ranking": [
+        "verify_top_up",
+        "automatic_top_up",
+        "get_physical_card",
+        "getting_spare_card",
+        "pending_transfer",
+        "passcode_forgotten"
+      ],
+      "selected": "verify_top_up",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-08199",
+      "logits": [
+        -4.021798610687256,
+        -3.392167091369629,
+        -3.387432098388672,
+        -3.6007184982299805,
+        3.3858659267425537,
+        -3.3999531269073486
+      ],
+      "ranking": [
+        "virtual_card_not_working",
+        "card_swallowed",
+        "transfer_not_received_by_recipient",
+        "verify_source_of_funds",
+        "get_physical_card",
+        "terminate_account"
+      ],
+      "selected": "virtual_card_not_working",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-04211",
+      "logits": [
+        -4.282636642456055,
+        -5.298074722290039,
+        -4.848215103149414,
+        2.61357045173645,
+        -4.492839813232422,
+        -4.517110347747803
+      ],
+      "ranking": [
+        "visa_or_mastercard",
+        "verify_my_identity",
+        "exchange_via_app",
+        "get_disposable_virtual_card",
+        "pin_blocked",
+        "edit_personal_details"
+      ],
+      "selected": "visa_or_mastercard",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-03835",
+      "logits": [
+        -3.182180404663086,
+        -5.587815284729004,
+        -4.256295680999756,
+        -5.259765148162842,
+        -2.9538047313690186,
+        -4.247291564941406
+      ],
+      "ranking": [
+        "why_verify_identity",
+        "declined_transfer",
+        "verify_my_identity",
+        "request_refund",
+        "age_limit",
+        "exchange_rate"
+      ],
+      "selected": "why_verify_identity",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-02413",
+      "logits": [
+        -4.117754936218262,
+        -2.7628512382507324,
+        -4.369596481323242,
+        2.5666539669036865,
+        -3.5951004028320312,
+        -3.0017337799072266
+      ],
+      "ranking": [
+        "wrong_amount_of_cash_received",
+        "country_support",
+        "top_up_by_cash_or_cheque",
+        "disposable_card_limits",
+        "terminate_account",
+        "automatic_top_up"
+      ],
+      "selected": "wrong_amount_of_cash_received",
+      "correct": true
+    },
+    {
+      "id": "banking77-train-08275",
+      "logits": [
+        2.3380014896392822,
+        -1.9744375944137573,
+        -3.419065475463867,
+        -3.5746545791625977,
+        -4.093898773193359,
+        -4.681539535522461
+      ],
+      "ranking": [
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "pending_cash_withdrawal",
+        "direct_debit_payment_not_recognised",
+        "card_swallowed",
+        "order_physical_card",
+        "change_pin"
+      ],
+      "selected": "wrong_exchange_rate_for_cash_withdrawal",
+      "correct": true
+    }
+  ]
+}

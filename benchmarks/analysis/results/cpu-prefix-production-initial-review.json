@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/backends/cpu/test_prefix.py",
+    "tests/backends/kai/test_torch.py",
+    "tests/analysis/test_cpu_prefix.py"
+  ],
+  "cap_seconds": 60,
+  "wall_seconds": 3.0401496670092456,
+  "exit_code": 0,
+  "reaped": true,
+  "timed_out": false,
+  "before": {
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "tests/backends/cpu/test_prefix.py": "4ee270465b8c70257130d8dc070bc1442a01db55ba1310ab139b008395919f41"
+  },
+  "after": {
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "tests/backends/cpu/test_prefix.py": "4ee270465b8c70257130d8dc070bc1442a01db55ba1310ab139b008395919f41"
+  }
+}

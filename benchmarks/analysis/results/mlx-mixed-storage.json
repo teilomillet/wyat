@@ -1,0 +1,11 @@
+{
+  "scope": "tiny CPU graph inspection only; no performance or checkpoint gate",
+  "mlx": "0.32.3",
+  "source_sha256": "9f244f1370dd7cf495c9ce1441191a74cbb58896af8bf2bfca9c5eafdcc3cc65",
+  "input_dtype": "mlx.core.float32",
+  "stored_weight_dtype": "mlx.core.float16",
+  "output_dtype": "mlx.core.float32",
+  "source_values_preserved": true,
+  "max_abs_difference": 0.0,
+  "graph_sha256": "70d998806ff24b29a8219e7bb59a01b05dae9c62be125274e03b5f03e421f1b8"
+}

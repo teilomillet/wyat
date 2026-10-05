@@ -1,0 +1,136 @@
+{
+  "transport_path": "benchmarks/analysis/results/cuda-attention-observer-b1-transport.json",
+  "files": [
+    {
+      "bytes": 2172315,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b1.json",
+      "sha256": "e2149d7d4bb6c51827b68798c28d016387be89354b153ce521b10247d5bca562"
+    },
+    {
+      "bytes": 1043,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b1.wall.json",
+      "sha256": "2ed8a63c92f7cc41dff3cf0ce698441c057bfaabc991af3949a685a0b457ac69"
+    },
+    {
+      "bytes": 1371,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b1.log",
+      "sha256": "2057dee716e594763813715b63819ea56d00f358fe73cf62fbceec131b121fed"
+    },
+    {
+      "bytes": 352063,
+      "path": "benchmarks/analysis/results/cuda-attention-observer-b1.sources-686a18493cecf093.json",
+      "sha256": "686a18493cecf0930c788160cb7032c5f559575ec5c725f780a707449d38a97a"
+    }
+  ],
+  "release_queries": [
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=memory.used,utilization.gpu",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "128, 0\n"
+    },
+    {
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "pgrep",
+        "-af",
+        "benchmarks.analysis.cuda.attention.run"
+      ],
+      "exit_code": 1,
+      "stderr": "",
+      "stdout": ""
+    }
+  ],
+  "summary": {
+    "case_ids": [
+      "banking77-train-05698",
+      "banking77-train-09214",
+      "banking77-train-01636",
+      "banking77-train-09708",
+      "banking77-train-04562",
+      "banking77-train-01221",
+      "banking77-train-08638",
+      "banking77-train-03357"
+    ],
+    "completed": true,
+    "dispatch_passed": true,
+    "efficient_drift": {
+      "cpu_reference": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 1.2040138244628906e-05,
+        "max_abs_probability_difference": 1.3443644467231453e-06,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      },
+      "cuda_control": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 5.4836273193359375e-06,
+        "max_abs_probability_difference": 9.256787782963016e-07,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      }
+    },
+    "error": null,
+    "math_drift": {
+      "cpu_reference": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 9.119510650634766e-06,
+        "max_abs_probability_difference": 8.503759042488568e-07,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      },
+      "cuda_control": {
+        "baseline_correct": 7,
+        "candidate_correct": 7,
+        "comparable": 8,
+        "logits_within_tolerance": true,
+        "max_abs_logit_difference": 0.0,
+        "max_abs_probability_difference": 0.0,
+        "passed": true,
+        "probabilities_within_tolerance": true,
+        "ranking_equal": 8,
+        "selected_equal": 8,
+        "total": 8
+      }
+    },
+    "phase": "completed",
+    "quality_passed": true,
+    "unknown_case_ids": {
+      "efficient_ordinary": [],
+      "efficient_profile": [],
+      "math_ordinary": [],
+      "math_profile": []
+    }
+  }
+}

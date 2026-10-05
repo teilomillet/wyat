@@ -1,0 +1,67 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/analysis/test_cpu_prefix_history.py",
+    "tests/analysis/test_cpu_prefix_pairs.py",
+    "tests/analysis/test_cpu_prefix_memory.py",
+    "tests/analysis/test_cpu_prefix_latency.py"
+  ],
+  "cap_seconds": 60,
+  "exit_code": 0,
+  "reaped": true,
+  "wall_seconds": 6.123558916966431,
+  "timed_out": false,
+  "before": {
+    "benchmarks/analysis/torch/prefix/pairs.py": "53e28676605a052f03c63648b2927ccad8468e0df249bea0c6a711695542b472",
+    "benchmarks/analysis/torch/prefix/memory/study.py": "98d9a32384047af6052ad7becbd035c1325143d8f84c082b098b68b39f853220",
+    "benchmarks/analysis/torch/prefix/latency/study.py": "fe704e83f69232c5c23350984afbcbb1e71d14169703c1048a28356d28b1643e",
+    "tests/analysis/test_cpu_prefix_history.py": "4cec2c36ec3615b6b6ee30d59d25b14686c67b5402c4d4e20226e91598720243"
+  },
+  "after": {
+    "benchmarks/analysis/torch/prefix/pairs.py": "53e28676605a052f03c63648b2927ccad8468e0df249bea0c6a711695542b472",
+    "benchmarks/analysis/torch/prefix/memory/study.py": "98d9a32384047af6052ad7becbd035c1325143d8f84c082b098b68b39f853220",
+    "benchmarks/analysis/torch/prefix/latency/study.py": "fe704e83f69232c5c23350984afbcbb1e71d14169703c1048a28356d28b1643e",
+    "tests/analysis/test_cpu_prefix_history.py": "4cec2c36ec3615b6b6ee30d59d25b14686c67b5402c4d4e20226e91598720243"
+  },
+  "prior_sdist_sources_sha256": {
+    "benchmarks/analysis/torch/prefix/pairs.py": "b6a402179b0ed412b648f8205b02e4a24a2dba0139f42c7ca161a37c1272c08d",
+    "benchmarks/analysis/torch/prefix/memory/study.py": "cb86c7d8103dcfaf43f68bbf61689d2ca8116917c73a3d440f82852130819725",
+    "benchmarks/analysis/torch/prefix/latency/study.py": "2b8ff439fb2ea3a52e006d8b7278870b128324c08647f284421c02eba07ca488"
+  },
+  "independent_source_review": {
+    "scope": "only three scoped admission functions and new test, comparing exact previous sdist bytes",
+    "historical_pins_numerical_performance_gates_unchanged": true,
+    "new_execution_source_snapshot_preserved": true,
+    "snapshot_scope": "on-disk setup bytes; existing freeze_sources does not claim continuous code identity",
+    "no_material_finding": true
+  },
+  "review_execution_script": {
+    "history": {
+      "path": "/private/tmp/wyat-prefix-history-review.py",
+      "sha256": "ba83121eaa46a5b5dcac76af57bc80e52dd3dca4f3a8f31f6323059bf38d3732",
+      "text": "\"\"\"Owned focused historical-admission review; no model checkpoint execution.\"\"\"\nfrom __future__ import annotations\nimport hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport signal\nimport subprocess\nimport time\n\nROOT = Path('/Users/teilomillet/Code/wyat')\nOUT = Path('/private/tmp/wyat-prefix-history-review')\nOUT.mkdir(exist_ok=False)\nFILES = ('benchmarks/analysis/torch/prefix/pairs.py', 'benchmarks/analysis/torch/prefix/memory/study.py', 'benchmarks/analysis/torch/prefix/latency/study.py', 'tests/analysis/test_cpu_prefix_history.py')\ndef hashes() -> dict[str, str]:\n    return {p: hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in FILES}\ncommand = [str(ROOT/'.venv/bin/python'), '-m', 'pytest', '-q', 'tests/analysis/test_cpu_prefix_history.py', 'tests/analysis/test_cpu_prefix_pairs.py', 'tests/analysis/test_cpu_prefix_memory.py', 'tests/analysis/test_cpu_prefix_latency.py']\nbefore = hashes()\nstarted = time.monotonic()\np = subprocess.Popen(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)\ntimed_out = False\ntry:\n    stdout, _ = p.communicate(timeout=60)\nexcept subprocess.TimeoutExpired:\n    timed_out = True\n    os.killpg(p.pid, signal.SIGKILL)\n    stdout, _ = p.communicate()\nwall = time.monotonic()-started\n(OUT/'stdout.txt').write_text(stdout)\nreceipt = {'command':command, 'cap_seconds':60, 'exit_code':p.returncode,'reaped':p.poll() is not None,'wall_seconds':wall,'timed_out':timed_out,'before':before,'after':hashes()}\n(OUT/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\\n')\nprint(stdout)\nprint(json.dumps(receipt))\n"
+    },
+    "runtime_final": {
+      "path": "/private/tmp/wyat-prefix-focused-final.py",
+      "sha256": "0a87efd3e1ad4ad38fb662648ba0d5e586a4cc1b37b00004ccd8db83c74fa6db",
+      "text": "import hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport signal\nimport subprocess\nimport time\n\nROOT = Path('/Users/teilomillet/Code/wyat')\nOUT = Path('/private/tmp/wyat-prefix-focused-final')\nOUT.mkdir(exist_ok=False)\npaths = ('wyat/backends/kai/torch.py', 'wyat/backends/kai/cpu/prefix.py', 'wyat/backends/kai/cpu/__init__.py', 'tests/backends/cpu/test_prefix.py')\ndef hashes() -> dict[str, str]:\n    return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}\ncommand = [str(ROOT / '.venv/bin/python'), '-m', 'pytest', '-q', 'tests/backends/cpu/test_prefix.py']\nbefore = hashes()\nstarted = time.monotonic()\nchild = subprocess.Popen(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)\ntimed_out = False\ntry:\n    stdout, _ = child.communicate(timeout=60)\nexcept subprocess.TimeoutExpired:\n    timed_out = True\n    os.killpg(child.pid, signal.SIGKILL)\n    stdout, _ = child.communicate()\nwall = time.monotonic() - started\n(OUT / 'stdout.txt').write_text(stdout)\n(OUT / 'receipt.json').write_text(json.dumps({'command': command, 'cap_seconds':60, 'wall_seconds':wall, 'exit_code':child.returncode, 'reaped':child.poll() is not None, 'timed_out':timed_out,'before':before,'after':hashes()}, indent=2)+'\\n')\nprint(stdout)\nprint(json.dumps({'wall_seconds':wall,'exit_code':child.returncode,'reaped':child.poll() is not None,'timed_out':timed_out}))\n"
+    },
+    "runtime_initial": {
+      "path": "/private/tmp/wyat-prefix-focused-check.py",
+      "sha256": "b11a2cd9eebc3646bf4a9db5c3384aeab7384af5bb2c702016d42549586540a0",
+      "text": "import hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport signal\nimport subprocess\nimport time\n\nROOT = Path('/Users/teilomillet/Code/wyat')\nOUT = Path('/private/tmp/wyat-prefix-focused-check')\nOUT.mkdir(exist_ok=False)\npaths = ('wyat/backends/kai/torch.py', 'wyat/backends/kai/cpu/prefix.py', 'wyat/backends/kai/cpu/__init__.py', 'tests/backends/cpu/test_prefix.py')\ndef hashes():\n    return {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths}\ncommand = [str(ROOT / '.venv/bin/python'), '-m', 'pytest', '-q', 'tests/backends/cpu/test_prefix.py', 'tests/backends/kai/test_torch.py', 'tests/analysis/test_cpu_prefix.py']\nbefore = hashes()\nstarted = time.monotonic()\nchild = subprocess.Popen(command, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, start_new_session=True)\ntimed_out = False\ntry:\n    stdout, _ = child.communicate(timeout=60)\nexcept subprocess.TimeoutExpired:\n    timed_out = True\n    os.killpg(child.pid, signal.SIGKILL)\n    stdout, _ = child.communicate()\nwall = time.monotonic() - started\n(OUT / 'stdout.txt').write_text(stdout)\n(OUT / 'receipt.json').write_text(json.dumps({'command': command, 'cap_seconds':60, 'wall_seconds':wall, 'exit_code':child.returncode, 'reaped':child.poll() is not None, 'timed_out':timed_out,'before':before,'after':hashes()}, indent=2)+'\\n')\nprint(stdout)\nprint(json.dumps({'wall_seconds':wall,'exit_code':child.returncode,'reaped':child.poll() is not None,'timed_out':timed_out}))\n"
+    }
+  },
+  "root_baseline_receipt_sha256": {
+    "benchmarks/real/engine-server-admission-verification.json": "0aee2454e7490ee1c8feaf3a9151a6c565385f778faddd86c4c244a335842258",
+    "benchmarks/real/package-server-admission-verification.json": "74b3ea679b942c333874dcc3ada6c3909f5dcb650abfee6f85ba792c40eef377"
+  },
+  "stdout": "........................................................................ [ 82%]\n...............                                                          [100%]\n87 passed in 5.70s\n",
+  "preserved_runtime_review_sha256": {
+    "cpu-prefix-production-focused-review.json": "e11929d814fdc0ddd9f63b80565ce63868565bbca72f11ff2b25e0b05071ba63",
+    "cpu-prefix-production-initial-review.json": "8b049cc8861e8a619e9e760e34e93623400dff99d01f17bc8940709ba9ea5e5c"
+  }
+}

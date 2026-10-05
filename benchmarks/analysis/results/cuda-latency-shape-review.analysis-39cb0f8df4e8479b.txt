@@ -1,0 +1,407 @@
+"Exploratory reconstruction of the frozen B1 paired bodies and row residences."
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import statistics
+import sys
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+
+Object = dict[str, object]
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULTS = ROOT / "benchmarks/analysis/results"
+PINS = {
+    "benchmarks/analysis/results/cuda-latency-timing-b1.json": (
+        "21ae0cc5b07571969ebcc26315fe0cc49533b43b3de92c4fbbc8c2741edb3fb6"
+    ),
+    ("benchmarks/analysis/results/cuda-latency-timing-b1-review.json"): (
+        "790c0e5f6efad23e4db8594cf068199320c43a40864719168901f61e89178d58"
+    ),
+    "benchmarks/real/torch-fp32-reference77.json": (
+        "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664"
+    ),
+    "benchmarks/real/banking77-train-dev-menu6.jsonl": (
+        "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03"
+    ),
+}
+
+
+def obj(value: object) -> Object:
+    if not isinstance(value, dict) or any(not isinstance(k, str) for k in value):
+        raise ValueError("Expected string-key object")
+    return value
+
+
+def seq(value: object) -> list[object]:
+    if not isinstance(value, list):
+        raise ValueError("Expected array")
+    return value
+
+
+def string(value: object) -> str:
+    if not isinstance(value, str):
+        raise ValueError("Expected string")
+    return value
+
+
+def number(value: object) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError("Expected finite number")
+    result = float(value)
+    if not math.isfinite(result):
+        raise ValueError("Expected finite number")
+    return result
+
+
+def read(name: str) -> Object:
+    return obj(json.loads((ROOT / name).read_bytes()))
+
+
+def verify() -> None:
+    for name, sha in PINS.items():
+        if hashlib.sha256((ROOT / name).read_bytes()).hexdigest() != sha:
+            raise ValueError(f"Changed input: {name}")
+
+
+def percentile(values: list[float], q: float) -> float:
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * q
+    low, high = math.floor(position), math.ceil(position)
+    return ordered[low] + (ordered[high] - ordered[low]) * (position - low)
+
+
+def correlation(left: list[float], right: list[float]) -> float | None:
+    a, b = statistics.mean(left), statistics.mean(right)
+    centered = [(x - a, y - b) for x, y in zip(left, right, strict=True)]
+    denominator = math.sqrt(
+        sum(x * x for x, _ in centered) * sum(y * y for _, y in centered)
+    )
+    return None if denominator == 0 else sum(x * y for x, y in centered) / denominator
+
+
+def utilization(entry: Object, offset: int) -> float:
+    ownership = [obj(v) for v in seq(entry["ownership"])]
+    if len(ownership) != 77 or number(ownership[offset]["offset"]) != offset:
+        raise ValueError("Missing ordered ownership snapshot")
+    return number(obj(ownership[offset]["snapshot"])["utilization_percent"])
+
+
+def main() -> None:
+    started = time.perf_counter()
+    verify()
+    raw = read("benchmarks/analysis/results/cuda-latency-timing-b1.json")
+    review = read(("benchmarks/analysis/results/cuda-latency-timing-b1-review.json"))
+    reference = read("benchmarks/real/torch-fp32-reference77.json")
+    if (
+        review["passed"] is not True
+        or raw["batch_size"] != 1
+        or raw["completed"] is not True
+    ):
+        raise ValueError("Only the completed independently audited B1 run is admitted")
+    cases = [obj(v) for v in seq(reference["rows"])]
+    ids = [string(c["id"]) for c in cases]
+    if len(ids) != 77 or len(set(ids)) != 77 or seq(raw["case_ids"]) != ids:
+        raise ValueError("Expected exact canonical77 case order")
+    data = [
+        obj(json.loads(line))
+        for line in (ROOT / "benchmarks/real/banking77-train-dev-menu6.jsonl")
+        .read_text()
+        .splitlines()
+    ]
+    if [string(c["id"]) for c in data] != ids:
+        raise ValueError("Dataset order mismatch")
+    for case, public in zip(cases, data, strict=True):
+        candidates = [
+            string(obj(v)["id"]) for v in seq(obj(public["request"])["candidates"])
+        ]
+        if candidates != seq(case["candidate_ids"]) or len(candidates) != 6:
+            raise ValueError("Candidate identity mismatch")
+    entries = [obj(v) for v in seq(raw["cycles"])]
+    if len(entries) != 14:
+        raise ValueError("Expected two warmup and twelve timed cohorts")
+    by_key = {string(e["key"]): e for e in entries}
+    schedule = ["warmup_math", "warmup_efficient"] + [
+        f"pair{pair}_{arm}"
+        for pair in range(6)
+        for arm in (("math", "efficient") if pair % 2 == 0 else ("efficient", "math"))
+    ]
+    if [string(e["key"]) for e in entries] != schedule:
+        raise ValueError("Unexpected alternating order")
+    bodies: dict[str, list[float]] = {}
+    residences: dict[str, list[float]] = {}
+    for key in schedule:
+        entry = by_key[key]
+        chunks = [obj(v) for v in seq(entry["chunks"])]
+        if len(chunks) != 77:
+            raise ValueError("B1 must retain exactly one chunk per case")
+        chunk_times, row_times = [], []
+        for case, chunk in zip(cases, chunks, strict=True):
+            rows = [obj(v) for v in seq(chunk["rows"])]
+            if (
+                len(rows) != 1
+                or rows[0]["id"] != case["id"]
+                or rows[0]["status"] != "ok"
+            ):
+                raise ValueError("Failed or missing canonical row")
+            prediction = obj(rows[0]["prediction"])
+            if set(seq(prediction["ranking"])) != set(seq(case["candidate_ids"])):
+                raise ValueError("Candidate ranking identity mismatch")
+            body, residence = number(chunk["latency_ms"]), number(rows[0]["latency_ms"])
+            if body <= 0 or not 0 < residence <= body:
+                raise ValueError("Invalid body/residence timing")
+            chunk_times.append(body)
+            row_times.append(residence)
+        if not math.isclose(
+            sum(chunk_times), number(obj(entry["cycle"])["latency_ms"]), rel_tol=1e-12
+        ):
+            raise ValueError("Canonical cohort sum mismatch")
+        bodies[key], residences[key] = chunk_times, row_times
+    per_case: list[Object] = []
+    pair_rows: list[Object] = []
+    for offset, case in enumerate(cases):
+        token_length = len(seq(case["token_ids"]))
+        pairs: list[Object] = []
+        for pair in range(6):
+            m, e = f"pair{pair}_math", f"pair{pair}_efficient"
+            mb, eb = bodies[m][offset], bodies[e][offset]
+            mr, er = residences[m][offset], residences[e][offset]
+            observed: Object = {
+                "id": ids[offset],
+                "case_offset": offset,
+                "pair": pair,
+                "order": "AB" if pair % 2 == 0 else "BA",
+                "token_length": token_length,
+                "math_body_ms": mb,
+                "efficient_body_ms": eb,
+                "body_ratio": mb / eb,
+                "math_residence_ms": mr,
+                "efficient_residence_ms": er,
+                "residence_ratio": mr / er,
+                "residence_change_ms": er - mr,
+                "math_bookkeeping_ms": mb - mr,
+                "efficient_bookkeeping_ms": eb - er,
+                "math_prebatch_utilization_percent": utilization(by_key[m], offset),
+                "efficient_prebatch_utilization_percent": utilization(
+                    by_key[e], offset
+                ),
+            }
+            pairs.append(observed)
+            pair_rows.append(observed)
+        ratios = [number(p["body_ratio"]) for p in pairs]
+        math_case_rows = [number(p["math_residence_ms"]) for p in pairs]
+        efficient_case_rows = [number(p["efficient_residence_ms"]) for p in pairs]
+        per_case.append(
+            {
+                "id": ids[offset],
+                "token_length": token_length,
+                "candidate_ids": case["candidate_ids"],
+                "candidate_positions": case["candidate_positions"],
+                "query_position": case["query_position"],
+                "pairs": pairs,
+                "body_ratio_median": statistics.median(ratios),
+                "body_ratio_aggregate": sum(number(p["math_body_ms"]) for p in pairs)
+                / sum(number(p["efficient_body_ms"]) for p in pairs),
+                "body_regressing_pairs": sum(r < 1 for r in ratios),
+                "residence_regressing_pairs": sum(
+                    number(p["residence_change_ms"]) > 0 for p in pairs
+                ),
+                "math_residence_p95_ms": percentile(math_case_rows, 0.95),
+                "efficient_residence_p95_ms": percentile(efficient_case_rows, 0.95),
+            }
+        )
+    math_rows = [v for pair in range(6) for v in residences[f"pair{pair}_math"]]
+    efficient_rows = [
+        v for pair in range(6) for v in residences[f"pair{pair}_efficient"]
+    ]
+    report = obj(raw["report"])
+    mp95, ep95 = percentile(math_rows, 0.95), percentile(efficient_rows, 0.95)
+    if mp95 != number(
+        obj(report["baseline"])["batch_residence_p95_ms"]
+    ) or ep95 != number(obj(report["candidate"])["batch_residence_p95_ms"]):
+        raise ValueError("Row p95 reconstruction disagrees with original report")
+    lengths = sorted({number(c["token_length"]) for c in per_case})
+    length_groups: list[Object] = []
+    for length in lengths:
+        members = [p for p in pair_rows if number(p["token_length"]) == length]
+        length_groups.append(
+            {
+                "token_length": int(length),
+                "case_ids": [
+                    c["id"] for c in per_case if number(c["token_length"]) == length
+                ],
+                "observations": len(members),
+                "body_ratio_median": statistics.median(
+                    number(p["body_ratio"]) for p in members
+                ),
+                "residence_change_median_ms": statistics.median(
+                    number(p["residence_change_ms"]) for p in members
+                ),
+            }
+        )
+    order_groups: list[Object] = []
+    for order in ("AB", "BA"):
+        selected = [p for p in pair_rows if p["order"] == order]
+        order_groups.append(
+            {
+                "order": order,
+                "pairs": 3,
+                "observations": len(selected),
+                "body_ratio_median": statistics.median(
+                    number(p["body_ratio"]) for p in selected
+                ),
+                "aggregate_body_ratio": sum(number(p["math_body_ms"]) for p in selected)
+                / sum(number(p["efficient_body_ms"]) for p in selected),
+                "residence_change_median_ms": statistics.median(
+                    number(p["residence_change_ms"]) for p in selected
+                ),
+            }
+        )
+    tail_rows = [p for p in pair_rows if number(p["efficient_residence_ms"]) >= ep95]
+    result: Object = {
+        "analysis_completed": True,
+        "captured_utc": datetime.now(UTC).isoformat(),
+        "input_sha256": PINS,
+        "scope": (
+            "Exploratory B1 only, six paired timed cohorts, 77 unique six"
+            "-choice BANKING77 training-source development cases; exposur"
+            "e unknown. Warmup excluded from shape/tail statistics."
+        ),
+        "schema": (
+            "All 77 cases retain every six-pair body and row-residence ob"
+            "servation, including regressions. No new promotion threshold"
+            " or protocol change."
+        ),
+        "canonical_performance": raw["performance"],
+        "repeated_row_residence": {
+            "observations_per_arm": 462,
+            "math_p95_ms": mp95,
+            "efficient_p95_ms": ep95,
+            "ratio_efficient_over_math": ep95 / mp95,
+            "difference_ms": ep95 - mp95,
+            "paired_regression_observations": sum(
+                number(p["residence_change_ms"]) > 0 for p in pair_rows
+            ),
+        },
+        "per_case": per_case,
+        "negative_case_ids_median_body_ratio_below_one": [
+            c["id"] for c in per_case if number(c["body_ratio_median"]) < 1
+        ],
+        "case_ids_with_any_body_regression": [
+            c["id"] for c in per_case if number(c["body_regressing_pairs"]) > 0
+        ],
+        "case_ids_with_any_residence_regression": [
+            c["id"] for c in per_case if number(c["residence_regressing_pairs"]) > 0
+        ],
+        "exact_length_groups": length_groups,
+        "order_groups": order_groups,
+        "candidate_residence_upper_tail_observations": tail_rows,
+        "exploratory_associations": {
+            "pearson_length_vs_case_median_body_ratio": correlation(
+                [number(c["token_length"]) for c in per_case],
+                [number(c["body_ratio_median"]) for c in per_case],
+            ),
+            "pearson_length_vs_paired_residence_change": [
+                {
+                    "pair": pair,
+                    "value": correlation(
+                        [
+                            number(p["token_length"])
+                            for p in pair_rows
+                            if p["pair"] == pair
+                        ],
+                        [
+                            number(p["residence_change_ms"])
+                            for p in pair_rows
+                            if p["pair"] == pair
+                        ],
+                    ),
+                }
+                for pair in range(6)
+            ],
+        },
+        "limits": [
+            (
+                "Canonical body intervals include per-batch row bookkeeping; "
+                "row residence measures the model call plus synchronization a"
+                "nd differs from body timing."
+            ),
+            (
+                "The repeated-row p95 uses 462 correlated observations per ar"
+                "m, not 462 independent requests or six cohort p95 values. Bo"
+                "th metrics are retained; neither overrides the frozen gates."
+            ),
+            (
+                "Token length, case order, menu content and preceding telemet"
+                "ry pacing are confounded; exact length groups and correlatio"
+                "ns are exploratory, not causal or inferential tests."
+            ),
+            (
+                "Prebatch utilization is a sampled utilization snapshot, not "
+                "GPU clock, power, thermal state or within-call kernel attrib"
+                "ution. Governor variation is possible but unobserved."
+            ),
+            (
+                "No profiler, frameworks, model, GPU or network execution occ"
+                "urred. Prior representative dispatch evidence does not trace"
+                " these timed calls."
+            ),
+            (
+                "No B8 data admitted and no new threshold, selection, speed c"
+                "laim or production promotion introduced."
+            ),
+        ],
+        "next_smallest_hypothesis": (
+            "If tail observations cluster by length or execution order, a"
+            " separately declared representative long/short B1 profile wi"
+            "th synchronized host/device boundaries and explicit clock/po"
+            "wer observations could distinguish launch/host overhead from"
+            " attention work. CUDA graph capture remains a separate bound"
+            "ed hypothesis requiring fixed-shape buffers, variable-length"
+            " admission and parity tests; this analysis does not establis"
+            "h its benefit."
+        ),
+        "frameworks_imported": [],
+        "process_cap_seconds": 60,
+    }
+    source = Path(__file__).read_bytes()
+    sha = hashlib.sha256(source).hexdigest()
+    archive = RESULTS / f"cuda-latency-shape-review.analysis-{sha[:16]}.txt"
+    with archive.open("xb") as handle:
+        handle.write(source)
+    result["analysis_script"] = {"path": str(archive.relative_to(ROOT)), "sha256": sha}
+    verify()
+    result["elapsed_seconds"] = time.perf_counter() - started
+    output = RESULTS / "cuda-latency-shape-review.json"
+    with output.open("x") as handle:
+        json.dump(result, handle, indent=2, allow_nan=False)
+        handle.write("\n")
+    print(
+        json.dumps(
+            {
+                "path": str(output),
+                "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
+                "row_p95": [mp95, ep95],
+                "negative_median_cases": result[
+                    "negative_case_ids_median_body_ratio_below_one"
+                ],
+                "correlation": result["exploratory_associations"],
+                "order_groups": order_groups,
+                "elapsed_seconds": result["elapsed_seconds"],
+            }
+        )
+    )
+
+
+if __name__ == "__main__":
+    if (
+        percentile([0.0, 10.0], 0.95) != 9.5
+        or correlation([1.0, 2.0, 3.0], [2.0, 4.0, 6.0]) != 1.0
+    ):
+        raise AssertionError("Pure statistic boundary checks failed")
+    if len(sys.argv) != 1:
+        raise ValueError("No optional filtering or thresholds admitted")
+    main()

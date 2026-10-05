@@ -1,0 +1,38 @@
+Wyat includes an adaptation of the Decision 2.0 candidate head and segmented
+prompt contract from the vLLM Semantic Router Team's
+vllm-sr/Decision-2.0-Kai-0.6B release, Apache License 2.0.
+
+Source revision: cd49ea3813fd8ba0928a9a23ef6c9a0f2f0cd764
+https://huggingface.co/vllm-sr/Decision-2.0-Kai-0.6B
+
+Changes: a local-only, choice-only Wyat adapter, bounded token caching,
+explicit validation, and integration with Wyat's scorer interface.
+No upstream weight files are included in this repository.
+
+Portions of wyat/backends/kai/readout.py adapt MLX-LM's maintained Qwen3
+attention implementation, Copyright © 2023–2024 Apple Inc.
+https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py
+
+The MLX-LM distribution includes the following permission notice:
+
+MIT License
+
+Copyright © 2023 Apple Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "benchmarks.analysis.torch.prefix.production.run",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-production77-b1.json",
+    "--batch-size",
+    "1",
+    "--worker"
+  ],
+  "timeout_seconds": 180,
+  "completed": true,
+  "timed_out": false,
+  "inductor_cache": null,
+  "exit_code": 0,
+  "elapsed_seconds": 135.72355837502982
+}

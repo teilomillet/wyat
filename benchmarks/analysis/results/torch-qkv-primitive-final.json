@@ -1,0 +1,8000 @@
+{
+  "completed": true,
+  "quality_passed": true,
+  "primitive_eligible": {
+    "kv": false,
+    "qkv": false
+  },
+  "accepted": false,
+  "phase": "complete",
+  "operands": [
+    {
+      "name": "scalar192",
+      "input": {
+        "case_offsets": [
+          7
+        ],
+        "case_ids": [
+          "banking77-train-03357"
+        ],
+        "full_lengths": [
+          192
+        ],
+        "padded_full_length": 192,
+        "pad_id": 151643,
+        "prefix_length": 25,
+        "input_ids_sha256": "1776013d66d7605570ec9180924cbb82d44b6847732e223850fb39428446eb62",
+        "token_ids": [
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            10234,
+            374,
+            279,
+            8350,
+            537,
+            9027,
+            304,
+            847,
+            2692,
+            369,
+            279,
+            1779,
+            358,
+            53468,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            10005,
+            1589,
+            3701,
+            8160,
+            2198,
+            792,
+            3252,
+            10005,
+            1589,
+            16888,
+            26696,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            21571,
+            537,
+            6049,
+            1283,
+            77010,
+            476,
+            8350,
+            16539,
+            2198,
+            792,
+            3252,
+            21571,
+            7913,
+            33492,
+            19844,
+            83527,
+            591,
+            8734,
+            64363,
+            85798,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            39568,
+            4379,
+            2198,
+            792,
+            3252,
+            39568,
+            9246,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            54337,
+            476,
+            22329,
+            3701,
+            2198,
+            792,
+            3252,
+            54337,
+            8734,
+            1261,
+            17205,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            15460,
+            6757,
+            389,
+            5114,
+            2198,
+            792,
+            3252,
+            15460,
+            46008,
+            4470,
+            37404,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            24188,
+            537,
+            3949,
+            553,
+            21713,
+            2198,
+            792,
+            3252,
+            24188,
+            7913,
+            40783,
+            3710,
+            7080,
+            14117,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ]
+        ],
+        "shape": [
+          1,
+          167,
+          1024
+        ],
+        "strides": [
+          196608,
+          1024,
+          1
+        ],
+        "activation_sha256": "5f5fe9e229c1c1bfef74bec9e2586227c18533418add3a821e222c33ad1bffaf"
+      },
+      "calls": [
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 0.932167,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 0.839167,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 0.770917,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 0.830208,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 0.809375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 0.77025,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "separate",
+          "latency_ms": 0.762667,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "kv",
+          "latency_ms": 0.7585,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "qkv",
+          "latency_ms": 0.755125,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "separate",
+          "latency_ms": 0.78675,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "qkv",
+          "latency_ms": 0.760166,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "kv",
+          "latency_ms": 0.803375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "kv",
+          "latency_ms": 0.748125,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "separate",
+          "latency_ms": 0.769125,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "qkv",
+          "latency_ms": 0.726292,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "kv",
+          "latency_ms": 0.85975,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "qkv",
+          "latency_ms": 0.727792,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "separate",
+          "latency_ms": 0.792208,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "qkv",
+          "latency_ms": 0.719375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "separate",
+          "latency_ms": 0.779875,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "kv",
+          "latency_ms": 0.746917,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "qkv",
+          "latency_ms": 0.722875,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "kv",
+          "latency_ms": 0.734541,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "separate",
+          "latency_ms": 0.871375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "36f2a50ce02287134870d0b11e4733670cbfa75e07fce70c02a6255b4da00a69",
+            "04ca3c949cd59f72dae2c8cc35eaa8460a3e22b2b5ada09ea9dc3af6a4ffe9ef",
+            "f1d2099cd85bf08c5243f9a4c97ff06b2a39cd278fc4bc123681e3c4e682fc4b"
+          ],
+          "output_shapes": [
+            [
+              1,
+              167,
+              2048
+            ],
+            [
+              1,
+              167,
+              1024
+            ],
+            [
+              1,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        }
+      ],
+      "completed": true,
+      "pending_calls": 0,
+      "raw_tensors": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-qkv-primitive-final.scalar192.tensors.safetensors",
+      "raw_sha256": "2611e3188281ba5790c5cdee5c5a5a8cca3a8f48d005d8b7edb160995474d611",
+      "measured_ms": {
+        "separate": [
+          0.762667,
+          0.78675,
+          0.769125,
+          0.792208,
+          0.779875,
+          0.871375
+        ],
+        "kv": [
+          0.7585,
+          0.803375,
+          0.748125,
+          0.85975,
+          0.746917,
+          0.734541
+        ],
+        "qkv": [
+          0.755125,
+          0.760166,
+          0.726292,
+          0.727792,
+          0.719375,
+          0.722875
+        ]
+      },
+      "statistics": {
+        "kv": {
+          "ratios": [
+            1.0054937376400792,
+            0.9793060525906333,
+            1.0280701754385964,
+            0.9214399534748473,
+            1.0441253847482383,
+            1.1862850405899739
+          ],
+          "median": 1.016781956539338,
+          "p05": 0.9359064782537938
+        },
+        "qkv": {
+          "ratios": [
+            1.0099877503724548,
+            1.0349713088983195,
+            1.0589749026562318,
+            1.0885088047134346,
+            1.0841007819287576,
+            1.2054297077641363
+          ],
+          "median": 1.0715378422924946,
+          "p05": 1.016233640003921
+        }
+      }
+    },
+    {
+      "name": "scalar197",
+      "input": {
+        "case_offsets": [
+          18
+        ],
+        "case_ids": [
+          "banking77-train-00566"
+        ],
+        "full_lengths": [
+          197
+        ],
+        "padded_full_length": 197,
+        "pad_id": 151643,
+        "prefix_length": 25,
+        "input_ids_sha256": "1688638ea8453c01be85d71bfcfc3a90f2f03cc476118112c916be6f2cc740d0",
+        "token_ids": [
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            9707,
+            11,
+            358,
+            4411,
+            1052,
+            702,
+            1012,
+            264,
+            16523,
+            1865,
+            389,
+            279,
+            9289,
+            4379,
+            369,
+            847,
+            3701,
+            13,
+            16503,
+            498,
+            4486,
+            1779,
+            279,
+            3946,
+            946,
+            17033,
+            9289,
+            4379,
+            369,
+            752,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            13528,
+            11430,
+            10917,
+            2198,
+            792,
+            3252,
+            13528,
+            4138,
+            92249,
+            54178,
+            558,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3481,
+            9989,
+            705,
+            553,
+            3701,
+            2198,
+            792,
+            3252,
+            3481,
+            9989,
+            8237,
+            3710,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            4951,
+            8160,
+            4969,
+            9289,
+            4379,
+            2198,
+            792,
+            3252,
+            4951,
+            26696,
+            75198,
+            59212,
+            9246,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            24188,
+            18405,
+            2198,
+            792,
+            3252,
+            24188,
+            70973,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            18515,
+            8317,
+            2198,
+            792,
+            3252,
+            18515,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            10005,
+            1589,
+            8350,
+            29736,
+            2198,
+            792,
+            3252,
+            10005,
+            1589,
+            64363,
+            6615,
+            7633,
+            278,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ]
+        ],
+        "shape": [
+          1,
+          172,
+          1024
+        ],
+        "strides": [
+          201728,
+          1024,
+          1
+        ],
+        "activation_sha256": "00a6a80fac3e78b7ef4933187aa2a44c872a6558eb071c96c39e0443cb3070e9"
+      },
+      "calls": [
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 0.794,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 0.79075,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 0.757916,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 0.77525,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 0.752709,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 0.722917,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "separate",
+          "latency_ms": 0.771334,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "kv",
+          "latency_ms": 0.756833,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "qkv",
+          "latency_ms": 0.723375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "separate",
+          "latency_ms": 0.791959,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "qkv",
+          "latency_ms": 0.711166,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "kv",
+          "latency_ms": 0.757542,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "kv",
+          "latency_ms": 0.7475,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "separate",
+          "latency_ms": 0.769833,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "qkv",
+          "latency_ms": 0.737875,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "kv",
+          "latency_ms": 0.760542,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "qkv",
+          "latency_ms": 0.734375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "separate",
+          "latency_ms": 0.766917,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "qkv",
+          "latency_ms": 0.720541,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "separate",
+          "latency_ms": 0.771916,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "kv",
+          "latency_ms": 0.75625,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "qkv",
+          "latency_ms": 0.754417,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ],
+            [
+              704512,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "kv",
+          "latency_ms": 0.755833,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              352256,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "separate",
+          "latency_ms": 0.785791,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "147f4644750473f72d3b7a4b3b201d5278d9abc14c78ddf064b8355fd3e9493b",
+            "66fcefbf8d6b26000d210373820243e06c291fdc363141fec97a7acc29e0e179",
+            "01eda6ab01ee7e7a6af0c103336d0b7277a89d62d53f9501cbd8dd704e306521"
+          ],
+          "output_shapes": [
+            [
+              1,
+              172,
+              2048
+            ],
+            [
+              1,
+              172,
+              1024
+            ],
+            [
+              1,
+              172,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              352256,
+              2048,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ],
+            [
+              176128,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        }
+      ],
+      "completed": true,
+      "pending_calls": 0,
+      "raw_tensors": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-qkv-primitive-final.scalar197.tensors.safetensors",
+      "raw_sha256": "ddd56791208c51b3cac505a28031b432ba0bdfd7dc5a832f67ebf739cb19128e",
+      "measured_ms": {
+        "separate": [
+          0.771334,
+          0.791959,
+          0.769833,
+          0.766917,
+          0.771916,
+          0.785791
+        ],
+        "kv": [
+          0.756833,
+          0.757542,
+          0.7475,
+          0.760542,
+          0.75625,
+          0.755833
+        ],
+        "qkv": [
+          0.723375,
+          0.711166,
+          0.737875,
+          0.734375,
+          0.720541,
+          0.754417
+        ]
+      },
+      "statistics": {
+        "kv": {
+          "ratios": [
+            1.0191601053336734,
+            1.0454324644706168,
+            1.029876923076923,
+            1.0083821800768398,
+            1.0207153719008266,
+            1.0396357396408995
+          ],
+          "median": 1.0252961474888749,
+          "p05": 1.0110766613910482
+        },
+        "qkv": {
+          "ratios": [
+            1.066298945913254,
+            1.1136063872569837,
+            1.0433108588853126,
+            1.0443125106382978,
+            1.071300592193921,
+            1.0415870798245532
+          ],
+          "median": 1.0553057282757758,
+          "p05": 1.042018024589743
+        }
+      }
+    },
+    {
+      "name": "scalar214",
+      "input": {
+        "case_offsets": [
+          75
+        ],
+        "case_ids": [
+          "banking77-train-02413"
+        ],
+        "full_lengths": [
+          214
+        ],
+        "padded_full_length": 214,
+        "pad_id": 151643,
+        "prefix_length": 25,
+        "input_ids_sha256": "68a8becfcc06a19abbbb6b5ecc003945fd531ca5025fbcd14119b43f3d31531b",
+        "token_ids": [
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            40,
+            1079,
+            773,
+            18514,
+            1290,
+            1431,
+            0,
+            220,
+            358,
+            3937,
+            311,
+            279,
+            46035,
+            323,
+            1521,
+            537,
+            633,
+            279,
+            4396,
+            3311,
+            315,
+            3220,
+            358,
+            14554,
+            311,
+            14798,
+            13,
+            220,
+            2585,
+            1410,
+            419,
+            3537,
+            30,
+            220,
+            358,
+            1184,
+            847,
+            3220,
+            323,
+            1366,
+            311,
+            1414,
+            1246,
+            358,
+            646,
+            633,
+            432,
+            66490,
+            4894,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            48061,
+            2692,
+            2198,
+            792,
+            3252,
+            48061,
+            13500,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            11141,
+            1824,
+            2198,
+            792,
+            3252,
+            11141,
+            25827,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            83456,
+            1909,
+            705,
+            2198,
+            792,
+            3252,
+            83456,
+            10426,
+            8237,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            34870,
+            3311,
+            315,
+            8350,
+            3949,
+            2198,
+            792,
+            3252,
+            34870,
+            13471,
+            3575,
+            64363,
+            40783,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            4243,
+            17421,
+            3701,
+            13388,
+            2198,
+            792,
+            3252,
+            4243,
+            17421,
+            16888,
+            31820,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3481,
+            705,
+            553,
+            8350,
+            476,
+            77010,
+            2198,
+            792,
+            3252,
+            3481,
+            8237,
+            3710,
+            64363,
+            8734,
+            83527,
+            591,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ]
+        ],
+        "shape": [
+          1,
+          189,
+          1024
+        ],
+        "strides": [
+          219136,
+          1024,
+          1
+        ],
+        "activation_sha256": "225adca019876f80fc50e30defcc3c276f974b243c0e40243375153f9292b5c8"
+      },
+      "calls": [
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 0.80725,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 0.782834,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 0.759291,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 0.782417,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 0.787916,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 0.796792,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "separate",
+          "latency_ms": 0.869417,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "kv",
+          "latency_ms": 0.808208,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "qkv",
+          "latency_ms": 0.76225,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "separate",
+          "latency_ms": 0.796416,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "qkv",
+          "latency_ms": 0.753334,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "kv",
+          "latency_ms": 0.797209,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "kv",
+          "latency_ms": 0.775916,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "separate",
+          "latency_ms": 0.793834,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "qkv",
+          "latency_ms": 0.747084,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "kv",
+          "latency_ms": 0.784375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "qkv",
+          "latency_ms": 0.772416,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "separate",
+          "latency_ms": 0.791291,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "qkv",
+          "latency_ms": 0.733458,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "separate",
+          "latency_ms": 0.8425,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "kv",
+          "latency_ms": 0.78525,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "qkv",
+          "latency_ms": 0.769541,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ],
+            [
+              774144,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "kv",
+          "latency_ms": 0.778875,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              387072,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "separate",
+          "latency_ms": 0.806375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "3eb01e75a37195174a08957d481284ad94fa9d08e60b6170e83e1cd03ee36753",
+            "407bf505e3abdbd840148da05bd168ba544d20046aa1dd5a86db1443df1dc4e1",
+            "90ac4148892d032d7b9aeb93ac8b2ea9e7e0d0a9ccc25fa35e5f6f78c59c9d69"
+          ],
+          "output_shapes": [
+            [
+              1,
+              189,
+              2048
+            ],
+            [
+              1,
+              189,
+              1024
+            ],
+            [
+              1,
+              189,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              387072,
+              2048,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ],
+            [
+              193536,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        }
+      ],
+      "completed": true,
+      "pending_calls": 0,
+      "raw_tensors": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-qkv-primitive-final.scalar214.tensors.safetensors",
+      "raw_sha256": "0c8e7d56d9d7d28032d5829638221a9a9a71c9dc5c91b35f9d0e52550ef2fa63",
+      "measured_ms": {
+        "separate": [
+          0.869417,
+          0.796416,
+          0.793834,
+          0.791291,
+          0.8425,
+          0.806375
+        ],
+        "kv": [
+          0.808208,
+          0.797209,
+          0.775916,
+          0.784375,
+          0.78525,
+          0.778875
+        ],
+        "qkv": [
+          0.76225,
+          0.753334,
+          0.747084,
+          0.772416,
+          0.733458,
+          0.769541
+        ]
+      },
+      "statistics": {
+        "kv": {
+          "ratios": [
+            1.0757342169342545,
+            0.9990052796694469,
+            1.0230927059114647,
+            1.0088172111553784,
+            1.072906717605858,
+            1.0353073342962607
+          ],
+          "median": 1.0292000201038627,
+          "p05": 1.0014582625409298
+        },
+        "qkv": {
+          "ratios": [
+            1.1405929813053461,
+            1.057188444965978,
+            1.0625766312757334,
+            1.024436314110531,
+            1.1486683627419703,
+            1.0478648960874077
+          ],
+          "median": 1.0598825381208559,
+          "p05": 1.0302934596047502
+        }
+      }
+    },
+    {
+      "name": "batch8",
+      "input": {
+        "case_offsets": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "case_ids": [
+          "banking77-train-05698",
+          "banking77-train-09214",
+          "banking77-train-01636",
+          "banking77-train-09708",
+          "banking77-train-04562",
+          "banking77-train-01221",
+          "banking77-train-08638",
+          "banking77-train-03357"
+        ],
+        "full_lengths": [
+          172,
+          170,
+          176,
+          173,
+          180,
+          180,
+          189,
+          192
+        ],
+        "padded_full_length": 192,
+        "pad_id": 151643,
+        "prefix_length": 25,
+        "input_ids_sha256": "bc7b9113cc8c9834ed58762ab8b7cf86403b3d33dad996119b576794f96965a1",
+        "token_ids": [
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            40,
+            614,
+            264,
+            7402,
+            20965,
+            198,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            10005,
+            1589,
+            8317,
+            2198,
+            792,
+            3252,
+            10005,
+            1589,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            266,
+            76,
+            1824,
+            2198,
+            792,
+            3252,
+            266,
+            76,
+            25827,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3481,
+            9989,
+            705,
+            553,
+            3701,
+            2198,
+            792,
+            3252,
+            3481,
+            9989,
+            8237,
+            3710,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            2035,
+            20965,
+            2198,
+            792,
+            3252,
+            2035,
+            7793,
+            1241,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            15460,
+            6757,
+            389,
+            5114,
+            2198,
+            792,
+            3252,
+            15460,
+            46008,
+            4470,
+            37404,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3945,
+            1241,
+            537,
+            9027,
+            705,
+            2198,
+            792,
+            3252,
+            3945,
+            1241,
+            7913,
+            15267,
+            287,
+            8237,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ],
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            3838,
+            374,
+            4362,
+            311,
+            20276,
+            847,
+            3701,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            12446,
+            847,
+            9569,
+            2198,
+            792,
+            3252,
+            12446,
+            35686,
+            46244,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3481,
+            705,
+            553,
+            8350,
+            476,
+            77010,
+            2198,
+            792,
+            3252,
+            3481,
+            8237,
+            3710,
+            64363,
+            8734,
+            83527,
+            591,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            16091,
+            8317,
+            2198,
+            792,
+            3252,
+            16091,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            16856,
+            847,
+            3701,
+            2198,
+            792,
+            3252,
+            16856,
+            35686,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            4951,
+            18647,
+            2198,
+            792,
+            3252,
+            4951,
+            11210,
+            3936,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            5689,
+            441,
+            4056,
+            3701,
+            2198,
+            792,
+            3252,
+            5689,
+            441,
+            4056,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ],
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            3872,
+            1052,
+            458,
+            4231,
+            3930,
+            311,
+            979,
+            847,
+            1682,
+            646,
+            990,
+            1493,
+            3516,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            21571,
+            537,
+            6049,
+            1283,
+            6073,
+            8317,
+            2198,
+            792,
+            3252,
+            21571,
+            7913,
+            33492,
+            19844,
+            35733,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            424,
+            3930,
+            2198,
+            792,
+            3252,
+            424,
+            14763,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            45928,
+            311,
+            10146,
+            9569,
+            2198,
+            792,
+            3252,
+            45928,
+            2346,
+            35638,
+            46244,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            4951,
+            9691,
+            16045,
+            2198,
+            792,
+            3252,
+            4951,
+            50562,
+            78718,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            12446,
+            847,
+            9569,
+            2198,
+            792,
+            3252,
+            12446,
+            35686,
+            46244,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            455,
+            6961,
+            3701,
+            2198,
+            792,
+            3252,
+            455,
+            84980,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ],
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            40,
+            646,
+            944,
+            990,
+            1909,
+            705,
+            389,
+            5085,
+            11471,
+            624,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            13528,
+            11430,
+            10917,
+            2198,
+            792,
+            3252,
+            13528,
+            4138,
+            92249,
+            54178,
+            558,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            12446,
+            847,
+            9569,
+            2198,
+            792,
+            3252,
+            12446,
+            35686,
+            46244,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3481,
+            705,
+            13388,
+            2198,
+            792,
+            3252,
+            3481,
+            8237,
+            31820,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            54337,
+            476,
+            22329,
+            4540,
+            2198,
+            792,
+            3252,
+            54337,
+            8734,
+            1261,
+            17205,
+            22154,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            16091,
+            8317,
+            2198,
+            792,
+            3252,
+            16091,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            22377,
+            2291,
+            476,
+            11558,
+            2291,
+            2198,
+            792,
+            3252,
+            22377,
+            28925,
+            8734,
+            47155,
+            28925,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ],
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            3838,
+            3093,
+            315,
+            7369,
+            21634,
+            1035,
+            419,
+            3701,
+            387,
+            11666,
+            518,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            16856,
+            847,
+            3701,
+            2198,
+            792,
+            3252,
+            16856,
+            35686,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3481,
+            9989,
+            705,
+            553,
+            3701,
+            2198,
+            792,
+            3252,
+            3481,
+            9989,
+            8237,
+            3710,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            4951,
+            9691,
+            16045,
+            2198,
+            792,
+            3252,
+            4951,
+            50562,
+            78718,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            10005,
+            1589,
+            3701,
+            8160,
+            2198,
+            792,
+            3252,
+            10005,
+            1589,
+            16888,
+            26696,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            41271,
+            29736,
+            537,
+            38664,
+            2198,
+            792,
+            3252,
+            41271,
+            6615,
+            7633,
+            278,
+            7913,
+            7080,
+            3934,
+            4056,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            266,
+            76,
+            1824,
+            2198,
+            792,
+            3252,
+            266,
+            76,
+            25827,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ],
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            40,
+            6617,
+            498,
+            614,
+            458,
+            3233,
+            8175,
+            705,
+            2999,
+            11,
+            1380,
+            653,
+            358,
+            1477,
+            429,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            21571,
+            537,
+            6049,
+            1283,
+            6073,
+            8317,
+            2198,
+            792,
+            3252,
+            21571,
+            7913,
+            33492,
+            19844,
+            35733,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            83456,
+            1909,
+            705,
+            2198,
+            792,
+            3252,
+            83456,
+            10426,
+            8237,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            265,
+            21630,
+            3701,
+            8160,
+            30,
+            2198,
+            792,
+            3252,
+            265,
+            21630,
+            16888,
+            26696,
+            7521,
+            532,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            10005,
+            1589,
+            8317,
+            2198,
+            792,
+            3252,
+            10005,
+            1589,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            28210,
+            8317,
+            2198,
+            792,
+            3252,
+            28210,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            28210,
+            1909,
+            705,
+            2198,
+            792,
+            3252,
+            28210,
+            10426,
+            8237,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ],
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            4340,
+            646,
+            358,
+            5046,
+            847,
+            6073,
+            8317,
+            311,
+            1473,
+            705,
+            389,
+            847,
+            6073,
+            2692,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            13528,
+            11430,
+            10917,
+            2198,
+            792,
+            3252,
+            13528,
+            4138,
+            92249,
+            54178,
+            558,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            3481,
+            705,
+            553,
+            8350,
+            476,
+            77010,
+            2198,
+            792,
+            3252,
+            3481,
+            8237,
+            3710,
+            64363,
+            8734,
+            83527,
+            591,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            9983,
+            266,
+            11413,
+            1824,
+            2198,
+            792,
+            3252,
+            9983,
+            266,
+            34710,
+            25827,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            21571,
+            537,
+            6049,
+            1283,
+            6073,
+            8317,
+            2198,
+            792,
+            3252,
+            21571,
+            7913,
+            33492,
+            19844,
+            35733,
+            35403,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            16856,
+            847,
+            3701,
+            2198,
+            792,
+            3252,
+            16856,
+            35686,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            50110,
+            23863,
+            3701,
+            2198,
+            792,
+            3252,
+            50110,
+            643,
+            3380,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ],
+          [
+            1972,
+            510,
+            1957,
+            1437,
+            279,
+            6002,
+            594,
+            22798,
+            1824,
+            1681,
+            1119,
+            6896,
+            825,
+            315,
+            279,
+            17221,
+            93515,
+            382,
+            6262,
+            943,
+            25,
+            5754,
+            198,
+            14582,
+            510,
+            10234,
+            374,
+            279,
+            8350,
+            537,
+            9027,
+            304,
+            847,
+            2692,
+            369,
+            279,
+            1779,
+            358,
+            53468,
+            5267,
+            3798,
+            25,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            10005,
+            1589,
+            3701,
+            8160,
+            2198,
+            792,
+            3252,
+            10005,
+            1589,
+            16888,
+            26696,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            21571,
+            537,
+            6049,
+            1283,
+            77010,
+            476,
+            8350,
+            16539,
+            2198,
+            792,
+            3252,
+            21571,
+            7913,
+            33492,
+            19844,
+            83527,
+            591,
+            8734,
+            64363,
+            85798,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            39568,
+            4379,
+            2198,
+            792,
+            3252,
+            39568,
+            9246,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            54337,
+            476,
+            22329,
+            3701,
+            2198,
+            792,
+            3252,
+            54337,
+            8734,
+            1261,
+            17205,
+            16888,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            15460,
+            6757,
+            389,
+            5114,
+            2198,
+            792,
+            3252,
+            15460,
+            46008,
+            4470,
+            37404,
+            16707,
+            522,
+            2047,
+            29,
+            198,
+            14296,
+            397,
+            4913,
+            4684,
+            3252,
+            24188,
+            537,
+            3949,
+            553,
+            21713,
+            2198,
+            792,
+            3252,
+            24188,
+            7913,
+            40783,
+            3710,
+            7080,
+            14117,
+            16707,
+            522,
+            2047,
+            29,
+            271,
+            3379,
+            279,
+            3175,
+            2999,
+            1850,
+            7248,
+            553,
+            279,
+            2266,
+            323,
+            11221,
+            624,
+            74846,
+            25
+          ]
+        ],
+        "shape": [
+          8,
+          167,
+          1024
+        ],
+        "strides": [
+          171008,
+          1024,
+          1
+        ],
+        "activation_sha256": "03762aa6a808c7c4ad5bd340f0b33b69c75ed5c970e51ee74f096040c5d5f499"
+      },
+      "calls": [
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 4.177708,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 4.178458,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "cold",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 3.498541,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "separate",
+          "latency_ms": 4.566375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "kv",
+          "latency_ms": 4.18175,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "warm",
+          "repeat": -1,
+          "arm": "qkv",
+          "latency_ms": 3.732291,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "separate",
+          "latency_ms": 3.823791,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "kv",
+          "latency_ms": 3.818833,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 0,
+          "arm": "qkv",
+          "latency_ms": 3.655417,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "separate",
+          "latency_ms": 4.250167,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "qkv",
+          "latency_ms": 4.169208,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 1,
+          "arm": "kv",
+          "latency_ms": 3.763666,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "kv",
+          "latency_ms": 4.150833,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "separate",
+          "latency_ms": 4.472333,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 2,
+          "arm": "qkv",
+          "latency_ms": 3.628875,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "kv",
+          "latency_ms": 4.154166,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "qkv",
+          "latency_ms": 4.099667,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 3,
+          "arm": "separate",
+          "latency_ms": 4.178375,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "qkv",
+          "latency_ms": 4.398542,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "separate",
+          "latency_ms": 4.162541,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 4,
+          "arm": "kv",
+          "latency_ms": 4.153,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "qkv",
+          "latency_ms": 3.506125,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ],
+            [
+              684032,
+              4096,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "kv",
+          "latency_ms": 3.731625,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              342016,
+              2048,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        },
+        {
+          "stage": "measured",
+          "repeat": 5,
+          "arm": "separate",
+          "latency_ms": 4.635333,
+          "invalid_latency_repr": null,
+          "output_sha256": [
+            "cd49bad1418a708eb883465699540ea6410c76262317e419cf5559419362b3a1",
+            "57910d59e4dedfeaeb47b9fb293b4dcc72559ed00792bce0fd9e73fc71f4794c",
+            "d8ca45a68c0cef29bfa9fcec9198243522ebf87d81659645262f327914069e2b"
+          ],
+          "output_shapes": [
+            [
+              8,
+              167,
+              2048
+            ],
+            [
+              8,
+              167,
+              1024
+            ],
+            [
+              8,
+              167,
+              1024
+            ]
+          ],
+          "output_strides": [
+            [
+              342016,
+              2048,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ],
+            [
+              171008,
+              1024,
+              1
+            ]
+          ],
+          "quality": {
+            "passed": true,
+            "finite": true,
+            "failed_elements": 0,
+            "max_absolute_error": 0.0,
+            "max_relative_error": 0.0,
+            "atol": 0.001,
+            "rtol": 0.001,
+            "rule": "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))"
+          }
+        }
+      ],
+      "completed": true,
+      "pending_calls": 0,
+      "raw_tensors": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-qkv-primitive-final.batch8.tensors.safetensors",
+      "raw_sha256": "0d5c1897b1139759d9dbf8535b886dd7fff88dcacbe7877fd0a25b05b9761297",
+      "measured_ms": {
+        "separate": [
+          3.823791,
+          4.250167,
+          4.472333,
+          4.178375,
+          4.162541,
+          4.635333
+        ],
+        "kv": [
+          3.818833,
+          3.763666,
+          4.150833,
+          4.154166,
+          4.153,
+          3.731625
+        ],
+        "qkv": [
+          3.655417,
+          4.169208,
+          3.628875,
+          4.099667,
+          4.398542,
+          3.506125
+        ]
+      },
+      "statistics": {
+        "kv": {
+          "ratios": [
+            1.001298302387143,
+            1.1292625328602486,
+            1.0774543326604562,
+            1.005827643864015,
+            1.0022973753912836,
+            1.2421754597527885
+          ],
+          "median": 1.0416409882622357,
+          "p05": 1.001548070638178
+        },
+        "qkv": {
+          "ratios": [
+            1.046061502695862,
+            1.0194183163804733,
+            1.2324296097275327,
+            1.019198632474296,
+            0.9463456299837537,
+            1.322067239473778
+          ],
+          "median": 1.0327399095381677,
+          "p05": 0.9645588806063893
+        }
+      }
+    }
+  ],
+  "protocol": {
+    "profiles": [
+      [
+        "scalar192",
+        [
+          7
+        ]
+      ],
+      [
+        "scalar197",
+        [
+          18
+        ]
+      ],
+      [
+        "scalar214",
+        [
+          75
+        ]
+      ],
+      [
+        "batch8",
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      ]
+    ],
+    "orders": [
+      [
+        "separate",
+        "kv",
+        "qkv"
+      ],
+      [
+        "separate",
+        "qkv",
+        "kv"
+      ],
+      [
+        "kv",
+        "separate",
+        "qkv"
+      ],
+      [
+        "kv",
+        "qkv",
+        "separate"
+      ],
+      [
+        "qkv",
+        "separate",
+        "kv"
+      ],
+      [
+        "qkv",
+        "kv",
+        "separate"
+      ]
+    ],
+    "arms": [
+      "separate",
+      "kv",
+      "qkv"
+    ],
+    "cold_calls": 1,
+    "warm_calls": 1,
+    "measured_calls_per_arm": 6,
+    "total_invocations": 96,
+    "threads": 8,
+    "dtype": "float32",
+    "device": "cpu",
+    "projection_gate": {
+      "atol": 0.001,
+      "rtol": 0.001,
+      "rule": "symmetric max, not additive"
+    },
+    "eligibility": {
+      "all_four_operands": true,
+      "median_minimum": 1.12,
+      "p05_exclusive": 1.0
+    },
+    "timing": "One project() call including F.linear, split and tuple validation; no observer/I/O/quality/setup inside clock",
+    "scope": "Layer0 projection only; no attention/head/rank/probability/model speed or promotion"
+  },
+  "asset_sha256": {
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/MODEL_MANIFEST.json": "ca7bf2cff1494a5bfc51f4271f52557da0f3ce3b6f0f6e7a2b4118cb4965e92e",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/config.json": "fcf62f425b626755c6df66630215aed57c70b38bf779e6ac9aeff376224310ac",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/backbone/model.safetensors": "43369a2bfddb61495beb7cea6bf30d7564a5c5caff31f4dbf2e6cfce48423b69",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/config.json": "35ce70886f7642ec5eacf969e27da404915824aa25f6a30a19a1107cb2ec99b3",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/decision_config.json": "4778b8818f8510bf761eebba48ec5ffd5941c8f95ef2b228a97162fb0c814a6e",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/decision_head.safetensors": "508dfe385c8fde8eb0b4eec5c199f5fe8363efeb247de024a08765b53183409d",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/tokenizer.json": "be75606093db2094d7cd20f3c2f385c212750648bd6ea4fb2bf507a6a4c55506",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B/tokenizer_config.json": "cbea7bca9904d56693d2226b00fd564e3be053609d1e50f8f1885510f0f6e790",
+    "/Users/teilomillet/Code/wyat/benchmarks/real/banking77-train-dev-menu6.jsonl": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+    "/Users/teilomillet/Code/wyat/benchmarks/real/torch-fp32-reference77.json": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664"
+  },
+  "source_sha256": {
+    "benchmarks/analysis/evidence.py": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "benchmarks/analysis/torch/autotune.py": "f092983c781a2665831d3d05b3ec4d6e7cd23b49320c783affbbddcc3b3fa504",
+    "benchmarks/analysis/torch/prefix/production/study.py": "33da6b96ece624a95192743661094a1ae0e5472cac3cdf16370495da9029d74e",
+    "benchmarks/analysis/torch/process.py": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+    "benchmarks/analysis/torch/projection/__init__.py": "b235c0bfbc6e210e969126d81ba6e9cf42ef5ed4304dcd11bc2e8243f06d11b1",
+    "benchmarks/analysis/torch/projection/qkv.py": "5ae53534cdcdf2b98c814056c5f25b6727d573f4216ab4a5f19c62c0a38df8a1",
+    "benchmarks/analysis/torch/projection/run.py": "a40a433052226e79ecedd1f9271a29f12c7a094c441bd5f66799050c6782e120",
+    "benchmarks/analysis/torch/projection/study.py": "b93cc46e898df16a563fde5e948836326ee02cc3d415046cfd1301a93367bd95",
+    "docs/analysis/cpu/projection.md": "0e0c363b4699515deec022d29b65d747597149c84e1d57c77e1be95390395701",
+    "maintained_functional": "95ff403085bb179477a01df63acfddf59dfac0fb58829e99a9c8b5c2fe98899b",
+    "maintained_qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "tests/analysis/cpu/projection/test_qkv.py": "2784edd518a7e99a08dddedfb2b9aa45e2484e8ff57cd856c2ab2c6dedc2d798",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "source_archive": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-qkv-primitive-final.sources-eff85f9cc7c03a0d.json",
+    "sha256": "eff85f9cc7c03a0d045499df4c984d9747e6c7c23d60efad53c841caf2b97fb6"
+  },
+  "process_policy": {
+    "flash_sdpa": true,
+    "math_sdpa": true,
+    "efficient_sdpa": true,
+    "cudnn_sdpa": true,
+    "float32_matmul_precision": "highest",
+    "cpu_autocast": false
+  },
+  "versions": {
+    "torch": "2.14.1",
+    "transformers": "5.18.0",
+    "safetensors": "0.8.0"
+  },
+  "torch_build": "PyTorch built with:\n  - GCC 4.2\n  - C++ Version: 202002\n  - clang 21.0.0\n  - OpenMP 202011\n  - LAPACK is enabled (usually provided by MKL)\n  - NNPACK is enabled\n  - CPU capability usage: DEFAULT\n  - Build settings: BLAS_INFO=accelerate, BUILD_TYPE=Release, COMMIT_SHA=5c4886908584029761b579af026dcfb627c84070, CUDA_FLAGS= -DLIBCUDACXX_ENABLE_SIMPLIFIED_COMPLEX_OPERATIONS -Xfatbin -compress-all  -Wno-deprecated-gpu-targets --expt-extended-lambda -DCUB_WRAPPED_NAMESPACE=at_cuda_detail -DDISABLE_CUSPARSE_DEPRECATED -DCUDA_HAS_FP16=1 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ -D__CUDA_NO_BFLOAT16_CONVERSIONS__ -DC10_NODEPRECATED, CXX_COMPILER=/usr/bin/c++, CXX_FLAGS= -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -DNDEBUG -DUSE_KINETO -DUSE_PYTORCH_QNNPACK -DAT_BUILD_ARM_VEC256_WITH_SLEEF -DUSE_PYTORCH_METAL_EXPORT -DSYMBOLICATE_MOBILE_DEBUG_HANDLE -DUSE_COREML_DELEGATE -O2 -fPIC -DC10_NODEPRECATED -Wall -Wextra -Werror=return-type -Werror=non-virtual-dtor -Werror=braced-scalar-init -Werror=range-loop-construct -Werror=bool-operation -Wnarrowing -Wno-missing-field-initializers -Wno-unknown-pragmas -Wno-unused-parameter -Wno-strict-overflow -Wno-strict-aliasing -Wvla-extension -Wsuggest-override -Wnewline-eof -Winconsistent-missing-override -Winconsistent-missing-destructor-override -Wno-pass-failed -Wno-error=old-style-cast -Wconstant-conversion -Qunused-arguments -faligned-new -fno-math-errno -fno-trapping-math -Werror=format -fclang-abi-compat=17 -DUSE_MPS -Wno-missing-braces, LAPACK_INFO=accelerate, TORCH_VERSION=2.14.1, USE_CUDA=OFF, USE_CUDNN=OFF, USE_CUSPARSELT=OFF, USE_EIGEN_FOR_BLAS=ON, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_GLOO=ON, USE_HIPSPARSELT=OFF, USE_MKL=OFF, USE_MKLDNN=OFF, USE_MPI=OFF, USE_NCCL=OFF, USE_NNPACK=ON, USE_OPENMP=ON, USE_ROCM=OFF, USE_ROCM_KERNEL_ASSERT=OFF, USE_XCCL=OFF, USE_XPU=OFF, \n",
+  "prior_threads": 8,
+  "weight_identities": {
+    "q": {
+      "shape": [
+        2048,
+        1024
+      ],
+      "sha256": "401ac8dc0152f3e56eaf8bbaead3073a3ccc84481b9f5004f0be82223c7b0cb7",
+      "dtype": "torch.float32"
+    },
+    "k": {
+      "shape": [
+        1024,
+        1024
+      ],
+      "sha256": "ede59cfa0296ac698d4de4c20a31e3be2c97994f93d4e23e54a5e2338f8025c8",
+      "dtype": "torch.float32"
+    },
+    "v": {
+      "shape": [
+        1024,
+        1024
+      ],
+      "sha256": "694bbb45b7f7cb4a8b0cb13c20b72541c683cdd5ebab7656d321bc4e8bfd2797",
+      "dtype": "torch.float32"
+    },
+    "norm": {
+      "sha256": "4a3e6dc056ca15e7c852482f045399fc24f4e8eb87ba296694fe5c054c7b2784",
+      "epsilon": 1e-06
+    }
+  },
+  "retained_projection_bytes": 16777216,
+  "setup_projection_logical_peak_bytes": 33554432,
+  "hypothetical_all28_projection_bytes": 469762048,
+  "ownership": "One packed storage, separate Q/K/V and packedKV views alias it; setup originals released; no RSS claim",
+  "threads_restored": true,
+  "source_verified_after": true,
+  "asset_verified_after": true
+}

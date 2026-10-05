@@ -1,0 +1,352 @@
+"""Four pinned representative profiles: raw cost tables, never critical paths."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import sys
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import cast
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULTS = ROOT / "benchmarks/analysis/results"
+PINS = {
+    1: (
+        "c41d4d08665c9089f1e279814d6caf47a5dbe1c4fe31df2d5ffacd9763a7ed4b",
+        "b25958e32c9dffebb9c773b99c4e822a8776261f35426a927c154043fafd5c7d",
+    ),
+    8: (
+        "51a31cddb936fb9eb1c7c8887e04d10b34b569b0ef9051a3a5ebbc73fcd4b49e",
+        "067e0c36aecfd8e714fa17b1eb0b454be38007d31490e29d840504705b6b64f9",
+    ),
+}
+TIMING_PINS = {
+    1: "790c0e5f6efad23e4db8594cf068199320c43a40864719168901f61e89178d58",
+    8: "90cf3e329378d4ec7756c2fb7d79bc6e7377963c815bf53fc68af1c24ad2e8df",
+}
+
+
+def obj(value: object) -> dict[str, object]:
+    assert isinstance(value, dict) and all(isinstance(k, str) for k in value)
+    return cast(dict[str, object], value)
+
+
+def array(value: object) -> list[object]:
+    assert isinstance(value, list)
+    return cast(list[object], value)
+
+
+def number(value: object) -> float:
+    assert type(value) in (int, float)
+    result = float(cast(float, value))
+    assert math.isfinite(result) and result >= 0
+    return result
+
+
+def unique(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for k, v in pairs:
+        assert k not in result
+        result[k] = v
+    return result
+
+
+def read(path: Path) -> dict[str, object]:
+    return obj(json.loads(path.read_bytes(), object_pairs_hook=unique))
+
+
+def sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def classification(name: str) -> str:
+    lower = name.lower()
+    if "memcpy" in lower or "memset" in lower:
+        return "runtime_copy_or_memset"
+    if "direct_copy" in lower or "catarraybatchedcopy" in lower:
+        return "named_tensor_copy_or_cat"
+    if "fmha" in lower:
+        return "named_fmha_attention"
+    if "sgemm" in lower:
+        return "named_sgemm"
+    if "splitkreduce" in lower:
+        return "named_splitk_reduction"
+    if "softmax" in lower:
+        return "named_softmax"
+    if "elementwise_kernel" in lower:
+        return "generic_elementwise_role_ambiguous"
+    if "reduce_kernel" in lower:
+        return "generic_reduction_role_ambiguous"
+    return "unclassified"
+
+
+def geometry(operator: dict[str, object], batch: int, length: int) -> dict[str, object]:
+    shapes = [array(x) for x in array(operator["shapes"])]
+    name = operator["name"]
+    assert len(shapes) == 2 and all(
+        type(x) is int and number(x) > 0 for s in shapes for x in s
+    )
+    left, right = ([cast(int, x) for x in shape] for shape in shapes)
+    batches = 1
+    if name == "aten::bmm":
+        assert len(left) == len(right) == 3 and left[0] == right[0]
+        batches = left[0]
+        left = left[1:]
+        right = right[1:]
+    assert len(left) == len(right) == 2 and left[1] == right[0]
+    m, k, n = left[0], left[1], right[1]
+    count = operator["count"]
+    assert type(count) is int and count > 0
+    flops = 2 * batches * m * k * n * count
+    payload = 4 * batches * (m * k + k * n + m * n) * count
+    device_us = number(operator["self_device_time_us"])
+    role = "unknown_shape_role"
+    if name == "aten::mm" and m == batch * length:
+        if (k, n) in ((1024, 3072), (3072, 1024)):
+            role = "inferred_mlp_gate_up_or_down"
+        elif (k, n) in ((1024, 2048), (1024, 1024), (2048, 1024)):
+            role = "inferred_attention_projection"
+    elif name == "aten::mm" and (k, n) in ((1024, 256), (256, 1)):
+        role = "inferred_candidate_head_projection"
+    elif name == "aten::bmm" and batches == batch * 16:
+        role = "inferred_math_attention_bmm"
+    return dict(
+        raw_operator=operator,
+        shape_role_inference=role,
+        dense_flops=flops,
+        logical_one_read_write_fp32_bytes=payload,
+        logical_arithmetic_intensity_flops_per_byte=flops / payload,
+        effective_dense_tflops_per_second=flops / (device_us * 1e6)
+        if device_us
+        else None,
+        metric_scope=(
+            "Exact dense shape/count arithmetic; FP32 payload is a "
+            "logical traffic model, not measured or minimum DRAM traffic. "
+            "Caching/reuse/layout/algorithm overhead unknown."
+        ),
+    )
+
+
+def main() -> None:
+    started = time.perf_counter()
+    output = Path(sys.argv[1])
+    artifacts: dict[str, str] = {}
+    profiles: dict[str, object] = {}
+    timing: dict[str, object] = {}
+    for batch, (main_sha, review_sha) in PINS.items():
+        path = RESULTS / f"cuda-latency-confirm-b{batch}.json"
+        review_path = RESULTS / f"cuda-latency-confirm-b{batch}-review.json"
+        for item, expected in ((path, main_sha), (review_path, review_sha)):
+            assert sha(item) == expected
+            artifacts[str(item)] = expected
+        saved, review = read(path), read(review_path)
+        assert (
+            saved["completed"] is True
+            and review["passed"] is True
+            and review["numerical_passed"] is True
+            and obj(review["dispatch"])["passed"] is True
+        )
+        length = 172 if batch == 1 else 192
+        for arm in ("math", "efficient"):
+            raw = obj(saved[arm + "_profile"])
+            operators = [obj(x) for x in array(raw["operators"])]
+            kernels = [obj(x) for x in array(raw["cuda_kernel_events"])]
+            assert raw["case_ids"] == array(saved["case_ids"])[:batch]
+            groups: dict[str, list[float]] = {}
+            names: dict[str, list[float]] = {}
+            for event in kernels:
+                name = cast(str, event["name"])
+                duration = number(event["duration_us"])
+                assert type(event["device_index"]) is int
+                groups.setdefault(classification(name), []).append(duration)
+                names.setdefault(name, []).append(duration)
+            total = math.fsum(number(x["duration_us"]) for x in kernels)
+            group_table = [
+                dict(
+                    group=name,
+                    event_count=len(values),
+                    duration_us=math.fsum(values),
+                    fraction_of_captured_event_duration_sum=math.fsum(values) / total,
+                )
+                for name, values in sorted(groups.items())
+            ]
+            assert math.isclose(
+                math.fsum(number(obj(x)["duration_us"]) for x in group_table),
+                total,
+                rel_tol=1e-15,
+            )
+            mm = [
+                geometry(operator, batch, length)
+                for operator in operators
+                if operator["name"] in ("aten::mm", "aten::bmm")
+            ]
+            role_us: dict[str, list[float]] = {}
+            for mm_record in mm:
+                role_us.setdefault(
+                    cast(str, mm_record["shape_role_inference"]), []
+                ).append(number(obj(mm_record["raw_operator"])["self_device_time_us"]))
+            roles = [
+                dict(
+                    role=role,
+                    self_device_time_us=math.fsum(times),
+                    fraction_of_captured_event_duration_sum=math.fsum(times) / total,
+                    conditional_infinite_acceleration_ceiling=1
+                    / (1 - math.fsum(times) / total)
+                    if math.fsum(times) < total
+                    else None,
+                )
+                for role, times in role_us.items()
+            ]
+            profiles[f"b{batch}_{arm}"] = dict(
+                raw_profile=raw,
+                profile_serialization_sha256=hashlib.sha256(
+                    json.dumps(
+                        raw, sort_keys=True, separators=(",", ":"), allow_nan=False
+                    ).encode()
+                ).hexdigest(),
+                captured_kernel_event_count=len(kernels),
+                captured_kernel_event_duration_sum_us=total,
+                disjoint_kernel_name_groups=sorted(
+                    group_table, key=lambda x: number(x["duration_us"]), reverse=True
+                ),
+                exact_kernel_name_summary=[
+                    dict(
+                        name=name,
+                        count=len(values),
+                        duration_us=math.fsum(values),
+                        classification=classification(name),
+                    )
+                    for name, values in sorted(
+                        names.items(), key=lambda x: math.fsum(x[1]), reverse=True
+                    )
+                ],
+                mm_bmm_exact_shape_self_device_tables=mm,
+                shape_role_inferences=roles,
+                all_operator_self_device_time_sum_us=math.fsum(
+                    number(op["self_device_time_us"]) for op in operators
+                ),
+                raw_operator_count=len(operators),
+                ambiguous_event_count=sum(
+                    len(values)
+                    for name, values in groups.items()
+                    if name
+                    in (
+                        "unclassified",
+                        "generic_elementwise_role_ambiguous",
+                        "generic_reduction_role_ambiguous",
+                    )
+                ),
+            )
+        timing_path = RESULTS / f"cuda-latency-timing-b{batch}-review.json"
+        assert sha(timing_path) == TIMING_PINS[batch]
+        artifacts[str(timing_path)] = TIMING_PINS[batch]
+        timing[str(batch)] = dict(
+            audit_path=str(timing_path),
+            ordinary_body_performance=read(timing_path)["performance"],
+            scope=(
+                "Separate six-pair telemetry-paced ordinary cohorts, not "
+                "derived from representative profiles."
+            ),
+        )
+    source = Path(__file__).read_bytes()
+    source_sha = hashlib.sha256(source).hexdigest()
+    archive = output.with_suffix(f".audit-{source_sha[:16]}.txt")
+    with archive.open("xb") as stream:
+        stream.write(source)
+    result = dict(
+        passed=True,
+        captured_utc=datetime.now(UTC).isoformat(),
+        artifact_sha256=artifacts,
+        representative_profiles=profiles,
+        separate_ordinary_timing=timing,
+        audit_script=dict(path=str(archive), sha256=source_sha, text=source.decode()),
+        elapsed_seconds=time.perf_counter() - started,
+        audit_cap_seconds=60,
+        frameworks_imported=[
+            name
+            for name in ("torch", "transformers", "mlx", "numpy")
+            if name in sys.modules
+        ],
+        next_hypothesis=dict(
+            candidate=(
+                "Pack FP32 gate/up projection into one existing dense linear "
+                "operation, split its output, preserve SwiGLU and down "
+                "projection."
+            ),
+            rationale=(
+                "Gate/up/down dense operations are a dominant observed "
+                "self-device group in both representative batch modes."
+            ),
+            uncertainty=(
+                "GEMM algorithm/tile/layout changes may erase the "
+                "launch/traffic saving; extra packed-weight lifetime/memory "
+                "must be explicit; exact numerical/full-ranking gates may "
+                "fail."
+            ),
+            test=(
+                "Start a bounded immutable adapter/primitive experiment, "
+                "preserve FP32/noautocast and original gates, then complete77 "
+                "quality before ordinary paired body timing. No production "
+                "promotion from profile."
+            ),
+        ),
+        limits=[
+            (
+                "Intrusive representative first batches only; no "
+                "whole-cohort/device/CPU/unprofiled cost fraction."
+            ),
+            (
+                "Kernel duration sums are activity totals, not elapsed "
+                "latency or critical path; stream/start/end metadata "
+                "unavailable and overlaps cannot be reconstructed."
+            ),
+            (
+                "Operator self-device tables and kernel-name tables are "
+                "separate views of the same work: never add them together; "
+                "nested inclusive operator times are not aggregated."
+            ),
+            (
+                "Generic elementwise/reduction roles remain ambiguous; name "
+                "classification does not map individual launches to model "
+                "modules."
+            ),
+            (
+                "Conditional Amdahl ceilings assume serial nonoverlapping "
+                "exclusive work, unchanged remainder and zero replacement "
+                "overhead, and describe only the captured-event sum; not an "
+                "inference speed bound."
+            ),
+            (
+                "Logical dense FLOPs/FP32 payload can orient a future "
+                "roofline experiment, but actual DRAM bytes, cache behavior, "
+                "achieved bandwidth, peak compute and saturation remain "
+                "unknown."
+            ),
+            (
+                "Names/tensor dtypes do not prove precise binary IEEE "
+                "attention arithmetic; no precision or CPU-dispatch "
+                "inference."
+            ),
+        ],
+    )
+    assert result["frameworks_imported"] == []
+    with output.open("x") as stream:
+        json.dump(result, stream, indent=2, allow_nan=False)
+        stream.write("\n")
+    print(
+        json.dumps(
+            dict(
+                path=str(output),
+                sha256=sha(output),
+                profiles=list(profiles),
+                source_sha256=source_sha,
+            )
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "benchmarks.analysis.torch.readout.confirm",
+    "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-readout-confirm-b1.json",
+    "--worker"
+  ],
+  "timeout_seconds": 180,
+  "completed": true,
+  "timed_out": false,
+  "inductor_cache": "/var/folders/j5/d3tnw1ss41g29qttjgv4dhjr0000gn/T/torchinductor_teilomillet",
+  "exit_code": 0,
+  "elapsed_seconds": 131.73047812498407
+}

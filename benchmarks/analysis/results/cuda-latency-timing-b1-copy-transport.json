@@ -1,0 +1,20 @@
+{
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "cd /home/teilo/tmp/wyat-cuda-20261005 && timeout 45s env/bin/python -"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "cap_seconds": 60,
+  "elapsed_seconds": 2.462167749996297,
+  "input_bytes": 1299,
+  "input_sha256": "0957b35ea8f2f06010fb2cd688da83f1ab94e062c5ec3542fc63625c5ff69b64",
+  "stderr": "",
+  "verifier_sha256": "7dd3274e7ee67cdfd23cbc821c3dc7efd21805cf0323725ef77fb99294af38f3"
+}

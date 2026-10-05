@@ -1,0 +1,53 @@
+--- original/wyat/server.py
++++ current/wyat/server.py
+@@ -4,6 +4,7 @@
+ 
+ import logging
+ from threading import Lock
++from typing import Literal
+ 
+ from fastapi import FastAPI, HTTPException
+ from fastapi import Request as HttpRequest
+@@ -44,15 +45,24 @@
+         except ValueError as exc:
+             raise HTTPException(422, str(exc)) from exc
+ 
++        if not gate.acquire(blocking=False):
++            raise HTTPException(503, "model is busy; retry later")
++        handoff = Lock()
++        owner: Literal["queued", "running", "released"] = "queued"
++
+         def infer() -> dict[str, object]:
+-            if not gate.acquire(blocking=False):
+-                raise HTTPException(503, "model is busy; retry later")
++            nonlocal owner
++            with handoff:
++                if owner != "queued":
++                    raise HTTPException(503, "inference admission was withdrawn")
++                owner = "running"
+             try:
+                 return model.decide(decision_request).to_dict()
+             finally:
+-                # Cancellation may outlive the awaiting handler. Ownership stays
+-                # with the worker until the actual inference has stopped.
+-                gate.release()
++                # A cancelled handler cannot release a running worker's slot.
++                with handoff:
++                    owner = "released"
++                    gate.release()
+ 
+         try:
+             # Blocking inference runs off the event loop. The gate also protects
+@@ -69,5 +79,12 @@
+         except Exception as exc:
+             logger.exception("model inference failed")
+             raise HTTPException(500, "model inference failed") from exc
++        finally:
++            # Cancellation or dispatch failure may happen before a worker starts.
++            # Withdraw atomically so a late callback cannot enter inference.
++            with handoff:
++                if owner == "queued":
++                    owner = "released"
++                    gate.release()
+ 
+     return app

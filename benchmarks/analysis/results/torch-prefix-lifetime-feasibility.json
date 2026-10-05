@@ -1,0 +1,78 @@
+{
+  "completed": true,
+  "passed": true,
+  "scope": "Private one-use CPU cache feasibility; no real weights or inference performance/physical RSS claim",
+  "sources_sha256": {
+    "evidence": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "hf_cache": "136b3d85b4496b6c4d614a676bdfd4f32e926b88eafe9a88c7cf1e173e8390b5",
+    "hf_mask": "100c7fce03f65deeb83031152d5cafd3030c2173b3a8bec1803b6739996d682f",
+    "hf_qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "lifetime": "1e22e84f8342af0c5104d19bbe9c422a33d0b8ba07e2ec8069eb85e1e9595821",
+    "tests": "89cb7aef022325af2e480f17645bb86b9df4130f7194529c6c636f6013145784"
+  },
+  "sources_archive": {
+    "path": "benchmarks/analysis/results/torch-prefix-lifetime-feasibility.sources-6737dc21a0030f05.json",
+    "sha256": "6737dc21a0030f0561cc5f93b912f39674a55c7cdf65f863a6dd357eaa2b9f74"
+  },
+  "first_run": {
+    "passed": false,
+    "passed_tests": 7,
+    "failed_tests": 1,
+    "pytest_elapsed_seconds": 1.54,
+    "failure": "Weakref observer generator retained its tensor argument across yield; assertion saw seeded tensor still alive. This observer-induced failure does not establish cache retention.",
+    "source_capture": "Executed first-run test bytes were not frozen; preserved command output is the direct evidence."
+  },
+  "correction": "Delete observer tensor argument before yield; retain intrusive weak storage handle only.",
+  "conditions": [
+    "Caller uses eager eval-mode CPU Qwen3 under torch.inference_mode with FP32 KV, SDPA, full attention and default unscaled RoPE.",
+    "Exactly one ordered update per layer; fixed nonempty suffix geometry; reuse rejected before update.",
+    "Maintained DynamicCache seed construction and update are used; stock DynamicLayer.reset drops only cache references.",
+    "Returned tensors retain storage through local consumption; intrusive weak handles distinguish backing storage from Python storage-wrapper lifetime.",
+    "Maintained tiny full hidden-state parity and absolute-offset causal mask are checked across generated prefix/suffix/batch shapes.",
+    "Caller uses use_cache=False and discards consumed cache; reusable generation-cache semantics are intentionally unsupported."
+  ],
+  "corrected_run": {
+    "command": ".venv/bin/pytest -q tests/analysis/test_torch_prefix_lifetime.py",
+    "exit_code": 0,
+    "passed_tests": 8,
+    "failed_tests": 0,
+    "pytest_elapsed_seconds": 1.67,
+    "process_wall_seconds": 1.962528667,
+    "stdout": "........                                                                 [100%]\n8 passed in 1.67s\n",
+    "execution_context": "default workspace sandbox; no global attention flags changed",
+    "tiny_model": {
+      "initialization_seed": 59,
+      "layers": 3,
+      "hidden_size": 16,
+      "query_heads": 4,
+      "kv_heads": 2,
+      "head_dimension": 8,
+      "hypothesis_examples": 6,
+      "prefix_range": [
+        1,
+        5
+      ],
+      "suffix_range": [
+        2,
+        8
+      ],
+      "batch_range": [
+        1,
+        3
+      ],
+      "hidden_atol": 1e-06,
+      "hidden_rtol": 1e-05
+    },
+    "process_exited": true
+  },
+  "independent_review": {
+    "agent": "/root/scientific_review",
+    "evidence": "Reviewer reported its independent focused run and exact source/test hash verification via team message.",
+    "passed_tests": 8,
+    "failed_tests": 0,
+    "pytest_elapsed_seconds": 1.53,
+    "exit_code": 0,
+    "resources_released": true,
+    "scope": "No blocker within private one-use CPU Qwen3 scope; no physical RSS/speed or production claim."
+  }
+}

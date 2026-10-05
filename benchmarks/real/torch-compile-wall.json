@@ -1,0 +1,8 @@
+{
+  "wall_seconds": 51.18709600000875,
+  "budget_seconds": 120,
+  "timed_out": false,
+  "exit_code": 0,
+  "cache_directory": "/private/tmp/wyat-inductor-u1rt9kkz",
+  "interpretation": "Inspect retained quality gate and paired measurements"
+}

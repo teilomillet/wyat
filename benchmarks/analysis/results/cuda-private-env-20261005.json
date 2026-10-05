@@ -1,0 +1,7 @@
+{
+  "captured_utc": "2026-10-05T06:33:03.221247+00:00",
+  "scope": "Authorized private environment creation; existing runtime unchanged; no CUDA tensors",
+  "exit_code": 0,
+  "stdout": "{\"owned_root\": \"/home/teilo/tmp/wyat-cuda-20261005\", \"free_bytes\": 7966130176, \"base_env\": \"/home/teilo/Code/retrain/.venv\", \"base_packages\": [\"/home/teilo/Code/retrain/.venv/lib/python3.12/site-packages\"], \"uv_paths\": [\"/home/teilo/.local/bin/uv\"]}\n",
+  "stderr": ""
+}

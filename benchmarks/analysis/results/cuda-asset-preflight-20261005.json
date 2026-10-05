@@ -1,0 +1,7 @@
+{
+  "captured_utc": "2026-10-05T06:51:01.781207+00:00",
+  "scope": "CPU-only full manifest/model-header/tokenizer/reference preflight; no model tensor loading or CUDA allocation",
+  "exit_code": 1,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 18, in <module>\n  File \"/home/teilo/tmp/wyat-cuda-20261005/benchmarks/analysis/cuda/study.py\", line 134, in admit\n    raise ValueError(\"Manifest must contain every declared asset exactly once\")\nValueError: Manifest must contain every declared asset exactly once\n"
+}

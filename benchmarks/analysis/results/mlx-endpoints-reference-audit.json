@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "audits": {
+    "batch8": {
+      "receipt_sha256": "36d8d53b07dba99d52d2987dec589e95886c9dd6424bd7506511972a8710905d",
+      "cycles_per_arm": 6,
+      "arms": {
+        "baseline": {
+          "total": 462,
+          "comparable": 462,
+          "selected_equal": 462,
+          "ranking_equal": 462,
+          "baseline_correct": 402,
+          "candidate_correct": 402,
+          "max_abs_logit_difference": 1.2874603271484375e-05,
+          "max_abs_probability_difference": 2.461779748663684e-06,
+          "logits_within_tolerance": true,
+          "probabilities_within_tolerance": true,
+          "passed": true
+        },
+        "candidate": {
+          "total": 462,
+          "comparable": 462,
+          "selected_equal": 462,
+          "ranking_equal": 462,
+          "baseline_correct": 402,
+          "candidate_correct": 402,
+          "max_abs_logit_difference": 1.33514404296875e-05,
+          "max_abs_probability_difference": 2.4900806885885807e-06,
+          "logits_within_tolerance": true,
+          "probabilities_within_tolerance": true,
+          "passed": true
+        }
+      }
+    },
+    "batch1": {
+      "receipt_sha256": "1a45f53fd8b1877e963cc37ed4115972b88c50478982adea532e47c1fd4d39aa",
+      "cycles_per_arm": 6,
+      "arms": {
+        "baseline": {
+          "total": 462,
+          "comparable": 462,
+          "selected_equal": 462,
+          "ranking_equal": 462,
+          "baseline_correct": 402,
+          "candidate_correct": 402,
+          "max_abs_logit_difference": 1.5020370483398438e-05,
+          "max_abs_probability_difference": 3.070248945080678e-06,
+          "logits_within_tolerance": true,
+          "probabilities_within_tolerance": true,
+          "passed": true
+        },
+        "candidate": {
+          "total": 462,
+          "comparable": 462,
+          "selected_equal": 462,
+          "ranking_equal": 462,
+          "baseline_correct": 402,
+          "candidate_correct": 402,
+          "max_abs_logit_difference": 1.4543533325195312e-05,
+          "max_abs_probability_difference": 2.995975688313557e-06,
+          "logits_within_tolerance": true,
+          "probabilities_within_tolerance": true,
+          "passed": true
+        }
+      }
+    }
+  },
+  "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+  "source_sha256": "dd9ee69295fd6e2757de5300cdb710b45e079a1b27352dfc200b283da2d8e249",
+  "scope": "Pure post-run audit; no additional model execution or timing"
+}

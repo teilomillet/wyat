@@ -1,0 +1,1014 @@
+"""Independent stdlib-only full77 confirmation and paired latency evidence audit."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import sys
+import time
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import cast
+
+ROOT = Path("/Users/teilomillet/Code/wyat")
+RESULTS = ROOT / "benchmarks/analysis/results"
+MANIFEST = "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866"
+CONTROL = "d528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167"
+CONTROL_WALL = "cb00f5f065a04e5c598da04cb3e57a7b75bbaedeb1407dc6ebbb0dd806f4dc8e"
+CONTROL_REVIEW = "1a5d5118549d6e3c0fee67378d859abd269f565d4f3f07a4f1b8f61ebb0f287e"
+OLD_ARCHIVE = "ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf"
+MODEL = "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee"
+DATA = "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03"
+REFERENCE = "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664"
+
+
+def obj(value: object) -> dict[str, object]:
+    assert isinstance(value, dict) and all(isinstance(k, str) for k in value)
+    return cast(dict[str, object], value)
+
+
+def array(value: object) -> list[object]:
+    assert isinstance(value, list)
+    return cast(list[object], value)
+
+
+def number(value: object) -> float:
+    assert type(value) in (int, float)
+    result = float(cast(float, value))
+    assert math.isfinite(result)
+    return result
+
+
+def unique(items: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in items:
+        assert key not in result, key
+        result[key] = value
+    return result
+
+
+def nonfinite(token: str) -> object:
+    raise ValueError(token)
+
+
+def parse(raw: bytes | str) -> object:
+    return cast(
+        object, json.loads(raw, object_pairs_hook=unique, parse_constant=nonfinite)
+    )
+
+
+def read(path: Path) -> dict[str, object]:
+    return obj(parse(path.read_bytes()))
+
+
+def sha(path: Path) -> str:
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def interpretation(
+    scores: list[float], ids: list[object]
+) -> tuple[list[float], list[object]]:
+    assert scores and len(scores) == len(ids)
+    weights = [math.exp(x - max(scores)) for x in scores]
+    total = math.fsum(weights)
+    return [x / total for x in weights], [
+        ids[i] for i in sorted(range(len(scores)), key=scores.__getitem__, reverse=True)
+    ]
+
+
+def validate_rows(
+    rows: list[dict[str, object]], cases: list[dict[str, object]]
+) -> None:
+    assert [x["id"] for x in rows] == [x["id"] for x in cases]
+    for row, case in zip(rows, cases, strict=True):
+        assert row["expected"] == case["expected"] and number(row["latency_ms"]) >= 0
+        if row["status"] != "ok":
+            assert (
+                row["prediction"] is None
+                and row["correct"] is False
+                and isinstance(row["error"], str)
+            )
+            continue
+        assert row["error"] is None
+        p = obj(row["prediction"])
+        ids = [obj(x)["id"] for x in array(obj(case["request"])["candidates"])]
+        scores = [number(x) for x in array(p["scores"])]
+        probabilities, ranking = interpretation(scores, ids)
+        assert (
+            p["model_id"] == MODEL
+            and p["ranking"] == ranking
+            and p["selected"] == ranking[0]
+        )
+        assert row["correct"] is (ranking[0] in array(case["expected"]))
+        for saved, rebuilt in zip(
+            array(p["probabilities"]), probabilities, strict=True
+        ):
+            x = number(saved)
+            assert abs(x - rebuilt) <= 2 * max(math.ulp(x), math.ulp(rebuilt))
+
+
+def compare(
+    rows: list[dict[str, object]], baseline: list[dict[str, object]]
+) -> dict[str, object]:
+    assert len(rows) == len(baseline) and rows
+    comparable = selected = ranked = bc = cc = 0
+    ld: list[float] = []
+    pd: list[float] = []
+    logits_close = probabilities_close = True
+    for row, previous in zip(rows, baseline, strict=True):
+        assert row["id"] == previous["id"] and row["expected"] == previous["expected"]
+        bc += previous["correct"] is True
+        cc += row["correct"] is True
+        if row["prediction"] is None or previous["prediction"] is None:
+            continue
+        a, b = obj(previous["prediction"]), obj(row["prediction"])
+        comparable += 1
+        selected += a["selected"] == b["selected"]
+        ranked += a["ranking"] == b["ranking"]
+        for x, y in zip(array(a["scores"]), array(b["scores"]), strict=True):
+            lhs, rhs = number(x), number(y)
+            ld.append(abs(lhs - rhs))
+            logits_close &= math.isclose(lhs, rhs, abs_tol=1e-3, rel_tol=1e-3)
+        for x, y in zip(
+            array(a["probabilities"]), array(b["probabilities"]), strict=True
+        ):
+            d = abs(number(x) - number(y))
+            pd.append(d)
+            probabilities_close &= d <= 1e-4
+    complete = comparable == len(rows)
+    return dict(
+        total=len(rows),
+        comparable=comparable,
+        selected_equal=selected,
+        ranking_equal=ranked,
+        baseline_correct=bc,
+        candidate_correct=cc,
+        max_abs_logit_difference=max(ld, default=None),
+        max_abs_probability_difference=max(pd, default=None),
+        logits_within_tolerance=complete and logits_close,
+        probabilities_within_tolerance=complete and probabilities_close,
+        passed=complete
+        and selected == len(rows)
+        and ranked == len(rows)
+        and logits_close
+        and probabilities_close
+        and cc >= bc,
+    )
+
+
+def verify_report(saved: object, rebuilt: dict[str, object]) -> None:
+    actual = obj(saved)
+    assert set(actual) == set(rebuilt)
+    for key, value in rebuilt.items():
+        if key == "max_abs_probability_difference" and value is not None:
+            # Independently rebuilt CPU softmax can differ by a few libm ULPs.
+            assert abs(number(actual[key]) - number(value)) <= 5e-16
+        else:
+            assert actual[key] == value, (key, actual[key], value)
+
+
+INPUT = "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8"
+OBSERVER = "589a45fe5f941d13311ec2668889186fd14557cc173071c0de3e0cea333dfe8f"
+SCREEN_ARCHIVE = "686a18493cecf0930c788160cb7032c5f559575ec5c725f780a707449d38a97a"
+SCREEN_PINS = {
+    1: (
+        "e2149d7d4bb6c51827b68798c28d016387be89354b153ce521b10247d5bca562",
+        "2ed8a63c92f7cc41dff3cf0ce698441c057bfaabc991af3949a685a0b457ac69",
+    ),
+    8: (
+        "dda922388386aa04a8deb072fc9da782afd0662a25865dedd64d5bbfafbf0e49",
+        "fd4c0d48c6e876fda60e7ff51e14b02818c86f26c4d4afa16943c531de4a6a2c",
+    ),
+}
+
+
+def close(actual: object, expected: float) -> None:
+    assert math.isclose(number(actual), expected, rel_tol=5e-15, abs_tol=5e-16), (
+        actual,
+        expected,
+    )
+
+
+def quantile(values: list[float], fraction: float) -> float:
+    ordered = sorted(values)
+    point = (len(values) - 1) * fraction
+    lower = math.floor(point)
+    upper = math.ceil(point)
+    return ordered[lower] + (ordered[upper] - ordered[lower]) * (point - lower)
+
+
+def rows_of(cycle: object) -> list[dict[str, object]]:
+    return [obj(item) for item in array(obj(cycle)["rows"])]
+
+
+def check_cycle(
+    cycle: object, cases: list[dict[str, object]]
+) -> list[dict[str, object]]:
+    saved = obj(cycle)
+    rows = rows_of(cycle)
+    if any(row["latency_ms"] is None for row in rows):
+        invalid = obj(saved["invalid_timing"])
+        for row in rows:
+            if row["latency_ms"] is None:
+                assert isinstance(invalid.get(f"row:{row['id']}"), str)
+        validate_rows(
+            [
+                dict(row, latency_ms=0) if row["latency_ms"] is None else row
+                for row in rows
+            ],
+            cases,
+        )
+    else:
+        validate_rows(rows, cases)
+    assert saved["correct"] == sum(row["correct"] is True for row in rows)
+    assert saved["failed"] == sum(row["status"] != "ok" for row in rows)
+    assert (
+        type(saved["peak_rss_before_bytes"]) is int
+        and type(saved["peak_rss_after_bytes"]) is int
+    )
+    assert number(saved["peak_rss_before_bytes"]) >= 0 and number(
+        saved["peak_rss_after_bytes"]
+    ) >= number(saved["peak_rss_before_bytes"])
+    if saved["latency_ms"] is not None:
+        assert number(saved["latency_ms"]) > 0
+    else:
+        assert isinstance(saved.get("invalid_timing"), dict)
+    return rows
+
+
+def dispatch(trace: object, batch: int, length: int) -> dict[str, object]:
+    saved = obj(trace)
+    events = [obj(item) for item in array(saved["dispatch"])]
+    shape = [batch, 16, length, 128]
+    passed = len(events) == 28
+    for event in events:
+        tensors = [obj(item) for item in array(event["tensors"])]
+        flags = obj(event.get("call_flags", {}))
+        scale = flags.get("scale")
+        passed &= (
+            event["operator"] == "aten.scaled_dot_product_attention.default"
+            and event.get("selector_boundary") == "public_before_bias_conversion"
+            and len(tensors) == 4
+        )
+        passed &= (
+            set(flags) == {"dropout_p", "is_causal", "enable_gqa", "scale"}
+            and type(flags.get("dropout_p")) in (int, float)
+            and flags.get("dropout_p") == 0
+            and flags.get("is_causal") is False
+            and flags.get("enable_gqa") is False
+        )
+        passed &= scale is None or type(scale) is float and number(scale) == 128**-0.5
+        if len(tensors) == 4:
+            passed &= all(
+                item["shape"] == shape
+                and item["dtype"] == "torch.float32"
+                and item["device"] == "cuda:0"
+                and array(item["stride"])[-1] == 1
+                for item in tensors[:3]
+            )
+            mask = tensors[3]
+            passed &= (
+                mask["shape"] == [1, 1, length, length]
+                and mask["dtype"] == "torch.bool"
+                and mask["device"] == "cuda:0"
+                and mask["stride"] == [length * length, length * length, length, 1]
+            )
+        assert event.get("converted_bias_strides") == "unknown"
+        if scale is not None:
+            assert isinstance(event.get("selector_error"), str)
+    counts: dict[str, int] = {}
+    for item in array(saved["operators"]):
+        op = obj(item)
+        assert type(op["count"]) is int and number(op["count"]) >= 0
+        name = cast(str, op["name"])
+        counts[name] = counts.get(name, 0) + op["count"]
+    kernels = [obj(item) for item in array(saved["cuda_kernel_events"])]
+    for kernel in kernels:
+        assert (
+            number(kernel["duration_us"]) >= 0 and type(kernel["device_index"]) is int
+        )
+    attention = [
+        cast(str, item["name"])
+        for item in kernels
+        if "fmha" in cast(str, item["name"]).lower()
+    ]
+    forbidden = {
+        name: count
+        for name, count in counts.items()
+        if count > 0
+        and any(
+            term in name
+            for term in ("attention_math", "flash_attention", "cudnn_attention")
+        )
+    }
+    passed &= (
+        counts.get("aten::_scaled_dot_product_efficient_attention")
+        == counts.get("aten::_efficient_attention_forward")
+        == len(attention)
+        == 28
+        and not forbidden
+    )
+    passed &= saved["cuda_kernel_names_available"] is True and all(
+        name.startswith("fmha_cutlassF_f32_aligned_") and "_sm80(" in name
+        for name in attention
+    )
+    return dict(
+        passed=passed,
+        public_events=len(events),
+        efficient_operator_count=counts.get(
+            "aten::_scaled_dot_product_efficient_attention", 0
+        ),
+        efficient_forward_count=counts.get("aten::_efficient_attention_forward", 0),
+        fmha_count=len(attention),
+        fmha_names=sorted(set(attention)),
+        forbidden=forbidden,
+        length=length,
+        batch=batch,
+        precise_internal_arithmetic=(
+            "unknown; FastF32 inferred from upstream source only"
+        ),
+    )
+
+
+def audit(
+    main: Path, expected: str, declaration_path: Path, declaration_sha: str
+) -> dict[str, object]:
+    pinned: dict[str, str] = {}
+
+    def record(path: Path, expected_sha: str | None = None) -> None:
+        actual = sha(path)
+        assert expected_sha is None or actual == expected_sha, (
+            str(path),
+            actual,
+            expected_sha,
+        )
+        pinned[str(path)] = actual
+
+    record(main, expected)
+    saved = read(main)
+    mode, batch = saved["mode"], saved["batch_size"]
+    assert mode in ("confirm", "timing") and type(batch) is int and batch in (1, 8)
+    assert saved["accepted"] is False and saved["input_sha256"] == INPUT
+    assert obj(saved["gate"]) == dict(
+        logit_atol=1e-3, logit_rtol=1e-3, probability_atol=1e-4
+    )
+    assert "telemetry-paced" in cast(
+        str, saved["timing_scope"]
+    ) and "row bookkeeping" in cast(str, saved["timing_scope"])
+    parent = read(main.with_suffix(".wall.json"))
+    record(main.with_suffix(".wall.json"))
+    assert parent["timeout_seconds"] == 180 and type(parent["timed_out"]) is bool
+    assert 0 <= number(parent["elapsed_seconds"]) < 190
+    command = array(parent["command"])
+    assert "benchmarks.analysis.cuda.latency.run" in command and "--worker" in command
+    for flag, flag_value in (
+        ("--mode", mode),
+        ("--batch-size", str(batch)),
+        ("--manifest-sha256", MANIFEST),
+        ("--sources-sha256", declaration_sha),
+        ("--control-sha256", CONTROL),
+    ):
+        assert command[command.index(flag) + 1] == flag_value
+    assert parent["completed"] is (parent["exit_code"] == 0)
+    for name, checksum in (
+        ("cuda-fp32-b1.json", CONTROL),
+        ("cuda-fp32-b1.wall.json", CONTROL_WALL),
+        ("cuda-fp32-b1-review.json", CONTROL_REVIEW),
+        ("cuda-transfer-manifest-v2-20261005.json", MANIFEST),
+        ("cuda-fp32-b1.sources-ae4a797635edfbd1.json", OLD_ARCHIVE),
+        ("cuda-attention-source-declaration-v2-20261005.json", OBSERVER),
+    ):
+        record(RESULTS / name, checksum)
+    manifest = read(RESULTS / "cuda-transfer-manifest-v2-20261005.json")
+    admission = obj(saved["admission"])
+    assert admission["manifest_sha256"] == MANIFEST and admission["asset_count"] == 44
+    for key in (
+        "model_id",
+        "dataset_sha256",
+        "reference_sha256",
+        "input_sha256",
+        "runtime",
+        "versions",
+    ):
+        assert admission[key] == manifest[key]
+    assert (
+        obj(saved["control"])["sha256"] == CONTROL
+        and obj(saved["control"])["wall_sha256"] == CONTROL_WALL
+    )
+    for item in array(manifest["files"]):
+        asset = obj(item)
+        path = ROOT / cast(str, asset["path"])
+        assert path.stat().st_size == asset["bytes"]
+        record(path, cast(str, asset["sha256"]))
+    record(declaration_path, declaration_sha)
+    declaration = read(declaration_path)
+    assert (
+        len(declaration) == 5
+        and saved["new_source_hashes"] == declaration
+        and saved["source_declaration_sha256"] == declaration_sha
+    )
+    for name, decl_checksum in declaration.items():
+        record(ROOT / name, cast(str, decl_checksum))
+    observer = read(RESULTS / "cuda-attention-source-declaration-v2-20261005.json")
+    for name, observer_checksum in observer.items():
+        record(ROOT / name, cast(str, observer_checksum))
+    archive_info = obj(saved["source_archive"])
+    archive_path = RESULTS / Path(cast(str, archive_info["path"])).name
+    record(archive_path, cast(str, archive_info["sha256"]))
+    source_files = [obj(item) for item in array(read(archive_path)["files"])]
+    table = obj(saved["source_sha256"])
+    assert len(source_files) == len(table) and len(
+        set(item["name"] for item in source_files)
+    ) == len(source_files)
+    for item in source_files:
+        name, text = cast(str, item["name"]), cast(str, item["text"])
+        checksum = hashlib.sha256(text.encode()).hexdigest()
+        assert checksum == item["sha256"] == table[name]
+        if not name.startswith("external_"):
+            record(ROOT / name, checksum)
+        else:
+            relative = {
+                "external_qwen3": "models/qwen3/modeling_qwen3.py",
+                "external_sdpa": "integrations/sdpa_attention.py",
+                "external_masking": "masking_utils.py",
+            }[name]
+            paths = list(
+                (ROOT / ".venv/lib").glob("*/site-packages/transformers/" + relative)
+            )
+            assert len(paths) == 1
+            record(paths[0], checksum)
+    old_sources = array(
+        read(RESULTS / "cuda-fp32-b1.sources-ae4a797635edfbd1.json")["files"]
+    )
+    assert all(
+        table[cast(str, obj(item)["name"])] == obj(item)["sha256"]
+        for item in old_sources
+    )
+    history = obj(saved["history_sha256"])
+    for screen_batch, (screen_sha, screen_wall) in SCREEN_PINS.items():
+        screen = RESULTS / f"cuda-attention-observer-b{screen_batch}.json"
+        record(screen, screen_sha)
+        record(screen.with_suffix(".wall.json"), screen_wall)
+        record(screen.with_suffix(".sources-686a18493cecf093.json"), SCREEN_ARCHIVE)
+        for item in (
+            screen,
+            screen.with_suffix(".wall.json"),
+            screen.with_suffix(".sources-686a18493cecf093.json"),
+        ):
+            assert history[str(item.relative_to(ROOT))] == pinned[str(item)]
+        screen_table = obj(read(screen)["source_sha256"])
+        assert all(table[name] == checksum for name, checksum in screen_table.items())
+    assert set(table) == set(screen_table) | set(declaration)
+    assert (
+        history[
+            "benchmarks/analysis/results/cuda-attention-source-declaration-v2-20261005.json"
+        ]
+        == OBSERVER
+    )
+    cases_path = ROOT / "benchmarks/real/banking77-train-dev-menu6.jsonl"
+    ref_path = ROOT / "benchmarks/real/torch-fp32-reference77.json"
+    record(cases_path, DATA)
+    record(ref_path, REFERENCE)
+    cases = [obj(parse(line)) for line in cases_path.read_bytes().splitlines()]
+    refs = [obj(item) for item in array(read(ref_path)["rows"])]
+    ids = [item["id"] for item in cases]
+    assert (
+        len(cases) == len(refs) == len(set(cast(str, item) for item in ids)) == 77
+        and saved["case_ids"] == ids
+    )
+    reference_rows: list[dict[str, object]] = []
+    for case, ref in zip(cases, refs, strict=True):
+        assert case["id"] == ref["id"] and ref["expected"] == case["expected"]
+        candidates = [
+            obj(item)["id"] for item in array(obj(case["request"])["candidates"])
+        ]
+        assert ref["candidate_ids"] == candidates
+        scores = [number(item) for item in array(ref["legacy_logits"])]
+        probabilities, ranking = interpretation(scores, candidates)
+        reference_rows.append(
+            dict(
+                id=case["id"],
+                expected=case["expected"],
+                correct=ranking[0] in array(case["expected"]),
+                prediction=dict(
+                    scores=scores,
+                    probabilities=probabilities,
+                    ranking=ranking,
+                    selected=ranking[0],
+                ),
+            )
+        )
+    cuda_rows = rows_of(read(RESULTS / "cuda-fp32-b1.json")["cycle"])
+    validate_rows(cuda_rows, cases)
+    assert compare(cuda_rows, reference_rows)["passed"] is True
+    keys = (
+        ["confirm_math", "confirm_efficient"]
+        if mode == "confirm"
+        else ["warmup_math", "warmup_efficient"]
+        + [
+            f"pair{i}_{arm}"
+            for i in range(6)
+            for arm in (("math", "efficient") if i % 2 == 0 else ("efficient", "math"))
+        ]
+    )
+    unknown = obj(saved["unknown_case_ids"])
+    assert set(unknown) == set(
+        keys + (["math_profile", "efficient_profile"] if mode == "confirm" else [])
+    )
+    assert saved["expected_ordinary_rows"] == (
+        154 if mode == "confirm" else 1078
+    ) and saved["expected_profile_rows"] == (2 * batch if mode == "confirm" else 0)
+    cycles = [obj(item) for item in array(saved["cycles"])]
+    assert [item["key"] for item in cycles] == keys[: len(cycles)]
+    rebuilt_drift: dict[str, object] = {}
+    cycle_by_key: dict[str, dict[str, object]] = {}
+    attempted = failed = scored = 0
+    own_pids: set[int] = set()
+    for item in cycles:
+        key = cast(str, item["key"])
+        chunks = [obj(chunk) for chunk in array(item["chunks"])]
+        ordinary: list[dict[str, object]] = []
+        for index, chunk in enumerate(chunks):
+            offset = index * batch
+            cohort = cases[offset : offset + batch]
+            rows = check_cycle(chunk, cohort)
+            ordinary.extend(rows)
+            drift: dict[str, object] = dict(
+                cpu_reference=compare(
+                    rows, reference_rows[offset : offset + len(rows)]
+                ),
+                cuda_control=compare(rows, cuda_rows[offset : offset + len(rows)]),
+            )
+            reports = array(item["drift"])
+            if index < len(reports):
+                for arm, drift_value in drift.items():
+                    verify_report(obj(reports[index])[arm], obj(drift_value))
+            else:
+                assert not saved["completed"]
+            rebuilt_drift[f"{key}:chunk{index}"] = drift
+        assert len(ordinary) <= 77 and unknown[key] == ids[len(ordinary) :]
+        attempted += len(ordinary)
+        failed += sum(row["status"] != "ok" for row in ordinary)
+        scored += sum(
+            len(array(obj(row["prediction"])["scores"]))
+            for row in ordinary
+            if row["prediction"] is not None
+        )
+        observations = [obj(value) for value in array(item["ownership"])]
+        assert len(chunks) <= len(observations) <= len(chunks) + 1
+        for index, observation in enumerate(observations):
+            assert (
+                observation["offset"] == index * batch
+                and datetime.fromisoformat(cast(str, observation["utc"])).tzinfo
+                is not None
+            )
+            snapshot = obj(observation["snapshot"])
+            assert (
+                snapshot["name"] == "NVIDIA GeForce RTX 4070 Ti"
+                and snapshot["memory_total_MiB"] == 12282
+                and snapshot["exclusive"] is False
+            )
+            apps = cast(str, snapshot["compute_apps"]).splitlines()
+            assert len(apps) <= 1
+            for line in apps:
+                own_pids.add(int(line.split(",")[0]))
+        if "cycle" in item:
+            cycle = obj(item["cycle"])
+            rows = check_cycle(cycle, cases)
+            assert rows == ordinary and len(chunks) == math.ceil(77 / batch)
+            close(
+                cycle["latency_ms"],
+                math.fsum(number(chunk["latency_ms"]) for chunk in chunks),
+            )
+            assert number(item["cohort_wall_ms"]) >= number(cycle["latency_ms"])
+            assert (
+                cycle["peak_rss_before_bytes"] == chunks[0]["peak_rss_before_bytes"]
+                and cycle["peak_rss_after_bytes"] == chunks[-1]["peak_rss_after_bytes"]
+            )
+            cycle_by_key[key] = cycle
+    assert len(own_pids) <= 1
+    for key in keys[len(cycles) :]:
+        assert unknown[key] == ids
+    paired: dict[str, object] = {}
+    phases = (
+        ["confirm"]
+        if mode == "confirm"
+        else ["warmup"] + [f"pair{i}" for i in range(6)]
+    )
+    for phase in phases:
+        left, right = (
+            cycle_by_key.get(phase + "_math"),
+            cycle_by_key.get(phase + "_efficient"),
+        )
+        if left is not None and right is not None:
+            drift = compare(rows_of(right), rows_of(left))
+            paired[phase] = drift
+            if phase + "_paired_drift" in saved:
+                verify_report(saved[phase + "_paired_drift"], drift)
+    observed_dispatch: dict[str, object] = dict(observed=False, passed=False)
+    for arm in ("math", "efficient"):
+        key = arm + "_profile_cycle"
+        if key in saved:
+            rows = check_cycle(saved[key], cases[:batch])
+            attempted += len(rows)
+            failed += sum(row["status"] != "ok" for row in rows)
+            scored += sum(
+                len(array(obj(row["prediction"])["scores"]))
+                for row in rows
+                if row["prediction"] is not None
+            )
+            assert unknown[arm + "_profile"] == []
+            drift = dict(
+                cpu_reference=compare(rows, reference_rows[:batch]),
+                cuda_control=compare(rows, cuda_rows[:batch]),
+            )
+            for baseline, profile_value in drift.items():
+                verify_report(
+                    obj(saved[arm + "_profile_drift"])[baseline], obj(profile_value)
+                )
+            rebuilt_drift[key] = drift
+            assert obj(saved[arm + "_profile"])["case_ids"] == ids[:batch]
+        elif mode == "confirm":
+            assert unknown[arm + "_profile"] == ids[:batch]
+    if mode == "confirm" and "math_profile" in saved:
+        math_profile = obj(saved["math_profile"])
+        math_counts: dict[str, int] = {}
+        for raw_operator in array(math_profile["operators"]):
+            operator = obj(raw_operator)
+            operator_name = cast(str, operator["name"])
+            math_counts[operator_name] = math_counts.get(operator_name, 0) + int(
+                number(operator["count"])
+            )
+        assert math_counts.get("aten::_scaled_dot_product_attention_math") == 28
+        assert not any(
+            count > 0
+            and any(
+                term in name
+                for term in (
+                    "efficient_attention",
+                    "flash_attention",
+                    "cudnn_attention",
+                )
+            )
+            for name, count in math_counts.items()
+        )
+        assert not any(
+            "fmha" in cast(str, obj(kernel)["name"]).lower()
+            for kernel in array(math_profile["cuda_kernel_events"])
+        )
+    if mode == "confirm" and "efficient_profile" in saved:
+        observed_dispatch = dict(
+            observed=True,
+            **dispatch(
+                saved["efficient_profile"],
+                batch,
+                max(len(array(item["token_ids"])) for item in refs[:batch]),
+            ),
+        )
+    confirmation: dict[str, object] | None = None
+    performance: dict[str, object] | None = None
+    if mode == "timing":
+        assert not any(
+            key in saved
+            for key in (
+                "math_profile",
+                "efficient_profile",
+                "math_profile_cycle",
+                "efficient_profile_cycle",
+            )
+        )
+        assert (
+            saved["dispatch_evidence_scope"]
+            == "prior representative confirmation profile; timed calls unprofiled"
+        )
+        confirm = RESULTS / f"cuda-latency-confirm-b{batch}.json"
+        confirm_saved = read(confirm)
+        confirm_wall = read(confirm.with_suffix(".wall.json"))
+        pins = obj(saved["confirmation"])
+        for flag, checksum in (
+            ("--confirmation-sha256", sha(confirm)),
+            ("--confirmation-wall-sha256", sha(confirm.with_suffix(".wall.json"))),
+        ):
+            assert command[command.index(flag) + 1] == checksum
+        assert (
+            confirm_saved["completed"] is True
+            and confirm_saved["quality_passed"] is True
+            and confirm_saved["dispatch_passed"] is True
+            and confirm_saved["batch_size"] == batch
+            and confirm_saved["new_source_hashes"] == declaration
+        )
+        assert (
+            confirm_wall["exit_code"] == 0
+            and confirm_wall["timed_out"] is False
+            and confirm_wall["timeout_seconds"] == 180
+        )
+        archive_name = Path(
+            cast(str, obj(confirm_saved["source_archive"])["path"])
+        ).name
+        for item in (
+            confirm,
+            confirm.with_suffix(".wall.json"),
+            RESULTS / archive_name,
+        ):
+            record(item)
+            assert (
+                pins[str(item.relative_to(ROOT))] == pinned[str(item)]
+                and history[str(item.relative_to(ROOT))] == pinned[str(item)]
+            )
+        confirmed_raw = audit(confirm, sha(confirm), declaration_path, declaration_sha)
+        assert (
+            confirmed_raw["scientific_completed"] is True
+            and confirmed_raw["numerical_passed"] is True
+        )
+        confirmation = dict(
+            raw_confirmation_reconstructed=True,
+            audited_confirmation_rows=confirmed_raw["attempted_rows"],
+            path=str(confirm),
+            main_sha256=sha(confirm),
+            wall_sha256=sha(confirm.with_suffix(".wall.json")),
+            prior_profile_dispatch=dispatch(
+                confirm_saved["efficient_profile"],
+                batch,
+                max(len(array(item["token_ids"])) for item in refs[:batch]),
+            ),
+            timed_dispatch_observed=False,
+        )
+        if len(cycle_by_key) == 14:
+            left_times = [
+                number(cycle_by_key[f"pair{i}_math"]["latency_ms"]) for i in range(6)
+            ]
+            right_times = [
+                number(cycle_by_key[f"pair{i}_efficient"]["latency_ms"])
+                for i in range(6)
+            ]
+            ratios = [a / b for a, b in zip(left_times, right_times, strict=True)]
+            median, low = quantile(ratios, 0.5), quantile(ratios, 0.05)
+            aggregate = math.fsum(left_times) / math.fsum(right_times)
+            tail = quantile(right_times, 0.95) / quantile(left_times, 0.95)
+            performance = dict(
+                paired_ratios=ratios,
+                median=median,
+                p05=low,
+                aggregate=aggregate,
+                cohort_p95_ratio=tail,
+                passed=median >= 1.05 and low > 1 and aggregate > 1 and tail <= 1,
+            )
+            if "performance" in saved:
+                reported = obj(saved["performance"])
+                for key, value in performance.items():
+                    if key == "passed":
+                        assert reported[key] is value
+                    elif key == "paired_ratios":
+                        for a, b in zip(
+                            array(reported[key]), cast(list[float], value), strict=True
+                        ):
+                            close(a, b)
+                    else:
+                        close(reported[key], number(value))
+                report = obj(saved["report"])
+                assert (
+                    report["input_sha256"] == INPUT
+                    and report["case_ids"] == ids
+                    and report["case_count"] == 77
+                    and report["passed"] is True
+                )
+                assert (
+                    obj(report["protocol"])["repeats"] == 6
+                    and obj(report["protocol"])["warmup"] == 1
+                    and obj(report["protocol"])["timing"] == saved["timing_scope"]
+                )
+                for role, arm in (("baseline", "math"), ("candidate", "efficient")):
+                    r = obj(report[role])
+                    expected_cycles = [cycle_by_key[f"pair{i}_{arm}"] for i in range(6)]
+                    assert (
+                        r["cycles"] == expected_cycles
+                        and r["batch_size"] == batch
+                        and r["attempted"] == 462
+                        and r["failed"] == 0
+                        and r["correct"] == 402
+                    )
+                    times = [number(item["latency_ms"]) for item in expected_cycles]
+                    close(r["cycle_p50_ms"], quantile(times, 0.5))
+                    close(r["cycle_p95_ms"], quantile(times, 0.95))
+                    close(
+                        r["attempted_requests_per_second"],
+                        462 / (math.fsum(times) / 1000),
+                    )
+                assert obj(report["warmup"])["baseline_cycles"] == [
+                    cycle_by_key["warmup_math"]
+                ] and obj(report["warmup"])["candidate_cycles"] == [
+                    cycle_by_key["warmup_efficient"]
+                ]
+                aggregate_drift = compare(
+                    [
+                        row
+                        for i in range(6)
+                        for row in rows_of(cycle_by_key[f"pair{i}_efficient"])
+                    ],
+                    [
+                        row
+                        for i in range(6)
+                        for row in rows_of(cycle_by_key[f"pair{i}_math"])
+                    ],
+                )
+                verify_report(report["quality"], aggregate_drift)
+    completed = saved["completed"] is True
+    if completed:
+        assert failed == 0 and not any(array(value) for value in unknown.values())
+        assert attempted == (154 + 2 * batch if mode == "confirm" else 1078)
+        assert len(cycles) == len(keys) and len(cycle_by_key) == len(keys)
+        assert all(
+            obj(value)["passed"] is True
+            for report in rebuilt_drift.values()
+            for value in obj(report).values()
+        )
+        assert (
+            all(obj(value)["passed"] is True for value in paired.values())
+            and saved["quality_passed"] is True
+        )
+        assert (
+            saved["dispatch_passed"] is True
+            and saved["phase"] == "completed"
+            and not any(key in saved for key in ("error", "cleanup_error"))
+        )
+        expected_exit = (
+            0
+            if mode == "confirm"
+            or performance is not None
+            and performance["passed"] is True
+            else 1
+        )
+        assert parent["exit_code"] == expected_exit and parent["timed_out"] is False
+        assert saved["performance_passed"] is (
+            False if mode == "confirm" else obj(performance)["passed"]
+        )
+        if mode == "confirm":
+            assert observed_dispatch["passed"] is True
+        assert (
+            0
+            < number(saved["worker_body_wall_ms"])
+            <= number(parent["elapsed_seconds"]) * 1000
+        )
+    else:
+        assert (
+            saved["quality_passed"] is False
+            and saved["accepted"] is False
+            and parent["exit_code"] != 0
+        )
+        assert isinstance(saved.get("error"), str) or parent["timed_out"] is True
+    for key in ("occupancy_before_load", "occupancy_before_allocation"):
+        occupancy = obj(saved[key])
+        assert (
+            occupancy["compute_apps"] == ""
+            and occupancy["utilization_percent"] == 0
+            and number(occupancy["memory_used_MiB"]) <= 256
+        )
+    release_path = main.with_name(main.stem + "-copy-release.json")
+    release = read(release_path)
+    record(release_path)
+    assert len(array(release["files"])) == 4
+    for item in array(release["files"]):
+        entry = obj(item)
+        path = ROOT / cast(str, entry["path"])
+        assert path.stat().st_size == entry["bytes"]
+        record(path, cast(str, entry["sha256"]))
+    queries = [obj(item) for item in array(release["release_queries"])]
+    assert len(queries) == 3
+    assert queries[0]["command"] == [
+        "nvidia-smi",
+        "--query-gpu=memory.used,utilization.gpu",
+        "--format=csv,noheader,nounits",
+    ]
+    assert queries[0]["exit_code"] == 0 and queries[0]["stdout"] == "128, 0\n"
+    assert queries[1]["command"] == [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory",
+        "--format=csv,noheader,nounits",
+    ]
+    assert queries[1]["exit_code"] == 0 and queries[1]["stdout"] == ""
+    assert (
+        queries[2]["command"]
+        == ["pgrep", "-af", "benchmarks.analysis.cuda.latency.run"]
+        and queries[2]["exit_code"] == 1
+        and queries[2]["stdout"] == ""
+    )
+    for query in queries:
+        assert query["stderr"] == ""
+        start, end = (
+            datetime.fromisoformat(cast(str, query["started_utc"])),
+            datetime.fromisoformat(cast(str, query["finished_utc"])),
+        )
+        assert (
+            start.tzinfo is not None
+            and end.tzinfo is not None
+            and 0 <= (end - start).total_seconds() < 5
+        )
+    assert all(
+        cast(str, queries[i]["finished_utc"])
+        <= cast(str, queries[i + 1]["started_utc"])
+        for i in range(2)
+    )
+    for suffix, cap in (("-run-transport.json", 230), ("-copy-transport.json", 60)):
+        path = main.with_name(main.stem + suffix)
+        transport = read(path)
+        record(path)
+        assert (
+            transport["exit_code"]
+            == (parent["exit_code"] if suffix.startswith("-run") else 0)
+            and transport["timed_out"] is False
+            and transport["reaped"] is True
+            and transport["cap_seconds"] == cap
+            and number(transport["elapsed_seconds"]) < cap
+        )
+    return dict(
+        passed=True,
+        scientific_completed=completed,
+        numerical_passed=saved["quality_passed"],
+        mode=mode,
+        batch_size=batch,
+        attempted_rows=attempted,
+        failed_rows=failed,
+        scored_values=scored,
+        unique_cases=77,
+        unknown_case_ids=unknown,
+        independent_chunk_drift=rebuilt_drift,
+        independent_paired_drift=paired,
+        dispatch=observed_dispatch,
+        confirmation=confirmation,
+        performance=performance,
+        artifact_sha256=pinned,
+        source_sha256=table,
+        source_count=len(table),
+        parent=parent,
+        final_release_queries=queries,
+        own_compute_pids=sorted(own_pids),
+        raw_error=saved.get("error"),
+        limits=[
+            "Development training-source menus; no held-out quality conclusion.",
+            (
+                "Telemetry-paced synchronized body intervals; excludes "
+                "transport/admission "
+                "queues and cannot establish online tails or unpaced capacity."
+            ),
+            "Six cohort quantiles are descriptive; not confidence intervals.",
+            "Timed calls have no contemporaneous observer evidence.",
+            (
+                "2 ULP CPU softmax reconstruction and 5e-16 aggregate rounding "
+                "affect only "
+                "audit reconstruction; original numerical gates unchanged."
+            ),
+            (
+                "Snapshots are instantaneous, not hardware reservations; "
+                "only own workers are reaped."
+            ),
+        ],
+    )
+
+
+def main() -> None:
+    start = time.perf_counter()
+    path, expected, output, declaration, declaration_sha = (
+        Path(sys.argv[1]),
+        sys.argv[2],
+        Path(sys.argv[3]),
+        Path(sys.argv[4]),
+        sys.argv[5],
+    )
+    result = audit(path, expected, declaration, declaration_sha)
+    source = Path(__file__).read_bytes()
+    source_sha = hashlib.sha256(source).hexdigest()
+    archive = output.with_suffix(f".audit-{source_sha[:16]}.txt")
+    with archive.open("xb") as stream:
+        stream.write(source)
+    result.update(
+        captured_utc=datetime.now(UTC).isoformat(),
+        audit_script=dict(path=str(archive), sha256=source_sha, text=source.decode()),
+        elapsed_seconds=time.perf_counter() - start,
+        frameworks_imported=[
+            name
+            for name in ("torch", "transformers", "mlx", "numpy")
+            if name in sys.modules
+        ],
+        audit_cap_seconds=60,
+    )
+    assert result["frameworks_imported"] == []
+    with output.open("x") as stream:
+        json.dump(result, stream, indent=2, allow_nan=False)
+        stream.write("\n")
+    print(
+        json.dumps(
+            dict(
+                path=str(output),
+                sha256=sha(output),
+                attempted_rows=result["attempted_rows"],
+                numerical_passed=result["numerical_passed"],
+                performance=result["performance"],
+            )
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

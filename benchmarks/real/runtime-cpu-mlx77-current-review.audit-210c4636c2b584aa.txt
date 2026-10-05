@@ -1,0 +1,533 @@
+"""Independent current CPU/MLX CLI raw referee; execute after root release only."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import runpy
+from collections.abc import Callable
+from pathlib import Path
+from typing import cast
+
+type Json = None | bool | int | float | str | list[Json] | dict[str, Json]
+type Object = dict[str, Json]
+ROOT = Path("/Users/teilomillet/Code/wyat")
+REFEREE = Path("/private/tmp/wyat-cpu-prefix-production-audit.py")
+REFEREE_SHA = "2353659ee2a2a1960581d90fa9bc1e33574a5d520a166e74f3cb838303f28a0b"
+HELPER = Path("/private/tmp/wyat-native-backend-pair.py")
+HELPER_SHA = "c747e0cf89f4e32f7e8b64bcb968d8ffae6380bbafbe2dceb7417bcc39fc3831"
+
+
+class Arguments(argparse.Namespace):
+    main: Path
+    output: Path
+    main_sha: str
+    wall_sha: str
+    archive_sha: str
+    log_sha: str
+
+
+def audit(args: Arguments) -> Object:
+    if hashlib.sha256(REFEREE.read_bytes()).hexdigest() != REFEREE_SHA:
+        raise ValueError("Immutable stdlib referee changed")
+    helpers = runpy.run_path(str(REFEREE))
+    require = cast(Callable[[bool, str], None], helpers["require"])
+    obj = cast(Callable[[Json], Object], helpers["obj"])
+    array = cast(Callable[[Json], list[Json]], helpers["array"])
+    text = cast(Callable[[Json], str], helpers["text"])
+    number = cast(Callable[[Json], float], helpers["number"])
+    sha = cast(Callable[[Path], str], helpers["sha"])
+    pinned = cast(Callable[[Path, str], Object], helpers["pinned"])
+    logits = cast(Callable[[Json], list[float]], helpers["logits"])
+    decide = cast(
+        Callable[[list[float], list[str]], tuple[list[float], list[str]]],
+        helpers["decision"],
+    )
+    compare = cast(
+        Callable[[list[float], list[float], list[str]], Object], helpers["compare"]
+    )
+    passed = cast(Callable[[Object], bool], helpers["gate_passed"])
+    percentile = cast(Callable[[list[float], float], float], helpers["percentile"])
+    canonical = cast(Callable[[list[Json]], str], helpers["canonical_digest"])
+    native = cast(Callable[[], dict[str, str]], helpers["validate_baseline"])()
+    model_id = cast(str, helpers["MODEL_ID"])
+    model_files = cast(dict[str, str], helpers["MODEL_FILES"])
+    data = cast(Path, helpers["DATA"])
+    reference_path = cast(Path, helpers["REFERENCE"])
+    main = pinned(args.main, args.main_sha)
+    wall = pinned(args.main.with_suffix(".wall.json"), args.wall_sha)
+    require(
+        wall["timeout_seconds"] == 180
+        and wall["timed_out"] is False
+        and wall["exit_code"] in (0, 1)
+        and wall["reaped"] is True
+        and 0 <= number(wall["elapsed_seconds"]) <= 180,
+        "Unknown bounded CLI terminal",
+    )
+    require(
+        wall["stdout_sha256"] == args.main_sha
+        and wall["log_sha256"] == args.log_sha
+        and sha(args.main.with_suffix(".log")) == args.log_sha,
+        "CLI output/log identity mismatch",
+    )
+    command = [text(v) for v in array(wall["command"])]
+    model = Path(command[command.index("benchmark") + 1])
+    expected = [
+        str(ROOT / ".venv/bin/python"),
+        "-m",
+        "wyat",
+        "benchmark",
+        str(model),
+        "--backend",
+        "mlx",
+        "--device",
+        "gpu",
+        "--baseline-backend",
+        "torch",
+        "--baseline-device",
+        "cpu",
+        "--batch-size",
+        "1",
+        "--baseline-batch-size",
+        "1",
+        "--max-length",
+        "512",
+        "--token-cache-size",
+        "0",
+        "--torch-threads",
+        "8",
+        "--repeats",
+        "5",
+        "--warmup",
+        "1",
+        "--mlx-cache-limit-mib",
+        "512",
+    ]
+    require(
+        command == expected
+        and wall["environment"] == {"MLX_ENABLE_TF32": "0"}
+        and wall["stdin"] == str(data),
+        "Declared CLI policy mismatch",
+    )
+    descriptor = obj(wall["source_archive"])
+    require(
+        descriptor
+        == {
+            "path": str(args.main.with_suffix(".sources.json")),
+            "sha256": args.archive_sha,
+        },
+        "CLI source archive mismatch",
+    )
+    archive = pinned(args.main.with_suffix(".sources.json"), args.archive_sha)
+    sources: dict[str, str] = {}
+    source_text: dict[str, str] = {}
+    for raw in array(archive["files"]):
+        entry = obj(raw)
+        path, contents = text(entry["path"]), text(entry["text"])
+        checksum = hashlib.sha256(contents.encode()).hexdigest()
+        require(
+            path not in sources and entry["sha256"] == checksum,
+            "Archived source duplicate or byte mismatch",
+        )
+        sources[path] = checksum
+        source_text[path] = contents
+    expected_runtime = {
+        p: s for p, s in native.items() if Path(p).is_relative_to(ROOT / "wyat")
+    }
+    actual_runtime = {
+        p: s for p, s in sources.items() if Path(p).is_relative_to(ROOT / "wyat")
+    }
+    require(
+        len(expected_runtime) == 22
+        and actual_runtime == expected_runtime
+        and len(sources) == 28,
+        "Current CLI source/runtime scope mismatch",
+    )
+    require(sources[str(HELPER)] == HELPER_SHA, "Actual executed parent helper changed")
+    for path, checksum in sources.items():
+        require(sha(Path(path)) == checksum, "Executed CLI source changed before audit")
+    assets: Object = {
+        str(model / name): checksum for name, checksum in model_files.items()
+    }
+    assets.update(
+        {
+            str(data): cast(str, helpers["DATA_SHA"]),
+            str(reference_path): cast(str, helpers["REFERENCE_SHA"]),
+        }
+    )
+    require(
+        wall["asset_sha256"] == assets
+        and wall["source_verified_after"] is True
+        and wall["asset_verified_after"] is True
+        and wall["evidence_verified"] is True,
+        "Frozen asset/source boundary failed",
+    )
+    for path, asset_sha in assets.items():
+        require(sha(Path(path)) == text(asset_sha), "Actual pinned asset changed")
+    cases = [
+        obj(cast(Json, json.loads(line))) for line in data.read_text().splitlines()
+    ]
+    reference = pinned(reference_path, cast(str, helpers["REFERENCE_SHA"]))
+    refs = [obj(v) for v in array(reference["rows"])]
+    require(
+        len(cases) == len(refs) == 77
+        and canonical(cast(list[Json], cases)) == helpers["INPUT_SHA"],
+        "Original canonical cohort changed",
+    )
+    require(
+        main["input_sha256"] == wall["input_sha256"] == helpers["INPUT_SHA"]
+        and wall["model_id"] == reference["model_id"] == model_id
+        and main["case_count"] == 77
+        and main["case_ids"] == [c["id"] for c in cases],
+        "CLI full-cohort/model identity mismatch",
+    )
+    protocol = obj(main["protocol"])
+    require(
+        protocol["repeats"] == 5
+        and protocol["warmup"] == 1
+        and protocol["quality_gate"]
+        == {"logit_atol": 1e-3, "logit_rtol": 1e-3, "probability_atol": 1e-4}
+        and protocol["paired_order"]
+        == "alternating baseline/candidate, candidate/baseline",
+        "Original protocol/quality gates changed",
+    )
+    warm = obj(main["warmup"])
+    arms = {name: obj(main[name]) for name in ("baseline", "candidate")}
+    collections: dict[str, list[Object]] = {}
+    raw_rows: dict[str, list[list[Object]]] = {}
+    all_gate_reports: list[Json] = []
+    total_failed = total_correct = 0
+    reference_quality = True
+    token_shapes: list[Json] = []
+    for case, ref in zip(cases, refs, strict=True):
+        ids = [text(obj(v)["id"]) for v in array(obj(case["request"])["candidates"])]
+        tokens = array(ref["token_ids"])
+        require(
+            ref["id"] == case["id"]
+            and ref["candidate_ids"] == ids
+            and ref["expected"] == case["expected"]
+            and len(ids) == 6
+            and 25 < len(tokens) <= 512
+            and all(type(v) is int for v in tokens)
+            and ref["query_position"] == len(tokens) - 1
+            and len(array(ref["candidate_positions"])) == 6,
+            "Authoritative token/readout identity mismatch",
+        )
+        token_shapes.append(
+            {
+                "id": case["id"],
+                "logical_length": len(tokens),
+                "torch_scalar_physical_length": len(tokens),
+                "mlx_scalar_physical_length": 8 * math.ceil(len(tokens) / 8),
+            }
+        )
+    for name, arm in arms.items():
+        require(
+            arm["name"] == name
+            and arm["model_id"] == model_id
+            and arm["batch_size"] == 1,
+            "Wrong CLI engine identity",
+        )
+        conditions = obj(arm["conditions"])
+        common = {
+            "torch_threads": "8",
+            "max_length": "512",
+            "mlx_cache_limit_mib": "512",
+            "token_cache_size": "0",
+            "compile": "False",
+        }
+        require(
+            all(conditions[k] == v for k, v in common.items())
+            and conditions["backend"] == ("torch" if name == "baseline" else "mlx")
+            and conditions["device"] == ("cpu" if name == "baseline" else "gpu")
+            and conditions["attention"] == ("sdpa" if name == "baseline" else "native"),
+            "Changed CLI engine conditions",
+        )
+        measured = [obj(v) for v in array(arm["cycles"])]
+        warming = [obj(v) for v in array(warm[name + "_cycles"])]
+        require(
+            len(measured) == 5 and len(warming) == 1, "Incomplete paired/warm cycles"
+        )
+        collections[name] = measured
+        raw_rows[name] = []
+        for index, cycle in enumerate(warming + measured):
+            rows = [obj(v) for v in array(cycle["rows"])]
+            require(
+                len(rows) == 77 and number(cycle["latency_ms"]) > 0,
+                "Missing cohort outcomes or invalid canonical timing",
+            )
+            correct = failed = 0
+            gates: list[Json] = []
+            for row, case, ref in zip(rows, cases, refs, strict=True):
+                require(
+                    row["id"] == case["id"]
+                    and row["expected"] == case["expected"]
+                    and number(row["latency_ms"]) >= 0,
+                    "Changed ordered raw outcome identity",
+                )
+                if row["status"] != "ok":
+                    require(
+                        row["prediction"] is None
+                        and row["correct"] is False
+                        and isinstance(row["error"], str),
+                        "Failed outcome falsely carries prediction",
+                    )
+                    failed += 1
+                    reference_quality = False
+                    gates.append(
+                        {"id": row["id"], "comparable": False, "passed": False}
+                    )
+                    continue
+                require(row["error"] is None, "Successful outcome has error")
+                prediction = obj(row["prediction"])
+                ids = [text(v) for v in array(ref["candidate_ids"])]
+                scores = logits(prediction["scores"])
+                probabilities, ranking = decide(scores, ids)
+                stored_probs = logits(prediction["probabilities"])
+                require(
+                    len(stored_probs) == 6
+                    and prediction["ranking"] == ranking
+                    and prediction["selected"] == ranking[0]
+                    and prediction["model_id"] == model_id,
+                    "Serialized decision/ranking mismatch",
+                )
+                require(
+                    all(
+                        abs(a - b) <= 2 * max(math.ulp(a), math.ulp(b))
+                        for a, b in zip(stored_probs, probabilities, strict=True)
+                    ),
+                    "Softmax serialization reconstruction exceeds2ULP",
+                )
+                expected_correct = ranking[0] in array(case["expected"])
+                require(
+                    row["correct"] is expected_correct, "Accuracy bookkeeping mismatch"
+                )
+                correct += expected_correct
+                gate = compare(logits(ref["causal_logits"]), scores, ids)
+                reference_quality &= passed(gate)
+                gates.append({"id": row["id"], "comparable": True, **gate})
+            require(
+                cycle["failed"] == failed and cycle["correct"] == correct,
+                "Cohort failure/accuracy count differs",
+            )
+            total_failed += failed
+            total_correct += correct
+            raw_rows[name].append(rows)
+            all_gate_reports.append(
+                {
+                    "arm": name,
+                    "phase": "warmup" if index == 0 else "measured",
+                    "repeat": max(index - 1, 0),
+                    "failed": failed,
+                    "correct": correct,
+                    "reference_gates": gates,
+                }
+            )
+        measured_failed = sum(int(cast(int, c["failed"])) for c in measured)
+        measured_correct = sum(int(cast(int, c["correct"])) for c in measured)
+        require(
+            arm["attempted"] == 385
+            and arm["failed"] == measured_failed
+            and arm["correct"] == measured_correct
+            and arm["accuracy"] == measured_correct / 385
+            and arm["coverage"] == (385 - measured_failed) / 385,
+            "Arm aggregate denominator differs",
+        )
+    paired_gates: list[Json] = []
+    measured_pair_quality = True
+    paired_selected = paired_ranked = comparable = base_correct = cand_correct = 0
+    logit_max = prob_max = 0.0
+    logits_pass = probs_pass = True
+    for index, (left, right) in enumerate(
+        zip(raw_rows["baseline"], raw_rows["candidate"], strict=True)
+    ):
+        gates = []
+        for lrow, rrow, ref in zip(left, right, refs, strict=True):
+            if index > 0:
+                base_correct += bool(lrow["correct"])
+                cand_correct += bool(rrow["correct"])
+            if lrow["prediction"] is None or rrow["prediction"] is None:
+                if index > 0:
+                    measured_pair_quality = False
+                gates.append({"id": ref["id"], "comparable": False, "passed": False})
+                continue
+            a, b = obj(lrow["prediction"]), obj(rrow["prediction"])
+            gate = compare(
+                logits(a["scores"]),
+                logits(b["scores"]),
+                [text(v) for v in array(ref["candidate_ids"])],
+            )
+            gates.append({"id": ref["id"], "comparable": True, **gate})
+            if index > 0:
+                comparable += 1
+                paired_selected += a["selected"] == b["selected"]
+                paired_ranked += a["ranking"] == b["ranking"]
+                logit_max = max(logit_max, number(gate["max_logit_difference"]))
+                probability_diff = max(
+                    abs(x - y)
+                    for x, y in zip(
+                        logits(a["probabilities"]),
+                        logits(b["probabilities"]),
+                        strict=True,
+                    )
+                )
+                prob_max = max(prob_max, probability_diff)
+                logits_pass &= gate["logits_passed"] is True
+                probs_pass &= probability_diff <= 1e-4
+                measured_pair_quality &= passed(gate)
+        paired_gates.append(
+            {
+                "phase": "warmup" if index == 0 else "measured",
+                "repeat": max(0, index - 1),
+                "gates": gates,
+            }
+        )
+    measured_pair_quality &= comparable == 385 and cand_correct >= base_correct
+    claimed_quality = obj(main["quality"])
+    require(
+        claimed_quality["total"] == 385
+        and claimed_quality["comparable"] == comparable
+        and claimed_quality["selected_equal"] == paired_selected
+        and claimed_quality["ranking_equal"] == paired_ranked
+        and claimed_quality["baseline_correct"] == base_correct
+        and claimed_quality["candidate_correct"] == cand_correct
+        and claimed_quality["logits_within_tolerance"]
+        is (comparable == 385 and logits_pass)
+        and claimed_quality["probabilities_within_tolerance"]
+        is (comparable == 385 and probs_pass)
+        and claimed_quality["passed"] is measured_pair_quality,
+        "CLI measured paired-quality claim mismatch",
+    )
+    if comparable:
+        require(
+            math.isclose(
+                number(claimed_quality["max_abs_logit_difference"]),
+                logit_max,
+                abs_tol=1e-15,
+            )
+            and math.isclose(
+                number(claimed_quality["max_abs_probability_difference"]),
+                prob_max,
+                abs_tol=1e-15,
+            ),
+            "CLI reported maximum drift mismatch",
+        )
+    warm_failed = sum(
+        cast(int, raw_rows[name][0][i]["status"] != "ok")
+        for name in arms
+        for i in range(77)
+    )
+    cli_quality = measured_pair_quality and warm_failed == 0
+    require(
+        warm["failed"] == warm_failed
+        and main["passed"] is cli_quality
+        and wall["exit_code"] == (0 if cli_quality else 1)
+        and wall["completed"] is cli_quality,
+        "CLI quality exit bookkeeping mismatch",
+    )
+    baseline_times = [number(c["latency_ms"]) for c in collections["baseline"]]
+    candidate_times = [number(c["latency_ms"]) for c in collections["candidate"]]
+    ratios = [a / b for a, b in zip(baseline_times, candidate_times, strict=True)]
+    median, p05 = percentile(ratios, 0.5), percentile(ratios, 0.05)
+    aggregate = math.fsum(baseline_times) / math.fsum(candidate_times)
+    p95_ratio = percentile(candidate_times, 0.95) / percentile(baseline_times, 0.95)
+    speed = obj(main["speed"])
+    require(
+        speed["paired_cycle_speedups"] == ratios
+        and speed["paired_speedup_p50"] == median
+        and speed["paired_speedup_p05"] == p05
+        and speed["paired_speedup_p95"] == percentile(ratios, 0.95)
+        and speed["median_speedup_positive"] is (median > 1),
+        "CLI descriptive timing claim mismatch",
+    )
+    speed_gates = {
+        "median_at_least_1_02": median >= 1.02,
+        "p05_above_1": p05 > 1,
+        "aggregate_above_1": aggregate > 1,
+        "candidate_p95_no_worse": p95_ratio <= 1,
+    }
+    strict_quality = reference_quality and measured_pair_quality and total_failed == 0
+    return {
+        "audit_passed": True,
+        "frameworks_imported": [],
+        "raw_main_sha256": args.main_sha,
+        "raw_wall_sha256": args.wall_sha,
+        "raw_archive_sha256": args.archive_sha,
+        "raw_log_sha256": args.log_sha,
+        "producer_sha256": HELPER_SHA,
+        "executed_source_sha256": cast(Object, sources),
+        "outcome_count": 924,
+        "failed": total_failed,
+        "correct": total_correct,
+        "cli_quality_passed": cli_quality,
+        "independent_reference_and_paired_quality_passed": strict_quality,
+        "performance": {
+            "paired_ratios": cast(list[Json], ratios),
+            "median": median,
+            "p05": p05,
+            "aggregate": aggregate,
+            "candidate_p95_ratio": p95_ratio,
+            "gates": cast(Object, speed_gates),
+            "passed": all(speed_gates.values()),
+        },
+        "independent_accepted": strict_quality and all(speed_gates.values()),
+        "physical_shapes_from_archived_padding_policy": token_shapes,
+        "reference_gates": all_gate_reports,
+        "paired_gates": paired_gates,
+        "limitations": [
+            "2ULP allowance applies only serialized softmax reconstruction; "
+            "original1e-3 logits/1e-4 probability gates unchanged.",
+            "Physical MLX lengths inferred from archived eight-token rounding "
+            "policy; not independent retokenization or measured launch geometry.",
+            "Cycle order follows archived CLI protocol; independent event "
+            "chronology is not present in raw report.",
+            "Timed calls unprofiled; no actual kernel dispatch or IEEE internal "
+            "precision inference.",
+            "Full-stock Torch versus full-stock MLX context; no retained-prefix "
+            "or sparse-readout production gain claim.",
+            "Shared cumulative RSS is not per-arm memory; five pairs are not "
+            "confidence bounds or online throughput evidence.",
+            "Executed source/asset bytes and reported versions are provenance, "
+            "not independent native binary attestation.",
+        ],
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("main", type=Path)
+    parser.add_argument("--output", type=Path, required=True)
+    for name in ("main", "wall", "archive", "log"):
+        parser.add_argument("--" + name + "-sha", required=True)
+    args = parser.parse_args(namespace=Arguments())
+    if args.output.exists():
+        raise FileExistsError("Preserve existing raw audit")
+    report = audit(args)
+    source = Path(__file__)
+    report["audit_script"] = {
+        "path": str(source),
+        "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+        "text": source.read_text(),
+    }
+    with args.output.open("x") as stream:
+        json.dump(report, stream, indent=2, allow_nan=False)
+        stream.write("\n")
+    print(
+        json.dumps(
+            {
+                "audit_passed": True,
+                "independent_quality_passed": report[
+                    "independent_reference_and_paired_quality_passed"
+                ],
+                "performance": report["performance"],
+                "audit_sha256": hashlib.sha256(args.output.read_bytes()).hexdigest(),
+            },
+            allow_nan=False,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

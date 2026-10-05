@@ -1,0 +1,551 @@
+{
+  "scope": "one layer-zero gate Linear; no complete-engine speed claim",
+  "passed": true,
+  "completed": true,
+  "phase": "complete",
+  "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+  "source_sha256": {
+    "backend": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+    "benchmark": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "cpp_gemm": "88848c7f4a07849bdabbbd06ca7bd7ed3a4b827e26b3dc5831909bf7d1a37600",
+    "cpp_micro_gemm": "b6af1480e8e8693e1ee8456abbb621ba9639b7422fa0dd90f70ea826784c124a",
+    "cpu_isa": "93dafb542edb9d749f64aa51ec08c3386cd6841a87e47a4b2bea5a84ed0d84eb",
+    "inductor_conditions": "f2618b8a174d83d08165c0868692a5718bbf80f57dbb6aa5275c580a888adf5f",
+    "launcher": "97ab4ea9ec6ccf8339508aa4c5a729b702e89034b4d7e11cdaeeddd38dbc3fc6",
+    "qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "reference": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+    "runner": "f092983c781a2665831d3d05b3ec4d6e7cd23b49320c783affbbddcc3b3fa504"
+  },
+  "source_archive": {
+    "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-autotune-projection.sources-7c5c8a16ab440244.json",
+    "sha256": "7c5c8a16ab440244c1128a6d8dee77b0dd0c30f817a81fe09873f77c1354752b"
+  },
+  "versions": {
+    "torch": "2.14.1",
+    "transformers": "5.18.0"
+  },
+  "protocol": {
+    "dtype": "float32",
+    "device": "cpu",
+    "threads": 8,
+    "batch_size": 8,
+    "max_length": 512,
+    "token_cache_size": 0,
+    "mode": "max-autotune",
+    "frozen_weights": true,
+    "repeats": 5,
+    "warmup": "first compiled call; untimed eager reference",
+    "projection_gate": {
+      "atol": 0.001,
+      "rtol": 0.001,
+      "rule": "abs(error) <= atol + rtol * abs(reference); distinct from full-model symmetric max gate"
+    },
+    "full_model_quality_gate": {
+      "logit_atol": 0.001,
+      "logit_rtol": 0.001,
+      "probability_atol": 0.0001
+    }
+  },
+  "environment": {
+    "TORCHINDUCTOR_FREEZING": "1",
+    "TORCHINDUCTOR_CACHE_DIR": "/private/tmp/wyat-cpu-autotune-l017r42y",
+    "TORCH_LOGS": "output_code",
+    "TORCHINDUCTOR_COMPILE_THREADS": "1"
+  },
+  "conditions": "FP32/FP32 NEON CPP micro-GEMM, constant frozen weight, stride-one input K; generated-code log establishes actual dispatch",
+  "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+  "capture": {
+    "latency_ms": 707.5865,
+    "peak_rss_before_bytes": 3754524672,
+    "peak_rss_after_bytes": 3919036416,
+    "correct": 7,
+    "failed": 0,
+    "rows": [
+      {
+        "id": "banking77-train-05698",
+        "expected": [
+          "Refund_not_showing_up"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "request_refund",
+          "ranking": [
+            "request_refund",
+            "Refund_not_showing_up",
+            "atm_support",
+            "declined_transfer",
+            "topping_up_by_card",
+            "extra_charge_on_statement"
+          ],
+          "scores": [
+            -3.166908025741577,
+            -2.461196184158325,
+            -3.7878637313842773,
+            2.3231523036956787,
+            -4.077081680297852,
+            0.39245325326919556
+          ],
+          "probabilities": [
+            0.003553941401031044,
+            0.007197754360560043,
+            0.0019099967410112172,
+            0.8610198604274004,
+            0.0014302991051873529,
+            0.12488814796480993
+          ]
+        },
+        "correct": false,
+        "latency_ms": 707.574917,
+        "error": null
+      },
+      {
+        "id": "banking77-train-09214",
+        "expected": [
+          "activate_my_card"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "activate_my_card",
+          "ranking": [
+            "activate_my_card",
+            "failed_transfer",
+            "verify_my_identity",
+            "compromised_card",
+            "top_up_by_cash_or_cheque",
+            "card_arrival"
+          ],
+          "scores": [
+            -3.444965124130249,
+            -3.881561279296875,
+            -3.230292320251465,
+            -0.34991711378097534,
+            -4.063048362731934,
+            -3.850278377532959
+          ],
+          "probabilities": [
+            0.038197487940750396,
+            0.02468445263740812,
+            0.04734411651172892,
+            0.8437175338835,
+            0.020587549793634478,
+            0.025468859232978154
+          ]
+        },
+        "correct": true,
+        "latency_ms": 707.574917,
+        "error": null
+      },
+      {
+        "id": "banking77-train-01636",
+        "expected": [
+          "age_limit"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "age_limit",
+          "ranking": [
+            "age_limit",
+            "balance_not_updated_after_bank_transfer",
+            "unable_to_verify_identity",
+            "verify_my_identity",
+            "get_physical_card",
+            "card_delivery_estimate"
+          ],
+          "scores": [
+            -2.9672257900238037,
+            0.49895012378692627,
+            -3.7900428771972656,
+            -4.480195045471191,
+            -3.8496854305267334,
+            -4.080416679382324
+          ],
+          "probabilities": [
+            0.029056418274011585,
+            0.9302145993986284,
+            0.01276136580994629,
+            0.006399821774935614,
+            0.012022498353955632,
+            0.009545296388522438
+          ]
+        },
+        "correct": true,
+        "latency_ms": 707.574917,
+        "error": null
+      },
+      {
+        "id": "banking77-train-09708",
+        "expected": [
+          "apple_pay_or_google_pay"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "apple_pay_or_google_pay",
+          "ranking": [
+            "apple_pay_or_google_pay",
+            "top_up_limits",
+            "failed_transfer",
+            "transaction_charged_twice",
+            "verify_my_identity",
+            "lost_or_stolen_phone"
+          ],
+          "scores": [
+            -4.414140701293945,
+            -4.663084030151367,
+            -1.797642469406128,
+            -4.8229780197143555,
+            -2.9766504764556885,
+            1.377690315246582
+          ],
+          "probabilities": [
+            0.002873941372128353,
+            0.002240594111823483,
+            0.039337671415395514,
+            0.0019095107733268402,
+            0.012099626845210988,
+            0.9415386554821149
+          ]
+        },
+        "correct": true,
+        "latency_ms": 707.574917,
+        "error": null
+      },
+      {
+        "id": "banking77-train-04562",
+        "expected": [
+          "atm_support"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "atm_support",
+          "ranking": [
+            "atm_support",
+            "cash_withdrawal_not_recognised",
+            "topping_up_by_card",
+            "activate_my_card",
+            "declined_card_payment",
+            "card_delivery_estimate"
+          ],
+          "scores": [
+            -3.709005832672119,
+            -3.3830525875091553,
+            -4.523222923278809,
+            -3.7994089126586914,
+            -2.5076112747192383,
+            2.035507917404175
+          ],
+          "probabilities": [
+            0.0031295152911411744,
+            0.004335475872262707,
+            0.0013863314906209531,
+            0.0028590089777689454,
+            0.010404856740858257,
+            0.9778848116273481
+          ]
+        },
+        "correct": true,
+        "latency_ms": 707.574917,
+        "error": null
+      },
+      {
+        "id": "banking77-train-01221",
+        "expected": [
+          "automatic_top_up"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "automatic_top_up",
+          "ranking": [
+            "automatic_top_up",
+            "pending_top_up",
+            "declined_transfer",
+            "pending_transfer",
+            "balance_not_updated_after_bank_transfer",
+            "reverted_card_payment?"
+          ],
+          "scores": [
+            -3.8148996829986572,
+            2.3372011184692383,
+            -4.05938720703125,
+            -3.4195821285247803,
+            -3.805978298187256,
+            -1.4661123752593994
+          ],
+          "probabilities": [
+            0.0020641842045874747,
+            0.9695537281063048,
+            0.0016164745368174372,
+            0.0030650155553173814,
+            0.0020826819763803597,
+            0.021617915620592495
+          ]
+        },
+        "correct": true,
+        "latency_ms": 707.574917,
+        "error": null
+      },
+      {
+        "id": "banking77-train-08638",
+        "expected": [
+          "balance_not_updated_after_bank_transfer"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "balance_not_updated_after_bank_transfer",
+          "ranking": [
+            "balance_not_updated_after_bank_transfer",
+            "fiat_currency_support",
+            "top_up_by_cash_or_cheque",
+            "transaction_charged_twice",
+            "activate_my_card",
+            "getting_spare_card"
+          ],
+          "scores": [
+            -3.6878604888916016,
+            -3.2543821334838867,
+            -2.3502039909362793,
+            0.22739222645759583,
+            -3.714355945587158,
+            -4.659244537353516
+          ],
+          "probabilities": [
+            0.017281043547271585,
+            0.026657979053364044,
+            0.06584257397333773,
+            0.8668473265840113,
+            0.016829186913893124,
+            0.006541889928122163
+          ]
+        },
+        "correct": true,
+        "latency_ms": 707.574917,
+        "error": null
+      },
+      {
+        "id": "banking77-train-03357",
+        "expected": [
+          "balance_not_updated_after_cheque_or_cash_deposit"
+        ],
+        "status": "ok",
+        "prediction": {
+          "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+          "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+          "ranking": [
+            "balance_not_updated_after_cheque_or_cash_deposit",
+            "transfer_not_received_by_recipient",
+            "declined_card_payment",
+            "lost_or_stolen_card",
+            "extra_charge_on_statement",
+            "exchange_rate"
+          ],
+          "scores": [
+            -3.1910176277160645,
+            2.1899893283843994,
+            -4.748036861419678,
+            -4.029574871063232,
+            -4.2124762535095215,
+            -2.6368350982666016
+          ],
+          "probabilities": [
+            0.004525202177491156,
+            0.9830590724228166,
+            0.0009537468706962217,
+            0.001956397971668279,
+            0.001629386608952427,
+            0.007876193948375167
+          ]
+        },
+        "correct": true,
+        "latency_ms": 707.574917,
+        "error": null
+      }
+    ]
+  },
+  "capture_quality": {
+    "total": 8,
+    "comparable": 8,
+    "selected_equal": 8,
+    "ranking_equal": 8,
+    "baseline_correct": 7,
+    "candidate_correct": 7,
+    "max_abs_logit_difference": 0.0,
+    "max_abs_probability_difference": 0.0,
+    "logits_within_tolerance": true,
+    "probabilities_within_tolerance": true,
+    "passed": true
+  },
+  "input_shape": [
+    1536,
+    1024
+  ],
+  "weight_shape": [
+    3072,
+    1024
+  ],
+  "weight_preserved": true,
+  "raw_tensors": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-autotune-projection.tensors.safetensors",
+  "raw_sha256": "8f2e89b7d77b13cc9eb1b985383229ceef2dd9e1cfffc334eee9df9cc245ac02",
+  "cold_seconds": 3.0451396660064347,
+  "cold_quality": {
+    "passed": true,
+    "finite": true,
+    "max_absolute_error": 0.0,
+    "atol": 0.001,
+    "rtol": 0.001
+  },
+  "timings_ms": {
+    "eager": [
+      3.7845830083824694,
+      3.8393749855458736,
+      3.8496250053867698,
+      3.647417004685849,
+      3.350166021846235
+    ],
+    "compiled": [
+      3.948334022425115,
+      3.3056249958463013,
+      3.9120419532991946,
+      3.3032919745892286,
+      3.880749980453402
+    ]
+  },
+  "qualities": [
+    {
+      "repeat": 0,
+      "arm": "eager",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 0,
+      "arm": "compiled",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 1,
+      "arm": "compiled",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 1,
+      "arm": "eager",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 2,
+      "arm": "eager",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 2,
+      "arm": "compiled",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 3,
+      "arm": "compiled",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 3,
+      "arm": "eager",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 4,
+      "arm": "eager",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    },
+    {
+      "repeat": 4,
+      "arm": "compiled",
+      "passed": true,
+      "finite": true,
+      "max_absolute_error": 0.0,
+      "atol": 0.001,
+      "rtol": 0.001,
+      "sha256": "69b637183b78021c4abfee211d1ce06f2b6100a78a3cb1c520a9fa97d36183cf"
+    }
+  ],
+  "orders": [
+    [
+      "eager",
+      "compiled"
+    ],
+    [
+      "compiled",
+      "eager"
+    ],
+    [
+      "eager",
+      "compiled"
+    ],
+    [
+      "compiled",
+      "eager"
+    ],
+    [
+      "eager",
+      "compiled"
+    ]
+  ],
+  "paired_speedups": [
+    0.9585265549691088,
+    1.1614671931541716,
+    0.9840449185725665,
+    1.1041763891123832,
+    0.8632779845958597
+  ],
+  "paired_speedup_p50": 0.9840449185725665
+}

@@ -1,0 +1,401 @@
+"""Independent stdlib-only first-eight CUDA attention evidence audit."""
+from __future__ import annotations
+
+import base64
+import hashlib
+import json
+import math
+import sys
+import time
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import cast
+
+ROOT = Path('/Users/teilomillet/Code/wyat')
+RESULTS = ROOT / 'benchmarks/analysis/results'
+DECLARATION = sys.argv[4]
+DECLARATION_PATH = Path(sys.argv[5])
+MANIFEST = 'f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866'
+CONTROL = 'd528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167'
+CONTROL_WALL = 'cb00f5f065a04e5c598da04cb3e57a7b75bbaedeb1407dc6ebbb0dd806f4dc8e'
+CONTROL_REVIEW = '1a5d5118549d6e3c0fee67378d859abd269f565d4f3f07a4f1b8f61ebb0f287e'
+OLD_ARCHIVE = 'ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf'
+MODEL = 'kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee'
+DATA = '0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03'
+REFERENCE = 'b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664'
+
+
+def obj(value: object) -> dict[str, object]:
+    assert isinstance(value, dict) and all(isinstance(k, str) for k in value)
+    return cast(dict[str, object], value)
+
+
+def array(value: object) -> list[object]:
+    assert isinstance(value, list)
+    return cast(list[object], value)
+
+
+def number(value: object) -> float:
+    assert type(value) in (int, float)
+    result = float(cast(float, value))
+    assert math.isfinite(result)
+    return result
+
+
+def unique(items: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in items:
+        assert key not in result, key
+        result[key] = value
+    return result
+
+
+def nonfinite(token: str) -> object:
+    raise ValueError(token)
+
+
+def parse(raw: bytes | str) -> object:
+    return cast(object, json.loads(raw, object_pairs_hook=unique, parse_constant=nonfinite))
+
+
+def read(path: Path) -> dict[str, object]:
+    return obj(parse(path.read_bytes()))
+
+
+def sha(path: Path) -> str:
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def interpretation(scores: list[float], ids: list[object]) -> tuple[list[float], list[object]]:
+    assert scores and len(scores) == len(ids)
+    weights = [math.exp(x - max(scores)) for x in scores]
+    total = math.fsum(weights)
+    return [x / total for x in weights], [ids[i] for i in sorted(range(len(scores)), key=scores.__getitem__, reverse=True)]
+
+
+def validate_rows(rows: list[dict[str, object]], cases: list[dict[str, object]]) -> None:
+    assert [x['id'] for x in rows] == [x['id'] for x in cases]
+    for row, case in zip(rows, cases, strict=True):
+        assert row['expected'] == case['expected'] and number(row['latency_ms']) >= 0
+        if row['status'] != 'ok':
+            assert row['prediction'] is None and row['correct'] is False and isinstance(row['error'], str)
+            continue
+        assert row['error'] is None
+        p = obj(row['prediction'])
+        ids = [obj(x)['id'] for x in array(obj(case['request'])['candidates'])]
+        scores = [number(x) for x in array(p['scores'])]
+        probabilities, ranking = interpretation(scores, ids)
+        assert p['model_id'] == MODEL and p['ranking'] == ranking and p['selected'] == ranking[0]
+        assert row['correct'] is (ranking[0] in array(case['expected']))
+        for saved, rebuilt in zip(array(p['probabilities']), probabilities, strict=True):
+            x = number(saved)
+            assert abs(x - rebuilt) <= 2 * max(math.ulp(x), math.ulp(rebuilt))
+
+
+def compare(rows: list[dict[str, object]], baseline: list[dict[str, object]]) -> dict[str, object]:
+    assert len(rows) == len(baseline) and rows
+    comparable = selected = ranked = bc = cc = 0
+    ld: list[float] = []
+    pd: list[float] = []
+    logits_close = probabilities_close = True
+    for row, previous in zip(rows, baseline, strict=True):
+        assert row['id'] == previous['id'] and row['expected'] == previous['expected']
+        bc += previous['correct'] is True
+        cc += row['correct'] is True
+        if row['prediction'] is None or previous['prediction'] is None:
+            continue
+        a, b = obj(previous['prediction']), obj(row['prediction'])
+        comparable += 1
+        selected += a['selected'] == b['selected']
+        ranked += a['ranking'] == b['ranking']
+        for x, y in zip(array(a['scores']), array(b['scores']), strict=True):
+            lhs, rhs = number(x), number(y)
+            ld.append(abs(lhs - rhs))
+            logits_close &= math.isclose(lhs, rhs, abs_tol=1e-3, rel_tol=1e-3)
+        for x, y in zip(array(a['probabilities']), array(b['probabilities']), strict=True):
+            d = abs(number(x) - number(y))
+            pd.append(d)
+            probabilities_close &= d <= 1e-4
+    complete = comparable == len(rows)
+    return dict(total=len(rows), comparable=comparable, selected_equal=selected, ranking_equal=ranked,
+                baseline_correct=bc, candidate_correct=cc, max_abs_logit_difference=max(ld, default=None),
+                max_abs_probability_difference=max(pd, default=None), logits_within_tolerance=complete and logits_close,
+                probabilities_within_tolerance=complete and probabilities_close,
+                passed=complete and selected == len(rows) and ranked == len(rows) and logits_close and probabilities_close and cc >= bc)
+
+
+def verify_report(saved: object, rebuilt: dict[str, object]) -> None:
+    actual = obj(saved)
+    assert set(actual) == set(rebuilt)
+    for key, value in rebuilt.items():
+        if key == 'max_abs_probability_difference' and value is not None:
+            # Independently rebuilt CPU softmax can differ by a few libm ULPs.
+            assert abs(number(actual[key]) - number(value)) <= 5e-16
+        else:
+            assert actual[key] == value, (key, actual[key], value)
+
+
+def audit(main: Path, expected: str) -> dict[str, object]:
+    assert sha(main) == expected
+    wall = main.with_suffix('.wall.json')
+    saved, parent = read(main), read(wall)
+    batch = saved['batch_size']
+    assert type(batch) is int and batch in (1, 8)
+    assert saved['accepted'] is False
+    assert obj(saved['gate']) == dict(logit_atol=1e-3, logit_rtol=1e-3, probability_atol=1e-4)
+    assert saved['attention'] == 'FP32 tensor efficient candidate; CUTLASS FastF32, not IEEE'
+    assert saved['gemm_head'] == 'IEEE global/CUDA matmul; FP32 weights/head, no autocast'
+    assert saved['hf_availability'] == dict(mps_available=False, xpu_available=False, npu_available=False)
+    assert parent['timeout_seconds'] == 180 and parent['timed_out'] is False
+    assert 0 <= number(parent['elapsed_seconds']) < 190
+    command = array(parent['command'])
+    assert 'benchmarks.analysis.cuda.attention.run' in command and '--worker' in command
+    for flag, value in (('--batch-size', str(batch)), ('--manifest-sha256', MANIFEST), ('--sources-sha256', DECLARATION), ('--control-sha256', CONTROL)):
+        assert command[command.index(flag) + 1] == value
+    pinned: dict[str, str] = {}
+    def record(path: Path, digest: str | None = None) -> None:
+        actual = sha(path)
+        if digest is not None:
+            assert actual == digest, str(path)
+        pinned[str(path)] = actual
+    for name, digest in (('cuda-fp32-b1.json', CONTROL), ('cuda-fp32-b1.wall.json', CONTROL_WALL), ('cuda-fp32-b1-review.json', CONTROL_REVIEW), ('cuda-transfer-manifest-v2-20261005.json', MANIFEST), ('cuda-fp32-b1.sources-ae4a797635edfbd1.json', OLD_ARCHIVE)):
+        record(RESULTS / name, digest)
+    record(RESULTS / 'cuda-attention-observer-b1.json', 'e2149d7d4bb6c51827b68798c28d016387be89354b153ce521b10247d5bca562')
+    record(RESULTS / 'cuda-attention-observer-b1-review.json', 'df30e1d4715442146838d1666d866eb53a7bcd377426f4fd929a9b77c79d5248')
+    record(RESULTS / 'cuda-attention-observer-b1.wall.json', '2ed8a63c92f7cc41dff3cf0ce698441c057bfaabc991af3949a685a0b457ac69')
+    control = read(RESULTS / 'cuda-fp32-b1.json')
+    manifest = read(RESULTS / 'cuda-transfer-manifest-v2-20261005.json')
+    admission = obj(saved['admission'])
+    assert admission['manifest_sha256'] == MANIFEST and admission['asset_count'] == 44
+    for key in ('model_id', 'dataset_sha256', 'reference_sha256', 'input_sha256', 'runtime', 'versions'):
+        assert admission[key] == manifest[key]
+    assert obj(saved['control'])['sha256'] == CONTROL and obj(saved['control'])['wall_sha256'] == CONTROL_WALL
+    assets = [obj(x) for x in array(manifest['files'])]
+    assert len(assets) == 44
+    for asset in assets:
+        path = ROOT / cast(str, asset['path'])
+        assert path.stat().st_size == asset['bytes']
+        record(path, cast(str, asset['sha256']))
+    record(DECLARATION_PATH, DECLARATION)
+    declaration = read(DECLARATION_PATH)
+    assert len(declaration) == 7 and saved['source_declaration_sha256'] == DECLARATION
+    for name, digest in declaration.items():
+        record(ROOT / name, cast(str, digest))
+    archive_info = obj(saved['source_archive'])
+    archive_path = RESULTS / Path(cast(str, archive_info['path'])).name
+    record(archive_path, cast(str, archive_info['sha256']))
+    sources = [obj(x) for x in array(read(archive_path)['files'])]
+    table = obj(saved['source_sha256'])
+    assert len(table) == len(sources) and len(set(x['name'] for x in sources)) == len(sources)
+    for source in sources:
+        name = cast(str, source['name'])
+        digest = hashlib.sha256(cast(str, source['text']).encode()).hexdigest()
+        assert digest == source['sha256'] == table[name]
+        if not name.startswith('external_'):
+            record(ROOT / name, digest)
+        else:
+            relative = {'external_qwen3': 'models/qwen3/modeling_qwen3.py', 'external_sdpa': 'integrations/sdpa_attention.py', 'external_masking': 'masking_utils.py'}[name]
+            matches = list((ROOT / '.venv/lib').glob('*/site-packages/transformers/' + relative))
+            assert len(matches) == 1
+            record(matches[0], digest)
+    original_decl = RESULTS / 'cuda-attention-source-declaration-20261005.json'
+    record(original_decl, '71f72524e94055a7626dfc1d74af63508dfbb4578d3816090cd79cdf69328ad7')
+    record(RESULTS / 'cuda-attention-b1.json', '80c4c331e891901bc704245177c8d9dae5975881274f5390ef41acad1d420d43')
+    record(RESULTS / 'cuda-attention-b1-review.json', '62a0676e5e0afa51586da31076a2edd0bf159a3570c98a277f4c4f95c244ab9f')
+    original_archive_path = RESULTS / 'cuda-attention-b1.sources-766517e920343a96.json'
+    record(original_archive_path, '766517e920343a9637f70a3aeddd251e5808eebb65ae24abe87b3676e022395e')
+    original_archive = [obj(x) for x in array(read(original_archive_path)['files'])]
+    assert len(original_archive) == 43
+    permitted = {'benchmarks/analysis/cuda/attention/study.py','benchmarks/analysis/cuda/attention/trace.py','tests/analysis/test_cuda_attention.py','docs/analysis/attention.md'}
+    actual_changes: set[str] = set()
+    for item in original_archive:
+        name = cast(str,item['name'])
+        assert hashlib.sha256(cast(str,item['text']).encode()).hexdigest() == item['sha256']
+        if table[name] != item['sha256']:
+            actual_changes.add(name)
+    assert actual_changes == permitted
+    old = [obj(x) for x in array(read(RESULTS / 'cuda-fp32-b1.sources-ae4a797635edfbd1.json')['files'])]
+    assert all(table[x['name']] == x['sha256'] for x in old)
+    for name, digest in declaration.items():
+        assert table[name] == digest
+    assert set(x for x in table if x.startswith('external_')) == {'external_qwen3', 'external_sdpa', 'external_masking'}
+    data_path, ref_path = ROOT / 'benchmarks/real/banking77-train-dev-menu6.jsonl', ROOT / 'benchmarks/real/torch-fp32-reference77.json'
+    record(data_path, DATA); record(ref_path, REFERENCE)
+    cases = [obj(parse(line)) for line in data_path.read_bytes().splitlines()][:8]
+    refs = [obj(x) for x in array(read(ref_path)['rows'])][:8]
+    reference_rows: list[dict[str, object]] = []
+    for case, ref in zip(cases, refs, strict=True):
+        assert case['id'] == ref['id']
+        scores = [number(x) for x in array(ref['legacy_logits'])]
+        probabilities, ranking = interpretation(scores, array(ref['candidate_ids']))
+        reference_rows.append(dict(id=case['id'], expected=case['expected'], correct=ranking[0] in array(case['expected']), prediction=dict(scores=scores, probabilities=probabilities, ranking=ranking, selected=ranking[0])))
+    control_rows = [obj(x) for x in array(obj(control['cycle'])['rows'])][:8]
+    profile_count = cast(int, batch)
+    ids = [x['id'] for x in cases]
+    assert saved['case_ids'] == ids and saved['profiled_case_ids'] == ids[:profile_count]
+    assert saved['expected_ordinary_rows'] == 16 and saved['expected_profile_rows'] == 2 * profile_count
+    reports: dict[str, object] = {}
+    attempted = failed = scores_count = 0
+    for name in ('math', 'efficient'):
+        chunks = [obj(x) for x in array(saved.get(name + '_completed_batches', []))]
+        ordinary_rows = [obj(x) for chunk in chunks for x in array(chunk['rows'])]
+        validate_rows(ordinary_rows, cases[:len(ordinary_rows)])
+        assert len(ordinary_rows) <= 8 and [len(array(x['rows'])) for x in chunks] == [cast(int, batch)] * len(chunks)
+        unknown = obj(saved['unknown_case_ids'])
+        assert unknown[name + '_ordinary'] == ids[len(ordinary_rows):]
+        attempted += len(ordinary_rows)
+        failed += sum(x['status'] != 'ok' for x in ordinary_rows)
+        scores_count += sum(len(array(obj(x['prediction'])['scores'])) for x in ordinary_rows if x['prediction'] is not None)
+        for suffix, count in (('_cycle', 8), ('_profile_cycle', profile_count)):
+            key = name + suffix
+            if key not in saved:
+                if suffix == '_profile_cycle':
+                    assert unknown[name + '_profile'] == ids[:profile_count]
+                continue
+            cycle = obj(saved[key])
+            rows = [obj(x) for x in array(cycle['rows'])]
+            validate_rows(rows, cases[:count])
+            assert len(rows) == count and cycle['correct'] == sum(x['correct'] is True for x in rows) and cycle['failed'] == sum(x['status'] != 'ok' for x in rows)
+            if suffix == '_cycle':
+                assert rows == ordinary_rows and number(cycle['latency_ms']) == sum(number(x['latency_ms']) for x in chunks)
+            else:
+                assert unknown[name + '_profile'] == []
+                attempted += count
+                failed += sum(x['status'] != 'ok' for x in rows)
+                scores_count += sum(len(array(obj(x['prediction'])['scores'])) for x in rows if x['prediction'] is not None)
+            rebuilt = dict(cpu_reference=compare(rows, reference_rows[:count]), cuda_control=compare(rows, control_rows[:count]))
+            drift_key = name + ('_drift' if suffix == '_cycle' else '_profile_drift')
+            for baseline, report in rebuilt.items():
+                verify_report(obj(saved[drift_key])[baseline], obj(report))
+            reports[key] = rebuilt
+    dispatch: dict[str, object] = dict(observed=False, passed=False)
+    if 'efficient_profile' in saved:
+        trace = obj(saved['efficient_profile'])
+        events = [obj(x) for x in array(trace['dispatch'])]
+        length = max(len(array(x['token_ids'])) for x in refs[:profile_count])
+        expected_shape = [profile_count, 16, length, 128]
+        passed = len(events) == 28
+        for event in events:
+            tensors = [obj(x) for x in array(event['tensors'])]
+            flags = obj(event.get('call_flags', {}))
+            scale = flags.get('scale')
+            passed &= event['operator'] == 'aten.scaled_dot_product_attention.default' and event.get('selector_boundary') == 'public_before_bias_conversion' and len(tensors) == 4
+            passed &= set(flags) == {'dropout_p','is_causal','enable_gqa','scale'} and type(flags.get('dropout_p')) in (int,float) and flags.get('dropout_p') == 0 and flags.get('is_causal') is False and flags.get('enable_gqa') is False
+            passed &= scale is None or type(scale) is float and number(scale) == 128**-0.5
+            if len(tensors) == 4:
+                passed &= all(x['shape'] == expected_shape and x['dtype'] == 'torch.float32' and x['device'] == 'cuda:0' and array(x['stride'])[-1] == 1 for x in tensors[:3])
+                bias = tensors[3]
+                passed &= bias['shape'] == [1,1,length,length] and bias['dtype'] == 'torch.bool' and bias['device'] == 'cuda:0' and bias['stride'] == [length*length,length*length,length,1]
+            if scale is not None:
+                assert event.get('selector_boundary') == 'public_before_bias_conversion' and isinstance(event.get('selector_error'),str)
+            assert event.get('converted_bias_strides') == 'unknown'
+        assert trace['case_ids'] == ids[:profile_count]
+        kernels = array(trace['cuda_kernel_events'])
+        assert trace['cuda_kernel_names_available'] is bool(kernels)
+        operators = [obj(x) for x in array(trace['operators'])]
+        efficient_ops = sum(cast(int, x['count']) for x in operators if x['name'] == 'aten::_scaled_dot_product_efficient_attention')
+        forward_ops = sum(cast(int, x['count']) for x in operators if x['name'] == 'aten::_efficient_attention_forward')
+        math_ops = sum(cast(int, x['count']) for x in operators if x['name'] == 'aten::_scaled_dot_product_attention_math')
+        fmha = [obj(x) for x in kernels if 'fmha' in cast(str, obj(x)['name'])]
+        for kernel in kernels:
+            assert number(obj(kernel)['duration_us']) >= 0 and type(obj(kernel)['device_index']) is int
+        public_metadata = all(x['operator'] == 'aten.scaled_dot_product_attention.default' for x in events)
+        if public_metadata:
+            assert len(events) == 28
+            for event in events:
+                tensors = [obj(x) for x in array(event['tensors'])]
+                assert len(tensors) == 4
+                assert all(x['shape'] == expected_shape and x['dtype'] == 'torch.float32' and x['device'] == 'cuda:0' and array(x['stride'])[-1] == 1 for x in tensors[:3])
+                assert tensors[3]['shape'] == [1,1,length,length] and tensors[3]['dtype'] == 'torch.bool' and tensors[3]['device'] == 'cuda:0'
+                assert event.get('selector_boundary') == 'public_before_bias_conversion'
+        forbidden = [x for x in operators if cast(int,x['count']) > 0 and any(y in cast(str,x['name']) for y in ('attention_math','flash_attention','cudnn_attention'))]
+        passed &= efficient_ops == forward_ops == len(fmha) == 28 and not forbidden and trace['cuda_kernel_names_available'] is True
+        passed &= all(cast(str,x['name']).startswith('fmha_cutlassF_f32_aligned_') and '_sm80(' in cast(str,x['name']) for x in fmha)
+        assert saved['dispatch_passed'] is (passed if saved['completed'] is True else False)
+        dispatch = dict(observed=True, passed=passed, declared_gate_preserved=passed, layers=len(events), length=length, tensors=events, warnings=trace['warnings'], cuda_kernel_events=kernels, kernel_names_available=bool(kernels), public_observer_only=public_metadata,forbidden_profiler_events=forbidden,selector_diagnostics_scope='Public boundary before bias conversion; no scale field in SDPAParams, eligibility is diagnostic only.', efficient_profiler_operator_count=efficient_ops, efficient_forward_count=forward_ops, math_profiler_operator_count=math_ops, fmha_kernel_count=len(fmha), fmha_kernel_names=sorted({cast(str,x['name']) for x in fmha}), profiler_supports_efficient_execution=efficient_ops == forward_ops == len(fmha) == 28 and math_ops == 0, scope='One representative profiled candidate batch only; original first-run observer failure remains unchanged. Kernel name is observed, precise internal arithmetic remains source inference.')
+        if 'math_profile' in saved:
+            math_trace = obj(saved['math_profile'])
+            math_operators = [obj(x) for x in array(math_trace['operators'])]
+            dispatch['control_private_math_count'] = sum(cast(int,x['count']) for x in math_operators if x['name'] == 'aten::_scaled_dot_product_attention_math')
+            dispatch['control_cuda_kernel_count'] = len(array(math_trace['cuda_kernel_events']))
+            dispatch['control_warnings'] = math_trace['warnings']
+            dispatch['control_fmha_count'] = sum('fmha' in cast(str,obj(x)['name']) for x in array(math_trace['cuda_kernel_events']))
+    completed = saved['completed'] is True
+    if completed:
+        assert saved['quality_passed'] is True and saved['phase'] == 'completed' and failed == 0 and attempted == 16 + 2 * profile_count
+        assert all(obj(report)['passed'] is True for item in reports.values() for report in obj(item).values())
+        assert parent['exit_code'] == (0 if dispatch['passed'] else 1)
+        assert not any(key in saved for key in ('error', 'cleanup_error'))
+    else:
+        assert saved['quality_passed'] is False and saved['accepted'] is False and isinstance(saved.get('error'), str)
+        assert parent['exit_code'] != 0
+    assert parent['completed'] is (parent['exit_code'] == 0)
+    for key in ('occupancy_before', 'occupancy_before_allocation'):
+        o = obj(saved[key]); assert o['compute_apps'] == '' and o['utilization_percent'] == 0 and number(o['memory_used_MiB']) <= 256
+    copy_path = main.with_name(main.stem + '-copy-release.json')
+    transport_path = main.with_name(main.stem + '-transport.json')
+    copied, transport = read(copy_path), read(transport_path)
+    assert copied['transport_path'] == str(transport_path)
+    assert transport['exit_code'] == 0 and transport['timed_out'] is False and transport['stderr'] == ''
+    assert transport['cap_seconds'] == 90 and transport['remote_cap_seconds'] == 60 and 0 <= number(transport['elapsed_seconds']) < 90
+    stdout_path = Path(cast(str,transport['stdout_path']))
+    raw_copy = read(stdout_path)
+    assert raw_copy['release_queries'] == copied['release_queries'] and raw_copy['summary'] == copied['summary']
+    record(stdout_path)
+    for item in array(raw_copy['files']):
+        entry = obj(item)
+        raw = base64.b64decode(cast(str,entry['base64']),validate=True)
+        assert len(raw) == entry['bytes'] and hashlib.sha256(raw).hexdigest() == entry['sha256']
+        assert (ROOT / cast(str,entry['path'])).read_bytes() == raw
+    copied_files = [obj(x) for x in array(copied['files'])]
+    assert len(copied_files) == 4
+    for item in copied_files:
+        path = ROOT / cast(str,item['path'])
+        assert path.stat().st_size == item['bytes']
+        record(path,cast(str,item['sha256']))
+    queries = [obj(x) for x in array(copied['release_queries'])]
+    assert len(queries) == 3
+    assert queries[0]['command'] == ['nvidia-smi','--query-gpu=memory.used,utilization.gpu','--format=csv,noheader,nounits'] and queries[0]['exit_code'] == 0 and queries[0]['stdout'] == '128, 0\n'
+    assert queries[1]['command'] == ['nvidia-smi','--query-compute-apps=pid,process_name,used_memory','--format=csv,noheader,nounits'] and queries[1]['exit_code'] == 0 and queries[1]['stdout'] == ''
+    assert queries[2]['command'] == ['pgrep','-af','benchmarks.analysis.cuda.attention.run'] and queries[2]['exit_code'] == 1 and queries[2]['stdout'] == ''
+    assert all(x['stderr'] == '' for x in queries)
+    windows: list[dict[str, str]] = []
+    for query in queries:
+        started, finished = cast(str,query['started_utc']),cast(str,query['finished_utc'])
+        begin, end = datetime.fromisoformat(started),datetime.fromisoformat(finished)
+        assert begin.tzinfo is not None and end.tzinfo is not None and 0 <= (end-begin).total_seconds() < 5
+        windows.append(dict(started_utc=started,finished_utc=finished))
+    assert all(windows[i]['finished_utc'] <= windows[i+1]['started_utc'] for i in range(2))
+    preflight_path = RESULTS / 'cuda-attention-observer-b8-preflight-20261005.json'
+    record(preflight_path, '5d011914426b5fd7b9201637171062178928a5a87a4d43a9e2791cd13560fa86')
+    preflight = read(preflight_path)
+    assert preflight['exit_code'] == 0 and preflight['timed_out'] is False and number(preflight['elapsed_seconds']) < number(preflight['cap_seconds'])
+    ready = obj(parse(cast(str,preflight['stdout'])))
+    assert ready['cuda_initialized'] is False and ready['tokenized_cases'] == 77 and ready['reference_correct'] == 67 and ready['reference_failed'] == 0
+    assert ready['admission'] == admission and ready['new_source_hashes'] == declaration
+
+    assert obj(copied['summary'])['completed'] is saved['completed'] and obj(copied['summary'])['dispatch_passed'] is saved['dispatch_passed']
+    for path in (main, wall, main.with_suffix('.log'), copy_path, transport_path):
+        record(path)
+    return dict(passed=True, scientific_completed=completed, numerical_passed=saved['quality_passed'], dispatch=dispatch, batch_size=batch, attempted_rows=attempted, failed_rows=failed, scored_values=scores_count, unique_cases=8, unknown_case_ids=saved['unknown_case_ids'], independent_drift=reports, source_count=len(sources),original_attention_source_differences=sorted(actual_changes),old_source_count=len(old), asset_count=len(assets), source_sha256=table, artifact_sha256=pinned, parent=parent, raw_error=saved.get('error'), allocator_memory=saved.get('cuda_memory'), final_release_queries=queries,release_utc=windows,preflight={'path':str(preflight_path),'exit_code':0,'cuda_initialized':False,'tokenized_cases':77,'stderr':preflight['stderr']},retrieval_limitations=copied.get('first_retrieval'),audit_helper_initial_failure={'error':"KeyError: 'terminal'",'receipt':'benchmarks/analysis/results/cuda-attention-observer-b1-review.initial-failure.json'}, limits=['First8 training-source development cases; no full77 or held-out quality claim.', 'No speed/promotion claim: profiler, mask and head expansion are diagnostic scope only.', 'FastF32 kernel-source policy does not independently prove installed binary arithmetic.', 'Derived CPU softmax reconstruction allows2 ULP; only aggregate comparison diagnostic rounding5e-16; original numerical gates unchanged.', 'Instantaneous occupancy is not hardware reservation; final release per-command GPU/apps/ownrunner statuses independently checked.'])
+
+
+def main() -> None:
+    started = time.perf_counter()
+    path, digest, output = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])
+    result = audit(path, digest)
+    source = Path(__file__).read_bytes()
+    source_sha = hashlib.sha256(source).hexdigest()
+    archive = output.with_suffix(f'.audit-{source_sha[:16]}.txt')
+    with archive.open('xb') as stream:
+        stream.write(source)
+    result.update(captured_utc=datetime.now(timezone.utc).isoformat(), audit_script=dict(path=str(archive),sha256=source_sha,text=source.decode()), elapsed_seconds=time.perf_counter()-started, frameworks_imported=[x for x in ('torch','transformers','mlx','numpy') if x in sys.modules])
+    assert result['frameworks_imported'] == []
+    with output.open('x') as stream:
+        json.dump(result, stream, indent=2, allow_nan=False); stream.write('\n')
+    print(json.dumps(dict(path=str(output),sha256=sha(output),attempted_rows=result['attempted_rows'],numerical_passed=result['numerical_passed'],dispatch_passed=obj(result['dispatch'])['passed'])))
+
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,101 @@
+{
+  "captured_utc": "2026-10-05T11:39:34.958203+00:00",
+  "version": "v2.12.1",
+  "sources": [
+    {
+      "path": "aten/src/ATen/Context.cpp",
+      "url": "https://github.com/pytorch/pytorch/blob/v2.12.1/aten/src/ATen/Context.cpp",
+      "sha256": null,
+      "source_lines": {
+        "singleton": [
+          89,
+          92
+        ],
+        "sdp_flags": [
+          225,
+          276
+        ],
+        "precision_inheritance": [
+          333,
+          351
+        ],
+        "precision_setter": [
+          382,
+          391
+        ]
+      },
+      "short_excerpt": "static Context globalContext_;",
+      "observed": "Function-static Context owns SDPA flags and the FP32 map; setters mutate its fields. Precision getter resolves inherited NONE settings before returning.",
+      "scope": "Exact version-tag source read; installed binary not inspected."
+    },
+    {
+      "path": "aten/src/ATen/Context.h",
+      "url": "https://github.com/pytorch/pytorch/blob/v2.12.1/aten/src/ATen/Context.h",
+      "sha256": null,
+      "source_lines": null,
+      "short_excerpt": "bool enabled_mem_efficientSDP = true;",
+      "observed": "SDPA enabled flags are ordinary Context booleans; fp32_precision is a Context unordered_map. No TLS owner is used for these fields.",
+      "scope": "GitHub rendered source read; canonical file line positions not independently archived."
+    },
+    {
+      "path": "torch/csrc/Module.cpp",
+      "url": "https://github.com/pytorch/pytorch/blob/v2.12.1/torch/csrc/Module.cpp",
+      "sha256": null,
+      "source_lines": {
+        "sdp_bindings": [
+          865,
+          1002
+        ],
+        "fp32_bindings": [
+          2656,
+          2671
+        ]
+      },
+      "short_excerpt": "at::globalContext().setSDPUseMemEfficient(arg == Py_True);",
+      "observed": "Python SDPA setters/getters and FP32 precision bindings invoke at::globalContext, rather than TLS.",
+      "scope": "Exact version-tag source read; no native concurrent execution."
+    },
+    {
+      "path": "torch/nn/attention/__init__.py",
+      "url": "https://github.com/pytorch/pytorch/blob/v2.12.1/torch/nn/attention/__init__.py",
+      "sha256": null,
+      "source_lines": {
+        "snapshot_and_set": [
+          77,
+          100
+        ],
+        "context_finally_restore": [
+          142,
+          147
+        ]
+      },
+      "short_excerpt": "finally: _sdpa_kernel(previous_backends, set_priority)",
+      "observed": "The context snapshots enabled backends, mutates global backend flags, then restores its snapshot in finally; no mutex or task-local state is used here.",
+      "scope": "Exception restoration is supported by source; overlap isolation is not."
+    },
+    {
+      "path": "torch/backends/__init__.py",
+      "url": "https://github.com/pytorch/pytorch/blob/v2.12.1/torch/backends/__init__.py",
+      "sha256": null,
+      "source_lines": null,
+      "short_excerpt": "torch._C._set_fp32_precision_setter(self.backend, self.op, value)",
+      "observed": "GenericModule and _FP32Precision route property writes to the C++ precision setter.",
+      "scope": "GitHub rendered source read; canonical file line positions not independently archived."
+    }
+  ],
+  "observed": "The exact tagged source routes relevant controls to one function-static process Context. Ordinary map/flag fields are shared, not thread-local or coroutine-local.",
+  "inferred": [
+    "Overlapping thread or coroutine scopes can change another call backend and restore stale snapshots; GIL is not process-wide ownership of complete inference or GPU work.",
+    "Saving effective FP32 getter values can restore an explicit leaf where the old setting was inherited; effective read-back equality does not prove raw inheritance-tree restoration.",
+    "A Wyat-only mutex cannot prevent unrelated PyTorch clients mutating or reading the same process flags."
+  ],
+  "minimum_future_policy": "One dedicated inference process owns one fixed precision/backend policy for its lifetime, configured with public modern controls before concurrent admission. Use separate processes for incompatible policies. Avoid per-request flag switching or await while a temporary policy scope is active. Existing serial experiment contexts remain experimental; this finding introduces no production promotion.",
+  "public_docs": "https://docs.pytorch.org/docs/2.12/notes/cuda.html#tensorfloat-32-tf32-on-ampere-and-later-devices",
+  "limits": [
+    "Tagged source behavior supported; precise installed CUDA binary correspondence and runtime concurrency experiment remain unknown.",
+    "No GPU/SSH/payload transfer or production-source change occurred.",
+    "Source SHA256 unavailable: web reader exposes rendered text, not canonical file bytes. GitHub contents API was inaccessible for all four attempted exact paths; no substitute hash invented.",
+    "Per-source quoted excerpt is fewer than25 words.",
+    "CUTLASS attention internal precision remains separate from IEEE global/matmul policy."
+  ]
+}

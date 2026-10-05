@@ -1,0 +1,62 @@
+{
+  "release_queries": [
+    {
+      "started_utc": "2026-10-05T10:42:45.468043+00:00",
+      "finished_utc": "2026-10-05T10:42:45.493256+00:00",
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=memory.used,utilization.gpu",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stdout": "128, 0\n",
+      "stderr": ""
+    },
+    {
+      "started_utc": "2026-10-05T10:42:45.493268+00:00",
+      "finished_utc": "2026-10-05T10:42:45.513199+00:00",
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "started_utc": "2026-10-05T10:42:45.513213+00:00",
+      "finished_utc": "2026-10-05T10:42:45.528883+00:00",
+      "command": [
+        "pgrep",
+        "-af",
+        "benchmarks.analysis.cuda.latency.run"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "files": [
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-confirm-b1.json",
+      "sha256": "c41d4d08665c9089f1e279814d6caf47a5dbe1c4fe31df2d5ffacd9763a7ed4b",
+      "bytes": 2239279
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-confirm-b1.wall.json",
+      "sha256": "29d7fe3a350713ad2698a5205f4df385eb57f7f40be3b2c3fb2c23a91a22d350",
+      "bytes": 1063
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-confirm-b1.log",
+      "sha256": "7d9465f616055b773584e0568d3fe9d3f03d54893a1cebfeb515bb03684e4ba5",
+      "bytes": 2156
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-confirm-b1.sources-21b3fa50c255d85f.json",
+      "sha256": "21b3fa50c255d85f0fee0f7cd0e5bc68868d2fccfb3441dbf58bfb3a044a1ca0",
+      "bytes": 434052
+    }
+  ]
+}

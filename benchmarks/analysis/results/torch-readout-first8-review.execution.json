@@ -1,0 +1,41 @@
+{
+  "review_path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-readout-first8-review.json",
+  "review_sha256": "b42ef790a0de67ddddc4265946e3d478e11dafcc8b05fb6b55eda2653a4040cd",
+  "execution": {
+    "command": [
+      "/Users/teilomillet/Code/wyat/.venv/bin/python",
+      "/private/tmp/wyat-cpu-readout-screen-audit.py",
+      "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-readout-first8.json",
+      "--output",
+      "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-readout-first8-review.json",
+      "--main-sha",
+      "a57e8b52ae727ca954dc8f943d1eb6cdbbd622fb4a3cc6f9304e67158f249858",
+      "--journal-sha",
+      "60edf2a08ecbd71f3adbc747eb28a7a7c2969363d9f79149e43f482d8ef30e0d",
+      "--wall-sha",
+      "ba5f7f489848a2ca891ac3c4e3852839fa3b08a336ef7197a1638e2d7a4cb7c3",
+      "--archive-sha",
+      "7a31a5ea873ab0e2199fbe9b8fc0f7f41fcd3c1502703407f22a66930c85fdac",
+      "--log-sha",
+      "d2884994cd4ccd1a0e5af1494558782a429e3ea186b7ec7379056869b7ee28e7"
+    ],
+    "cwd": "/Users/teilomillet/Code/wyat",
+    "pid": 83745,
+    "cap_seconds": 60,
+    "elapsed_seconds": 0.5995490840286948,
+    "timed_out": false,
+    "exit_code": 0,
+    "reaped": true,
+    "stdout": "{\"audit_passed\": true, \"raw_outcomes\": 88, \"independent_quality_passed\": true, \"independent_dispatch_passed\": true}\n",
+    "stderr": "",
+    "script_sha256": "0ca37df3fdf6c44fdf2359af777e2011b07a88da5913759d3b0a0e2d3b932327"
+  },
+  "execution_receipt_path": "/private/tmp/wyat-cpu-readout-screen-audit.wall.json",
+  "execution_receipt_sha256": "1ac4d29ac14fa1cc3f5ba8d932d9cce6b5d4da043ec0f3e50540427be2c7243f",
+  "static_checks": {
+    "strict_mypy": "Success: no issues found in 1 source file",
+    "ruff": "All checks passed!",
+    "format": "1 file reformatted"
+  },
+  "scope": "Independent stdlib audit only; no frameworks, inference, devices, network or maintained test run"
+}

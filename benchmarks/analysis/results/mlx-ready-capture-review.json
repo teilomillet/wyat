@@ -1,0 +1,424 @@
+{
+  "schema_version": 1,
+  "utc": "2026-10-05T06:35:48.084001+00:00",
+  "audit_passed": true,
+  "capture_supported": true,
+  "profiler_supported_in_attempt": false,
+  "spill_or_occupancy_observed": false,
+  "conclusion": "Public MLX captures and exact cold history controls completed. One documented headless replay attempt timed out without output. Register spills, occupancy and causal explanation remain unknown; no second replay attempt or kernel selection.",
+  "audit_source": {
+    "sha256": "0fd279ce2eed3c79c83ed180d3d11bd6accbfc6ddcf0f7e308373ac9a747321c",
+    "text": "\"\"\"Offline receipt of successful ready captures and unsupported CLI profiling.\"\"\"\nfrom __future__ import annotations\n\nimport hashlib\nimport json\nimport runpy\nimport sys\nfrom collections.abc import Callable\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import cast\n\ntype Json = None | bool | int | float | str | list[Json] | dict[str, Json]\ntype Object = dict[str, Json]\nROOT = Path('/Users/teilomillet/Code/wyat/benchmarks/analysis/results')\nOUTPUT = ROOT / 'mlx-ready-capture-review.json'\n\n\ndef obj(value: Json) -> Object:\n    assert isinstance(value, dict)\n    return value\n\n\ndef text(value: Json) -> str:\n    assert isinstance(value, str)\n    return value\n\n\ndef read(path: Path) -> Object:\n    return obj(cast(Json, json.loads(path.read_bytes())))\n\n\ndef sha(raw: bytes) -> str:\n    return hashlib.sha256(raw).hexdigest()\n\n\ndef artifact(path: Path) -> Object:\n    raw = path.read_bytes()\n    return {'path': str(path), 'sha256': sha(raw), 'bytes': len(raw)}\n\n\nassert not OUTPUT.exists()\nhelper = runpy.run_path('/private/tmp/wyat-metal-ready-capture.py', run_name='offline_inventory')\ninventory = cast(Callable[[Path], dict[str, object]], helper['inventory'])\nartifacts: dict[str, Json] = {}\nreceipts = {name: read(ROOT / (name + '.json')) for name in ('mlx-ready-capture', 'mlx-ready-capture2', 'mlx-ready-profile32')}\nsource_checks: dict[str, Json] = {}\nfor name, receipt in receipts.items():\n    for path in (ROOT / (name + '.json'), ROOT / (name + '.log'), ROOT / (name + '.wall.json'), ROOT / (name + '.stdout.log'), ROOT / (name + '.stderr.log')):\n        if path.exists():\n            artifacts[path.name] = artifact(path)\n    if 'source_archive' in receipt:\n        entry = obj(receipt['source_archive'])\n        path = Path(text(entry['path']))\n        assert sha(path.read_bytes()) == entry['sha256']\n        artifacts[path.name] = artifact(path)\n        archive = read(path)\n        files = archive['files']\n        assert isinstance(files, list) and len(files) == 127\n        changes: list[Json] = []\n        for value in files:\n            item = obj(value)\n            recorded = text(item['text']).encode()\n            assert sha(recorded) == item['sha256'] == obj(receipt['source_hashes'])[text(item['name'])]\n            current = Path(text(item['path'])).read_bytes()\n            if current != recorded:\n                assert name == 'mlx-ready-capture' and item['name'] == 'ready_capture_script'\n                changes.append({'name': item['name'], 'initial_sha256': item['sha256'], 'corrected_sha256': sha(current)})\n        source_checks[name] = {'count': 127, 'all_archived_bytes_valid': True, 'current_differences': changes}\nfirst, corrected, profile = (receipts[name] for name in ('mlx-ready-capture', 'mlx-ready-capture2', 'mlx-ready-profile32'))\nassert first['completed'] is False and first['error'] == 'ValueError: Unexpected captured symlink'\nfirst_capture = obj(obj(first['captures'])['tile32-bf16'])\nassert first_capture['capture_started'] is True and first_capture['capture_stopped'] is True and first_capture['dispatch_evaluated'] is True\nassert corrected['completed'] is True and corrected['cold_all_four_reproduce_tile64_history'] is True\nassert corrected['model_allocated'] is False and corrected['tf32'] == '0' and corrected['capture_enabled'] == '1'\nassert corrected['requested_shape'] == [1336, 1024, 3072] and corrected['threads'] == 128\nassert corrected['cache_cap_restoration_completed'] is True\nassert corrected['original_cache_cap_bytes'] == corrected['cache_cap_restored_bytes']\nassert obj(corrected['cold_screen'])['passed'] is True\ncapture_records: dict[str, Json] = {}\nfor name, value in obj(corrected['captures']).items():\n    entry = obj(value)\n    assert entry['completed'] is True and entry['capture_started'] is True and entry['capture_stopped'] is True and entry['dispatch_evaluated'] is True\n    assert entry['requested_dispatches'] == 1\n    assert entry['activation_dtype'] == entry['output_dtype'] == 'float32' and entry['weight_dtype'] == 'bfloat16'\n    assert entry['output_sha256'] == obj(obj(corrected['cold_screen'])['cold_output_sha256'])[name]\n    current = cast(Json, inventory(Path(text(entry['path']))))\n    assert current == entry['artifact']\n    capture_records[name] = {'output_sha256': entry['output_sha256'], 'bundle': current, 'requested_threadgroup': [128, 1, 1], 'actual_shader_or_command_inventory': 'Unknown: replay tool produced no output'}\nfor name in ('mlx-ready-capture', 'mlx-ready-capture2'):\n    wall = read(ROOT / (name + '.wall.json'))\n    assert wall['timed_out'] is False and wall['reaped'] is True and wall['timeout_seconds'] == 120\n    assert wall['exit_code'] == (1 if name == 'mlx-ready-capture' else 0)\nassert profile['completed'] is False and profile['timed_out'] is True and profile['exit_code'] == 124\nassert profile['client_reaped'] is True and profile['client_pid'] == 33386\nassert profile['timeout_seconds'] == 120 and profile['session_cleanup_observed'] is False\nassert profile['original_capture']['manifest_sha256'] == profile['original_capture_after']['manifest_sha256']  # type: ignore[index]\nassert '--oneshot' in cast(list[Json], profile['command']) and '--embed' not in cast(list[Json], profile['command'])\nfor field in ('stdout', 'stderr'):\n    entry = obj(profile[field])\n    assert entry['bytes'] == 0 and sha(Path(text(entry['path'])).read_bytes()) == entry['sha256']\nassert not any(name in sys.modules for name in ('mlx', 'mlx.core', 'mlx_lm', 'torch'))\nscript = Path(__file__).read_text()\npayload = {\n    'schema_version': 1,\n    'utc': datetime.now(timezone.utc).isoformat(),\n    'audit_passed': True,\n    'capture_supported': True,\n    'profiler_supported_in_attempt': False,\n    'spill_or_occupancy_observed': False,\n    'conclusion': 'Public MLX captures and exact cold history controls completed. One documented headless replay attempt timed out without output. Register spills, occupancy and causal explanation remain unknown; no second replay attempt or kernel selection.',\n    'audit_source': {'sha256': sha(script.encode()), 'text': script},\n    'artifacts': artifacts,\n    'source_checks': source_checks,\n    'captures': capture_records,\n    'initial_helper_failure': {'retained': True, 'reason': first['error'], 'phase': 'postcapture artifact inventory', 'actual_alias': 'MTLBuffer-9-0 -> MTLBuffer-18-0 inside ownedbundle', 'correction': 'Record validated internal alias link/targetdigest; reject external/dir aliases.8 fake lifecycle/inventory checks passed; no numerical or kernel change.'},\n    'read_only_inventory_probe': {'command': ['/usr/bin/gpudebug', '--json', '--list-sessions'], 'client_pid': 33049, 'terminal_exit_code': 143, 'stdout_bytes': 0, 'stderr_bytes': 0, 'cleanup': 'Exact owned client33049 received SIGTERM and was reaped. No trace/profile command was requested. Elapsed wall bound was not independently retained for this first direct query.'},\n    'replay_attempt': {'command': profile['command'], 'client_pid': profile['client_pid'], 'deadline_seconds': 120, 'elapsed_seconds': profile['elapsed_seconds'], 'exit_code': 124, 'client_reaped': True, 'session_id_observed': None, 'session_cleanup_observed': False, 'postcleanup_process_snapshot': 'Native ps found no gpudebug/GPUTrace/MTLReplayer/MetalDebugger/replaypath process beyond the query itself. Hidden/XPCsessionstate is unknown; no server reaping claim.', 'ownership': 'Killed only owned client group33386; never --terminateall or unrelatedprocess. No second replay launched.', 'original_capture_unchanged': True, 'replay_copy_mutation': obj(profile['replay_copy_before'])['manifest_sha256'] != obj(profile['replay_copy_after'])['manifest_sha256'], 'compiler_fields_received': [], 'performance_fields_received': []},\n    'tooling_limit': {'offline_metal': 'xcrun metal --help failed: missing Metal Toolchain. No componentdownload.', 'headless_api': 'Installed gpudebug man documents oneshot/JSON/profile run on M3/A17+, but current actual tool responsiveness/profile compatibility remains unsupported.', 'old_trace': 'Originalfirst8 ShaderTimelineDisabled/CounterSetnull/34shaderinventory/969GPUintervals cannot establish spill or warmedshaderstats.'},\n    'scope_limits': {'no_model_allocated': True, 'no_new_inference_capture': True, 'no_latency_selection': True, 'no_spill_or_occupancy_claim': True, 'no_RSS_or_physical_bandwidth_claim': True, 'no_component_install': True, 'raw_buffers_ignored_and_sdist_excluded': True, 'window': 'Owned capture/test/client processes exited; root notified nativewindow release. Hidden/XPCbackend ownership cannot be proved from empty tool output.'},\n}\nwith OUTPUT.open('x') as handle:\n    handle.write(json.dumps(payload, indent=2, allow_nan=False) + '\\n')\nprint(json.dumps({'path': str(OUTPUT), 'sha256': sha(OUTPUT.read_bytes()), 'capture_supported': True, 'profiler_supported': False}))\n"
+  },
+  "artifacts": {
+    "mlx-ready-capture.json": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture.json",
+      "sha256": "d64641c8dff283b06caeba0144b6ae8c30705f46ca652e41d141595e0e225c40",
+      "bytes": 17306
+    },
+    "mlx-ready-capture.log": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "mlx-ready-capture.wall.json": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture.wall.json",
+      "sha256": "37c53c0555d90bb3db2156e7ac315b84c98a9c0185482b60690731016a31afcf",
+      "bytes": 570
+    },
+    "mlx-ready-capture.sources-f74afe841ac07705.json": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture.sources-f74afe841ac07705.json",
+      "sha256": "f74afe841ac07705c88a57e6fd79a8be7f0477cfbbebcbe9068ffd1f179dca93",
+      "bytes": 1030149
+    },
+    "mlx-ready-capture2.json": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2.json",
+      "sha256": "5e2fbd62aefc104b47af42bd8a1c1fd127e41780633d53dd071050dbb10ae088",
+      "bytes": 26465
+    },
+    "mlx-ready-capture2.log": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "mlx-ready-capture2.wall.json": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2.wall.json",
+      "sha256": "bf638c1acf485444989426fbfa26ed3bec8374a9a8243c08b26b64bd2e1af23e",
+      "bytes": 570
+    },
+    "mlx-ready-capture2.sources-c0c557147a88d5b1.json": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2.sources-c0c557147a88d5b1.json",
+      "sha256": "c0c557147a88d5b16a76d250befc538ded4ae2413359a0e15c6c92a37e25c730",
+      "bytes": 1030688
+    },
+    "mlx-ready-profile32.json": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-profile32.json",
+      "sha256": "cca67c9a7516d3d127c9ef0c3e3424aff6c8983193784b45aa74cda00286c3fb",
+      "bytes": 21240
+    },
+    "mlx-ready-profile32.stdout.log": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-profile32.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "mlx-ready-profile32.stderr.log": {
+      "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-profile32.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  },
+  "source_checks": {
+    "mlx-ready-capture": {
+      "count": 127,
+      "all_archived_bytes_valid": true,
+      "current_differences": [
+        {
+          "name": "ready_capture_script",
+          "initial_sha256": "872da8ace34440074be660700b519d9e43cf642413bf0e7c79bc68f37bda9509",
+          "corrected_sha256": "cbbf5825ada94079317d4824858b335dc97506abd089e236a983e4462f410e7e"
+        }
+      ]
+    },
+    "mlx-ready-capture2": {
+      "count": 127,
+      "all_archived_bytes_valid": true,
+      "current_differences": []
+    }
+  },
+  "captures": {
+    "tile32-bf16": {
+      "output_sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3",
+      "bundle": {
+        "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2-tile32-bf16.gputrace",
+        "files": [
+          {
+            "name": "670D212238943B50",
+            "bytes": 190319536,
+            "sha256": "95974b7de464ec2be7833a914ca5a53d283a70789470fd84218738fc8fcea3e1"
+          },
+          {
+            "name": "AB46D623D1C8E590",
+            "bytes": 55531,
+            "sha256": "7088fde51254c2b0900e9ad10a9ba41a7c63fce884441a90ac535739baa6e5a0"
+          },
+          {
+            "name": "B1CFEB7EE506F1EC",
+            "bytes": 58152,
+            "sha256": "db46bbd941d354361add46dde7f6429a78b859562c1a77dce1e8f482661d6faa"
+          },
+          {
+            "name": "BAA5C47BDE72810E",
+            "bytes": 55521,
+            "sha256": "04f5fc0ac92d1481e60102776c741f3e5667221a24758f80e22d040cfa17fc3c"
+          },
+          {
+            "name": "CAE1CB3D36CFA8E3",
+            "bytes": 58077,
+            "sha256": "d48b5a9b3a855b79acba939ea17a43f69a629e1064217e060dce773bdcd524da"
+          },
+          {
+            "name": "EED04F8E19924644",
+            "bytes": 58067,
+            "sha256": "310be93b3c0f7872c31052a9afe0581f93aaa8cb996536d108b474e08d27028e"
+          },
+          {
+            "name": "MTLBuffer-11-0",
+            "bytes": 6291456,
+            "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+          },
+          {
+            "name": "MTLBuffer-18-0",
+            "bytes": 12582912,
+            "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d"
+          },
+          {
+            "name": "MTLBuffer-45-0",
+            "bytes": 16416768,
+            "sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3"
+          },
+          {
+            "name": "MTLBuffer-8-0",
+            "bytes": 5472256,
+            "sha256": "54ccdea8ec7397001f9f5d0330a03d1d4f0f686c978b679b12da66d615684c80"
+          },
+          {
+            "name": "MTLBuffer-9-0",
+            "kind": "internal-symlink",
+            "link": "MTLBuffer-18-0",
+            "target": "MTLBuffer-18-0",
+            "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d",
+            "bytes": 0
+          },
+          {
+            "name": "capture",
+            "bytes": 2276,
+            "sha256": "2027d4f1ad01348a9804449f6b388b846b258d612f74db5938c0a0e3e37f633e"
+          },
+          {
+            "name": "delta-device-resources-0x102aa8e50",
+            "bytes": 56,
+            "sha256": "5650c32b7149fe2561f3d96ab314bce49af2d6bb98240f251d953c613896977e"
+          },
+          {
+            "name": "device-resources-0x102aa8e50",
+            "bytes": 7500,
+            "sha256": "159ffeaa7271fca4324410ab2630a0afcae7b527f469e8d71098893a9bd922b9"
+          },
+          {
+            "name": "index",
+            "bytes": 14177,
+            "sha256": "43a793b168cd99e1d22ca21c9e572729f0696f86dd2c1f79416f30c661447d52"
+          },
+          {
+            "name": "metadata",
+            "bytes": 1136,
+            "sha256": "10538871271e02797542b3496624326819fb16924bf2b23afd9cd17528966eb6"
+          },
+          {
+            "name": "startup-0-platform",
+            "bytes": 76,
+            "sha256": "7cdb9f53e04464a006a6a42d1c768cf158aba260bc6aca226a6ac7c8beeccf08"
+          },
+          {
+            "name": "startup-1-platform",
+            "bytes": 8,
+            "sha256": "307bca216804762e9741cc4d56a78333351e51a2b9ba29b1b623c5c07df79550"
+          },
+          {
+            "name": "store0",
+            "bytes": 23326,
+            "sha256": "106602fe4bb7721a405a82c87b7108114d307e3fff3725b8c8aca98332a3a3f9"
+          },
+          {
+            "name": "unsorted-capture",
+            "bytes": 7076,
+            "sha256": "959de1396379169ee58573308ff225c34e793742899d7aa575a44fa1b7b4b1cd"
+          },
+          {
+            "name": "unused-device-resources-0x102aa8e50",
+            "bytes": 32704,
+            "sha256": "5bddf6a099b7f4ab3dc5c301364e8f66987803293293a746d0d2b30f94240eac"
+          }
+        ],
+        "manifest_sha256": "948e2299e24188eb7bc2950471b661e71caf2779583c459ed7c3bef3d488ce90",
+        "bytes": 231456611
+      },
+      "requested_threadgroup": [
+        128,
+        1,
+        1
+      ],
+      "actual_shader_or_command_inventory": "Unknown: replay tool produced no output"
+    },
+    "tile64-bf16": {
+      "output_sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3",
+      "bundle": {
+        "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2-tile64-bf16.gputrace",
+        "files": [
+          {
+            "name": "670D212238943B50",
+            "bytes": 190319536,
+            "sha256": "95974b7de464ec2be7833a914ca5a53d283a70789470fd84218738fc8fcea3e1"
+          },
+          {
+            "name": "AB46D623D1C8E590",
+            "bytes": 55531,
+            "sha256": "7088fde51254c2b0900e9ad10a9ba41a7c63fce884441a90ac535739baa6e5a0"
+          },
+          {
+            "name": "B1CFEB7EE506F1EC",
+            "bytes": 58152,
+            "sha256": "db46bbd941d354361add46dde7f6429a78b859562c1a77dce1e8f482661d6faa"
+          },
+          {
+            "name": "BAA5C47BDE72810E",
+            "bytes": 55521,
+            "sha256": "04f5fc0ac92d1481e60102776c741f3e5667221a24758f80e22d040cfa17fc3c"
+          },
+          {
+            "name": "CAE1CB3D36CFA8E3",
+            "bytes": 58077,
+            "sha256": "d48b5a9b3a855b79acba939ea17a43f69a629e1064217e060dce773bdcd524da"
+          },
+          {
+            "name": "EED04F8E19924644",
+            "bytes": 58067,
+            "sha256": "310be93b3c0f7872c31052a9afe0581f93aaa8cb996536d108b474e08d27028e"
+          },
+          {
+            "name": "MTLBuffer-11-0",
+            "bytes": 6291456,
+            "sha256": "0315850b0937cd4ddc7e79f45cdbb6c901260e31b7f4c4c809710099f2564c6c"
+          },
+          {
+            "name": "MTLBuffer-18-0",
+            "bytes": 12582912,
+            "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d"
+          },
+          {
+            "name": "MTLBuffer-45-0",
+            "bytes": 16416768,
+            "sha256": "929bf40a30959a865c7a3e20cd1ad28a0329560ade17f0ba3c9ed69c7477a1f3"
+          },
+          {
+            "name": "MTLBuffer-8-0",
+            "bytes": 5472256,
+            "sha256": "54ccdea8ec7397001f9f5d0330a03d1d4f0f686c978b679b12da66d615684c80"
+          },
+          {
+            "name": "MTLBuffer-9-0",
+            "kind": "internal-symlink",
+            "link": "MTLBuffer-18-0",
+            "target": "MTLBuffer-18-0",
+            "sha256": "ea395c0af650d5bace997a3a8414c2d683bf8d25f64a5d0e22042868ead51a3d",
+            "bytes": 0
+          },
+          {
+            "name": "capture",
+            "bytes": 2276,
+            "sha256": "dd1ede515e281e7a71bb041a369468d03918f5e6802a5eb628610757614cd822"
+          },
+          {
+            "name": "delta-device-resources-0x102aa8e50",
+            "bytes": 56,
+            "sha256": "5650c32b7149fe2561f3d96ab314bce49af2d6bb98240f251d953c613896977e"
+          },
+          {
+            "name": "device-resources-0x102aa8e50",
+            "bytes": 7500,
+            "sha256": "159ffeaa7271fca4324410ab2630a0afcae7b527f469e8d71098893a9bd922b9"
+          },
+          {
+            "name": "index",
+            "bytes": 14177,
+            "sha256": "599da3a6dbafdaea92794aba9759da6f16bc6beb437435438d80536860069b14"
+          },
+          {
+            "name": "metadata",
+            "bytes": 1136,
+            "sha256": "4899c53b5c2fa8e3bb8cdeda353cd29aaa2016b5271495598c63dbe6a02a6eb8"
+          },
+          {
+            "name": "startup-0-platform",
+            "bytes": 76,
+            "sha256": "7cdb9f53e04464a006a6a42d1c768cf158aba260bc6aca226a6ac7c8beeccf08"
+          },
+          {
+            "name": "startup-1-platform",
+            "bytes": 8,
+            "sha256": "307bca216804762e9741cc4d56a78333351e51a2b9ba29b1b623c5c07df79550"
+          },
+          {
+            "name": "store0",
+            "bytes": 23326,
+            "sha256": "5384e834eca2259a055b00080daaf662655435543898ec0d52d5f9ebd0048374"
+          },
+          {
+            "name": "unsorted-capture",
+            "bytes": 6624,
+            "sha256": "bd505bbbc2a66147c81eac9e29de10057a6629b12638159df9e581bde0ab4d29"
+          },
+          {
+            "name": "unused-device-resources-0x102aa8e50",
+            "bytes": 32704,
+            "sha256": "2006772d42db5d72666778a4eb4ce6f0c2bb817623fb12a0fe419d22fd6a37da"
+          }
+        ],
+        "manifest_sha256": "adcca44a37c1d7e6fde3f67cb64815037700626d4d840c1b9b9c07c8b4b53741",
+        "bytes": 231456159
+      },
+      "requested_threadgroup": [
+        128,
+        1,
+        1
+      ],
+      "actual_shader_or_command_inventory": "Unknown: replay tool produced no output"
+    }
+  },
+  "initial_helper_failure": {
+    "retained": true,
+    "reason": "ValueError: Unexpected captured symlink",
+    "phase": "postcapture artifact inventory",
+    "actual_alias": "MTLBuffer-9-0 -> MTLBuffer-18-0 inside ownedbundle",
+    "correction": "Record validated internal alias link/targetdigest; reject external/dir aliases.8 fake lifecycle/inventory checks passed; no numerical or kernel change."
+  },
+  "read_only_inventory_probe": {
+    "command": [
+      "/usr/bin/gpudebug",
+      "--json",
+      "--list-sessions"
+    ],
+    "client_pid": 33049,
+    "terminal_exit_code": 143,
+    "stdout_bytes": 0,
+    "stderr_bytes": 0,
+    "cleanup": "Exact owned client33049 received SIGTERM and was reaped. No trace/profile command was requested. Elapsed wall bound was not independently retained for this first direct query."
+  },
+  "replay_attempt": {
+    "command": [
+      "/usr/bin/gpudebug",
+      "--oneshot",
+      "--json",
+      "--timeout",
+      "45",
+      "-t",
+      "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-replay32.gputrace",
+      "-o",
+      "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-profile32-resources",
+      "-c",
+      "status",
+      "-c",
+      "profile run --exec serial --gpu-state default",
+      "-c",
+      "go /performance/shaders",
+      "-c",
+      "list --all",
+      "-c",
+      "info --all",
+      "-c",
+      "go /performance/commands",
+      "-c",
+      "list --all",
+      "-c",
+      "info --all",
+      "-c",
+      "go /resources/compute_pipelines",
+      "-c",
+      "list --all",
+      "-c",
+      "info cps0 --all",
+      "-c",
+      "find wyat",
+      "-c",
+      "profile"
+    ],
+    "client_pid": 33386,
+    "deadline_seconds": 120,
+    "elapsed_seconds": 120.00820129201747,
+    "exit_code": 124,
+    "client_reaped": true,
+    "session_id_observed": null,
+    "session_cleanup_observed": false,
+    "postcleanup_process_snapshot": "Native ps found no gpudebug/GPUTrace/MTLReplayer/MetalDebugger/replaypath process beyond the query itself. Hidden/XPCsessionstate is unknown; no server reaping claim.",
+    "ownership": "Killed only owned client group33386; never --terminateall or unrelatedprocess. No second replay launched.",
+    "original_capture_unchanged": true,
+    "replay_copy_mutation": false,
+    "compiler_fields_received": [],
+    "performance_fields_received": []
+  },
+  "tooling_limit": {
+    "offline_metal": "xcrun metal --help failed: missing Metal Toolchain. No componentdownload.",
+    "headless_api": "Installed gpudebug man documents oneshot/JSON/profile run on M3/A17+, but current actual tool responsiveness/profile compatibility remains unsupported.",
+    "old_trace": "Originalfirst8 ShaderTimelineDisabled/CounterSetnull/34shaderinventory/969GPUintervals cannot establish spill or warmedshaderstats."
+  },
+  "scope_limits": {
+    "no_model_allocated": true,
+    "no_new_inference_capture": true,
+    "no_latency_selection": true,
+    "no_spill_or_occupancy_claim": true,
+    "no_RSS_or_physical_bandwidth_claim": true,
+    "no_component_install": true,
+    "raw_buffers_ignored_and_sdist_excluded": true,
+    "window": "Owned capture/test/client processes exited; root notified nativewindow release. Hidden/XPCbackend ownership cannot be proved from empty tool output."
+  }
+}

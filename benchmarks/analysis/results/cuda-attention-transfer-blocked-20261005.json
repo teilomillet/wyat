@@ -1,0 +1,69 @@
+{
+  "captured_utc": "2026-10-05T07:55:21.542784+00:00",
+  "scope": "Local immutable preparation only; rejected SSH transfer never executed; no CUDA allocation",
+  "archive_path": "/private/tmp/wyat-attention-source-transfer.tar",
+  "archive_sha256": "9bd4b23c4c2305c1887e71d21c9a3273f29b1571b998ffbb99d2a0018f0a6a48",
+  "archive_members": [
+    {
+      "path": "benchmarks/analysis/cuda/attention/__init__.py",
+      "bytes": 78,
+      "sha256": "1b7deed2d2e3c2891f25d222b735a9a1729ae5e94562a2a93159115929f8367f"
+    },
+    {
+      "path": "benchmarks/analysis/cuda/attention/scorer.py",
+      "bytes": 3413,
+      "sha256": "e2ae77ccee9cda98fc706adb87d9b87927ac7dc693bc5b96d04b9ea8be0d3750"
+    },
+    {
+      "path": "benchmarks/analysis/cuda/attention/study.py",
+      "bytes": 12554,
+      "sha256": "48d71fcfcde7964045e9b8dde506701cdd19521bc0e268980962ee4252577da4"
+    },
+    {
+      "path": "benchmarks/analysis/cuda/attention/trace.py",
+      "bytes": 5119,
+      "sha256": "342ed138b4a8d12769248492ff9edb7b6181181db0e95d60045cb176724f942f"
+    },
+    {
+      "path": "benchmarks/analysis/cuda/attention/run.py",
+      "bytes": 2188,
+      "sha256": "2e687c7b41172aaddb61489c581e7640e54bd94d375c6828b0548bf76f7ad66e"
+    },
+    {
+      "path": "tests/analysis/test_cuda_attention.py",
+      "bytes": 21190,
+      "sha256": "6d998054a2f0e72f7844d19369cea1ba22085a76003cc65c313e259a641ad0c6"
+    },
+    {
+      "path": "docs/analysis/attention.md",
+      "bytes": 5589,
+      "sha256": "18851501e2b9335f0a88ca43d7d3426b40cab5959ba6a89156e855c694a028bb"
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-attention-source-declaration-20261005.json",
+      "bytes": 801,
+      "sha256": "71f72524e94055a7626dfc1d74af63508dfbb4578d3816090cd79cdf69328ad7"
+    }
+  ],
+  "archive_member_count": 8,
+  "old_asset_count": 44,
+  "old_assets_changed": [],
+  "new_source_count": 7,
+  "new_sources_changed": [],
+  "manifest_path": "benchmarks/analysis/results/cuda-transfer-manifest-v2-20261005.json",
+  "manifest_sha256": "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866",
+  "declaration_path": "benchmarks/analysis/results/cuda-attention-source-declaration-20261005.json",
+  "declaration_sha256": "71f72524e94055a7626dfc1d74af63508dfbb4578d3816090cd79cdf69328ad7",
+  "destination": {
+    "ssh_alias": "gpu",
+    "root": "/home/teilo/tmp/wyat-cuda-20261005"
+  },
+  "rejected_command": "ssh -o BatchMode=yes -o ConnectTimeout=8 gpu 'cd /home/teilo/tmp/wyat-cuda-20261005 && test -f OWNER.json && test ! -e benchmarks/analysis/cuda/attention && test ! -e tests/analysis/test_cuda_attention.py && test ! -e docs/analysis/attention.md && test ! -e benchmarks/analysis/results/cuda-attention-source-declaration-20261005.json && tar -xf -' < /private/tmp/wyat-attention-source-transfer.tar",
+  "approval_review_rejection": {
+    "action": "SSH transfer of eight reviewed research source/test/document/declaration files",
+    "reason": "This SSH command exports private source, tests, documentation, and hashes to an unverified remote destination; the user did not explicitly authorize that payload and destination.",
+    "executed": false,
+    "retry_attempted": false,
+    "network_after_rejection": false
+  }
+}

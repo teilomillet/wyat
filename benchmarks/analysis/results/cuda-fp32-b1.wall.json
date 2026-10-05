@@ -1,0 +1,25 @@
+{
+  "command": [
+    "/home/teilo/tmp/wyat-cuda-20261005/env/bin/python",
+    "-m",
+    "benchmarks.analysis.cuda.run",
+    ".models/Decision-2.0-Kai-0.6B",
+    "--output",
+    "/home/teilo/tmp/wyat-cuda-20261005/benchmarks/analysis/results/cuda-fp32-b1.json",
+    "--manifest",
+    "benchmarks/analysis/results/cuda-transfer-manifest-v2-20261005.json",
+    "--manifest-sha256",
+    "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866",
+    "--arm",
+    "fp32",
+    "--batch-size",
+    "1",
+    "--worker"
+  ],
+  "timeout_seconds": 180,
+  "completed": true,
+  "timed_out": false,
+  "inductor_cache": null,
+  "exit_code": 0,
+  "elapsed_seconds": 11.184410127985757
+}

@@ -1,0 +1,1400 @@
+{
+  "schema_version": 1,
+  "scope": "Independent reconstruction of completed six-child first-eight CPU cache resource experiment; no reviewer model run",
+  "verdict": "All three predeclared paired resource effect screens supported in the observed intrusive memory cycles",
+  "resource_screen_supported": true,
+  "production_promotion": false,
+  "speed_promotion": false,
+  "raw_outputs_reconstructed": 288,
+  "strict_numeric_full_rank_selection_passes": 288,
+  "correct_outputs": 252,
+  "failed_outputs": 0,
+  "storage_events_reconstructed": 174,
+  "all_six_ended_under_180_second_cap": true,
+  "terminal_provenance": "Native parent/child terminal completion and group cleanup reported directly by owner/root; reconciled independently with all six immutable wall receipts. Reviewer did not launch or rerun models.",
+  "execution_order": [
+    [
+      "retained",
+      0
+    ],
+    [
+      "one-use",
+      0
+    ],
+    [
+      "one-use",
+      1
+    ],
+    [
+      "retained",
+      1
+    ],
+    [
+      "retained",
+      2
+    ],
+    [
+      "one-use",
+      2
+    ]
+  ],
+  "unique_child_pids_observed": [
+    18269,
+    18428,
+    18645,
+    18779,
+    18976,
+    19112
+  ],
+  "child_observation_windows_disjoint_and_ordered": true,
+  "source_sha256": {
+    "admission": "b6a402179b0ed412b648f8205b02e4a24a2dba0139f42c7ca161a37c1272c08d",
+    "artifact": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "backend": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+    "benchmark": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "core": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "encoding": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "evaluation": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "evidence": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "first8_study": "80c98506a623379cf97ac7e62aa733fb2b4e4022db52f51c42514a782d5ee6fc",
+    "launcher": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+    "maintained_cache": "136b3d85b4496b6c4d614a676bdfd4f32e926b88eafe9a88c7cf1e173e8390b5",
+    "maintained_mask": "100c7fce03f65deeb83031152d5cafd3030c2173b3a8bec1803b6739996d682f",
+    "measure": "cc05245798a682012fcc3fec69e2b12d488692dab32c710ce73c4a80605643f7",
+    "one_use": "1e22e84f8342af0c5104d19bbe9c422a33d0b8ba07e2ec8069eb85e1e9595821",
+    "prefix": "4aa9f8bc2432f47787cb4797b8ce3a87151aecd138b82cef75cfe9c9c270d3d6",
+    "qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "reference": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+    "runner": "9cbc6c7a232bd7fa6a18933cfb54030bb14671adea9e5a7d83ba38c4173eb2d2",
+    "scorer": "aa381f034fae189fde6451d368cd2e85f0ac859a96ad29bb4c0209e965345ce9",
+    "sdpa": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad",
+    "study": "cb86c7d8103dcfaf43f68bbf61689d2ca8116917c73a3d440f82852130819725"
+  },
+  "common_source_archive_sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9",
+  "history_admission": {
+    "full77_review_sha256": "48055f286b2a2443da7e194d794258dbfae69bfd1514df7900fca40693443065",
+    "first8_receipt_sha256": "532fc2d2ae6daf02e10ab872e9091b41cd52d4fb23043d0f144a748797e030e5"
+  },
+  "protocol": {
+    "pairs": 3,
+    "order": [
+      "retained/one-use",
+      "one-use/retained",
+      "retained/one-use"
+    ],
+    "owned_child_cap_seconds": 180,
+    "dtype": "float32",
+    "device": "cpu",
+    "threads": 8,
+    "batch_size": 8,
+    "max_length": 512,
+    "token_cache_size": 0,
+    "prefix_length": 25,
+    "full_final_block": true,
+    "cycles": [
+      "screen",
+      "warmup",
+      "ordinary",
+      "ordinary",
+      "memory",
+      "profile"
+    ],
+    "timing": "prefix build excluded; fresh cache copying included; ordinary only",
+    "memory_observer": "own-PID RSS via ps; separate memory cycle; profile LAST",
+    "sample_interval_ms": 20,
+    "minimum_interior_valid_samples": 3,
+    "maximum_body_gap_ms": 100,
+    "resource_gate": "all three pairs reduction >= max(64MiB,5% retained sampled peak), plus lower observed selected live KV storage",
+    "promotion": "none; ordinary timings descriptive; failed/missing sampling unsupported",
+    "common_path_change": "both use_cache=False; same private owner kept through head; only cache lifetime differs"
+  },
+  "pairs": [
+    {
+      "repeat": 0,
+      "order": [
+        "retained",
+        "one-use"
+      ],
+      "retained_sampled_body_peak_rss_bytes": 4421550080,
+      "one_use_sampled_body_peak_rss_bytes": 4000137216,
+      "signed_rss_reduction_bytes": 421412864,
+      "signed_rss_reduction_fraction": 0.09530885241041984,
+      "minimum_reduction_bytes": 221077504.0,
+      "selected_pool_signed_reduction_bytes": 295501824,
+      "all_child_gates_supported": true,
+      "effect_screen_passed": true,
+      "cold_after_load_rss_signed_difference_bytes": 344064,
+      "after_all_cycles_rss_signed_difference_bytes": 369573888,
+      "ordinary_median_ratio_descriptive": 1.0225736971885593,
+      "phase_signed_differences": {
+        "before_load": {
+          "rss_bytes": 5062656,
+          "cumulative_hwm_bytes": 4489216
+        },
+        "after_load": {
+          "rss_bytes": 344064,
+          "cumulative_hwm_bytes": 131072
+        },
+        "after_prefix_build": {
+          "rss_bytes": -966656,
+          "cumulative_hwm_bytes": -966656
+        },
+        "after_warmup": {
+          "rss_bytes": 376356864,
+          "cumulative_hwm_bytes": 438075392
+        },
+        "after_all_cycles": {
+          "rss_bytes": 369573888,
+          "cumulative_hwm_bytes": 372441088
+        }
+      }
+    },
+    {
+      "repeat": 1,
+      "order": [
+        "one-use",
+        "retained"
+      ],
+      "retained_sampled_body_peak_rss_bytes": 4422795264,
+      "one_use_sampled_body_peak_rss_bytes": 3997794304,
+      "signed_rss_reduction_bytes": 425000960,
+      "signed_rss_reduction_fraction": 0.0960932927326206,
+      "minimum_reduction_bytes": 221139763.20000002,
+      "selected_pool_signed_reduction_bytes": 295501824,
+      "all_child_gates_supported": true,
+      "effect_screen_passed": true,
+      "cold_after_load_rss_signed_difference_bytes": 737280,
+      "after_all_cycles_rss_signed_difference_bytes": 372867072,
+      "ordinary_median_ratio_descriptive": 1.0144775921396005,
+      "phase_signed_differences": {
+        "before_load": {
+          "rss_bytes": 475136,
+          "cumulative_hwm_bytes": 507904
+        },
+        "after_load": {
+          "rss_bytes": 737280,
+          "cumulative_hwm_bytes": 802816
+        },
+        "after_prefix_build": {
+          "rss_bytes": 5931008,
+          "cumulative_hwm_bytes": 5931008
+        },
+        "after_warmup": {
+          "rss_bytes": 387563520,
+          "cumulative_hwm_bytes": 445022208
+        },
+        "after_all_cycles": {
+          "rss_bytes": 372867072,
+          "cumulative_hwm_bytes": 374603776
+        }
+      }
+    },
+    {
+      "repeat": 2,
+      "order": [
+        "retained",
+        "one-use"
+      ],
+      "retained_sampled_body_peak_rss_bytes": 4428120064,
+      "one_use_sampled_body_peak_rss_bytes": 3999727616,
+      "signed_rss_reduction_bytes": 428392448,
+      "signed_rss_reduction_fraction": 0.09674363879217526,
+      "minimum_reduction_bytes": 221406003.20000002,
+      "selected_pool_signed_reduction_bytes": 295501824,
+      "all_child_gates_supported": true,
+      "effect_screen_passed": true,
+      "cold_after_load_rss_signed_difference_bytes": 1392640,
+      "after_all_cycles_rss_signed_difference_bytes": 371851264,
+      "ordinary_median_ratio_descriptive": 1.0213335310321794,
+      "phase_signed_differences": {
+        "before_load": {
+          "rss_bytes": 3735552,
+          "cumulative_hwm_bytes": 3899392
+        },
+        "after_load": {
+          "rss_bytes": 1392640,
+          "cumulative_hwm_bytes": 1343488
+        },
+        "after_prefix_build": {
+          "rss_bytes": 393216,
+          "cumulative_hwm_bytes": 376832
+        },
+        "after_warmup": {
+          "rss_bytes": 393576448,
+          "cumulative_hwm_bytes": 445562880
+        },
+        "after_all_cycles": {
+          "rss_bytes": 371851264,
+          "cumulative_hwm_bytes": 374145024
+        }
+      }
+    }
+  ],
+  "children": [
+    {
+      "arm": "retained",
+      "repeat": 0,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-0.json",
+          "sha256": "d2d7f80d9ba0a36a224e379ac25169354354abfb6cf58c3c48a88aba855e7ef8"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-0.cycles.jsonl",
+          "sha256": "b22d966614e9d3b500369523f08d6c76e389051fd3165a2c9cac615e184590a6"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-0.wall.json",
+          "sha256": "dc862c08877899bc2a2b13778d7a2a0d4f6bb973dcc0b18cb7ff74a0918df95e"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-0.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      "raw_outputs": 48,
+      "correct": 42,
+      "max_errors": [
+        6.079673767089844e-06,
+        7.617853475805347e-07
+      ],
+      "sampling_reliable": true,
+      "rss_peak_bytes": 4421550080,
+      "interior_samples": 21,
+      "conservative_max_gap_ms": 50.071,
+      "collection_ms": 212.323959,
+      "boundary_snapshots": {
+        "before_load": {
+          "pid": 18269,
+          "wall_time_ns": 1791174965127095000,
+          "perf_counter_ns": 396164025611833,
+          "rss_bytes": 345702400,
+          "peak_rss_bytes": 345915392,
+          "collection_elapsed_ns": 8998542,
+          "error": null
+        },
+        "after_load": {
+          "pid": 18269,
+          "wall_time_ns": 1791174966256640000,
+          "perf_counter_ns": 396165155159458,
+          "rss_bytes": 3760357376,
+          "peak_rss_bytes": 3764060160,
+          "collection_elapsed_ns": 10215250,
+          "error": null
+        },
+        "after_prefix_build": {
+          "pid": 18269,
+          "wall_time_ns": 1791174966336073000,
+          "perf_counter_ns": 396165234592750,
+          "rss_bytes": 3769548800,
+          "peak_rss_bytes": 3769565184,
+          "collection_elapsed_ns": 6860458,
+          "error": null
+        },
+        "after_warmup": {
+          "pid": 18269,
+          "wall_time_ns": 1791174967479743000,
+          "perf_counter_ns": 396166378266000,
+          "rss_bytes": 4342923264,
+          "peak_rss_bytes": 4404641792,
+          "collection_elapsed_ns": 9326833,
+          "error": null
+        },
+        "after_all_cycles": {
+          "pid": 18269,
+          "wall_time_ns": 1791174970235394000,
+          "perf_counter_ns": 396169133923250,
+          "rss_bytes": 4427497472,
+          "peak_rss_bytes": 4430364672,
+          "collection_elapsed_ns": 10785375,
+          "error": null
+        }
+      },
+      "selected_pool_peak_bytes": 358055936,
+      "selected_cache_owned_peak_bytes": 352321536,
+      "storage_events": 29,
+      "ordinary_ms": [
+        573.746542,
+        548.172959
+      ],
+      "ordinary_median_ms": 560.9597504999999,
+      "observer_ratios": {
+        "memory": 1.5005173423757077,
+        "profile": 1.0358146595760085
+      },
+      "prefix_build_ms": 69.120375,
+      "wall": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.memory.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-0.json",
+          "--arm",
+          "retained",
+          "--repeat",
+          "0",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 6.889725541986991
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "input_sha256": "851fdd16f412aea9be579dbd86665752fb0b6f9b9c75fe9f67cee285aaa9c1ad",
+      "unsupported_reasons": [],
+      "quality_passed": true,
+      "screen_passed": true,
+      "observed_pid": 18269,
+      "quality_counts": {
+        "cycles": 6,
+        "strict_numeric_outputs": 48,
+        "finite_normalized_outputs": 48,
+        "full_rank_matches": 48,
+        "selection_matches": 48,
+        "correct": 42,
+        "failed_outputs": 0
+      },
+      "dispatch_counts": {
+        "cpu_flash": 28,
+        "math": 0,
+        "query_heads": 16,
+        "kv_heads": 8,
+        "query_length": 167,
+        "kv_length": 192,
+        "mask_shape": [
+          8,
+          1,
+          167,
+          192
+        ]
+      },
+      "source_sha256_verified_against_common_map": true,
+      "sampling": {
+        "completed": true,
+        "body_start_ns": 396167521894958,
+        "body_end_ns": 396168363653500,
+        "body_duration_ms": 841.758542,
+        "all_samples": 23,
+        "interior_valid_samples": 21,
+        "conservative_unknown_gaps_ms": [
+          37.063125,
+          49.197333,
+          50.071,
+          49.884333,
+          48.535042,
+          48.365417,
+          48.087875,
+          47.947167,
+          42.152,
+          49.212667,
+          48.574083,
+          48.623917,
+          48.89775,
+          49.022625,
+          48.305792,
+          47.984167,
+          47.714125,
+          47.81425,
+          47.806416,
+          47.805541,
+          48.622834,
+          35.038209
+        ],
+        "observer_errors": [],
+        "body_error": null,
+        "sample_errors": [],
+        "sample_limit_reached": false,
+        "time_limit_reached": false,
+        "requested_interval_ms": 20.0,
+        "collection_duration_max_ms": 10.545792,
+        "initial_rss_bytes": 4378378240,
+        "final_rss_bytes": 4375822336,
+        "all_sample_hwm_max_bytes": 4430364672
+      }
+    },
+    {
+      "arm": "one-use",
+      "repeat": 0,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-0.json",
+          "sha256": "84a6c584dc3042fbd734d3bb7c2bfbe87a4c6302c4f1d3867f8d5c100c31b3b6"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-0.cycles.jsonl",
+          "sha256": "e6ee8fe1ef3f9c544c6ba49abc22d2b075ffc0495160d48105fbe4a6822e87d2"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-0.wall.json",
+          "sha256": "669def0e794c0d999439a67762e786fbdd12f94d8ee68c5a20ed07724e075b4d"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-0.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      "raw_outputs": 48,
+      "correct": 42,
+      "max_errors": [
+        6.079673767089844e-06,
+        7.617853475805347e-07
+      ],
+      "sampling_reliable": true,
+      "rss_peak_bytes": 4000137216,
+      "interior_samples": 22,
+      "conservative_max_gap_ms": 50.838333,
+      "collection_ms": 211.07508,
+      "boundary_snapshots": {
+        "before_load": {
+          "pid": 18428,
+          "wall_time_ns": 1791175037120356000,
+          "perf_counter_ns": 396236019046833,
+          "rss_bytes": 340639744,
+          "peak_rss_bytes": 341426176,
+          "collection_elapsed_ns": 7149250,
+          "error": null
+        },
+        "after_load": {
+          "pid": 18428,
+          "wall_time_ns": 1791175038183922000,
+          "perf_counter_ns": 396237082615791,
+          "rss_bytes": 3760013312,
+          "peak_rss_bytes": 3763929088,
+          "collection_elapsed_ns": 9634750,
+          "error": null
+        },
+        "after_prefix_build": {
+          "pid": 18428,
+          "wall_time_ns": 1791175038262878000,
+          "perf_counter_ns": 396237161571250,
+          "rss_bytes": 3770515456,
+          "peak_rss_bytes": 3770531840,
+          "collection_elapsed_ns": 6654500,
+          "error": null
+        },
+        "after_warmup": {
+          "pid": 18428,
+          "wall_time_ns": 1791175039372678000,
+          "perf_counter_ns": 396238271374583,
+          "rss_bytes": 3966566400,
+          "peak_rss_bytes": 3966566400,
+          "collection_elapsed_ns": 8001208,
+          "error": null
+        },
+        "after_all_cycles": {
+          "pid": 18428,
+          "wall_time_ns": 1791175042091888000,
+          "perf_counter_ns": 396240990590708,
+          "rss_bytes": 4057923584,
+          "peak_rss_bytes": 4057923584,
+          "collection_elapsed_ns": 10473250,
+          "error": null
+        }
+      },
+      "selected_pool_peak_bytes": 62554112,
+      "selected_cache_owned_peak_bytes": 45875200,
+      "storage_events": 29,
+      "ordinary_ms": [
+        553.7255,
+        543.427208
+      ],
+      "ordinary_median_ms": 548.576354,
+      "observer_ratios": {
+        "memory": 1.5413850211268856,
+        "profile": 1.0160989822758564
+      },
+      "prefix_build_ms": 69.231834,
+      "wall": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.memory.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-0.json",
+          "--arm",
+          "one-use",
+          "--repeat",
+          "0",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 6.7646111660287715
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "input_sha256": "851fdd16f412aea9be579dbd86665752fb0b6f9b9c75fe9f67cee285aaa9c1ad",
+      "unsupported_reasons": [],
+      "quality_passed": true,
+      "screen_passed": true,
+      "observed_pid": 18428,
+      "quality_counts": {
+        "cycles": 6,
+        "strict_numeric_outputs": 48,
+        "finite_normalized_outputs": 48,
+        "full_rank_matches": 48,
+        "selection_matches": 48,
+        "correct": 42,
+        "failed_outputs": 0
+      },
+      "dispatch_counts": {
+        "cpu_flash": 28,
+        "math": 0,
+        "query_heads": 16,
+        "kv_heads": 8,
+        "query_length": 167,
+        "kv_length": 192,
+        "mask_shape": [
+          8,
+          1,
+          167,
+          192
+        ]
+      },
+      "source_sha256_verified_against_common_map": true,
+      "sampling": {
+        "completed": true,
+        "body_start_ns": 396239387126208,
+        "body_end_ns": 396240232720833,
+        "body_duration_ms": 845.594625,
+        "all_samples": 24,
+        "interior_valid_samples": 22,
+        "conservative_unknown_gaps_ms": [
+          40.1845,
+          48.8795,
+          47.727958,
+          40.384042,
+          46.208916,
+          50.838333,
+          49.678416,
+          47.199666,
+          41.204417,
+          47.411542,
+          46.623208,
+          46.514875,
+          46.81625,
+          46.847791,
+          47.006917,
+          47.196542,
+          46.606833,
+          48.051625,
+          47.392542,
+          46.783333,
+          39.452291,
+          47.739708,
+          24.313583
+        ],
+        "observer_errors": [],
+        "body_error": null,
+        "sample_errors": [],
+        "sample_limit_reached": false,
+        "time_limit_reached": false,
+        "requested_interval_ms": 20.0,
+        "collection_duration_max_ms": 10.590916,
+        "initial_rss_bytes": 3968565248,
+        "final_rss_bytes": 4000104448,
+        "all_sample_hwm_max_bytes": 4000137216
+      }
+    },
+    {
+      "arm": "one-use",
+      "repeat": 1,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-1.json",
+          "sha256": "977fca5332518c4c0d5fde5ef5c19b00014d59c63b7ad563365fb41d7521d958"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-1.cycles.jsonl",
+          "sha256": "323cc77391f9c5f125fc59fbc5ccb6a5b3baaa7f78a518df632f19ed568355d9"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-1.wall.json",
+          "sha256": "0f33cff7d3aca93b2a047953a18e8acb8eaa609cbc9f32676a983983ca7c1a8c"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-1.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      "raw_outputs": 48,
+      "correct": 42,
+      "max_errors": [
+        6.079673767089844e-06,
+        7.617853475805347e-07
+      ],
+      "sampling_reliable": true,
+      "rss_peak_bytes": 3997794304,
+      "interior_samples": 21,
+      "conservative_max_gap_ms": 49.684416,
+      "collection_ms": 205.416747,
+      "boundary_snapshots": {
+        "before_load": {
+          "pid": 18645,
+          "wall_time_ns": 1791175122306200000,
+          "perf_counter_ns": 396321205096250,
+          "rss_bytes": 340393984,
+          "peak_rss_bytes": 341065728,
+          "collection_elapsed_ns": 7119208,
+          "error": null
+        },
+        "after_load": {
+          "pid": 18645,
+          "wall_time_ns": 1791175123378232000,
+          "perf_counter_ns": 396322277130708,
+          "rss_bytes": 3759046656,
+          "peak_rss_bytes": 3762847744,
+          "collection_elapsed_ns": 9909667,
+          "error": null
+        },
+        "after_prefix_build": {
+          "pid": 18645,
+          "wall_time_ns": 1791175123460051000,
+          "perf_counter_ns": 396322358950041,
+          "rss_bytes": 3766042624,
+          "peak_rss_bytes": 3766059008,
+          "collection_elapsed_ns": 6717125,
+          "error": null
+        },
+        "after_warmup": {
+          "pid": 18645,
+          "wall_time_ns": 1791175124575398000,
+          "perf_counter_ns": 396323474299750,
+          "rss_bytes": 3956867072,
+          "peak_rss_bytes": 3956867072,
+          "collection_elapsed_ns": 8357833,
+          "error": null
+        },
+        "after_all_cycles": {
+          "pid": 18645,
+          "wall_time_ns": 1791175127275082000,
+          "perf_counter_ns": 396326173990333,
+          "rss_bytes": 4054499328,
+          "peak_rss_bytes": 4054499328,
+          "collection_elapsed_ns": 9947708,
+          "error": null
+        }
+      },
+      "selected_pool_peak_bytes": 62554112,
+      "selected_cache_owned_peak_bytes": 45875200,
+      "storage_events": 29,
+      "ordinary_ms": [
+        562.899,
+        541.019583
+      ],
+      "ordinary_median_ms": 551.9592915000001,
+      "observer_ratios": {
+        "memory": 1.483704225314232,
+        "profile": 1.0126937957343904
+      },
+      "prefix_build_ms": 71.837875,
+      "wall": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.memory.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-1.json",
+          "--arm",
+          "one-use",
+          "--repeat",
+          "1",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 6.799507791001815
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "input_sha256": "851fdd16f412aea9be579dbd86665752fb0b6f9b9c75fe9f67cee285aaa9c1ad",
+      "unsupported_reasons": [],
+      "quality_passed": true,
+      "screen_passed": true,
+      "observed_pid": 18645,
+      "quality_counts": {
+        "cycles": 6,
+        "strict_numeric_outputs": 48,
+        "finite_normalized_outputs": 48,
+        "full_rank_matches": 48,
+        "selection_matches": 48,
+        "correct": 42,
+        "failed_outputs": 0
+      },
+      "dispatch_counts": {
+        "cpu_flash": 28,
+        "math": 0,
+        "query_heads": 16,
+        "kv_heads": 8,
+        "query_length": 167,
+        "kv_length": 192,
+        "mask_shape": [
+          8,
+          1,
+          167,
+          192
+        ]
+      },
+      "source_sha256_verified_against_common_map": true,
+      "sampling": {
+        "completed": true,
+        "body_start_ns": 396324597747416,
+        "body_end_ns": 396325416722041,
+        "body_duration_ms": 818.974625,
+        "all_samples": 23,
+        "interior_valid_samples": 21,
+        "conservative_unknown_gaps_ms": [
+          39.639834,
+          48.746458,
+          48.587708,
+          48.481,
+          49.319208,
+          49.455125,
+          47.742375,
+          47.072833,
+          47.266792,
+          47.533,
+          47.935166,
+          47.755833,
+          47.127125,
+          47.002916,
+          48.300084,
+          49.684416,
+          48.313917,
+          47.216416,
+          40.500916,
+          47.997583,
+          48.695042,
+          14.230666
+        ],
+        "observer_errors": [],
+        "body_error": null,
+        "sample_errors": [],
+        "sample_limit_reached": false,
+        "time_limit_reached": false,
+        "requested_interval_ms": 20.0,
+        "collection_duration_max_ms": 10.253333,
+        "initial_rss_bytes": 3997630464,
+        "final_rss_bytes": 3997761536,
+        "all_sample_hwm_max_bytes": 3997810688
+      }
+    },
+    {
+      "arm": "retained",
+      "repeat": 1,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-1.json",
+          "sha256": "41e1e45d876a9becfa5423fa61a5c2b850cfdb9fb3c462ed9d4346600a3d72be"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-1.cycles.jsonl",
+          "sha256": "329fe870aa2adb154bed6a6922996e209d2d62caa44fc9ed43dd77d5a690e155"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-1.wall.json",
+          "sha256": "1665b0551ebb38616882f16cf49fcfed39d3aa8247526b64438b1f3beb4b3913"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-1.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      "raw_outputs": 48,
+      "correct": 42,
+      "max_errors": [
+        6.079673767089844e-06,
+        7.617853475805347e-07
+      ],
+      "sampling_reliable": true,
+      "rss_peak_bytes": 4422795264,
+      "interior_samples": 22,
+      "conservative_max_gap_ms": 50.672208,
+      "collection_ms": 225.247794,
+      "boundary_snapshots": {
+        "before_load": {
+          "pid": 18779,
+          "wall_time_ns": 1791175172451840000,
+          "perf_counter_ns": 396371350857291,
+          "rss_bytes": 340869120,
+          "peak_rss_bytes": 341573632,
+          "collection_elapsed_ns": 7629042,
+          "error": null
+        },
+        "after_load": {
+          "pid": 18779,
+          "wall_time_ns": 1791175173516982000,
+          "perf_counter_ns": 396372416002250,
+          "rss_bytes": 3759783936,
+          "peak_rss_bytes": 3763650560,
+          "collection_elapsed_ns": 9844125,
+          "error": null
+        },
+        "after_prefix_build": {
+          "pid": 18779,
+          "wall_time_ns": 1791175173596018000,
+          "perf_counter_ns": 396372495038083,
+          "rss_bytes": 3771973632,
+          "peak_rss_bytes": 3771990016,
+          "collection_elapsed_ns": 6806417,
+          "error": null
+        },
+        "after_warmup": {
+          "pid": 18779,
+          "wall_time_ns": 1791175174743665000,
+          "perf_counter_ns": 396373642687750,
+          "rss_bytes": 4344430592,
+          "peak_rss_bytes": 4401889280,
+          "collection_elapsed_ns": 9536583,
+          "error": null
+        },
+        "after_all_cycles": {
+          "pid": 18779,
+          "wall_time_ns": 1791175177513108000,
+          "perf_counter_ns": 396376412137416,
+          "rss_bytes": 4427366400,
+          "peak_rss_bytes": 4429103104,
+          "collection_elapsed_ns": 10298834,
+          "error": null
+        }
+      },
+      "selected_pool_peak_bytes": 358055936,
+      "selected_cache_owned_peak_bytes": 352321536,
+      "storage_events": 29,
+      "ordinary_ms": [
+        576.088125,
+        543.812541
+      ],
+      "ordinary_median_ms": 559.950333,
+      "observer_ratios": {
+        "memory": 1.5228881165787251,
+        "profile": 1.03573546227358
+      },
+      "prefix_build_ms": 69.0955,
+      "wall": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.memory.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-1.json",
+          "--arm",
+          "retained",
+          "--repeat",
+          "1",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 6.8943067920045
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "input_sha256": "851fdd16f412aea9be579dbd86665752fb0b6f9b9c75fe9f67cee285aaa9c1ad",
+      "unsupported_reasons": [],
+      "quality_passed": true,
+      "screen_passed": true,
+      "observed_pid": 18779,
+      "quality_counts": {
+        "cycles": 6,
+        "strict_numeric_outputs": 48,
+        "finite_normalized_outputs": 48,
+        "full_rank_matches": 48,
+        "selection_matches": 48,
+        "correct": 42,
+        "failed_outputs": 0
+      },
+      "dispatch_counts": {
+        "cpu_flash": 28,
+        "math": 0,
+        "query_heads": 16,
+        "kv_heads": 8,
+        "query_length": 167,
+        "kv_length": 192,
+        "mask_shape": [
+          8,
+          1,
+          167,
+          192
+        ]
+      },
+      "source_sha256_verified_against_common_map": true,
+      "sampling": {
+        "completed": true,
+        "body_start_ns": 396374783588125,
+        "body_end_ns": 396375636369625,
+        "body_duration_ms": 852.7815,
+        "all_samples": 24,
+        "interior_valid_samples": 22,
+        "conservative_unknown_gaps_ms": [
+          40.385958,
+          49.010125,
+          48.193917,
+          44.504084,
+          48.895542,
+          48.114417,
+          48.533583,
+          49.272208,
+          50.463209,
+          48.91575,
+          39.803916,
+          48.344334,
+          50.672208,
+          48.072625,
+          39.023458,
+          48.588417,
+          50.241833,
+          50.036292,
+          45.031875,
+          47.724084,
+          48.297417,
+          39.313042,
+          30.381375
+        ],
+        "observer_errors": [],
+        "body_error": null,
+        "sample_errors": [],
+        "sample_limit_reached": false,
+        "time_limit_reached": false,
+        "requested_interval_ms": 20.0,
+        "collection_duration_max_ms": 11.761667,
+        "initial_rss_bytes": 4337123328,
+        "final_rss_bytes": 4374396928,
+        "all_sample_hwm_max_bytes": 4429103104
+      }
+    },
+    {
+      "arm": "retained",
+      "repeat": 2,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-2.json",
+          "sha256": "c400f613d889b683f23540eb16bf45c306180f41ba08b7a5e424dc219af3d700"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-2.cycles.jsonl",
+          "sha256": "3294ac2bcede4e7939aa10aecb2ddb77e66d044aec6ba7b478685a9065bcf8bf"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-2.wall.json",
+          "sha256": "ce40853f21c91c56474758320c3ad230a9493ccc4b3d15f8b6485244457f16bc"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-2.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      "raw_outputs": 48,
+      "correct": 42,
+      "max_errors": [
+        6.079673767089844e-06,
+        7.617853475805347e-07
+      ],
+      "sampling_reliable": true,
+      "rss_peak_bytes": 4428120064,
+      "interior_samples": 22,
+      "conservative_max_gap_ms": 49.276541,
+      "collection_ms": 213.609537,
+      "boundary_snapshots": {
+        "before_load": {
+          "pid": 18976,
+          "wall_time_ns": 1791175214244079000,
+          "perf_counter_ns": 396413143197333,
+          "rss_bytes": 344801280,
+          "peak_rss_bytes": 345653248,
+          "collection_elapsed_ns": 6751292,
+          "error": null
+        },
+        "after_load": {
+          "pid": 18976,
+          "wall_time_ns": 1791175215314158000,
+          "perf_counter_ns": 396414213278083,
+          "rss_bytes": 3758850048,
+          "peak_rss_bytes": 3762733056,
+          "collection_elapsed_ns": 9706958,
+          "error": null
+        },
+        "after_prefix_build": {
+          "pid": 18976,
+          "wall_time_ns": 1791175215396708000,
+          "perf_counter_ns": 396414295828958,
+          "rss_bytes": 3767877632,
+          "peak_rss_bytes": 3767877632,
+          "collection_elapsed_ns": 6476500,
+          "error": null
+        },
+        "after_warmup": {
+          "pid": 18976,
+          "wall_time_ns": 1791175216546971000,
+          "perf_counter_ns": 396415446094583,
+          "rss_bytes": 4354572288,
+          "peak_rss_bytes": 4406558720,
+          "collection_elapsed_ns": 9238542,
+          "error": null
+        },
+        "after_all_cycles": {
+          "pid": 18976,
+          "wall_time_ns": 1791175219303801000,
+          "perf_counter_ns": 396418202930958,
+          "rss_bytes": 4428480512,
+          "peak_rss_bytes": 4430774272,
+          "collection_elapsed_ns": 10092917,
+          "error": null
+        }
+      },
+      "selected_pool_peak_bytes": 358055936,
+      "selected_cache_owned_peak_bytes": 352321536,
+      "storage_events": 29,
+      "ordinary_ms": [
+        573.692417,
+        545.630917
+      ],
+      "ordinary_median_ms": 559.661667,
+      "observer_ratios": {
+        "memory": 1.5032725870074644,
+        "profile": 1.03848463325254
+      },
+      "prefix_build_ms": 72.751583,
+      "wall": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.memory.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-2.json",
+          "--arm",
+          "retained",
+          "--repeat",
+          "2",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 6.898883875051979
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "input_sha256": "851fdd16f412aea9be579dbd86665752fb0b6f9b9c75fe9f67cee285aaa9c1ad",
+      "unsupported_reasons": [],
+      "quality_passed": true,
+      "screen_passed": true,
+      "observed_pid": 18976,
+      "quality_counts": {
+        "cycles": 6,
+        "strict_numeric_outputs": 48,
+        "finite_normalized_outputs": 48,
+        "full_rank_matches": 48,
+        "selection_matches": 48,
+        "correct": 42,
+        "failed_outputs": 0
+      },
+      "dispatch_counts": {
+        "cpu_flash": 28,
+        "math": 0,
+        "query_heads": 16,
+        "kv_heads": 8,
+        "query_length": 167,
+        "kv_length": 192,
+        "mask_shape": [
+          8,
+          1,
+          167,
+          192
+        ]
+      },
+      "source_sha256_verified_against_common_map": true,
+      "sampling": {
+        "completed": true,
+        "body_start_ns": 396416586555416,
+        "body_end_ns": 396417427895208,
+        "body_duration_ms": 841.339792,
+        "all_samples": 24,
+        "interior_valid_samples": 22,
+        "conservative_unknown_gaps_ms": [
+          37.102334,
+          48.983583,
+          49.276541,
+          48.473333,
+          48.152083,
+          48.174,
+          47.988167,
+          48.136,
+          47.920166,
+          47.749416,
+          47.746125,
+          47.6105,
+          47.404959,
+          47.384875,
+          47.233041,
+          47.19575,
+          47.319041,
+          47.221333,
+          47.812375,
+          39.052583,
+          48.735875,
+          42.296041,
+          10.170458
+        ],
+        "observer_errors": [],
+        "body_error": null,
+        "sample_errors": [],
+        "sample_limit_reached": false,
+        "time_limit_reached": false,
+        "requested_interval_ms": 20.0,
+        "collection_duration_max_ms": 9.966875,
+        "initial_rss_bytes": 4378804224,
+        "final_rss_bytes": 4376100864,
+        "all_sample_hwm_max_bytes": 4430774272
+      }
+    },
+    {
+      "arm": "one-use",
+      "repeat": 2,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-2.json",
+          "sha256": "4f48cafe483a02e10d6a5b771124e4e61a93051a32e60cfd522f8f91dc3bd019"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-2.cycles.jsonl",
+          "sha256": "aa39bc28decafd541678db0c1a33f90006eea186ad81a5e0861ad8b5489c003f"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-2.wall.json",
+          "sha256": "dd423ea74f4530e3dab929ca6dba780f675c779e5eea10366db1e7b0fd2b35d9"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-2.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      "raw_outputs": 48,
+      "correct": 42,
+      "max_errors": [
+        6.079673767089844e-06,
+        7.617853475805347e-07
+      ],
+      "sampling_reliable": true,
+      "rss_peak_bytes": 3999727616,
+      "interior_samples": 22,
+      "conservative_max_gap_ms": 50.73525,
+      "collection_ms": 213.374335,
+      "boundary_snapshots": {
+        "before_load": {
+          "pid": 19112,
+          "wall_time_ns": 1791175252557962000,
+          "perf_counter_ns": 396451457172750,
+          "rss_bytes": 341065728,
+          "peak_rss_bytes": 341753856,
+          "collection_elapsed_ns": 6691125,
+          "error": null
+        },
+        "after_load": {
+          "pid": 19112,
+          "wall_time_ns": 1791175253621786000,
+          "perf_counter_ns": 396452520999583,
+          "rss_bytes": 3757457408,
+          "peak_rss_bytes": 3761389568,
+          "collection_elapsed_ns": 9685750,
+          "error": null
+        },
+        "after_prefix_build": {
+          "pid": 19112,
+          "wall_time_ns": 1791175253700626000,
+          "perf_counter_ns": 396452599839583,
+          "rss_bytes": 3767484416,
+          "peak_rss_bytes": 3767500800,
+          "collection_elapsed_ns": 6984875,
+          "error": null
+        },
+        "after_warmup": {
+          "pid": 19112,
+          "wall_time_ns": 1791175254808021000,
+          "perf_counter_ns": 396453707237083,
+          "rss_bytes": 3960995840,
+          "peak_rss_bytes": 3960995840,
+          "collection_elapsed_ns": 8128667,
+          "error": null
+        },
+        "after_all_cycles": {
+          "pid": 19112,
+          "wall_time_ns": 1791175257507883000,
+          "perf_counter_ns": 396456407105916,
+          "rss_bytes": 4056629248,
+          "peak_rss_bytes": 4056629248,
+          "collection_elapsed_ns": 9565042,
+          "error": null
+        }
+      },
+      "selected_pool_peak_bytes": 62554112,
+      "selected_cache_owned_peak_bytes": 45875200,
+      "storage_events": 29,
+      "ordinary_ms": [
+        552.109084,
+        543.833916
+      ],
+      "ordinary_median_ms": 547.9715000000001,
+      "observer_ratios": {
+        "memory": 1.5177569307892835,
+        "profile": 1.018666193406044
+      },
+      "prefix_build_ms": 69.087625,
+      "wall": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.memory.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-2.json",
+          "--arm",
+          "one-use",
+          "--repeat",
+          "2",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 6.767495582986157
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "input_sha256": "851fdd16f412aea9be579dbd86665752fb0b6f9b9c75fe9f67cee285aaa9c1ad",
+      "unsupported_reasons": [],
+      "quality_passed": true,
+      "screen_passed": true,
+      "observed_pid": 19112,
+      "quality_counts": {
+        "cycles": 6,
+        "strict_numeric_outputs": 48,
+        "finite_normalized_outputs": 48,
+        "full_rank_matches": 48,
+        "selection_matches": 48,
+        "correct": 42,
+        "failed_outputs": 0
+      },
+      "dispatch_counts": {
+        "cpu_flash": 28,
+        "math": 0,
+        "query_heads": 16,
+        "kv_heads": 8,
+        "query_length": 167,
+        "kv_length": 192,
+        "mask_shape": [
+          8,
+          1,
+          167,
+          192
+        ]
+      },
+      "source_sha256_verified_against_common_map": true,
+      "sampling": {
+        "completed": true,
+        "body_start_ns": 396454822396625,
+        "body_end_ns": 396455654102583,
+        "body_duration_ms": 831.705958,
+        "all_samples": 24,
+        "interior_valid_samples": 22,
+        "conservative_unknown_gaps_ms": [
+          39.140708,
+          49.539792,
+          50.73525,
+          49.279542,
+          41.867792,
+          41.423417,
+          47.409917,
+          46.777125,
+          48.103667,
+          42.777209,
+          49.289458,
+          48.233041,
+          47.413417,
+          47.359916,
+          47.396375,
+          48.636125,
+          48.867542,
+          47.3245,
+          41.522458,
+          47.514,
+          43.456584,
+          47.432666,
+          9.017167
+        ],
+        "observer_errors": [],
+        "body_error": null,
+        "sample_errors": [],
+        "sample_limit_reached": false,
+        "time_limit_reached": false,
+        "requested_interval_ms": 20.0,
+        "collection_duration_max_ms": 10.344709,
+        "initial_rss_bytes": 3999531008,
+        "final_rss_bytes": 3999694848,
+        "all_sample_hwm_max_bytes": 3999727616
+      }
+    }
+  ],
+  "storage_formula": {
+    "fixed_prefix_snapshot_bytes": 5734400,
+    "private_batched_seed_pair_per_layer_bytes": 1638400,
+    "constructor_cache_owned_bytes": 45875200,
+    "constructor_union_bytes": 51609600,
+    "extended_returned_pair_per_layer_bytes": 12582912,
+    "retained_selected_union_peak_bytes": 358055936,
+    "one_use_selected_union_peak_bytes": 62554112,
+    "selected_union_reduction_bytes": 295501824,
+    "one_use_cache_owned_peak_bytes": 45875200,
+    "excluded_suffix_projection_input_kv_pair_bytes": 10944512,
+    "excluded": "In-concatenation old/new overlap, activation/workspace tensors, allocator arenas and malloc capacity beyond Tensor storage.nbytes; physical RSS is a separate observation."
+  },
+  "limits": [
+    "Fixed first eight BANKING77 training-source development cases with six supplied choices; prior model exposure unknown. No held-out, full77 resource, scalar resource, other-device, or arbitrary traffic resource claim.",
+    "Fresh serial native Mac CPU FP32/eight-thread processes with default RoPE/full final block and common use_cache=False path. Only named cache ownership/lifetime differs.",
+    "RSS is own-PID resident-page observation, not unique physical ownership, all-process/host memory, or allocator live bytes. Selected backing-storage capacity is a different quantity.",
+    "Only valid fully body-contained interior snapshots form the resource metric; loading, context entry/exit, and post-profile snapshots are retained separately and may exceed that metric.",
+    "All three paired signs and thresholds are retained. Three repetitions establish the narrow predeclared effect screen, not a statistical confidence interval or universal effect.",
+    "Sampling gaps are conservative unknown read-time bounds; observed RSS peaks can still miss brief peaks. Requested20ms interval is not actual20ms capture spacing.",
+    "The ps sampler and numeric storage inventory materially perturb the memory cycle; ordinary timings are descriptive and cannot be promoted from these observations.",
+    "Source archives freeze setup disk bytes and match held source, not every dependency or native binary.",
+    "Probability normalization and reconstruction from raw outputs is a post-execution integrity challenge, not a relaxed or new promotion gate."
+  ],
+  "same_arm_sampled_peak_ranges_bytes": {
+    "retained": 6569984,
+    "one-use": 2342912
+  },
+  "observer_memory_over_ordinary_range": [
+    1.483704225314232,
+    1.5413850211268856
+  ],
+  "observational_classification": "Supported: predeclared sampled body-RSS and selected-storage effect screen in three replicated fresh process pairs. Unknown: unobserved instantaneous inference peak, ordinary-cycle resource peak, total-host resource effect, confidence interval, broader deployment gain."
+}

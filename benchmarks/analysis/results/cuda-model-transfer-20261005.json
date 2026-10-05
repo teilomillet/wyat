@@ -1,0 +1,21 @@
+{
+  "captured_utc": "2026-10-05T06:35:45.456825+00:00",
+  "scope": "Authorized canonical public Kai files only, streamed into private owned directory; no GPU allocation",
+  "files": [
+    ".models/Decision-2.0-Kai-0.6B/LICENSE",
+    ".models/Decision-2.0-Kai-0.6B/tokenizer_config.json",
+    ".models/Decision-2.0-Kai-0.6B/config.json",
+    ".models/Decision-2.0-Kai-0.6B/tokenizer.json",
+    ".models/Decision-2.0-Kai-0.6B/decision_head.safetensors",
+    ".models/Decision-2.0-Kai-0.6B/decision_config.json",
+    ".models/Decision-2.0-Kai-0.6B/MODEL_MANIFEST.json",
+    ".models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+    ".models/Decision-2.0-Kai-0.6B/backbone/config.json"
+  ],
+  "exit_code": 0,
+  "tar_exit_code": 0,
+  "elapsed_seconds": 44.48813629098004,
+  "stdout": "",
+  "stderr": "tar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\ntar: Ignoring unknown extended header keyword 'LIBARCHIVE.xattr.com.apple.provenance'\n",
+  "tar_stderr": ""
+}

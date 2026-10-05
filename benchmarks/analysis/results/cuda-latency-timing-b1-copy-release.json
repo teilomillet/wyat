@@ -1,0 +1,62 @@
+{
+  "release_queries": [
+    {
+      "started_utc": "2026-10-05T10:49:06.310136+00:00",
+      "finished_utc": "2026-10-05T10:49:06.333039+00:00",
+      "command": [
+        "nvidia-smi",
+        "--query-gpu=memory.used,utilization.gpu",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stdout": "128, 0\n",
+      "stderr": ""
+    },
+    {
+      "started_utc": "2026-10-05T10:49:06.333050+00:00",
+      "finished_utc": "2026-10-05T10:49:06.352926+00:00",
+      "command": [
+        "nvidia-smi",
+        "--query-compute-apps=pid,process_name,used_memory",
+        "--format=csv,noheader,nounits"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "started_utc": "2026-10-05T10:49:06.352940+00:00",
+      "finished_utc": "2026-10-05T10:49:06.365849+00:00",
+      "command": [
+        "pgrep",
+        "-af",
+        "benchmarks.analysis.cuda.latency.run"
+      ],
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "files": [
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-timing-b1.json",
+      "sha256": "21ae0cc5b07571969ebcc26315fe0cc49533b43b3de92c4fbbc8c2741edb3fb6",
+      "bytes": 3689917
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-timing-b1.wall.json",
+      "sha256": "dd01e353e74061afb4b353cfcc4cbc5179cddae222a97c7ff284ebd63d06ca49",
+      "bytes": 1353
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-timing-b1.log",
+      "sha256": "d08ddac52257873f0a81c21f8c69075aa4511692385f12e0cec5ecbff5ee23de",
+      "bytes": 1796
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-latency-timing-b1.sources-21b3fa50c255d85f.json",
+      "sha256": "21b3fa50c255d85f0fee0f7cd0e5bc68868d2fccfb3441dbf58bfb3a044a1ca0",
+      "bytes": 434052
+    }
+  ]
+}

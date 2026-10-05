@@ -1,0 +1,19 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "/private/tmp/wyat-metal-ready-capture.py",
+    ".models/Decision-2.0-Kai-0.6B",
+    "--output",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/mlx-ready-capture2.json",
+    "--worker"
+  ],
+  "completed": true,
+  "timed_out": false,
+  "timeout_seconds": 120,
+  "script_sha256": "cbbf5825ada94079317d4824858b335dc97506abd089e236a983e4462f410e7e",
+  "fake_lifecycle_checks_passed": 6,
+  "exit_code": 0,
+  "child_pid": 32562,
+  "reaped": true,
+  "elapsed_seconds": 3.13381249998929
+}

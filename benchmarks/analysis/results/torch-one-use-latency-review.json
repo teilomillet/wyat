@@ -1,0 +1,971 @@
+{
+  "schema_version": 1,
+  "scope": "Independent post-execution pure receipt audit of four prospectively declared native CPU comparisons; experiment only.",
+  "source_identity": {
+    "file_count": 23,
+    "sha256": {
+      "admission": "b6a402179b0ed412b648f8205b02e4a24a2dba0139f42c7ca161a37c1272c08d",
+      "artifact": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+      "backend": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+      "benchmark": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+      "core": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+      "encoding": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+      "evaluation": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+      "evidence": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+      "first8_study": "80c98506a623379cf97ac7e62aa733fb2b4e4022db52f51c42514a782d5ee6fc",
+      "latency_runner": "18a54621bcd98f681c73f0f21344c94b2544f7b471de0db09a9187597fa5bfe6",
+      "latency_study": "2b8ff439fb2ea3a52e006d8b7278870b128324c08647f284421c02eba07ca488",
+      "launcher": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+      "maintained_cache": "136b3d85b4496b6c4d614a676bdfd4f32e926b88eafe9a88c7cf1e173e8390b5",
+      "maintained_mask": "100c7fce03f65deeb83031152d5cafd3030c2173b3a8bec1803b6739996d682f",
+      "measure": "cc05245798a682012fcc3fec69e2b12d488692dab32c710ce73c4a80605643f7",
+      "one_use": "1e22e84f8342af0c5104d19bbe9c422a33d0b8ba07e2ec8069eb85e1e9595821",
+      "prefix": "4aa9f8bc2432f47787cb4797b8ce3a87151aecd138b82cef75cfe9c9c270d3d6",
+      "qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+      "reference": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+      "runner": "9cbc6c7a232bd7fa6a18933cfb54030bb14671adea9e5a7d83ba38c4173eb2d2",
+      "scorer": "aa381f034fae189fde6451d368cd2e85f0ac859a96ad29bb4c0209e965345ce9",
+      "sdpa": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad",
+      "study": "cb86c7d8103dcfaf43f68bbf61689d2ca8116917c73a3d440f82852130819725"
+    },
+    "all_archives_identical": true,
+    "source_archive_sha256": "223d233bb53b458581b236d447ea19145fb8faf10b614e8a76b051d1ff01677a",
+    "boundary": "Frozen on-disk setup bytes and archived text match current files; this does not independently attest every already-imported code object, native library or execution trace."
+  },
+  "canonical_identity": {
+    "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+    "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+    "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+    "canonical_input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8"
+  },
+  "prefix_tokens": [
+    1972,
+    510,
+    1957,
+    1437,
+    279,
+    6002,
+    594,
+    22798,
+    1824,
+    1681,
+    1119,
+    6896,
+    825,
+    315,
+    279,
+    17221,
+    93515,
+    382,
+    6262,
+    943,
+    25,
+    5754,
+    198,
+    14582,
+    510
+  ],
+  "history": {
+    "first8": {
+      "receipt_sha256": "532fc2d2ae6daf02e10ab872e9091b41cd52d4fb23043d0f144a748797e030e5",
+      "all_history_sha256": {
+        "json": "532fc2d2ae6daf02e10ab872e9091b41cd52d4fb23043d0f144a748797e030e5",
+        "cycles.jsonl": "12adcc9373e88bf10a77b7b24d7cd357225370a400f31ff16be0c8bb7b836413",
+        "wall.json": "ba18c04ec715f5a96082b96caeb1a3b14bf068a93cd864e1caa9e08fceef26c6",
+        "sources-d6910c77d1e9d422.json": "d6910c77d1e9d422be86cbe7ec17d25fa0089ac80dd80f9c8b2875b5aee80e53"
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "prefix_tokens": [
+        1972,
+        510,
+        1957,
+        1437,
+        279,
+        6002,
+        594,
+        22798,
+        1824,
+        1681,
+        1119,
+        6896,
+        825,
+        315,
+        279,
+        17221,
+        93515,
+        382,
+        6262,
+        943,
+        25,
+        5754,
+        198,
+        14582,
+        510
+      ],
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "raw_outputs": 64
+    },
+    "full77": {
+      "review_sha256": "48055f286b2a2443da7e194d794258dbfae69bfd1514df7900fca40693443065",
+      "evidence": [
+        {
+          "receipt": {
+            "path": "benchmarks/analysis/results/torch-prefix77-b8.json",
+            "sha256": "3d333417639b8f7cc5f5d49a4f2ccf4f2e9d3654d8df39b448aa62fb0d375d61"
+          },
+          "journal": {
+            "path": "benchmarks/analysis/results/torch-prefix77-b8.cycles.jsonl",
+            "sha256": "7aec4c6d8d779b133322df320f9598e1b512687b4f5332bfed2228aae9cb3fc1"
+          },
+          "wall": {
+            "path": "benchmarks/analysis/results/torch-prefix77-b8.wall.json",
+            "sha256": "cc6fd605d90bf9cf0c7e853a1f0b6e1d02dd8e30d6986dcf61397a1e1ddc89cc"
+          },
+          "source_archive": {
+            "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b8.sources-d86eb841ae184bbb.json",
+            "sha256": "d86eb841ae184bbb6413418a86c542dc668eb14a310292b9cecfa1cfc3faeb31"
+          }
+        },
+        {
+          "receipt": {
+            "path": "benchmarks/analysis/results/torch-prefix77-b1.json",
+            "sha256": "525cfce1066c6c1d3064838de85e9bbf880f71031596e56662c8c1d61badc915"
+          },
+          "journal": {
+            "path": "benchmarks/analysis/results/torch-prefix77-b1.cycles.jsonl",
+            "sha256": "466d812155eaddf8f1b6aaf7f7808868986c47e7abb2dc59039c13b3dac383f0"
+          },
+          "wall": {
+            "path": "benchmarks/analysis/results/torch-prefix77-b1.wall.json",
+            "sha256": "b5e5be5fcf07fac2c0bee01070c55affc0aefe24cce2a66a47e5acaed0a9f79e"
+          },
+          "source_archive": {
+            "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b1.sources-d86eb841ae184bbb.json",
+            "sha256": "d86eb841ae184bbb6413418a86c542dc668eb14a310292b9cecfa1cfc3faeb31"
+          }
+        }
+      ],
+      "raw_outputs": 2156
+    },
+    "memory_review_sha256": "1bd3339589db488fa36cd175493efa1e665772dbb6c56585d063c15f3b4692c3",
+    "memory_children": [
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-0.json",
+          "sha256": "d2d7f80d9ba0a36a224e379ac25169354354abfb6cf58c3c48a88aba855e7ef8"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-0.cycles.jsonl",
+          "sha256": "b22d966614e9d3b500369523f08d6c76e389051fd3165a2c9cac615e184590a6"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-0.wall.json",
+          "sha256": "dc862c08877899bc2a2b13778d7a2a0d4f6bb973dcc0b18cb7ff74a0918df95e"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-0.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-0.json",
+          "sha256": "84a6c584dc3042fbd734d3bb7c2bfbe87a4c6302c4f1d3867f8d5c100c31b3b6"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-0.cycles.jsonl",
+          "sha256": "e6ee8fe1ef3f9c544c6ba49abc22d2b075ffc0495160d48105fbe4a6822e87d2"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-0.wall.json",
+          "sha256": "669def0e794c0d999439a67762e786fbdd12f94d8ee68c5a20ed07724e075b4d"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-0.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-1.json",
+          "sha256": "977fca5332518c4c0d5fde5ef5c19b00014d59c63b7ad563365fb41d7521d958"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-1.cycles.jsonl",
+          "sha256": "323cc77391f9c5f125fc59fbc5ccb6a5b3baaa7f78a518df632f19ed568355d9"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-1.wall.json",
+          "sha256": "0f33cff7d3aca93b2a047953a18e8acb8eaa609cbc9f32676a983983ca7c1a8c"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-1.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-1.json",
+          "sha256": "41e1e45d876a9becfa5423fa61a5c2b850cfdb9fb3c462ed9d4346600a3d72be"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-1.cycles.jsonl",
+          "sha256": "329fe870aa2adb154bed6a6922996e209d2d62caa44fc9ed43dd77d5a690e155"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-1.wall.json",
+          "sha256": "1665b0551ebb38616882f16cf49fcfed39d3aa8247526b64438b1f3beb4b3913"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-1.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-2.json",
+          "sha256": "c400f613d889b683f23540eb16bf45c306180f41ba08b7a5e424dc219af3d700"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-2.cycles.jsonl",
+          "sha256": "3294ac2bcede4e7939aa10aecb2ddb77e66d044aec6ba7b478685a9065bcf8bf"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-retained-2.wall.json",
+          "sha256": "ce40853f21c91c56474758320c3ad230a9493ccc4b3d15f8b6485244457f16bc"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-retained-2.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      },
+      {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-2.json",
+          "sha256": "4f48cafe483a02e10d6a5b771124e4e61a93051a32e60cfd522f8f91dc3bd019"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-2.cycles.jsonl",
+          "sha256": "aa39bc28decafd541678db0c1a33f90006eea186ad81a5e0861ad8b5489c003f"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix-memory-one-use-2.wall.json",
+          "sha256": "dd423ea74f4530e3dab929ca6dba780f675c779e5eea10366db1e7b0fd2b35d9"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix-memory-one-use-2.sources-2ea7fcb085c78c3d.json",
+          "sha256": "2ea7fcb085c78c3dab94ce4a00e64bce2a656e6f7e3d0d3395876f642a20b2d9"
+        }
+      }
+    ],
+    "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+    "prefix_tokens": [
+      1972,
+      510,
+      1957,
+      1437,
+      279,
+      6002,
+      594,
+      22798,
+      1824,
+      1681,
+      1119,
+      6896,
+      825,
+      315,
+      279,
+      17221,
+      93515,
+      382,
+      6262,
+      943,
+      25,
+      5754,
+      198,
+      14582,
+      510
+    ]
+  },
+  "prospective_performance_gates": {
+    "retained": {
+      "paired_median_minimum": 1.0,
+      "paired_p05_minimum_exclusive": 1.0,
+      "aggregate_throughput_minimum_exclusive": 1.0,
+      "candidate_cohort_p95_ratio_maximum": 1.0
+    },
+    "full": {
+      "paired_median_minimum": 1.02,
+      "paired_p05_minimum_exclusive": 1.0,
+      "aggregate_throughput_minimum_exclusive": 1.0,
+      "candidate_cohort_p95_ratio_maximum": 1.0
+    }
+  },
+  "quality_gate": {
+    "reference_scores": "legacy_logits from frozen CPU FP32 reference, not causal structural probe",
+    "logit_atol": 0.001,
+    "logit_rtol": 0.001,
+    "logit_rule": "math.isclose symmetric maximum scale",
+    "probability_atol": 0.0001,
+    "full_rank_and_selected_exact": true,
+    "every_warmup_and_measured_cycle": true,
+    "finite_nonnegative_normalized_probabilities": true
+  },
+  "aggregate": {
+    "raw_outcomes": 3696,
+    "correct": 3216,
+    "full_rank_equal": 3696,
+    "selected_equal": 3696,
+    "finite_normalized_probability_outcomes": 3696,
+    "cycles_per_child": 12,
+    "cases_per_cycle": 77,
+    "distinct_supplied_cases": 77,
+    "accuracy_each_cycle": "67/77",
+    "all_quality_passed": true,
+    "retained_comparator_passed": [
+      false,
+      false
+    ],
+    "full_prefill_comparator_passed": [
+      true,
+      true
+    ],
+    "one_use_selection_supported": false,
+    "production_promotion": false
+  },
+  "serial_benchmark_windows_ns": [
+    [
+      1791176575873290000,
+      1791176638609332000
+    ],
+    [
+      1791176693923892000,
+      1791176800871756000
+    ],
+    [
+      1791176821926964000,
+      1791176887632546000
+    ],
+    [
+      1791176919063371000,
+      1791177029566034000
+    ]
+  ],
+  "comparisons": [
+    {
+      "comparator": "retained",
+      "batch_size": 8,
+      "evidence": {
+        "receipt": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b8.json",
+          "sha256": "2578cfa5c2a03d10992f49c3fd938f063e3c48e7cec0af18e302065ff04e751e"
+        },
+        "wall": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b8.wall.json",
+          "sha256": "8bc3a98a5b0207601aa136019dd86d8b09ccac5779489adf519f79b6065f9ad9"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b8.sources-223d233bb53b4585.json",
+          "sha256": "223d233bb53b458581b236d447ea19145fb8faf10b614e8a76b051d1ff01677a"
+        }
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "canonical_input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8",
+      "counts": {
+        "baseline_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 9.834766387939453e-06,
+          "max_abs_probability_difference": 1.5430003417193916e-06
+        },
+        "candidate_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 9.834766387939453e-06,
+          "max_abs_probability_difference": 1.5430003417193916e-06
+        },
+        "baseline_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 9.834766387939453e-06,
+          "max_abs_probability_difference": 1.5430003417193916e-06
+        },
+        "candidate_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 9.834766387939453e-06,
+          "max_abs_probability_difference": 1.5430003417193916e-06
+        }
+      },
+      "total": 924,
+      "correct": 804,
+      "ranking_equal": 924,
+      "selected_equal": 924,
+      "finite": 924,
+      "performance": {
+        "paired_ratios": [
+          0.9978028536036353,
+          1.002372997659827,
+          1.0079519711909701,
+          0.9966439882438523,
+          0.9997942133132256
+        ],
+        "paired_median": 0.9997942133132256,
+        "paired_p05": 0.9968757613158089,
+        "aggregate_throughput_ratio": 1.0009061786981195,
+        "candidate_cohort_p95_ratio": 1.0012811351504398,
+        "passed": false
+      },
+      "pair_quality": {
+        "outcomes": 385,
+        "ranking_equal": 385,
+        "selected_equal": 385,
+        "baseline_correct": 335,
+        "candidate_correct": 335,
+        "max_abs_logit_difference": 0.0,
+        "max_abs_probability_difference": 0.0
+      },
+      "quality_passed": true,
+      "selection_passed": false,
+      "accepted": false,
+      "candidate_prefix_build_ms": 76.448041,
+      "baseline_prefix_build_ms": 67.970334,
+      "process_terminal": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.latency.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b8.json",
+          "--comparator",
+          "retained",
+          "--batch-size",
+          "8",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": false,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 1,
+        "elapsed_seconds": 66.53207075002138
+      },
+      "diagnostics": {
+        "before": {
+          "wall_time_ns": 1791176575873290000,
+          "perf_counter_ns": 397774776659916,
+          "user_seconds": 3.23916,
+          "system_seconds": 1.4683869999999999,
+          "minor_faults": 246743,
+          "major_faults": 453,
+          "voluntary_context_switches": 34,
+          "involuntary_context_switches": 59396,
+          "load_average": [
+            1.77734375,
+            1.44970703125,
+            1.40576171875
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 28209,
+          "device_memory_bytes": null
+        },
+        "after": {
+          "wall_time_ns": 1791176638609332000,
+          "perf_counter_ns": 397837512874791,
+          "user_seconds": 216.837394,
+          "system_seconds": 14.027954,
+          "minor_faults": 635198,
+          "major_faults": 493,
+          "voluntary_context_switches": 44,
+          "involuntary_context_switches": 1516345,
+          "load_average": [
+            3.20947265625,
+            1.87646484375,
+            1.5634765625
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 18250,
+          "device_memory_bytes": null
+        }
+      },
+      "raw_report_kept": true,
+      "incremental_cycle_journal": false,
+      "partial_limit": "benchmark_pair returns cycles only at completion; timeout/exception inside it retains setup, partial timing/quality unknown"
+    },
+    {
+      "comparator": "retained",
+      "batch_size": 1,
+      "evidence": {
+        "receipt": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b1.json",
+          "sha256": "d32756a6575b08dc0a9d55eff87cb2778d537bb11187f11fdfb4cb4c9209a340"
+        },
+        "wall": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b1.wall.json",
+          "sha256": "04ce9661bbdd1375966b7f35006a10dd3108a4cda9ecb7505bcc14ecddf69dc4"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b1.sources-223d233bb53b4585.json",
+          "sha256": "223d233bb53b458581b236d447ea19145fb8faf10b614e8a76b051d1ff01677a"
+        }
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "canonical_input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8",
+      "counts": {
+        "baseline_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 9.953975677490234e-06,
+          "max_abs_probability_difference": 1.5595056228612236e-06
+        },
+        "candidate_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 9.953975677490234e-06,
+          "max_abs_probability_difference": 1.5595056228612236e-06
+        },
+        "baseline_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 9.953975677490234e-06,
+          "max_abs_probability_difference": 1.5595056228612236e-06
+        },
+        "candidate_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 9.953975677490234e-06,
+          "max_abs_probability_difference": 1.5595056228612236e-06
+        }
+      },
+      "total": 924,
+      "correct": 804,
+      "ranking_equal": 924,
+      "selected_equal": 924,
+      "finite": 924,
+      "performance": {
+        "paired_ratios": [
+          1.0139214820714029,
+          0.9985520186824747,
+          1.004007234724612,
+          0.9995547423041407,
+          1.0014294725735762
+        ],
+        "paired_median": 1.0014294725735762,
+        "paired_p05": 0.9987525634068078,
+        "aggregate_throughput_ratio": 1.0035037482124316,
+        "candidate_cohort_p95_ratio": 0.9888350941037155,
+        "passed": false
+      },
+      "pair_quality": {
+        "outcomes": 385,
+        "ranking_equal": 385,
+        "selected_equal": 385,
+        "baseline_correct": 335,
+        "candidate_correct": 335,
+        "max_abs_logit_difference": 0.0,
+        "max_abs_probability_difference": 0.0
+      },
+      "quality_passed": true,
+      "selection_passed": false,
+      "accepted": false,
+      "candidate_prefix_build_ms": 66.933,
+      "baseline_prefix_build_ms": 65.744583,
+      "process_terminal": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.latency.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-retained-b1.json",
+          "--comparator",
+          "retained",
+          "--batch-size",
+          "1",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": false,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 1,
+        "elapsed_seconds": 110.5457515839953
+      },
+      "diagnostics": {
+        "before": {
+          "wall_time_ns": 1791176693923892000,
+          "perf_counter_ns": 397892827586375,
+          "user_seconds": 3.244426,
+          "system_seconds": 1.454313,
+          "minor_faults": 245303,
+          "major_faults": 9,
+          "voluntary_context_switches": 1,
+          "involuntary_context_switches": 38569,
+          "load_average": [
+            2.1943359375,
+            1.8173828125,
+            1.56103515625
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 32208,
+          "device_memory_bytes": null
+        },
+        "after": {
+          "wall_time_ns": 1791176800871756000,
+          "perf_counter_ns": 397999775743458,
+          "user_seconds": 199.820629,
+          "system_seconds": 61.338635,
+          "minor_faults": 256891,
+          "major_faults": 9,
+          "voluntary_context_switches": 7,
+          "involuntary_context_switches": 9552437,
+          "load_average": [
+            3.19287109375,
+            2.2548828125,
+            1.75830078125
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 17333,
+          "device_memory_bytes": null
+        }
+      },
+      "raw_report_kept": true,
+      "incremental_cycle_journal": false,
+      "partial_limit": "benchmark_pair returns cycles only at completion; timeout/exception inside it retains setup, partial timing/quality unknown"
+    },
+    {
+      "comparator": "full",
+      "batch_size": 8,
+      "evidence": {
+        "receipt": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b8.json",
+          "sha256": "80883928d7a6d8a477715a316455934b710ae19a92d3405d11a1dd67ca08ff81"
+        },
+        "wall": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b8.wall.json",
+          "sha256": "cc3ee7be298e9c5bf2ece6a488a7922d5f477d7b3eec7535271f89b995645659"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b8.sources-223d233bb53b4585.json",
+          "sha256": "223d233bb53b458581b236d447ea19145fb8faf10b614e8a76b051d1ff01677a"
+        }
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "canonical_input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8",
+      "counts": {
+        "baseline_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 9.5367431640625e-07,
+          "max_abs_probability_difference": 2.9150456326565433e-08
+        },
+        "candidate_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 9.834766387939453e-06,
+          "max_abs_probability_difference": 1.5430003417193916e-06
+        },
+        "baseline_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 9.5367431640625e-07,
+          "max_abs_probability_difference": 2.9150456326565433e-08
+        },
+        "candidate_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 9.834766387939453e-06,
+          "max_abs_probability_difference": 1.5430003417193916e-06
+        }
+      },
+      "total": 924,
+      "correct": 804,
+      "ranking_equal": 924,
+      "selected_equal": 924,
+      "finite": 924,
+      "performance": {
+        "paired_ratios": [
+          1.1119685139177358,
+          1.109281522813086,
+          1.1032501253606932,
+          1.0845526098940883,
+          1.109966577283808
+        ],
+        "paired_median": 1.109281522813086,
+        "paired_p05": 1.0882921129874092,
+        "aggregate_throughput_ratio": 1.103699495964052,
+        "candidate_cohort_p95_ratio": 0.9182162620216971,
+        "passed": true
+      },
+      "pair_quality": {
+        "outcomes": 385,
+        "ranking_equal": 385,
+        "selected_equal": 385,
+        "baseline_correct": 335,
+        "candidate_correct": 335,
+        "max_abs_logit_difference": 9.834766387939453e-06,
+        "max_abs_probability_difference": 1.5274020291333734e-06
+      },
+      "quality_passed": true,
+      "selection_passed": true,
+      "accepted": false,
+      "candidate_prefix_build_ms": 66.433709,
+      "baseline_prefix_build_ms": null,
+      "process_terminal": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.latency.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b8.json",
+          "--comparator",
+          "full",
+          "--batch-size",
+          "8",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 69.33283395902254
+      },
+      "diagnostics": {
+        "before": {
+          "wall_time_ns": 1791176821926964000,
+          "perf_counter_ns": 398020831008750,
+          "user_seconds": 3.245937,
+          "system_seconds": 1.433359,
+          "minor_faults": 244962,
+          "major_faults": 1,
+          "voluntary_context_switches": 1,
+          "involuntary_context_switches": 35579,
+          "load_average": [
+            2.50732421875,
+            2.15673828125,
+            1.734375
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 30416,
+          "device_memory_bytes": null
+        },
+        "after": {
+          "wall_time_ns": 1791176887632546000,
+          "perf_counter_ns": 398086536772166,
+          "user_seconds": 231.578204,
+          "system_seconds": 10.964264,
+          "minor_faults": 286706,
+          "major_faults": 13,
+          "voluntary_context_switches": 7,
+          "involuntary_context_switches": 1372668,
+          "load_average": [
+            3.40625,
+            2.4853515625,
+            1.88671875
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 21667,
+          "device_memory_bytes": null
+        }
+      },
+      "raw_report_kept": true,
+      "incremental_cycle_journal": false,
+      "partial_limit": "benchmark_pair returns cycles only at completion; timeout/exception inside it retains setup, partial timing/quality unknown"
+    },
+    {
+      "comparator": "full",
+      "batch_size": 1,
+      "evidence": {
+        "receipt": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b1.json",
+          "sha256": "e2c0553d18ccec7273d817a3070b0a9b81fd7c798d0f160c38d63f184ca110fc"
+        },
+        "wall": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b1.wall.json",
+          "sha256": "bbe7f4bf2215db18a2ffd6d35d2eb6926690f03cd4f6a19bf4c6504e7cbd75c5"
+        },
+        "archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b1.sources-223d233bb53b4585.json",
+          "sha256": "223d233bb53b458581b236d447ea19145fb8faf10b614e8a76b051d1ff01677a"
+        }
+      },
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "canonical_input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8",
+      "counts": {
+        "baseline_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 1.430511474609375e-06,
+          "max_abs_probability_difference": 1.0496957181249655e-07
+        },
+        "candidate_warmup": {
+          "outcomes": 77,
+          "correct": 67,
+          "ranking_equal": 77,
+          "selected_equal": 77,
+          "max_abs_logit_difference": 9.953975677490234e-06,
+          "max_abs_probability_difference": 1.5595056228612236e-06
+        },
+        "baseline_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 1.430511474609375e-06,
+          "max_abs_probability_difference": 1.0496957181249655e-07
+        },
+        "candidate_measured": {
+          "outcomes": 385,
+          "correct": 335,
+          "ranking_equal": 385,
+          "selected_equal": 385,
+          "max_abs_logit_difference": 9.953975677490234e-06,
+          "max_abs_probability_difference": 1.5595056228612236e-06
+        }
+      },
+      "total": 924,
+      "correct": 804,
+      "ranking_equal": 924,
+      "selected_equal": 924,
+      "finite": 924,
+      "performance": {
+        "paired_ratios": [
+          1.061990200641224,
+          1.0570452630004419,
+          1.0731328202242225,
+          1.0740474935423292,
+          1.0749969110546496
+        ],
+        "paired_median": 1.0731328202242225,
+        "paired_p05": 1.0580342505285982,
+        "aggregate_throughput_ratio": 1.0681958275103032,
+        "candidate_cohort_p95_ratio": 0.9428898901416715,
+        "passed": true
+      },
+      "pair_quality": {
+        "outcomes": 385,
+        "ranking_equal": 385,
+        "selected_equal": 385,
+        "baseline_correct": 335,
+        "candidate_correct": 335,
+        "max_abs_logit_difference": 9.655952453613281e-06,
+        "max_abs_probability_difference": 1.5397338891665058e-06
+      },
+      "quality_passed": true,
+      "selection_passed": true,
+      "accepted": false,
+      "candidate_prefix_build_ms": 77.674541,
+      "baseline_prefix_build_ms": null,
+      "process_terminal": {
+        "command": [
+          "/Users/teilomillet/Code/wyat/.venv/bin/python",
+          "-m",
+          "benchmarks.analysis.torch.prefix.latency.run",
+          "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+          "--output",
+          "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-one-use-full-b1.json",
+          "--comparator",
+          "full",
+          "--batch-size",
+          "1",
+          "--worker"
+        ],
+        "timeout_seconds": 180,
+        "completed": true,
+        "timed_out": false,
+        "inductor_cache": null,
+        "exit_code": 0,
+        "elapsed_seconds": 114.32088733295677
+      },
+      "diagnostics": {
+        "before": {
+          "wall_time_ns": 1791176919063371000,
+          "perf_counter_ns": 398117967683583,
+          "user_seconds": 3.37011,
+          "system_seconds": 1.435695,
+          "minor_faults": 244925,
+          "major_faults": 1,
+          "voluntary_context_switches": 0,
+          "involuntary_context_switches": 37009,
+          "load_average": [
+            2.49658203125,
+            2.34375,
+            1.8544921875
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 26333,
+          "device_memory_bytes": null
+        },
+        "after": {
+          "wall_time_ns": 1791177029566034000,
+          "perf_counter_ns": 398228470650083,
+          "user_seconds": 212.83199,
+          "system_seconds": 59.275281,
+          "minor_faults": 249959,
+          "major_faults": 2,
+          "voluntary_context_switches": 6,
+          "involuntary_context_switches": 9440593,
+          "load_average": [
+            2.98681640625,
+            2.5810546875,
+            2.0048828125
+          ],
+          "load_average_error": null,
+          "collection_elapsed_ns": 15167,
+          "device_memory_bytes": null
+        }
+      },
+      "raw_report_kept": true,
+      "incremental_cycle_journal": false,
+      "partial_limit": "benchmark_pair returns cycles only at completion; timeout/exception inside it retains setup, partial timing/quality unknown"
+    }
+  ],
+  "terminal_interpretation": "All four receipts completed and returned all raw cycles. Retained-comparator workers intentionally exited 1 for failed performance selection; their wall completed=false means unsuccessful command, not missing/incomplete scientific outcomes. Full-prefill workers exited 0. No child timed out. Source owner explicitly reported all process groups reaped and shared resources released; receipt audit does not independently record child PIDs.",
+  "limits": [
+    "Pinned 77 development cases originate from BANKING77 train; prior model exposure unknown. Repeating these cases is numerical compatibility evidence, not independent held-out model quality.",
+    "All five alternating paired repetitions retained; percentiles are descriptive sample summaries, not confidence intervals or a significance test. No fastest-cycle selection.",
+    "The two retained-comparator failures remain failures under their prospective gates; separate full-prefill speed gains and prior first-eight intrusive memory observations do not override selection.",
+    "Cold prefix build is separately recorded, excluded from warmed latency. Fresh per-call cache construction/copies remain inside ordinary calls. The small family and specific native CPU/MPS-eligibility environment do not establish universal hardware gains.",
+    "Ordinary calls contain no RSS observers or profilers. Canonical BenchmarkReport RSS values are cumulative shared-process high-water marks and do not establish per-arm physical memory or reproduce the intrusive first-eight memory contrast.",
+    "Canonical benchmark_pair exposes raw cycles only on return; no incremental cycle journal by design. A timeout/exception before return would retain setup/phase/wall with partial outcomes unknown. All four actual calls returned.",
+    "No production change or API/runtime approval follows from this audit."
+  ]
+}

@@ -1,0 +1,263 @@
+{
+  "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+  "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+  "input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8",
+  "versions": {
+    "torch": "2.12.1",
+    "transformers": "5.18.0",
+    "safetensors": "0.8.0",
+    "tokenizers": "0.23.2",
+    "numpy": "2.5.3",
+    "huggingface-hub": "1.33.0",
+    "annotated-doc": "0.0.5",
+    "anyio": "4.15.1",
+    "certifi": "2026.7.22",
+    "click": "8.5.0",
+    "filelock": "4.0.11",
+    "fsspec": "2026.9.0",
+    "h11": "0.16.0",
+    "hf-xet": "1.6.0",
+    "httpcore": "1.0.9",
+    "httpx": "0.28.1",
+    "idna": "3.20",
+    "markdown-it-py": "4.2.0",
+    "mdurl": "0.1.2",
+    "packaging": "26.3",
+    "pygments": "2.21.0",
+    "pyyaml": "6.0.3",
+    "regex": "2026.9.29",
+    "rich": "15.0.0",
+    "shellingham": "1.5.4",
+    "tqdm": "4.70.1",
+    "typer": "0.27.2",
+    "typing-extensions": "4.16.0"
+  },
+  "runtime": {
+    "python": "3.12.13",
+    "torch_runtime": "2.12.1+cu130",
+    "cuda_build": "13.0"
+  },
+  "files": [
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/MODEL_MANIFEST.json",
+      "sha256": "ca7bf2cff1494a5bfc51f4271f52557da0f3ce3b6f0f6e7a2b4118cb4965e92e",
+      "bytes": 19560
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/backbone/config.json",
+      "sha256": "fcf62f425b626755c6df66630215aed57c70b38bf779e6ac9aeff376224310ac",
+      "bytes": 1411
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/backbone/model.safetensors",
+      "sha256": "43369a2bfddb61495beb7cea6bf30d7564a5c5caff31f4dbf2e6cfce48423b69",
+      "bytes": 1503429208
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/config.json",
+      "sha256": "35ce70886f7642ec5eacf969e27da404915824aa25f6a30a19a1107cb2ec99b3",
+      "bytes": 1136
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/decision_config.json",
+      "sha256": "4778b8818f8510bf761eebba48ec5ffd5941c8f95ef2b228a97162fb0c814a6e",
+      "bytes": 1780
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/decision_head.safetensors",
+      "sha256": "508dfe385c8fde8eb0b4eec5c199f5fe8363efeb247de024a08765b53183409d",
+      "bytes": 4213584
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/tokenizer.json",
+      "sha256": "be75606093db2094d7cd20f3c2f385c212750648bd6ea4fb2bf507a6a4c55506",
+      "bytes": 11422650
+    },
+    {
+      "path": ".models/Decision-2.0-Kai-0.6B/tokenizer_config.json",
+      "sha256": "cbea7bca9904d56693d2226b00fd564e3be053609d1e50f8f1885510f0f6e790",
+      "bytes": 695
+    },
+    {
+      "path": "benchmarks/__init__.py",
+      "sha256": "a007c874860cbaeab8d28ac34f31ac46db25b0ccd532c12a22c9f6e01d401d14",
+      "bytes": 74
+    },
+    {
+      "path": "benchmarks/analysis/__init__.py",
+      "sha256": "e9aa1585f853d05f853753de16633fb134665fae50dd764320e2bb6854408c5c",
+      "bytes": 64
+    },
+    {
+      "path": "benchmarks/analysis/cuda/__init__.py",
+      "sha256": "1ebc18be49b0c53395cf178d9b64f5300cfddf4dac753a8e1e7a5651b5579399",
+      "bytes": 67
+    },
+    {
+      "path": "benchmarks/analysis/cuda/manifest.py",
+      "sha256": "7aa9e73194d49107223b02358e0bdfbef9bb3853365013159bbd6c2a5846c6b6",
+      "bytes": 3591
+    },
+    {
+      "path": "benchmarks/analysis/cuda/run.py",
+      "sha256": "b47e9a44e4cdd76e042a35a4962a6c8e79725589b20cd22080a4ff196ea0fdf4",
+      "bytes": 2038
+    },
+    {
+      "path": "benchmarks/analysis/cuda/scorer.py",
+      "sha256": "aba048e03cf1eef0a067c79d27c822be2f8790b9691767312dab3789a3edfa3d",
+      "bytes": 3708
+    },
+    {
+      "path": "benchmarks/analysis/cuda/study.py",
+      "sha256": "78996e581ec3607543f186a92d6ed21b42338860a7ecc66cd099e7316d98dbcf",
+      "bytes": 17081
+    },
+    {
+      "path": "benchmarks/analysis/evidence.py",
+      "sha256": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+      "bytes": 3518
+    },
+    {
+      "path": "benchmarks/analysis/reference.py",
+      "sha256": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+      "bytes": 3275
+    },
+    {
+      "path": "benchmarks/analysis/torch/process.py",
+      "sha256": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+      "bytes": 2455
+    },
+    {
+      "path": "benchmarks/real/banking77-train-dev-menu6.jsonl",
+      "sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "bytes": 52161
+    },
+    {
+      "path": "benchmarks/real/torch-fp32-reference77.json",
+      "sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "bytes": 259988
+    },
+    {
+      "path": "docs/analysis/cuda-run.md",
+      "sha256": "35126915d22692fe887d27d8611d4b388fbb2c8063b232ebdadd28d68b6a77b7",
+      "bytes": 3669
+    },
+    {
+      "path": "docs/analysis/cuda.md",
+      "sha256": "c466eb0b7e264ba85419403fe4b185bd1feca207aaa188f9198745891d272ae9",
+      "bytes": 5914
+    },
+    {
+      "path": "tests/analysis/test_cuda_protocol.py",
+      "sha256": "a6fcfe4be591edcf7a409a174b88d09560fc1a06bb6006605c91d25842abae22",
+      "bytes": 13893
+    },
+    {
+      "path": "wyat/__init__.py",
+      "sha256": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+      "bytes": 230
+    },
+    {
+      "path": "wyat/__main__.py",
+      "sha256": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+      "bytes": 48
+    },
+    {
+      "path": "wyat/backends/__init__.py",
+      "sha256": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+      "bytes": 76
+    },
+    {
+      "path": "wyat/backends/kai/__init__.py",
+      "sha256": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+      "bytes": 76
+    },
+    {
+      "path": "wyat/backends/kai/artifact.py",
+      "sha256": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+      "bytes": 8314
+    },
+    {
+      "path": "wyat/backends/kai/encoding.py",
+      "sha256": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+      "bytes": 4607
+    },
+    {
+      "path": "wyat/backends/kai/mlx.py",
+      "sha256": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+      "bytes": 7777
+    },
+    {
+      "path": "wyat/backends/kai/prefix.py",
+      "sha256": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+      "bytes": 5381
+    },
+    {
+      "path": "wyat/backends/kai/readout.py",
+      "sha256": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+      "bytes": 4632
+    },
+    {
+      "path": "wyat/backends/kai/torch.py",
+      "sha256": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+      "bytes": 9494
+    },
+    {
+      "path": "wyat/benchmark.py",
+      "sha256": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+      "bytes": 14279
+    },
+    {
+      "path": "wyat/cli.py",
+      "sha256": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+      "bytes": 9577
+    },
+    {
+      "path": "wyat/core.py",
+      "sha256": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+      "bytes": 6196
+    },
+    {
+      "path": "wyat/evaluation.py",
+      "sha256": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+      "bytes": 7479
+    },
+    {
+      "path": "wyat/interop/__init__.py",
+      "sha256": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+      "bytes": 53
+    },
+    {
+      "path": "wyat/interop/dmbench.py",
+      "sha256": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+      "bytes": 3655
+    },
+    {
+      "path": "wyat/loading/__init__.py",
+      "sha256": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+      "bytes": 67
+    },
+    {
+      "path": "wyat/loading/local.py",
+      "sha256": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+      "bytes": 1778
+    },
+    {
+      "path": "wyat/server.py",
+      "sha256": "f1ca44abf7dbaf8bb0c729cd70dc3bdc54b23242eec86af94da5271b0f9a94f1",
+      "bytes": 2968
+    },
+    {
+      "path": "wyat/wire.py",
+      "sha256": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6",
+      "bytes": 1353
+    }
+  ]
+}

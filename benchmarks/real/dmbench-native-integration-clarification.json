@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "scope": "Documentation correction only; original setup receipt retained unchanged",
+  "original_receipt": "benchmarks/real/dmbench-native-integration.json",
+  "original_receipt_sha256": "f8770b74e183b523244cc764e193409b5b182f826ed80edc9d3bbe954e8aa534",
+  "historical_document_sha256": "2ea1a50e5210d4f37a9194c26491b6ecbc1e61dbb306348683768564690cc43c",
+  "corrected_document_sha256": "fe5ecdd4e1d72252949f755dd574a5cc4c0b91205cd6bc57e00442fd102fad36",
+  "clarification": "The 65-choice negative test uses actual KaiEncoder with a character-tokenizer fixture configured max_options=64 and max_length=512. It establishes those configured fixture limits, not released-artifact limits. The adapter preserves the loaded model's declared limits without menu reduction or truncation.",
+  "production_or_test_changes": false,
+  "new_model_quality_or_performance_claim": false
+}

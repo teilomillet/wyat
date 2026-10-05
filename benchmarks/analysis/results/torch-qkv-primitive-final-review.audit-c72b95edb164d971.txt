@@ -1,0 +1,681 @@
+"""Independent saved FP32 projection parity and timing audit, stdlib only.
+
+Prepared before capture; execute only after root releases immutable native raws.
+This validates primitive parity, never complete-model decisions or engine speed.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ast
+import hashlib
+import itertools
+import json
+import math
+import struct
+import sys
+from array import array
+from dataclasses import dataclass
+from pathlib import Path
+from typing import cast
+
+type Json = None | bool | int | float | str | list[Json] | dict[str, Json]
+type Object = dict[str, Json]
+ROOT = Path("/Users/teilomillet/Code/wyat")
+ARMS = ("separate", "kv", "qkv")
+ORDERS = tuple(itertools.permutations(ARMS))
+PROFILES = (
+    ("scalar192", (7,), (1, 167, 1024)),
+    ("scalar197", (18,), (1, 172, 1024)),
+    ("scalar214", (75,), (1, 189, 1024)),
+    ("batch8", tuple(range(8)), (8, 167, 1024)),
+)
+PACKAGE_SHA = "3a2a6e0999dee44fe71a06905efb35158d5b935b582b02c28043bec30acc2975"
+DATA_SHA = "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03"
+REFERENCE_SHA = "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664"
+SOURCE_REVIEW_SHA = "ab1d79d62696f0506b2e17dd8d34e7b76ad894bf95b71dfa67d3bbefb69a7878"
+INPUT_SHA = "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8"
+MODEL_ID = "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee"
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise ValueError(message)
+
+
+def obj(value: Json) -> Object:
+    require(isinstance(value, dict), "Expected JSON object")
+    return cast(Object, value)
+
+
+def items(value: Json) -> list[Json]:
+    require(isinstance(value, list), "Expected JSON array")
+    return cast(list[Json], value)
+
+
+def text(value: Json) -> str:
+    require(isinstance(value, str), "Expected string")
+    return cast(str, value)
+
+
+def number(value: Json) -> float:
+    require(type(value) in (int, float), "Expected finite real number")
+    result = float(cast(int | float, value))
+    require(math.isfinite(result), "Expected finite real number")
+    return result
+
+
+def integer(value: Json) -> int:
+    require(type(value) is int, "Expected integer")
+    return cast(int, value)
+
+
+def reject_duplicates(pairs: list[tuple[str, Json]]) -> Object:
+    result: Object = {}
+    for name, value in pairs:
+        require(name not in result, "Duplicate JSON key")
+        result[name] = value
+    return result
+
+
+def decode(data: str | bytes) -> Object:
+    return obj(cast(Json, json.loads(data, object_pairs_hook=reject_duplicates)))
+
+
+def sha(path: Path) -> str:
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def pinned(path: Path, checksum: str) -> Object:
+    require(
+        not path.is_symlink() and sha(path) == checksum,
+        "Changed pinned artifact " + str(path),
+    )
+    return decode(path.read_bytes())
+
+
+def percentile(values: list[float], quantile: float) -> float:
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * quantile
+    lower = math.floor(position)
+    fraction = position - lower
+    return ordered[lower] + (ordered[math.ceil(position)] - ordered[lower]) * fraction
+
+
+def literal(source: str, name: str) -> Json:
+    for node in ast.parse(source).body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == name for t in node.targets
+        ):
+            return cast(Json, ast.literal_eval(node.value))
+    raise ValueError("Archived literal missing: " + name)
+
+
+@dataclass(frozen=True)
+class Tensor:
+    dtype: str
+    shape: tuple[int, ...]
+    start: int
+    stop: int
+
+
+class SavedTensors:
+    """Bounded native safetensors reader: no imports or implicit dtype conversion."""
+
+    def __init__(self, path: Path) -> None:
+        require(not path.is_symlink(), "Tensor capture symlink")
+        self.path = path
+        size = path.stat().st_size
+        with path.open("rb") as stream:
+            first = stream.read(8)
+            require(len(first) == 8, "Missing safetensors header length")
+            length = struct.unpack("<Q", first)[0]
+            require(
+                2 <= length <= min(16_777_216, size - 8),
+                "Invalid safetensors header length",
+            )
+            header = decode(stream.read(length))
+        self.offset = 8 + length
+        self.tensors: dict[str, Tensor] = {}
+        spans: list[tuple[int, int]] = []
+        widths = {"F32": 4, "BF16": 2, "F16": 2}
+        for name, value in header.items():
+            if name == "__metadata__":
+                require(
+                    all(isinstance(v, str) for v in obj(value).values()),
+                    "Malformed tensor metadata",
+                )
+                continue
+            row = obj(value)
+            require(
+                set(row) == {"dtype", "shape", "data_offsets"},
+                "Unexpected native tensor descriptor",
+            )
+            dtype = text(row["dtype"])
+            shape = tuple(integer(v) for v in items(row["shape"]))
+            offsets = items(row["data_offsets"])
+            require(
+                dtype in widths and len(offsets) == 2 and all(v >= 0 for v in shape),
+                "Unsupported tensor descriptor",
+            )
+            start, stop = (integer(v) for v in offsets)
+            require(
+                0 <= start <= stop <= size - self.offset
+                and stop - start == math.prod(shape) * widths[dtype],
+                "Invalid tensor byte range",
+            )
+            spans.append((start, stop))
+            self.tensors[name] = Tensor(dtype, shape, start, stop)
+        cursor = 0
+        for start, stop in sorted(spans):
+            require(start == cursor, "Overlapping or unaccounted native tensor bytes")
+            cursor = stop
+        require(cursor == size - self.offset, "Unaccounted tensor payload tail")
+
+    def raw(self, name: str) -> bytes:
+        descriptor = self.tensors[name]
+        with self.path.open("rb") as stream:
+            stream.seek(self.offset + descriptor.start)
+            data = stream.read(descriptor.stop - descriptor.start)
+        require(
+            len(data) == descriptor.stop - descriptor.start, "Truncated native array"
+        )
+        return data
+
+    def f32_bytes(self, name: str) -> bytes:
+        descriptor = self.tensors[name]
+        data = self.raw(name)
+        if descriptor.dtype == "F32":
+            return data
+        if descriptor.dtype == "BF16":
+            return b"".join(
+                struct.pack("<I", value << 16)
+                for (value,) in struct.iter_unpack("<H", data)
+            )
+        return b"".join(
+            struct.pack("<f", value) for (value,) in struct.iter_unpack("<e", data)
+        )
+
+    def floats(self, name: str) -> array[float]:
+        require(
+            self.tensors[name].dtype == "F32", "Capture must contain actual FP32 arrays"
+        )
+        values: array[float] = array("f")
+        values.frombytes(self.raw(name))
+        if sys.byteorder != "little":
+            values.byteswap()
+        return values
+
+
+def compare(left: array[float], right: array[float]) -> Object:
+    require(len(left) == len(right) and len(left) > 0, "Output element count differs")
+    failures = 0
+    maximum = relative = 0.0
+    finite = True
+    for a, b in zip(left, right, strict=True):
+        if not math.isfinite(a) or not math.isfinite(b):
+            finite = False
+            failures += 1
+            continue
+        error = abs(a - b)
+        scale = max(abs(a), abs(b))
+        failures += error > max(1e-3, scale * 1e-3)
+        maximum = max(maximum, error)
+        relative = max(relative, error / max(scale, 1e-300))
+    return {
+        "passed": failures == 0,
+        "finite": finite,
+        "failed_elements": failures,
+        "max_absolute_error": maximum if finite else None,
+        "max_relative_error": relative if finite else None,
+    }
+
+
+def verify_gate(observed: Object, recomputed: Object) -> None:
+    for key in ("passed", "finite", "failed_elements"):
+        require(
+            observed[key] == recomputed[key]
+            and type(observed[key]) is type(recomputed[key]),
+            "Saved gate differs: " + key,
+        )
+    for key in ("max_absolute_error", "max_relative_error"):
+        if recomputed[key] is None:
+            require(observed[key] is None, "Nonfinite metric falsely available")
+        else:
+            require(
+                math.isclose(
+                    number(observed[key]),
+                    number(recomputed[key]),
+                    rel_tol=1e-14,
+                    abs_tol=1e-14,
+                ),
+                "Saved gate metric differs: " + key,
+            )
+
+
+class Arguments(argparse.Namespace):
+    main: Path
+    output: Path
+    main_sha: str
+    wall_sha: str
+    log_sha: str
+    archive_sha: str
+    source_review: Path
+    source_review_sha: str
+
+
+def audit(args: Arguments) -> Object:
+    main = pinned(args.main, args.main_sha)
+    wall = pinned(args.main.with_suffix(".wall.json"), args.wall_sha)
+    require(sha(args.main.with_suffix(".log")) == args.log_sha, "Worker log changed")
+    require(
+        wall["timeout_seconds"] == 120
+        and wall["timed_out"] is False
+        and wall["exit_code"] == 0
+        and wall["completed"] is True
+        and 0 <= number(wall["elapsed_seconds"]) <= 120,
+        "Native owned terminal cap failed",
+    )
+    command = [text(v) for v in items(wall["command"])]
+    module = "benchmarks.analysis.torch.projection.run"
+    require(
+        module in command
+        and "--worker" in command
+        and command[command.index("--output") + 1] == str(args.main),
+        "Wrong primitive worker",
+    )
+    model = Path(command[command.index(module) + 1])
+    require(
+        args.source_review_sha == SOURCE_REVIEW_SHA, "Wrong reviewed primitive source"
+    )
+    review = pinned(args.source_review, args.source_review_sha)
+    require(review.get("passed") is True, "Source-only review not admitted")
+    descriptor = obj(main["source_archive"])
+    require(descriptor["sha256"] == args.archive_sha, "Source archive pin mismatch")
+    archived_path = Path(text(descriptor["path"]))
+    archive = pinned(archived_path, args.archive_sha)
+    source_sha: Object = {}
+    source_text: dict[str, str] = {}
+    for raw in items(archive["files"]):
+        entry = obj(raw)
+        name, contents = text(entry["name"]), text(entry["text"])
+        checksum = hashlib.sha256(contents.encode()).hexdigest()
+        require(
+            name not in source_sha and entry["sha256"] == checksum,
+            "Altered or duplicate archived source",
+        )
+        source_sha[name] = checksum
+        source_text[name] = contents
+    require(source_sha == main["source_sha256"], "Executed source map mismatch")
+    require(len(source_sha) == 16, "Executed primitive source inventory changed")
+    for name, reviewed_sha in obj(review["scoped_source_sha256"]).items():
+        require(
+            source_sha.get(name) == reviewed_sha,
+            "Executed source differs from reviewed new6",
+        )
+    original = source_text["benchmarks/analysis/torch/prefix/production/study.py"]
+    asset_pins = obj(literal(original, "MODEL_FILES"))
+    require(
+        literal(original, "DATA_SHA") == DATA_SHA
+        and literal(original, "REFERENCE_SHA") == REFERENCE_SHA
+        and literal(original, "INPUT_SHA") == INPUT_SHA
+        and literal(original, "MODEL_ID") == MODEL_ID,
+        "Original input contract changed",
+    )
+    assets: Object = {
+        str(model / name): checksum for name, checksum in asset_pins.items()
+    }
+    data_path = ROOT / "benchmarks/real/banking77-train-dev-menu6.jsonl"
+    reference_path = ROOT / "benchmarks/real/torch-fp32-reference77.json"
+    assets.update({str(data_path): DATA_SHA, str(reference_path): REFERENCE_SHA})
+    require(main["asset_sha256"] == assets, "Asset inventory mismatch")
+    for path, asset_sha in assets.items():
+        require(sha(Path(path)) == text(asset_sha), "Pinned actual asset changed")
+    package = pinned(
+        ROOT / "benchmarks/real/package-cpu-prefix-production-verification.json",
+        PACKAGE_SHA,
+    )
+    runtime = obj(package["production_source_sha256"])
+    require(
+        len(runtime) == 22 and review["production_source_sha256"] == runtime,
+        "Expected reviewed original production22",
+    )
+    for path, runtime_sha in runtime.items():
+        require(sha(ROOT / path) == text(runtime_sha), "Production runtime changed")
+    cases = [
+        cast(Json, json.loads(line)) for line in data_path.read_text().splitlines()
+    ]
+    canonical = json.dumps(
+        cases,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    ).encode()
+    require(
+        len(cases) == 77 and hashlib.sha256(canonical).hexdigest() == INPUT_SHA,
+        "Original ordered requests changed",
+    )
+    reference = pinned(reference_path, REFERENCE_SHA)
+    rows = [obj(v) for v in items(reference["rows"])]
+    require(
+        len(rows) == 77 and reference["model_id"] == MODEL_ID,
+        "Reference model identity changed",
+    )
+    protocol = obj(main["protocol"])
+    require(
+        protocol["profiles"]
+        == [[label, list(offsets)] for label, offsets, _ in PROFILES]
+        and protocol["orders"] == [list(order) for order in ORDERS]
+        and protocol["arms"] == list(ARMS)
+        and protocol["total_invocations"] == 96
+        and protocol["threads"] == 8
+        and protocol["dtype"] == "float32"
+        and protocol["device"] == "cpu",
+        "Prospective primitive protocol changed",
+    )
+    require(
+        protocol["projection_gate"]
+        == {"atol": 1e-3, "rtol": 1e-3, "rule": "symmetric max, not additive"}
+        and protocol["eligibility"]
+        == {"all_four_operands": True, "median_minimum": 1.12, "p05_exclusive": 1.0},
+        "Declared primitive gates changed",
+    )
+    require(
+        protocol["cold_calls"] == 1
+        and protocol["warm_calls"] == 1
+        and protocol["measured_calls_per_arm"] == 6,
+        "Invocation denominator changed",
+    )
+    policy = obj(main["process_policy"])
+    require(policy["cpu_autocast"] is False, "CPU precision policy mismatch")
+    source_weights = SavedTensors(model / "backbone/model.safetensors")
+    weight_expected = b"".join(
+        source_weights.f32_bytes(f"layers.0.self_attn.{name}_proj.weight")
+        for name in ("q", "k", "v")
+    )
+    identities = obj(main["weight_identities"])
+    cursor = 0
+    for name, width in (("q", 2048), ("k", 1024), ("v", 1024)):
+        native = weight_expected[cursor : cursor + width * 1024 * 4]
+        identity = obj(identities[name])
+        require(
+            identity["shape"] == [width, 1024]
+            and identity["dtype"] == "torch.float32"
+            and identity["sha256"] == hashlib.sha256(native).hexdigest(),
+            "Authentic projection weight mismatch",
+        )
+        cursor += len(native)
+    norm_bytes = source_weights.f32_bytes("layers.0.input_layernorm.weight")
+    require(
+        obj(identities["norm"])
+        == {"sha256": hashlib.sha256(norm_bytes).hexdigest(), "epsilon": 1e-6},
+        "Authentic norm identity mismatch",
+    )
+    require(
+        main["retained_projection_bytes"] == 16_777_216
+        and main["setup_projection_logical_peak_bytes"] == 33_554_432
+        and main["hypothetical_all28_projection_bytes"] == 469_762_048,
+        "Logical allocation accounting mismatch",
+    )
+    schedule = [(stage, -1, arm) for stage in ("cold", "warm") for arm in ARMS] + [
+        ("measured", repeat, arm)
+        for repeat, order in enumerate(ORDERS)
+        for arm in order
+    ]
+    observations = [obj(v) for v in items(main["operands"])]
+    require(len(observations) == 4, "Incomplete primitive operands")
+    reports: list[Json] = []
+    eligibility: dict[str, list[bool]] = {"kv": [], "qkv": []}
+    for entry, (label, offsets, input_shape) in zip(
+        observations, PROFILES, strict=True
+    ):
+        require(
+            entry["name"] == label
+            and entry["completed"] is True
+            and entry["pending_calls"] == 0,
+            "Incomplete primitive operand",
+        )
+        metadata = obj(entry["input"])
+        tokens = [items(rows[index]["token_ids"]) for index in offsets]
+        require(
+            metadata["strides"]
+            == [
+                (input_shape[1] + (25 if input_shape[0] == 1 else 0)) * 1024,
+                1024,
+                1,
+            ],
+            "Input layout changed",
+        )
+        require(
+            metadata["case_offsets"] == list(offsets)
+            and metadata["case_ids"] == [rows[index]["id"] for index in offsets]
+            and metadata["token_ids"] == tokens
+            and metadata["full_lengths"] == [len(t) for t in tokens]
+            and metadata["prefix_length"] == 25
+            and metadata["shape"] == list(input_shape)
+            and metadata["padded_full_length"] == input_shape[1] + 25
+            and metadata["pad_id"] == 151643,
+            "Real token/operand geometry changed",
+        )
+        padded = [
+            integer(v)
+            for token in tokens
+            for v in (*token, *([151643] * (input_shape[1] + 25 - len(token))))
+        ]
+        ids = b"".join(struct.pack("<q", v) for v in padded)
+        require(
+            metadata["input_ids_sha256"] == hashlib.sha256(ids).hexdigest(),
+            "Actual padded token IDs differ",
+        )
+        raw_path = args.main.with_name(
+            args.main.stem + "." + label + ".tensors.safetensors"
+        )
+        require(
+            Path(text(entry["raw_tensors"])) == raw_path
+            and sha(raw_path) == entry["raw_sha256"],
+            "Changed actual saved tensor payload",
+        )
+        capture = SavedTensors(raw_path)
+        require(
+            capture.tensors["input"].shape == input_shape
+            and capture.tensors["packed_weight"].shape == (4096, 1024)
+            and capture.raw("packed_weight") == weight_expected,
+            "Input/weight raw geometry or exact packing changed",
+        )
+        require(
+            hashlib.sha256(capture.raw("input")).hexdigest()
+            == metadata["activation_sha256"],
+            "Normalized activation bytes changed",
+        )
+        require(
+            all(math.isfinite(v) for v in capture.floats("input")),
+            "Nonfinite authentic operand",
+        )
+        calls = [obj(v) for v in items(entry["calls"])]
+        require(len(calls) == 24, "Incomplete primitive call schedule")
+        baseline = tuple(text(v) for v in items(calls[0]["output_sha256"]))
+        measured: dict[str, list[float]] = {arm: [] for arm in ARMS}
+        cache: dict[tuple[str, ...], Object] = {}
+        used_names = {"input", "packed_weight"}
+        for call, (stage, repeat, arm) in zip(calls, schedule, strict=True):
+            require(
+                (call["stage"], call["repeat"], call["arm"]) == (stage, repeat, arm),
+                "Changed balanced primitive order",
+            )
+            hashes = tuple(text(v) for v in items(call["output_sha256"]))
+            require(
+                len(hashes) == 3
+                and call["output_shapes"]
+                == [list(input_shape[:-1]) + [width] for width in (2048, 1024, 1024)],
+                "Output geometry changed",
+            )
+            widths = (2048, 1024, 1024)
+            storage_widths = (
+                widths
+                if arm == "separate"
+                else ((2048, 2048, 2048) if arm == "kv" else (4096, 4096, 4096))
+            )
+            require(
+                call["output_strides"]
+                == [[input_shape[1] * w, w, 1] for w in storage_widths],
+                "Observed output layout changed",
+            )
+            recorded_gate = obj(call["quality"])
+            require(
+                recorded_gate.get("atol") == 1e-3
+                and recorded_gate.get("rtol") == 1e-3
+                and recorded_gate.get("rule")
+                == "abs(a-b)<=max(atol,rtol*max(abs(a),abs(b)))",
+                "Actual projection quality rule changed",
+            )
+            if hashes not in cache:
+                gates: list[Object] = []
+                for name, checksum, original_checksum, width in zip(
+                    ("q", "k", "v"), hashes, baseline, (2048, 1024, 1024), strict=True
+                ):
+                    key, base_key = (
+                        name + "-" + checksum,
+                        name + "-" + original_checksum,
+                    )
+                    used_names.update((key, base_key))
+                    require(
+                        capture.tensors[key].shape == (*input_shape[:-1], width)
+                        and hashlib.sha256(capture.raw(key)).hexdigest() == checksum,
+                        "Output SHA does not bind actual array",
+                    )
+                    require(
+                        hashlib.sha256(capture.raw(base_key)).hexdigest()
+                        == original_checksum,
+                        "Separate baseline output changed",
+                    )
+                    gates.append(compare(capture.floats(base_key), capture.floats(key)))
+                cache[hashes] = {
+                    "passed": all(g["passed"] is True for g in gates),
+                    "finite": all(g["finite"] is True for g in gates),
+                    "failed_elements": sum(
+                        integer(g["failed_elements"]) for g in gates
+                    ),
+                    "max_absolute_error": max(
+                        number(g["max_absolute_error"]) for g in gates
+                    ),
+                    "max_relative_error": max(
+                        number(g["max_relative_error"]) for g in gates
+                    ),
+                }
+            verify_gate(obj(call["quality"]), cache[hashes])
+            require(
+                cache[hashes]["passed"] is True
+                and call["invalid_latency_repr"] is None
+                and number(call["latency_ms"]) > 0,
+                "Observed primitive gate/timing failure",
+            )
+            if stage == "measured":
+                measured[arm].append(number(call["latency_ms"]))
+        require(set(capture.tensors) == used_names, "Unexplained saved tensor payload")
+        require(entry["measured_ms"] == measured, "Measured raw timings differ")
+        stats: Object = {}
+        for arm in ("kv", "qkv"):
+            ratios = [
+                a / b for a, b in zip(measured["separate"], measured[arm], strict=True)
+            ]
+            median, p05 = percentile(ratios, 0.5), percentile(ratios, 0.05)
+            reported = obj(obj(entry["statistics"])[arm])
+            require(
+                reported == {"ratios": ratios, "median": median, "p05": p05},
+                "Reported primitive metrics differ",
+            )
+            eligible = median >= 1.12 and p05 > 1
+            eligibility[arm].append(eligible)
+            stats[arm] = {
+                "ratios": cast(list[Json], ratios),
+                "median": median,
+                "p05": p05,
+                "eligible": eligible,
+            }
+        reports.append(
+            {
+                "name": label,
+                "actual_array_file_sha256": sha(raw_path),
+                "shape": list(input_shape),
+                "raw_calls": 24,
+                "independent_statistics": stats,
+            }
+        )
+    eligibility_result = {arm: all(values) for arm, values in eligibility.items()}
+    require(
+        main["completed"] is True
+        and main["quality_passed"] is True
+        and main["primitive_eligible"] == eligibility_result
+        and main["accepted"] is False
+        and main["source_verified_after"] is True
+        and main["asset_verified_after"] is True
+        and main["threads_restored"] is True
+        and main["phase"] == "complete",
+        "Terminal primitive result mismatch",
+    )
+    return {
+        "audit_passed": True,
+        "frameworks_imported": [],
+        "main_sha256": args.main_sha,
+        "wall_sha256": args.wall_sha,
+        "log_sha256": args.log_sha,
+        "archive_sha256": args.archive_sha,
+        "source_review_sha256": args.source_review_sha,
+        "executed_source_sha256": source_sha,
+        "outcome_count": 96,
+        "primitive_quality_passed": True,
+        "primitive_eligible": cast(Object, eligibility_result),
+        "accepted": False,
+        "operands": reports,
+        "limitations": [
+            "Saved separate FP32 outputs are parity oracle; "
+            "no independent full matrix multiplication recomputation.",
+            "Input/model/token/maintained-norm provenance and normalized array "
+            "bytes are checked; no independent bitwise Torch normalization replay.",
+            "Six primitive permutations do not establish engine gain, model "
+            "rank/probability quality, confidence bounds, ordinary full-model "
+            "critical path or production eligibility.",
+            "Logical storage counters are not RSS/peak memory or proof of "
+            "runtime alias lifetimes.",
+            "Historical executed source identities are validated from archived "
+            "text; current production22 is checked separately.",
+        ],
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("main", type=Path)
+    parser.add_argument("--output", type=Path, required=True)
+    for name in ("main", "wall", "log", "archive"):
+        parser.add_argument("--" + name + "-sha", required=True)
+    parser.add_argument("--source-review", type=Path, required=True)
+    parser.add_argument("--source-review-sha", required=True)
+    args = parser.parse_args(namespace=Arguments())
+    require(not args.output.exists(), "Preserve existing independent audit")
+    report = audit(args)
+    source = Path(__file__)
+    report["audit_script"] = {
+        "path": str(source),
+        "sha256": sha(source),
+        "text": source.read_text(),
+    }
+    with args.output.open("x") as stream:
+        json.dump(report, stream, indent=2, allow_nan=False)
+        stream.write("\n")
+    print(
+        json.dumps(
+            {
+                "audit_passed": True,
+                "primitive_eligible": report["primitive_eligible"],
+                "audit_sha256": sha(args.output),
+            },
+            allow_nan=False,
+        )
+    )
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,203 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "scope_approved": "source_only_authentic_layer0_fp32_projection_primitive_after_parent_sidecar_repair",
+  "reviewer": "/root/contracts",
+  "reviewer_runtime_tests_performed": false,
+  "reviewer_model_jobs_performed": false,
+  "source_sha256": {
+    "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+    "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+    "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+    "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+    "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+    "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+    "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+    "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6",
+    "benchmarks/analysis/torch/projection/run.py": "a40a433052226e79ecedd1f9271a29f12c7a094c441bd5f66799050c6782e120",
+    "benchmarks/analysis/torch/projection/qkv.py": "5ae53534cdcdf2b98c814056c5f25b6727d573f4216ab4a5f19c62c0a38df8a1",
+    "benchmarks/analysis/torch/projection/__init__.py": "b235c0bfbc6e210e969126d81ba6e9cf42ef5ed4304dcd11bc2e8243f06d11b1",
+    "benchmarks/analysis/torch/projection/study.py": "b93cc46e898df16a563fde5e948836326ee02cc3d415046cfd1301a93367bd95",
+    "tests/analysis/cpu/projection/test_qkv.py": "2784edd518a7e99a08dddedfb2b9aa45e2484e8ff57cd856c2ab2c6dedc2d798",
+    "docs/analysis/cpu/projection.md": "0e0c363b4699515deec022d29b65d747597149c84e1d57c77e1be95390395701"
+  },
+  "scoped_source_sha256": {
+    "benchmarks/analysis/torch/projection/__init__.py": "b235c0bfbc6e210e969126d81ba6e9cf42ef5ed4304dcd11bc2e8243f06d11b1",
+    "benchmarks/analysis/torch/projection/qkv.py": "5ae53534cdcdf2b98c814056c5f25b6727d573f4216ab4a5f19c62c0a38df8a1",
+    "benchmarks/analysis/torch/projection/study.py": "b93cc46e898df16a563fde5e948836326ee02cc3d415046cfd1301a93367bd95",
+    "benchmarks/analysis/torch/projection/run.py": "a40a433052226e79ecedd1f9271a29f12c7a094c441bd5f66799050c6782e120",
+    "tests/analysis/cpu/projection/test_qkv.py": "2784edd518a7e99a08dddedfb2b9aa45e2484e8ff57cd856c2ab2c6dedc2d798",
+    "docs/analysis/cpu/projection.md": "0e0c363b4699515deec022d29b65d747597149c84e1d57c77e1be95390395701"
+  },
+  "production_source_sha256": {
+    "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+    "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+    "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+    "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "wyat/backends/kai/cpu/__init__.py": "89d41b6bb738b76695838eeddeb275e0c979e63ca5d37648aded004adfe754b5",
+    "wyat/backends/kai/cpu/prefix.py": "66da771cfba0b0f696988467ce2f48e0d3cc5cbbf35f5d455eac130fc870a85d",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+    "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+    "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+    "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+    "wyat/server.py": "9a4a1e3b8140d9d0af1cfd283e1e30820d089720c30f3ae886ff761010b59145",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "production_files_unchanged": 22,
+  "prior_source_review": {
+    "path": "benchmarks/analysis/results/torch-qkv-independent-review.json",
+    "sha256": "aee9289012153219e133e4baafe6a4c13639629d7cfefb9306479249bec4a36d",
+    "historical_bytes_preserved": true
+  },
+  "changed_scoped_source_sha256": {
+    "benchmarks/analysis/torch/projection/study.py": "b93cc46e898df16a563fde5e948836326ee02cc3d415046cfd1301a93367bd95",
+    "tests/analysis/cpu/projection/test_qkv.py": "2784edd518a7e99a08dddedfb2b9aa45e2484e8ff57cd856c2ab2c6dedc2d798"
+  },
+  "focused_receipt": {
+    "path": "benchmarks/analysis/results/torch-qkv-focused-repair.json",
+    "sha256": "86f78d4b4e4511eb22baf2eb11cf7a6ac7c08e07135174d4cf8230d1e5d79233",
+    "command": [
+      "/Users/teilomillet/Code/wyat/.venv/bin/python",
+      "-m",
+      "pytest",
+      "tests/analysis/cpu/projection/test_qkv.py",
+      "-q"
+    ],
+    "cap_seconds": 60,
+    "elapsed_seconds": 2.985235291009303,
+    "exit_code": 0,
+    "timed_out": false,
+    "reaped": true,
+    "stdout": "..................                                                       [100%]\n18 passed in 2.52s\n",
+    "source_before_after_current_match": true,
+    "embedded_producer_sha256": "049a91524a6649556a8242f027714778de4f83432e80291d5ca6a20adeb0b1e5",
+    "embedded_producer_identity_validated": true,
+    "runtime_scope": "Tiny CPU/property/fake worker only; no released checkpoint/model/GPU work"
+  },
+  "failed_initial_real_launch": {
+    "artifact_sha256": {
+      "benchmarks/analysis/results/torch-qkv-primitive.wall.json": "60ab072461aa09c7411fd8ced804464bc461f0a227e870214be9349dc2d47d3f",
+      "benchmarks/analysis/results/torch-qkv-primitive.log": "2a72e195b312cf51111ab7e31c2af694399153b73ffc3cabf5e002ff79340d2d"
+    },
+    "elapsed_seconds": 1.798833167005796,
+    "exit_code": 1,
+    "timed_out": false,
+    "cap_seconds": 120,
+    "main_receipt_absent": true,
+    "numerical_or_performance_samples": 0,
+    "classification": "Harness startup failure before input/checkpoint admission; parent-created wall/log rejected by worker collision guard.",
+    "source_review_miss": "Prior review did not connect parent-created sidecars to worker startup guard; original source gate remains historical.",
+    "all_failed_artifact_bytes_preserved": true
+  },
+  "closed_finding": {
+    "parent_owner": "Existing launch refuses any preexisting output family before creating owned wall/log.",
+    "worker_rule": "Accept only exact output.with_suffix('.wall.json') and output.with_suffix('.log'); reject existing main or every other matching output-family path before input_vectors.",
+    "observed_focused_challenge": "Fake worker completes all96calls with exact parent sidecar bytes preserved; main/raw/source/unknown collision negatives forbid admission and retain old bytes.",
+    "scope": "Only startup collision handling and focused tests changed; projection math, inputs, policy, timing, quality/eligibility gates and owned120 cap unchanged."
+  },
+  "remaining_blockers": [],
+  "initial_reviewer_helper_failure": {
+    "command": [
+      "/Users/teilomillet/Code/wyat/.venv/bin/python",
+      "-S",
+      "/private/tmp/wyat-review-qkv-repair.py"
+    ],
+    "exit_code": 1,
+    "failure": "NameError: name 'f' is not defined",
+    "classification": "Reviewer helper formatting transformation mistakenly split an f-string; no canonical gate or source writes; repair changes private verifier only.",
+    "source_archive": "/private/tmp/wyat-review-qkv-repair.initial-ab24eb0032390053.txt",
+    "source_sha256": "ab24eb003239005313df835a1ccd2d697ed309da4460be7b4721da20908a7b87"
+  },
+  "declared_worker_cap_seconds": 120,
+  "protocol": {
+    "arms": [
+      "separate",
+      "kv",
+      "qkv"
+    ],
+    "operands": {
+      "scalar192": [
+        1,
+        167,
+        1024
+      ],
+      "scalar197": [
+        1,
+        172,
+        1024
+      ],
+      "scalar214": [
+        1,
+        189,
+        1024
+      ],
+      "batch8": [
+        8,
+        167,
+        1024
+      ]
+    },
+    "invocations": 96,
+    "schedule": "cold/warm each arm, then all six three-arm permutations per operand",
+    "dtype": "float32",
+    "device": "cpu",
+    "threads": 8,
+    "prefix_length": 25,
+    "padding_id": 151643,
+    "norm_epsilon": 1e-06,
+    "one_packed_projection_bytes": 16777216,
+    "source_plus_packed_setup_projection_bytes": 33554432,
+    "eligibility": "Every operand paired median>=1.12 and samplep05>1; triage only.",
+    "projection_gate": "Finite FP32; abs(a-b)<=max(1e-3,1e-3*max(abs(a),abs(b)))."
+  },
+  "reviewed_obligations": [
+    "All77 pinned ordered requests/token vectors/readout geometry admitted before checkpoint operands.",
+    "Authentic layer0 input: released embedding rows then stock token-local RMSNorm, suffixP25, exact physical pad151643; no extra RoPE or backbone forward.",
+    "Exact-bit copied weights, one packed owner, separate/KV contiguous weight views; output split and differing output strides retained inside measured primitive scope.",
+    "Clock includes project/F.linear/splitting; source checks, snapshots, hashing, quality and I/O remain outside it.",
+    "Produced output hashes and distinct raw tensor bytes persisted before numerical/timing gate; bad output fails without success state.",
+    "Unchanged process policy and FP32/no-autocast contract; threads restored before positive completion.",
+    "On-disk source/archive/assets verified before setup and after calls; no production or global precision changes.",
+    "Projection eligibility does not establish full model ranks/probabilities, whole-engine gain, memory ceiling or promotion."
+  ],
+  "limits": [
+    "Independent source/stdlib identity review only; author focused18 tiny/fake/property checks do not establish real primitive/model performance.",
+    "A new output stem is required for the repaired actual worker; initial failed wall/log and all old receipts remain immutable.",
+    "Primitive eligibility remains triage only; full model logits/probabilities/full ranks and choices require the original gates before any engine/server claim.",
+    "No framework/model job, benchmark, production edit or precision policy change by reviewer."
+  ],
+  "identity_verifier": {
+    "command": [
+      "/Users/teilomillet/Code/wyat/.venv/bin/python",
+      "-S",
+      "/private/tmp/wyat-review-qkv-repair.py"
+    ],
+    "source_archive": "benchmarks/analysis/results/torch-qkv-independent-repair-review.source-101df781e45cfe9a.txt",
+    "source_sha256": "101df781e45cfe9a5bf3510dcfdd37f154526c66945c22da121caf01a8d10a64",
+    "framework_imports": []
+  }
+}

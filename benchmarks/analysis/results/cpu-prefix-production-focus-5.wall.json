@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/analysis/test_cpu_prefix_production.py"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "elapsed_seconds": 4.722433166985866,
+  "cap_seconds": 60,
+  "stdout": ".......................................                                  [100%]\n39 passed in 4.27s\n",
+  "stderr": ""
+}

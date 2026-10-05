@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/server/test_admission.py",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "cwd": "/Users/teilomillet/Code/wyat",
+  "cap_seconds": 60,
+  "elapsed_seconds": 0.7242467500036582,
+  "exit_code": 0,
+  "reaped": true,
+  "timed_out": false,
+  "test_sha256": "740da9af6679ff4297600191fae563aa7fe1e73296071db26df1b7c5eda0d4a8",
+  "test_unchanged": true,
+  "stdout": ".....                                                                    [100%]\n5 passed in 0.43s\n",
+  "stderr": ""
+}

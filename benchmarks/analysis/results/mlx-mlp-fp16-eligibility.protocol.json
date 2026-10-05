@@ -1,0 +1,11 @@
+{
+  "original_receipt_sha256": "e7b27f8cde6e1515ccd3679c03e50edb63f4846a27e2558259f7254dbf5b50ca",
+  "protocol_hashes": {
+    "root_prospective_protocol": "e360f99268af7a3f2936b40f3ddaca64b118b26b976c5fcf716eec746e7e8332"
+  },
+  "protocol_archive": {
+    "path": "benchmarks/analysis/results/mlx-mlp-fp16-eligibility.protocol.sources-dd327f115c107155.json",
+    "sha256": "dd327f115c107155e833b677bd177a6c631a49bccbf96d15eee7a6424382534b"
+  },
+  "purpose": "Retain root prospective protocol before reconciling duplicate live documentation"
+}

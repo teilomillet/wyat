@@ -1,0 +1,1407 @@
+{
+  "passed": true,
+  "numerical_passed": true,
+  "arm": "fp32",
+  "batch_size": 8,
+  "batch_lengths": [
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    8,
+    5
+  ],
+  "cuda_control_drift": {
+    "total": 77,
+    "comparable": 77,
+    "selected_equal": 77,
+    "ranking_equal": 77,
+    "baseline_correct": 67,
+    "candidate_correct": 67,
+    "max_abs_logit_difference": 1.1444091796875e-05,
+    "max_abs_probability_difference": 1.973644879027514e-06,
+    "logits_within_tolerance": true,
+    "probabilities_within_tolerance": true,
+    "passed": true
+  },
+  "rows": 77,
+  "unique_cases": 77,
+  "scores": 462,
+  "softmax_reconstruction": {
+    "max_abs_error": 1.3877787807814457e-17,
+    "differing_values": 2,
+    "allowed_derived_error": "2 ULP per value; original quality gates unchanged"
+  },
+  "correct": 67,
+  "reference_correct": 67,
+  "drift": {
+    "total": 77,
+    "comparable": 77,
+    "selected_equal": 77,
+    "ranking_equal": 77,
+    "baseline_correct": 67,
+    "candidate_correct": 67,
+    "max_abs_logit_difference": 1.3947486877441406e-05,
+    "max_abs_probability_difference": 2.5663644110940353e-06,
+    "logits_within_tolerance": true,
+    "probabilities_within_tolerance": true,
+    "passed": true
+  },
+  "dtype_events": 30,
+  "weights": {
+    "backbone": {
+      "torch.float32": 310
+    },
+    "head": {
+      "torch.float32": 10
+    }
+  },
+  "memory": {
+    "allocated_bytes": 2397457408,
+    "reserved_bytes": 2690646016,
+    "peak_allocated_bytes": 2532116992,
+    "peak_reserved_bytes": 2690646016
+  },
+  "occupancy_before": {
+    "gpu": "NVIDIA GeForce RTX 4070 Ti, GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7, 12282, 128, 0",
+    "compute_apps": "",
+    "uuid": "GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7",
+    "name": "NVIDIA GeForce RTX 4070 Ti",
+    "memory_total_MiB": 12282,
+    "memory_used_MiB": 128,
+    "utilization_percent": 0,
+    "exclusive": false
+  },
+  "occupancy_after": {
+    "gpu": "NVIDIA GeForce RTX 4070 Ti, GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7, 12282, 2936, 60",
+    "compute_apps": "610186, /home/teilo/tmp/wyat-cuda-20261005/env/bin/python, 2800",
+    "uuid": "GPU-bb4e8a72-5253-a10b-4ef7-752edaf866c7",
+    "name": "NVIDIA GeForce RTX 4070 Ti",
+    "memory_total_MiB": 12282,
+    "memory_used_MiB": 2936,
+    "utilization_percent": 60,
+    "exclusive": false
+  },
+  "parent": {
+    "command": [
+      "/home/teilo/tmp/wyat-cuda-20261005/env/bin/python",
+      "-m",
+      "benchmarks.analysis.cuda.run",
+      ".models/Decision-2.0-Kai-0.6B",
+      "--output",
+      "/home/teilo/tmp/wyat-cuda-20261005/benchmarks/analysis/results/cuda-fp32-b8.json",
+      "--manifest",
+      "benchmarks/analysis/results/cuda-transfer-manifest-v2-20261005.json",
+      "--manifest-sha256",
+      "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866",
+      "--arm",
+      "fp32",
+      "--batch-size",
+      "8",
+      "--control",
+      "benchmarks/analysis/results/cuda-fp32-b1.json",
+      "--control-sha256",
+      "d528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167",
+      "--worker"
+    ],
+    "timeout_seconds": 180,
+    "completed": true,
+    "timed_out": false,
+    "inductor_cache": null,
+    "exit_code": 0,
+    "elapsed_seconds": 8.579797457001405
+  },
+  "asset_count": 44,
+  "source_count": 33,
+  "source_sha256": {
+    "benchmarks/__init__.py": "a007c874860cbaeab8d28ac34f31ac46db25b0ccd532c12a22c9f6e01d401d14",
+    "benchmarks/analysis/__init__.py": "e9aa1585f853d05f853753de16633fb134665fae50dd764320e2bb6854408c5c",
+    "benchmarks/analysis/cuda/__init__.py": "1ebc18be49b0c53395cf178d9b64f5300cfddf4dac753a8e1e7a5651b5579399",
+    "benchmarks/analysis/cuda/manifest.py": "c119be27c7c73db7f5918fe42ddff4f999774e39c9c123edc065d449afc88f0e",
+    "benchmarks/analysis/cuda/run.py": "e515dea67626bbc2252541d97b70ced5ea16247077c04bc0e1235740b5161f9b",
+    "benchmarks/analysis/cuda/scorer.py": "aba048e03cf1eef0a067c79d27c822be2f8790b9691767312dab3789a3edfa3d",
+    "benchmarks/analysis/cuda/study.py": "58d8b2e089e28400afd9726430a16f5dded3f4341552cba93e1ec7b14014e942",
+    "benchmarks/analysis/evidence.py": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "benchmarks/analysis/reference.py": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+    "benchmarks/analysis/torch/process.py": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+    "external_qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+    "external_sdpa": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad",
+    "tests/analysis/test_cuda_protocol.py": "02ab0e0fbd0a1de9fe9452f53798bad240597b93a5a4e50774065e6a007a2f3d",
+    "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+    "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+    "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+    "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+    "wyat/backends/kai/torch.py": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+    "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+    "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+    "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+    "wyat/server.py": "f1ca44abf7dbaf8bb0c729cd70dc3bdc54b23242eec86af94da5271b0f9a94f1",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "asset_sha256": {
+    ".models/Decision-2.0-Kai-0.6B/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    ".models/Decision-2.0-Kai-0.6B/MODEL_MANIFEST.json": "ca7bf2cff1494a5bfc51f4271f52557da0f3ce3b6f0f6e7a2b4118cb4965e92e",
+    ".models/Decision-2.0-Kai-0.6B/backbone/config.json": "fcf62f425b626755c6df66630215aed57c70b38bf779e6ac9aeff376224310ac",
+    ".models/Decision-2.0-Kai-0.6B/backbone/model.safetensors": "43369a2bfddb61495beb7cea6bf30d7564a5c5caff31f4dbf2e6cfce48423b69",
+    ".models/Decision-2.0-Kai-0.6B/config.json": "35ce70886f7642ec5eacf969e27da404915824aa25f6a30a19a1107cb2ec99b3",
+    ".models/Decision-2.0-Kai-0.6B/decision_config.json": "4778b8818f8510bf761eebba48ec5ffd5941c8f95ef2b228a97162fb0c814a6e",
+    ".models/Decision-2.0-Kai-0.6B/decision_head.safetensors": "508dfe385c8fde8eb0b4eec5c199f5fe8363efeb247de024a08765b53183409d",
+    ".models/Decision-2.0-Kai-0.6B/tokenizer.json": "be75606093db2094d7cd20f3c2f385c212750648bd6ea4fb2bf507a6a4c55506",
+    ".models/Decision-2.0-Kai-0.6B/tokenizer_config.json": "cbea7bca9904d56693d2226b00fd564e3be053609d1e50f8f1885510f0f6e790",
+    "benchmarks/__init__.py": "a007c874860cbaeab8d28ac34f31ac46db25b0ccd532c12a22c9f6e01d401d14",
+    "benchmarks/analysis/__init__.py": "e9aa1585f853d05f853753de16633fb134665fae50dd764320e2bb6854408c5c",
+    "benchmarks/analysis/cuda/__init__.py": "1ebc18be49b0c53395cf178d9b64f5300cfddf4dac753a8e1e7a5651b5579399",
+    "benchmarks/analysis/cuda/manifest.py": "c119be27c7c73db7f5918fe42ddff4f999774e39c9c123edc065d449afc88f0e",
+    "benchmarks/analysis/cuda/run.py": "e515dea67626bbc2252541d97b70ced5ea16247077c04bc0e1235740b5161f9b",
+    "benchmarks/analysis/cuda/scorer.py": "aba048e03cf1eef0a067c79d27c822be2f8790b9691767312dab3789a3edfa3d",
+    "benchmarks/analysis/cuda/study.py": "58d8b2e089e28400afd9726430a16f5dded3f4341552cba93e1ec7b14014e942",
+    "benchmarks/analysis/evidence.py": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+    "benchmarks/analysis/reference.py": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+    "benchmarks/analysis/torch/process.py": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+    "benchmarks/real/banking77-train-dev-menu6.jsonl": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+    "benchmarks/real/torch-fp32-reference77.json": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+    "docs/analysis/cuda-run.md": "249841cc3c6838025b71e7095b3bb0e8a17a0c76f26fe3101b7c5647cd08e5d1",
+    "docs/analysis/cuda.md": "c466eb0b7e264ba85419403fe4b185bd1feca207aaa188f9198745891d272ae9",
+    "tests/analysis/test_cuda_protocol.py": "02ab0e0fbd0a1de9fe9452f53798bad240597b93a5a4e50774065e6a007a2f3d",
+    "wyat/__init__.py": "4e0b5af3de843e6cbb5ad95822fa242a2d2aa5704b2e5347073eab95a96b5ea4",
+    "wyat/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "wyat/backends/__init__.py": "3a64d48151a2626510342235bafaca12d782ca052f34cadd4e67488a0173bc8a",
+    "wyat/backends/kai/__init__.py": "195c00e71aa9bbc8b260033672582c2f4d1d4561208d58ff285d6e4bfd3acb5e",
+    "wyat/backends/kai/artifact.py": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+    "wyat/backends/kai/encoding.py": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829",
+    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30febff64717a6989149f0f3795dc7c170bed",
+    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e767034986ec09872218a501ed03ca73dd5b6800",
+    "wyat/backends/kai/torch.py": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+    "wyat/benchmark.py": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+    "wyat/cli.py": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+    "wyat/core.py": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+    "wyat/evaluation.py": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+    "wyat/interop/__init__.py": "8f8d86f15bc13b8bf76a91eda3f2e1329c8757bfedc3d87e65aaf3f255391687",
+    "wyat/interop/dmbench.py": "f33233c7b3731bd3dee7bf6c23bf73451e9f8035164e4459b81eaaee7c756fdd",
+    "wyat/loading/__init__.py": "663ee402556a58879db70ecb001fc77d560ce2ba4f48a23ae6353e3d3442301a",
+    "wyat/loading/local.py": "93965d70f9e3f6c5cf309cb9f6786042c8862aa562a34b7040c9a72bc42bf6fc",
+    "wyat/server.py": "f1ca44abf7dbaf8bb0c729cd70dc3bdc54b23242eec86af94da5271b0f9a94f1",
+    "wyat/wire.py": "e9e2fd212b8e558f2412551da0b3073ee19b91019c102d2255771a76422b17f6"
+  },
+  "terminal_release_probe": {
+    "exit_code": 1,
+    "stdout": "128, 0\n",
+    "stderr": ""
+  },
+  "external_sources": [
+    {
+      "name": "external_qwen3",
+      "sha256": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+      "path": "/home/teilo/tmp/wyat-cuda-20261005/env/lib/python3.12/site-packages/transformers/models/qwen3/modeling_qwen3.py"
+    },
+    {
+      "name": "external_sdpa",
+      "sha256": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad",
+      "path": "/home/teilo/tmp/wyat-cuda-20261005/env/lib/python3.12/site-packages/transformers/integrations/sdpa_attention.py"
+    }
+  ],
+  "artifact_sha256": {
+    "benchmarks/analysis/results/cuda-fp32-b8.json": "62368fb71577c952f0ebdf5ca014e1009f9e60039cbb3b478529feaf2b33057f",
+    "benchmarks/analysis/results/cuda-fp32-b8.wall.json": "0b8bfc3eb336311a305b13cc9c267d315639fba39f77cbe09cdb17d0d56758f8",
+    "benchmarks/analysis/results/cuda-fp32-b8.log": "d7537e6be14570375501584271935657c37645bfec1a0f3f5f848205d4094f4d",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-fp32-b8.sources-ae4a797635edfbd1.json": "ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-transfer-manifest-v2-20261005.json": "f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866",
+    "benchmarks/analysis/results/cuda-fp32-b8-copy-release.json": "722051a5861dae051ee15340e3115e8a664b63eea180c124bc94cb2a9bb5da86",
+    "benchmarks/analysis/results/cuda-fp32-b8-transport.json": "78fc3ce077e089c355d92d534ec8542085b92192048061959426d4a99030011d",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-fp32-b1.json": "d528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-fp32-b1.wall.json": "cb00f5f065a04e5c598da04cb3e57a7b75bbaedeb1407dc6ebbb0dd806f4dc8e",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-fp32-b1-review.json": "1a5d5118549d6e3c0fee67378d859abd269f565d4f3f07a4f1b8f61ebb0f287e",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-asset-preflight-20261005.json": "47e89a0eeb5284d15869734310cc8a61ebb1246e08f09dc9f4057f8287e5c7ec",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-asset-preflight-v2-20261005.json": "c7c3d933c8d987b0bd95c87bd70b4b6fb1a8e3878b21a490a91c10a8cb99704c"
+  },
+  "per_case": [
+    {
+      "id": "banking77-train-05698",
+      "selected": "request_refund",
+      "ranking": [
+        "request_refund",
+        "Refund_not_showing_up",
+        "atm_support",
+        "declined_transfer",
+        "topping_up_by_card",
+        "extra_charge_on_statement"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 7.510185241699219e-06,
+      "max_abs_probability_difference": 5.187755247743064e-07
+    },
+    {
+      "id": "banking77-train-09214",
+      "selected": "activate_my_card",
+      "ranking": [
+        "activate_my_card",
+        "failed_transfer",
+        "verify_my_identity",
+        "compromised_card",
+        "top_up_by_cash_or_cheque",
+        "card_arrival"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 1.1861324310302734e-05,
+      "max_abs_probability_difference": 1.2320580826674643e-06
+    },
+    {
+      "id": "banking77-train-01636",
+      "selected": "age_limit",
+      "ranking": [
+        "age_limit",
+        "balance_not_updated_after_bank_transfer",
+        "unable_to_verify_identity",
+        "verify_my_identity",
+        "get_physical_card",
+        "card_delivery_estimate"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 2.384185791015625e-06,
+      "max_abs_probability_difference": 3.828381622134058e-08
+    },
+    {
+      "id": "banking77-train-09708",
+      "selected": "apple_pay_or_google_pay",
+      "ranking": [
+        "apple_pay_or_google_pay",
+        "top_up_limits",
+        "failed_transfer",
+        "transaction_charged_twice",
+        "verify_my_identity",
+        "lost_or_stolen_phone"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 3.4570693969726562e-06,
+      "max_abs_probability_difference": 1.246707883595377e-07
+    },
+    {
+      "id": "banking77-train-04562",
+      "selected": "atm_support",
+      "ranking": [
+        "atm_support",
+        "cash_withdrawal_not_recognised",
+        "topping_up_by_card",
+        "activate_my_card",
+        "declined_card_payment",
+        "card_delivery_estimate"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 7.152557373046875e-06,
+      "max_abs_probability_difference": 8.137279128295205e-08
+    },
+    {
+      "id": "banking77-train-01221",
+      "selected": "automatic_top_up",
+      "ranking": [
+        "automatic_top_up",
+        "pending_top_up",
+        "declined_transfer",
+        "pending_transfer",
+        "balance_not_updated_after_bank_transfer",
+        "reverted_card_payment?"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 2.384185791015625e-06,
+      "max_abs_probability_difference": 3.535564857548579e-08
+    },
+    {
+      "id": "banking77-train-08638",
+      "selected": "balance_not_updated_after_bank_transfer",
+      "ranking": [
+        "balance_not_updated_after_bank_transfer",
+        "fiat_currency_support",
+        "top_up_by_cash_or_cheque",
+        "transaction_charged_twice",
+        "activate_my_card",
+        "getting_spare_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 7.867813110351562e-06,
+      "max_abs_probability_difference": 5.340771394024557e-07
+    },
+    {
+      "id": "banking77-train-03357",
+      "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+      "ranking": [
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "transfer_not_received_by_recipient",
+        "declined_card_payment",
+        "lost_or_stolen_card",
+        "extra_charge_on_statement",
+        "exchange_rate"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 7.152557373046875e-06,
+      "max_abs_probability_difference": 1.008896394509226e-08
+    },
+    {
+      "id": "banking77-train-07093",
+      "selected": "transfer_not_received_by_recipient",
+      "ranking": [
+        "transfer_not_received_by_recipient",
+        "beneficiary_not_allowed",
+        "top_up_failed",
+        "topping_up_by_card",
+        "order_physical_card",
+        "terminate_account"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 6.67572021484375e-06,
+      "max_abs_probability_difference": 1.3243111707250677e-06
+    },
+    {
+      "id": "banking77-train-02116",
+      "selected": "cancel_transfer",
+      "ranking": [
+        "cancel_transfer",
+        "card_acceptance",
+        "top_up_reverted",
+        "top_up_failed",
+        "card_swallowed",
+        "virtual_card_not_working"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.67572021484375e-06,
+      "max_abs_probability_difference": 7.385368748502597e-07
+    },
+    {
+      "id": "banking77-train-09630",
+      "selected": "card_about_to_expire",
+      "ranking": [
+        "card_about_to_expire",
+        "pending_transfer",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "verify_top_up",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "wrong_amount_of_cash_received"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.079673767089844e-06,
+      "max_abs_probability_difference": 3.615148269631163e-08
+    },
+    {
+      "id": "banking77-train-03152",
+      "selected": "card_acceptance",
+      "ranking": [
+        "card_acceptance",
+        "atm_support",
+        "transfer_not_received_by_recipient",
+        "card_payment_wrong_exchange_rate",
+        "cash_withdrawal_charge",
+        "transaction_charged_twice"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.76837158203125e-06,
+      "max_abs_probability_difference": 7.918924396430049e-08
+    },
+    {
+      "id": "banking77-train-00022",
+      "selected": "topping_up_by_card",
+      "ranking": [
+        "topping_up_by_card",
+        "card_arrival",
+        "verify_top_up",
+        "top_up_by_cash_or_cheque",
+        "getting_virtual_card",
+        "edit_personal_details"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 5.245208740234375e-06,
+      "max_abs_probability_difference": 1.131772499496364e-06
+    },
+    {
+      "id": "banking77-train-01110",
+      "selected": "card_delivery_estimate",
+      "ranking": [
+        "card_delivery_estimate",
+        "contactless_not_working",
+        "card_payment_wrong_exchange_rate",
+        "transfer_fee_charged",
+        "Refund_not_showing_up",
+        "card_payment_fee_charged"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.291534423828125e-06,
+      "max_abs_probability_difference": 5.810700846042849e-07
+    },
+    {
+      "id": "banking77-train-00263",
+      "selected": "card_linking",
+      "ranking": [
+        "card_linking",
+        "order_physical_card",
+        "balance_not_updated_after_bank_transfer",
+        "receiving_money",
+        "top_up_by_cash_or_cheque",
+        "verify_top_up"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.4373016357421875e-06,
+      "max_abs_probability_difference": 1.26185068172191e-06
+    },
+    {
+      "id": "banking77-train-01314",
+      "selected": "card_not_working",
+      "ranking": [
+        "card_not_working",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "card_about_to_expire",
+        "top_up_limits",
+        "Refund_not_showing_up",
+        "get_disposable_virtual_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 7.867813110351562e-06,
+      "max_abs_probability_difference": 6.549596247157341e-07
+    },
+    {
+      "id": "banking77-train-02539",
+      "selected": "card_payment_fee_charged",
+      "ranking": [
+        "card_payment_fee_charged",
+        "top_up_by_bank_transfer_charge",
+        "card_payment_wrong_exchange_rate",
+        "getting_virtual_card",
+        "transfer_timing",
+        "edit_personal_details"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.291534423828125e-06,
+      "max_abs_probability_difference": 2.049582751503798e-07
+    },
+    {
+      "id": "banking77-train-03502",
+      "selected": "card_payment_not_recognised",
+      "ranking": [
+        "card_payment_not_recognised",
+        "fiat_currency_support",
+        "beneficiary_not_allowed",
+        "card_payment_wrong_exchange_rate",
+        "top_up_reverted",
+        "card_arrival"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 9.775161743164062e-06,
+      "max_abs_probability_difference": 2.5663644110940353e-06
+    },
+    {
+      "id": "banking77-train-00566",
+      "selected": "card_payment_wrong_exchange_rate",
+      "ranking": [
+        "card_payment_wrong_exchange_rate",
+        "declined_cash_withdrawal",
+        "topping_up_by_card",
+        "transaction_charged_twice",
+        "cancel_transfer",
+        "transfer_timing"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.5299530029296875e-06,
+      "max_abs_probability_difference": 1.332104471174489e-08
+    },
+    {
+      "id": "banking77-train-06271",
+      "selected": "card_swallowed",
+      "ranking": [
+        "card_swallowed",
+        "card_linking",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "transfer_not_received_by_recipient",
+        "disposable_card_limits",
+        "exchange_rate"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.0067901611328125e-06,
+      "max_abs_probability_difference": 4.724630671693042e-07
+    },
+    {
+      "id": "banking77-train-09360",
+      "selected": "cash_withdrawal_charge",
+      "ranking": [
+        "cash_withdrawal_charge",
+        "pending_cash_withdrawal",
+        "exchange_charge",
+        "card_payment_not_recognised",
+        "pending_transfer",
+        "exchange_rate"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.4373016357421875e-06,
+      "max_abs_probability_difference": 4.634188537078199e-08
+    },
+    {
+      "id": "banking77-train-08940",
+      "selected": "cash_withdrawal_not_recognised",
+      "ranking": [
+        "cash_withdrawal_not_recognised",
+        "fiat_currency_support",
+        "declined_card_payment",
+        "verify_source_of_funds",
+        "visa_or_mastercard",
+        "activate_my_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 9.5367431640625e-06,
+      "max_abs_probability_difference": 1.0179200555515688e-06
+    },
+    {
+      "id": "banking77-train-06901",
+      "selected": "change_pin",
+      "ranking": [
+        "change_pin",
+        "card_acceptance",
+        "lost_or_stolen_card",
+        "transfer_into_account",
+        "card_payment_wrong_exchange_rate",
+        "Refund_not_showing_up"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.4836273193359375e-06,
+      "max_abs_probability_difference": 9.68783111510163e-08
+    },
+    {
+      "id": "banking77-train-04517",
+      "selected": "compromised_card",
+      "ranking": [
+        "compromised_card",
+        "pin_blocked",
+        "topping_up_by_card",
+        "card_payment_wrong_exchange_rate",
+        "exchange_charge",
+        "automatic_top_up"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 9.059906005859375e-06,
+      "max_abs_probability_difference": 1.399796941359277e-06
+    },
+    {
+      "id": "banking77-train-01792",
+      "selected": "contactless_not_working",
+      "ranking": [
+        "contactless_not_working",
+        "declined_transfer",
+        "direct_debit_payment_not_recognised",
+        "transfer_not_received_by_recipient",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "lost_or_stolen_phone"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 7.748603820800781e-06,
+      "max_abs_probability_difference": 2.0980224879618703e-07
+    },
+    {
+      "id": "banking77-train-09999",
+      "selected": "country_support",
+      "ranking": [
+        "country_support",
+        "receiving_money",
+        "pending_transfer",
+        "unable_to_verify_identity",
+        "pending_card_payment",
+        "apple_pay_or_google_pay"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.76837158203125e-06,
+      "max_abs_probability_difference": 1.325726488587975e-07
+    },
+    {
+      "id": "banking77-train-05841",
+      "selected": "declined_card_payment",
+      "ranking": [
+        "declined_card_payment",
+        "card_not_working",
+        "topping_up_by_card",
+        "virtual_card_not_working",
+        "wrong_amount_of_cash_received",
+        "apple_pay_or_google_pay"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.291534423828125e-06,
+      "max_abs_probability_difference": 3.58213468887314e-07
+    },
+    {
+      "id": "banking77-train-05021",
+      "selected": "declined_cash_withdrawal",
+      "ranking": [
+        "declined_cash_withdrawal",
+        "card_not_working",
+        "card_swallowed",
+        "card_arrival",
+        "activate_my_card",
+        "cancel_transfer"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 1.0669231414794922e-05,
+      "max_abs_probability_difference": 7.528575803883442e-07
+    },
+    {
+      "id": "banking77-train-05613",
+      "selected": "declined_transfer",
+      "ranking": [
+        "declined_transfer",
+        "top_up_reverted",
+        "why_verify_identity",
+        "lost_or_stolen_card",
+        "verify_top_up",
+        "edit_personal_details"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.291534423828125e-06,
+      "max_abs_probability_difference": 8.451570537599401e-09
+    },
+    {
+      "id": "banking77-train-04677",
+      "selected": "direct_debit_payment_not_recognised",
+      "ranking": [
+        "direct_debit_payment_not_recognised",
+        "supported_cards_and_currencies",
+        "pending_card_payment",
+        "disposable_card_limits",
+        "top_up_by_card_charge",
+        "exchange_via_app"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.4373016357421875e-06,
+      "max_abs_probability_difference": 2.8826168896323168e-08
+    },
+    {
+      "id": "banking77-train-04426",
+      "selected": "disposable_card_limits",
+      "ranking": [
+        "disposable_card_limits",
+        "atm_support",
+        "cash_withdrawal_not_recognised",
+        "cancel_transfer",
+        "wrong_amount_of_cash_received",
+        "request_refund"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.198883056640625e-06,
+      "max_abs_probability_difference": 9.504635267720829e-08
+    },
+    {
+      "id": "banking77-train-03650",
+      "selected": "edit_personal_details",
+      "ranking": [
+        "edit_personal_details",
+        "supported_cards_and_currencies",
+        "balance_not_updated_after_cheque_or_cash_deposit",
+        "passcode_forgotten",
+        "contactless_not_working",
+        "exchange_via_app"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.1425228118896484e-06,
+      "max_abs_probability_difference": 1.06199599292367e-06
+    },
+    {
+      "id": "banking77-train-09023",
+      "selected": "exchange_charge",
+      "ranking": [
+        "exchange_charge",
+        "transfer_into_account",
+        "pending_top_up",
+        "top_up_reverted",
+        "getting_virtual_card",
+        "apple_pay_or_google_pay"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 1.2218952178955078e-05,
+      "max_abs_probability_difference": 1.912451062513476e-06
+    },
+    {
+      "id": "banking77-train-00350",
+      "selected": "fiat_currency_support",
+      "ranking": [
+        "fiat_currency_support",
+        "exchange_rate",
+        "failed_transfer",
+        "pending_transfer",
+        "activate_my_card",
+        "card_swallowed"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 1.2874603271484375e-05,
+      "max_abs_probability_difference": 8.816209926820751e-07
+    },
+    {
+      "id": "banking77-train-01466",
+      "selected": "exchange_via_app",
+      "ranking": [
+        "exchange_via_app",
+        "country_support",
+        "top_up_failed",
+        "order_physical_card",
+        "contactless_not_working",
+        "request_refund"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 1.0251998901367188e-05,
+      "max_abs_probability_difference": 8.136792437607454e-07
+    },
+    {
+      "id": "banking77-train-00595",
+      "selected": "extra_charge_on_statement",
+      "ranking": [
+        "extra_charge_on_statement",
+        "declined_card_payment",
+        "pending_transfer",
+        "card_about_to_expire",
+        "transfer_timing",
+        "passcode_forgotten"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 2.3245811462402344e-06,
+      "max_abs_probability_difference": 1.9437154052948102e-07
+    },
+    {
+      "id": "banking77-train-07560",
+      "selected": "failed_transfer",
+      "ranking": [
+        "failed_transfer",
+        "balance_not_updated_after_bank_transfer",
+        "top_up_by_bank_transfer_charge",
+        "verify_source_of_funds",
+        "age_limit",
+        "edit_personal_details"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.708766937255859e-06,
+      "max_abs_probability_difference": 1.4071135610860264e-08
+    },
+    {
+      "id": "banking77-train-00972",
+      "selected": "supported_cards_and_currencies",
+      "ranking": [
+        "supported_cards_and_currencies",
+        "fiat_currency_support",
+        "direct_debit_payment_not_recognised",
+        "top_up_by_bank_transfer_charge",
+        "request_refund",
+        "apple_pay_or_google_pay"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 4.291534423828125e-06,
+      "max_abs_probability_difference": 7.357863822665678e-07
+    },
+    {
+      "id": "banking77-train-08412",
+      "selected": "receiving_money",
+      "ranking": [
+        "receiving_money",
+        "card_payment_fee_charged",
+        "cancel_transfer",
+        "unable_to_verify_identity",
+        "apple_pay_or_google_pay",
+        "get_disposable_virtual_card"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 5.245208740234375e-06,
+      "max_abs_probability_difference": 9.94792133945932e-07
+    },
+    {
+      "id": "banking77-train-04006",
+      "selected": "get_physical_card",
+      "ranking": [
+        "get_physical_card",
+        "verify_source_of_funds",
+        "transfer_not_received_by_recipient",
+        "declined_card_payment",
+        "top_up_by_card_charge",
+        "automatic_top_up"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 8.106231689453125e-06,
+      "max_abs_probability_difference": 1.6620719441862164e-06
+    },
+    {
+      "id": "banking77-train-07922",
+      "selected": "getting_spare_card",
+      "ranking": [
+        "getting_spare_card",
+        "card_acceptance",
+        "topping_up_by_card",
+        "cash_withdrawal_not_recognised",
+        "contactless_not_working",
+        "edit_personal_details"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.5299530029296875e-06,
+      "max_abs_probability_difference": 1.955836381739573e-07
+    },
+    {
+      "id": "banking77-train-03060",
+      "selected": "getting_virtual_card",
+      "ranking": [
+        "getting_virtual_card",
+        "visa_or_mastercard",
+        "verify_source_of_funds",
+        "disposable_card_limits",
+        "verify_my_identity",
+        "lost_or_stolen_phone"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.0067901611328125e-06,
+      "max_abs_probability_difference": 4.135772158075923e-08
+    },
+    {
+      "id": "banking77-train-01498",
+      "selected": "lost_or_stolen_card",
+      "ranking": [
+        "lost_or_stolen_card",
+        "getting_spare_card",
+        "get_disposable_virtual_card",
+        "country_support",
+        "verify_my_identity",
+        "exchange_charge"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 8.58306884765625e-06,
+      "max_abs_probability_difference": 2.3193994380665828e-07
+    },
+    {
+      "id": "banking77-train-05253",
+      "selected": "lost_or_stolen_phone",
+      "ranking": [
+        "lost_or_stolen_phone",
+        "failed_transfer",
+        "reverted_card_payment?",
+        "top_up_limits",
+        "verify_top_up",
+        "transfer_timing"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.7220458984375e-06,
+      "max_abs_probability_difference": 8.11755653581242e-09
+    },
+    {
+      "id": "banking77-train-08137",
+      "selected": "order_physical_card",
+      "ranking": [
+        "order_physical_card",
+        "get_physical_card",
+        "getting_spare_card",
+        "declined_transfer",
+        "top_up_by_bank_transfer_charge",
+        "top_up_failed"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.4373016357421875e-06,
+      "max_abs_probability_difference": 3.806140011497483e-07
+    },
+    {
+      "id": "banking77-train-04886",
+      "selected": "passcode_forgotten",
+      "ranking": [
+        "passcode_forgotten",
+        "failed_transfer",
+        "top_up_failed",
+        "beneficiary_not_allowed",
+        "cash_withdrawal_charge",
+        "getting_spare_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.76837158203125e-06,
+      "max_abs_probability_difference": 5.723552964909118e-09
+    },
+    {
+      "id": "banking77-train-05193",
+      "selected": "pending_card_payment",
+      "ranking": [
+        "pending_card_payment",
+        "reverted_card_payment?",
+        "request_refund",
+        "disposable_card_limits",
+        "pin_blocked",
+        "cash_withdrawal_charge"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.602836608886719e-06,
+      "max_abs_probability_difference": 8.746058653974487e-07
+    },
+    {
+      "id": "banking77-train-00758",
+      "selected": "pending_cash_withdrawal",
+      "ranking": [
+        "pending_cash_withdrawal",
+        "order_physical_card",
+        "card_payment_wrong_exchange_rate",
+        "change_pin",
+        "exchange_rate",
+        "edit_personal_details"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 2.1457672119140625e-06,
+      "max_abs_probability_difference": 7.860676973702949e-10
+    },
+    {
+      "id": "banking77-train-02049",
+      "selected": "pending_top_up",
+      "ranking": [
+        "pending_top_up",
+        "transfer_timing",
+        "declined_transfer",
+        "card_about_to_expire",
+        "visa_or_mastercard",
+        "Refund_not_showing_up"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 3.6954879760742188e-06,
+      "max_abs_probability_difference": 1.090242324863766e-06
+    },
+    {
+      "id": "banking77-train-06061",
+      "selected": "pending_transfer",
+      "ranking": [
+        "pending_transfer",
+        "direct_debit_payment_not_recognised",
+        "top_up_by_card_charge",
+        "extra_charge_on_statement",
+        "apple_pay_or_google_pay",
+        "getting_virtual_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.4836273193359375e-06,
+      "max_abs_probability_difference": 2.2239419278369255e-08
+    },
+    {
+      "id": "banking77-train-01726",
+      "selected": "pin_blocked",
+      "ranking": [
+        "pin_blocked",
+        "balance_not_updated_after_bank_transfer",
+        "card_payment_fee_charged",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "pending_top_up",
+        "exchange_charge"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.245208740234375e-06,
+      "max_abs_probability_difference": 1.1793394150139136e-08
+    },
+    {
+      "id": "banking77-train-07335",
+      "selected": "receiving_money",
+      "ranking": [
+        "receiving_money",
+        "pending_transfer",
+        "cancel_transfer",
+        "edit_personal_details",
+        "cash_withdrawal_charge",
+        "get_disposable_virtual_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 2.6226043701171875e-06,
+      "max_abs_probability_difference": 2.5676709458632985e-07
+    },
+    {
+      "id": "banking77-train-05395",
+      "selected": "request_refund",
+      "ranking": [
+        "request_refund",
+        "cash_withdrawal_not_recognised",
+        "pending_top_up",
+        "unable_to_verify_identity",
+        "lost_or_stolen_phone",
+        "pin_blocked"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 6.67572021484375e-06,
+      "max_abs_probability_difference": 2.861460838025562e-09
+    },
+    {
+      "id": "banking77-train-06858",
+      "selected": "card_payment_not_recognised",
+      "ranking": [
+        "card_payment_not_recognised",
+        "reverted_card_payment?",
+        "card_not_working",
+        "card_arrival",
+        "card_linking",
+        "top_up_limits"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 6.5267086029052734e-06,
+      "max_abs_probability_difference": 9.362298513115874e-07
+    },
+    {
+      "id": "banking77-train-02943",
+      "selected": "supported_cards_and_currencies",
+      "ranking": [
+        "supported_cards_and_currencies",
+        "fiat_currency_support",
+        "exchange_charge",
+        "cash_withdrawal_charge",
+        "unable_to_verify_identity",
+        "getting_virtual_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.9604644775390625e-06,
+      "max_abs_probability_difference": 1.0029623427332268e-06
+    },
+    {
+      "id": "banking77-train-06227",
+      "selected": "terminate_account",
+      "ranking": [
+        "terminate_account",
+        "pending_transfer",
+        "top_up_by_cash_or_cheque",
+        "contactless_not_working",
+        "verify_my_identity",
+        "extra_charge_on_statement"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 3.337860107421875e-06,
+      "max_abs_probability_difference": 6.839926569579546e-08
+    },
+    {
+      "id": "banking77-train-01873",
+      "selected": "top_up_by_bank_transfer_charge",
+      "ranking": [
+        "top_up_by_bank_transfer_charge",
+        "fiat_currency_support",
+        "verify_source_of_funds",
+        "pending_cash_withdrawal",
+        "getting_virtual_card",
+        "order_physical_card"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 7.152557373046875e-06,
+      "max_abs_probability_difference": 4.350748959991435e-07
+    },
+    {
+      "id": "banking77-train-09168",
+      "selected": "top_up_by_card_charge",
+      "ranking": [
+        "top_up_by_card_charge",
+        "country_support",
+        "receiving_money",
+        "transfer_timing",
+        "disposable_card_limits",
+        "edit_personal_details"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.5299530029296875e-06,
+      "max_abs_probability_difference": 3.862463474613165e-07
+    },
+    {
+      "id": "banking77-train-07988",
+      "selected": "top_up_by_cash_or_cheque",
+      "ranking": [
+        "top_up_by_cash_or_cheque",
+        "top_up_limits",
+        "declined_transfer",
+        "activate_my_card",
+        "compromised_card",
+        "apple_pay_or_google_pay"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.76837158203125e-06,
+      "max_abs_probability_difference": 2.5148623106208134e-07
+    },
+    {
+      "id": "banking77-train-08499",
+      "selected": "top_up_failed",
+      "ranking": [
+        "top_up_failed",
+        "transaction_charged_twice",
+        "Refund_not_showing_up",
+        "age_limit",
+        "get_disposable_virtual_card",
+        "exchange_charge"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.291534423828125e-06,
+      "max_abs_probability_difference": 2.457201297989542e-08
+    },
+    {
+      "id": "banking77-train-02239",
+      "selected": "top_up_limits",
+      "ranking": [
+        "top_up_limits",
+        "verify_top_up",
+        "visa_or_mastercard",
+        "balance_not_updated_after_bank_transfer",
+        "exchange_rate",
+        "age_limit"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.649162292480469e-06,
+      "max_abs_probability_difference": 2.5564150996082446e-07
+    },
+    {
+      "id": "banking77-train-03275",
+      "selected": "verify_source_of_funds",
+      "ranking": [
+        "verify_source_of_funds",
+        "top_up_reverted",
+        "transfer_not_received_by_recipient",
+        "cancel_transfer",
+        "verify_my_identity",
+        "exchange_charge"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 5.0067901611328125e-06,
+      "max_abs_probability_difference": 3.809307548841012e-07
+    },
+    {
+      "id": "banking77-train-04276",
+      "selected": "top_up_failed",
+      "ranking": [
+        "top_up_failed",
+        "topping_up_by_card",
+        "verify_top_up",
+        "pending_card_payment",
+        "cash_withdrawal_charge",
+        "card_payment_wrong_exchange_rate"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 2.1457672119140625e-06,
+      "max_abs_probability_difference": 3.511906506714624e-07
+    },
+    {
+      "id": "banking77-train-06467",
+      "selected": "transaction_charged_twice",
+      "ranking": [
+        "transaction_charged_twice",
+        "transfer_into_account",
+        "top_up_failed",
+        "card_linking",
+        "order_physical_card",
+        "change_pin"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 7.152557373046875e-06,
+      "max_abs_probability_difference": 1.6271956204683136e-07
+    },
+    {
+      "id": "banking77-train-07323",
+      "selected": "country_support",
+      "ranking": [
+        "country_support",
+        "transfer_fee_charged",
+        "pending_cash_withdrawal",
+        "Refund_not_showing_up",
+        "unable_to_verify_identity",
+        "passcode_forgotten"
+      ],
+      "correct": false,
+      "max_abs_logit_difference": 6.198883056640625e-06,
+      "max_abs_probability_difference": 2.529136844120483e-07
+    },
+    {
+      "id": "banking77-train-07600",
+      "selected": "transfer_into_account",
+      "ranking": [
+        "transfer_into_account",
+        "balance_not_updated_after_bank_transfer",
+        "declined_cash_withdrawal",
+        "card_payment_not_recognised",
+        "lost_or_stolen_card",
+        "card_swallowed"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.0067901611328125e-06,
+      "max_abs_probability_difference": 1.0669185068756804e-07
+    },
+    {
+      "id": "banking77-train-02793",
+      "selected": "transfer_not_received_by_recipient",
+      "ranking": [
+        "transfer_not_received_by_recipient",
+        "balance_not_updated_after_bank_transfer",
+        "Refund_not_showing_up",
+        "top_up_reverted",
+        "top_up_by_card_charge",
+        "transfer_fee_charged"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 3.337860107421875e-06,
+      "max_abs_probability_difference": 6.256301610108039e-07
+    },
+    {
+      "id": "banking77-train-06710",
+      "selected": "transfer_timing",
+      "ranking": [
+        "transfer_timing",
+        "declined_cash_withdrawal",
+        "direct_debit_payment_not_recognised",
+        "terminate_account",
+        "get_disposable_virtual_card",
+        "lost_or_stolen_phone"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.7220458984375e-06,
+      "max_abs_probability_difference": 1.1955013228259759e-06
+    },
+    {
+      "id": "banking77-train-03956",
+      "selected": "unable_to_verify_identity",
+      "ranking": [
+        "unable_to_verify_identity",
+        "card_acceptance",
+        "card_payment_not_recognised",
+        "beneficiary_not_allowed",
+        "passcode_forgotten",
+        "transfer_timing"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.0067901611328125e-06,
+      "max_abs_probability_difference": 9.196121701360305e-07
+    },
+    {
+      "id": "banking77-train-09779",
+      "selected": "verify_my_identity",
+      "ranking": [
+        "verify_my_identity",
+        "compromised_card",
+        "contactless_not_working",
+        "cash_withdrawal_charge",
+        "transfer_fee_charged",
+        "exchange_rate"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 1.3947486877441406e-05,
+      "max_abs_probability_difference": 2.4971890825176146e-06
+    },
+    {
+      "id": "banking77-train-06546",
+      "selected": "verify_source_of_funds",
+      "ranking": [
+        "verify_source_of_funds",
+        "fiat_currency_support",
+        "card_not_working",
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "cancel_transfer",
+        "top_up_by_card_charge"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.76837158203125e-06,
+      "max_abs_probability_difference": 2.522132181992376e-07
+    },
+    {
+      "id": "banking77-train-07733",
+      "selected": "verify_top_up",
+      "ranking": [
+        "verify_top_up",
+        "automatic_top_up",
+        "get_physical_card",
+        "getting_spare_card",
+        "pending_transfer",
+        "passcode_forgotten"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 5.364418029785156e-06,
+      "max_abs_probability_difference": 2.978764163108494e-07
+    },
+    {
+      "id": "banking77-train-08199",
+      "selected": "virtual_card_not_working",
+      "ranking": [
+        "virtual_card_not_working",
+        "card_swallowed",
+        "transfer_not_received_by_recipient",
+        "verify_source_of_funds",
+        "get_physical_card",
+        "terminate_account"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 2.86102294921875e-06,
+      "max_abs_probability_difference": 2.302358248496006e-09
+    },
+    {
+      "id": "banking77-train-04211",
+      "selected": "visa_or_mastercard",
+      "ranking": [
+        "visa_or_mastercard",
+        "verify_my_identity",
+        "exchange_via_app",
+        "get_disposable_virtual_card",
+        "pin_blocked",
+        "edit_personal_details"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.76837158203125e-06,
+      "max_abs_probability_difference": 9.17430720281942e-09
+    },
+    {
+      "id": "banking77-train-03835",
+      "selected": "why_verify_identity",
+      "ranking": [
+        "why_verify_identity",
+        "declined_transfer",
+        "verify_my_identity",
+        "request_refund",
+        "age_limit",
+        "exchange_rate"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 3.814697265625e-06,
+      "max_abs_probability_difference": 7.792899774372586e-07
+    },
+    {
+      "id": "banking77-train-02413",
+      "selected": "wrong_amount_of_cash_received",
+      "ranking": [
+        "wrong_amount_of_cash_received",
+        "country_support",
+        "top_up_by_cash_or_cheque",
+        "disposable_card_limits",
+        "terminate_account",
+        "automatic_top_up"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 4.76837158203125e-06,
+      "max_abs_probability_difference": 6.142364961103652e-08
+    },
+    {
+      "id": "banking77-train-08275",
+      "selected": "wrong_exchange_rate_for_cash_withdrawal",
+      "ranking": [
+        "wrong_exchange_rate_for_cash_withdrawal",
+        "pending_cash_withdrawal",
+        "direct_debit_payment_not_recognised",
+        "card_swallowed",
+        "order_physical_card",
+        "change_pin"
+      ],
+      "correct": true,
+      "max_abs_logit_difference": 3.0994415283203125e-06,
+      "max_abs_probability_difference": 9.894479002792167e-08
+    }
+  ],
+  "limits": [
+    "Single cold development cohort; no speed/held-out-quality/production promotion.",
+    "MATH/IEEE/cleanup policy verified in frozen source; actual GPU kernel dispatch/independent precision-restoration trace not collected.",
+    "Raw dtype events observe first-layer projections and head; no every-operation trace.",
+    "Wall records terminal owned-worker cleanup policy; GPU memory is allocator metrics, not total process/system RSS.",
+    "Occupancy snapshots are not a hardware reservation; no foreign process was signaled.",
+    "Terminal128MiB/0-percent release probe combines shell statuses; exact command/per-command status attribution checked separately in parent audit communication.",
+    "Derived softmax may differ across platforms: at most2 ULP admitted; original engine1e-4 probability and full ranking gates unchanged."
+  ],
+  "captured_utc": "2026-10-05T07:12:59.558318+00:00",
+  "scope": "Independent framework-free CPU audit, no model/device allocation",
+  "audit_script": {
+    "path": "benchmarks/analysis/results/cuda-fp32-b8-review.audit-f5cc2d61c4c4ea06.txt",
+    "sha256": "f5cc2d61c4c4ea065c9ce7060df02e0767299a0d68ab0c104ce56594f50ac45c",
+    "text": "\"\"\"Independent stdlib-only raw CUDA control audit; no tensor/framework import.\"\"\"\nfrom __future__ import annotations\n\nimport ast\nimport hashlib\nimport json\nimport math\nimport sys\nimport time\nfrom datetime import datetime, timezone\nfrom pathlib import Path\nfrom typing import cast\n\nROOT = Path('/Users/teilomillet/Code/wyat')\nRESULTS = ROOT / 'benchmarks/analysis/results'\nMODEL_ID = 'kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee'\nDATA_SHA = '0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03'\nREF_SHA = 'b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664'\nINPUT_SHA = 'fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8'\nMANIFEST_SHA = 'f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866'\n\n\ndef obj(value: object) -> dict[str, object]:\n    assert isinstance(value, dict) and all(isinstance(k, str) for k in value)\n    return cast(dict[str, object], value)\n\n\ndef array(value: object) -> list[object]:\n    assert isinstance(value, list)\n    return cast(list[object], value)\n\n\ndef number(value: object) -> float:\n    assert type(value) in (int, float)\n    result = float(cast(float, value))\n    assert math.isfinite(result)\n    return result\n\n\ndef pairs(items: list[tuple[str, object]]) -> dict[str, object]:\n    result: dict[str, object] = {}\n    for name, value in items:\n        assert name not in result, f'duplicate field {name}'\n        result[name] = value\n    return result\n\n\ndef invalid(token: str) -> object:\n    raise ValueError(f'nonfinite JSON token {token}')\n\n\ndef parse(raw: bytes | str) -> object:\n    return cast(object, json.loads(raw, object_pairs_hook=pairs, parse_constant=invalid))\n\n\ndef read(path: Path) -> dict[str, object]:\n    return obj(parse(path.read_bytes()))\n\n\ndef sha(path: Path) -> str:\n    with path.open('rb') as stream:\n        return hashlib.file_digest(stream, 'sha256').hexdigest()\n\n\ndef interpretation(scores: list[float], ids: list[object]) -> tuple[list[float], list[object]]:\n    assert scores and len(scores) == len(ids)\n    weights = [math.exp(value - max(scores)) for value in scores]\n    total = math.fsum(weights)\n    return [weight / total for weight in weights], [ids[i] for i in sorted(range(len(scores)), key=scores.__getitem__, reverse=True)]\n\n\ndef check(main: Path, expected_sha: str, wall: Path) -> dict[str, object]:\n    assert sha(main) == expected_sha\n    saved, parent = read(main), read(wall)\n    arm, batch_size = saved['arm'], saved['batch_size']\n    assert (arm,batch_size) in (('fp32',8),('released',1)) and type(batch_size) is int\n    assert sha(RESULTS/'cuda-fp32-b1.json') == 'd528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167'\n    assert sha(RESULTS/'cuda-fp32-b1-review.json') == '1a5d5118549d6e3c0fee67378d859abd269f565d4f3f07a4f1b8f61ebb0f287e'\n    baseline = read(RESULTS/'cuda-fp32-b1.json')\n    baseline_rows = [obj(row) for row in array(obj(baseline['cycle'])['rows'])]\n    control = obj(saved['control'])\n    assert control['sha256'] == sha(RESULTS/'cuda-fp32-b1.json') and control['wall_sha256'] == sha(RESULTS/'cuda-fp32-b1.wall.json')\n    assert saved['completed'] is True and type(saved['quality_passed']) is bool and saved['dtype_passed'] is True\n    assert saved['phase'] == 'completed' and saved['accepted'] is False\n    assert not any(key in saved for key in ('error', 'cleanup_error'))\n    assert parent['exit_code'] == (0 if saved['quality_passed'] else 1)\n    assert parent['completed'] is saved['quality_passed'] and parent['timed_out'] is False\n    assert parent['timeout_seconds'] == 180 and 0 <= number(parent['elapsed_seconds']) < 190\n    command = array(parent['command'])\n    assert 'benchmarks.analysis.cuda.run' in command and '--worker' in command\n    for flag, value in (('--arm', arm), ('--batch-size', str(batch_size)), ('--manifest-sha256', MANIFEST_SHA)):\n        assert command[command.index(flag) + 1] == value\n    manifest_path = RESULTS / 'cuda-transfer-manifest-v2-20261005.json'\n    assert sha(manifest_path) == MANIFEST_SHA\n    manifest, admission = read(manifest_path), obj(saved['admission'])\n    for key, value in {'model_id': MODEL_ID, 'dataset_sha256': DATA_SHA, 'reference_sha256': REF_SHA, 'input_sha256': INPUT_SHA}.items():\n        assert manifest[key] == admission[key] == value\n    assert admission['manifest_sha256'] == MANIFEST_SHA\n    assert admission['versions'] == manifest['versions'] and admission['runtime'] == manifest['runtime']\n    assert manifest['runtime'] == {'python': '3.12.13', 'torch_runtime': '2.12.1+cu130', 'cuda_build': '13.0'}\n    assets = [obj(item) for item in array(manifest['files'])]\n    assert admission['asset_count'] == len(assets) == 44\n    names = [cast(str, item['path']) for item in assets]\n    assert len(set(names)) == len(names) and names == sorted(names)\n    for item in assets:\n        path = ROOT / cast(str, item['path'])\n        assert path.stat().st_size == item['bytes'] and sha(path) == item['sha256'], str(path)\n    identity = hashlib.sha256()\n    model_prefix = '.models/Decision-2.0-Kai-0.6B/'\n    model_files = {cast(str, item['path']).removeprefix(model_prefix): cast(str, item['sha256']) for item in assets if cast(str, item['path']).startswith(model_prefix) and not cast(str, item['path']).endswith('/LICENSE')}\n    assert len(model_files) == 8\n    for name, value in sorted(model_files.items()):\n        identity.update(name.encode() + b'\\0' + bytes.fromhex(value))\n    assert 'kai:' + identity.hexdigest() == MODEL_ID\n    archive_info = obj(saved['source_archive'])\n    archive_path = RESULTS / Path(cast(str, archive_info['path'])).name\n    assert sha(archive_path) == archive_info['sha256']\n    sources = [obj(item) for item in array(read(archive_path)['files'])]\n    table = obj(saved['source_sha256'])\n    assert len(table) == len(sources) and len(set(item['name'] for item in sources)) == len(sources)\n    external: list[dict[str, object]] = []\n    for item in sources:\n        name, text = cast(str, item['name']), cast(str, item['text'])\n        assert hashlib.sha256(text.encode()).hexdigest() == item['sha256'] == table[name]\n        if name.startswith('external_'):\n            relative = {'external_qwen3': 'models/qwen3/modeling_qwen3.py', 'external_sdpa': 'integrations/sdpa_attention.py'}[name]\n            matches = list((ROOT / '.venv/lib').glob('*/site-packages/transformers/' + relative))\n            assert len(matches) == 1 and sha(matches[0]) == item['sha256']\n            external.append({'name': name, 'sha256': item['sha256'], 'path': item['path']})\n        else:\n            assert sha(ROOT / name) == item['sha256'], name\n    assert {item['name'] for item in external} == {'external_qwen3', 'external_sdpa'}\n    python_assets = {item['path']: item['sha256'] for item in assets if cast(str, item['path']).endswith('.py')}\n    assert python_assets == {item['name']: item['sha256'] for item in sources if not cast(str, item['name']).startswith('external_')}\n    source_texts = {cast(str, item['name']): cast(str, item['text']) for item in sources}\n    manifest_ast = ast.parse(source_texts['benchmarks/analysis/cuda/manifest.py'])\n    literals: dict[str, object] = {}\n    for node in manifest_ast.body:\n        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id in ('PACKAGES', 'RUNTIME'):\n            literals[node.targets[0].id] = ast.literal_eval(node.value)\n    assert literals['PACKAGES'] == manifest['versions'] and literals['RUNTIME'] == manifest['runtime']\n    control_source = source_texts['benchmarks/analysis/cuda/scorer.py']\n    assert 'sdpa_kernel(SDPBackend.MATH)' in control_source and 'enabled=False' in control_source\n    assert 'fp32_precision = \"ieee\"' in control_source and 'allow_tf32' not in control_source\n    assert saved['precision'] == 'modern IEEE global/CUDA matmul' and saved['attention'] == ('math only' if arm == 'fp32' else 'maintained SDPA selection')\n    assert obj(saved['gate']) == {'logit_atol': 1e-3, 'logit_rtol': 1e-3, 'probability_atol': 1e-4}\n    data_path, reference_path = ROOT / 'benchmarks/real/banking77-train-dev-menu6.jsonl', ROOT / 'benchmarks/real/torch-fp32-reference77.json'\n    assert sha(data_path) == DATA_SHA and sha(reference_path) == REF_SHA\n    cases = [obj(parse(line)) for line in data_path.read_bytes().splitlines()]\n    reference = read(reference_path)\n    refs = [obj(item) for item in array(reference['rows'])]\n    assert reference['model_id'] == MODEL_ID and reference['dataset_sha256'] == DATA_SHA\n    canonical = json.dumps(cases, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(',', ':')).encode()\n    assert hashlib.sha256(canonical).hexdigest() == INPUT_SHA\n    cycle = obj(saved['cycle'])\n    rows = [obj(item) for item in array(cycle['rows'])]\n    chunks = [obj(item) for item in array(saved['completed_batches'])]\n    assert len(cases) == len(refs) == len(rows) == len(baseline_rows) == 77\n    assert len(chunks) == (77+batch_size-1)//batch_size\n    assert len({case['id'] for case in cases}) == 77\n    assert saved['completed_rows'] == saved['expected_rows'] == 77 and saved['unknown_case_ids'] == []\n    assert [row for chunk in chunks for row in array(chunk['rows'])] == rows\n    assert sum(number(chunk['latency_ms']) for chunk in chunks) == number(cycle['latency_ms'])\n    batch_lengths = [len(array(chunk['rows'])) for chunk in chunks]\n    assert batch_lengths == [min(batch_size,77-offset) for offset in range(0,77,batch_size)]\n    max_logit = max_probability = 0.0\n    selected_equal = ranking_equal = correct = reference_correct = 0\n    scores_total = 0\n    max_softmax_reconstruction_error = 0.0\n    softmax_differing_values = 0\n    details: list[dict[str, object]] = []\n    logits_close = probabilities_close = True\n    for case, ref, row in zip(cases, refs, rows, strict=True):\n        assert case['id'] == ref['id'] == row['id'] and row['expected'] == case['expected'] == ref['expected']\n        assert row['status'] == 'ok' and row['error'] is None and number(row['latency_ms']) >= 0\n        request = obj(case['request'])\n        ids = [obj(candidate)['id'] for candidate in array(request['candidates'])]\n        assert ids == ref['candidate_ids'] and len(ids) == 6\n        prediction = obj(row['prediction'])\n        observed = [number(value) for value in array(prediction['scores'])]\n        old = [number(value) for value in array(ref['legacy_logits'])]\n        probabilities, ranking = interpretation(observed, ids)\n        old_probabilities, old_ranking = interpretation(old, ids)\n        assert {key: value for key, value in prediction.items() if key != 'probabilities'} == {'model_id': MODEL_ID, 'scores': observed, 'ranking': ranking, 'selected': ranking[0]}\n        serialized_probabilities = [number(value) for value in array(prediction['probabilities'])]\n        for actual, rebuilt in zip(serialized_probabilities, probabilities, strict=True):\n            error = abs(actual-rebuilt)\n            assert error <= 2 * max(math.ulp(actual), math.ulp(rebuilt))\n            max_softmax_reconstruction_error = max(max_softmax_reconstruction_error, error)\n            softmax_differing_values += actual != rebuilt\n        is_correct = ranking[0] in array(case['expected'])\n        old_correct = old_ranking[0] in array(case['expected'])\n        assert row['correct'] is is_correct\n        correct += is_correct\n        reference_correct += old_correct\n        selected_equal += ranking[0] == old_ranking[0]\n        ranking_equal += ranking == old_ranking\n        logit_error = max(abs(a-b) for a,b in zip(old, observed, strict=True))\n        probability_error = max(abs(a-b) for a,b in zip(old_probabilities, probabilities, strict=True))\n        logits_close &= all(math.isclose(a,b,abs_tol=1e-3,rel_tol=1e-3) for a,b in zip(old, observed, strict=True))\n        probabilities_close &= probability_error <= 1e-4\n        max_logit = max(max_logit, logit_error)\n        max_probability = max(max_probability, probability_error)\n        scores_total += len(observed)\n        details.append({'id': case['id'], 'selected': ranking[0], 'ranking': ranking, 'correct': is_correct, 'max_abs_logit_difference': logit_error, 'max_abs_probability_difference': probability_error})\n    assert cycle['correct'] == correct and cycle['failed'] == 0 \n    drift = {'total': 77, 'comparable':77, 'selected_equal':selected_equal, 'ranking_equal':ranking_equal, 'baseline_correct':reference_correct, 'candidate_correct':correct, 'max_abs_logit_difference':max_logit, 'max_abs_probability_difference':max_probability, 'logits_within_tolerance': logits_close, 'probabilities_within_tolerance':probabilities_close, 'passed':logits_close and probabilities_close and selected_equal==77 and ranking_equal==77 and correct>=reference_correct}\n    assert obj(saved['drift']) == drift\n    cuda_logit = cuda_prob = 0.0\n    cuda_selected = cuda_ranked = 0\n    cuda_logits_close = cuda_prob_close = True\n    for previous,row,case in zip(baseline_rows,rows,cases,strict=True):\n        assert previous['id'] == row['id'] == case['id']\n        a,b=obj(previous['prediction']),obj(row['prediction'])\n        x,y=[number(v) for v in array(a['scores'])],[number(v) for v in array(b['scores'])]\n        ids=[obj(v)['id'] for v in array(obj(case['request'])['candidates'])]\n        px,rx=interpretation(x,ids);py,ry=interpretation(y,ids)\n        cuda_selected += rx[0]==ry[0]\n        cuda_ranked += rx==ry\n        cuda_logit=max(cuda_logit,max(abs(v-w) for v,w in zip(x,y,strict=True)))\n        cuda_prob=max(cuda_prob,max(abs(v-w) for v,w in zip(px,py,strict=True)))\n        cuda_logits_close &= all(math.isclose(v,w,abs_tol=1e-3,rel_tol=1e-3) for v,w in zip(x,y,strict=True))\n        cuda_prob_close &= all(abs(v-w)<=1e-4 for v,w in zip(px,py,strict=True))\n    cuda_drift={'total':77,'comparable':77,'selected_equal':cuda_selected,'ranking_equal':cuda_ranked,'baseline_correct':67,'candidate_correct':correct,'max_abs_logit_difference':cuda_logit,'max_abs_probability_difference':cuda_prob,'logits_within_tolerance':cuda_logits_close,'probabilities_within_tolerance':cuda_prob_close,'passed':cuda_logits_close and cuda_prob_close and cuda_selected==77 and cuda_ranked==77 and correct>=67}\n    assert obj(saved['cuda_control_drift']) == cuda_drift\n    assert saved['quality_passed'] is (drift['passed'] and cuda_drift['passed'])\n    events = [obj(item) for item in array(saved['dtype_events'])]\n    assert [event['role'] for event in events] == ['q_proj', 'gate_proj', 'head'] * len(chunks)\n    for event in events:\n        assert event['output_dtype'] == ('torch.float32' if arm=='fp32' or event['role']=='head' else 'torch.bfloat16')\n        assert event['autocast_enabled'] is (arm=='released')\n        assert event['input_dtypes'] == ['torch.float32'] * (2 if event['role'] == 'head' else 1)\n    for owner in ('backbone', 'head'):\n        weights = obj(obj(saved['weight_dtypes'])[owner])\n        assert set(weights) == ({'torch.float32','torch.bfloat16'} if owner=='backbone' and arm=='released' else {'torch.float32'})\n        assert all(number(value)>0 for value in weights.values())\n    memory = obj(saved['cuda_memory'])\n    assert all(type(v) is int and number(v) >= 0 for v in memory.values())\n    assert number(memory['peak_reserved_bytes']) >= number(memory['peak_allocated_bytes']) >= number(memory['allocated_bytes']) > 0\n    assert number(memory['peak_reserved_bytes']) >= number(memory['reserved_bytes']) >= number(memory['allocated_bytes'])\n    for name in ('occupancy_before', 'occupancy_before_allocation'):\n        occupancy = obj(saved[name])\n        assert occupancy['compute_apps'] == '' and occupancy['utilization_percent'] == 0 and number(occupancy['memory_used_MiB']) <= 256\n    post = obj(saved['occupancy_after'])\n    assert post['uuid'] == obj(saved['occupancy_before'])['uuid'] == obj(saved['occupancy_before_allocation'])['uuid']\n    apps = cast(str, post['compute_apps']).splitlines()\n    assert len(apps) <= 1\n    lineage: dict[str, str] = {}\n    copy_path=main.with_name(main.stem+'-copy-release.json')\n    transport_path=main.with_name(main.stem+'-transport.json')\n    for path in (main,wall,main.with_suffix('.log'),archive_path,manifest_path,copy_path,transport_path,RESULTS/'cuda-fp32-b1.json',RESULTS/'cuda-fp32-b1.wall.json',RESULTS/'cuda-fp32-b1-review.json',RESULTS/'cuda-asset-preflight-20261005.json',RESULTS/'cuda-asset-preflight-v2-20261005.json'):\n        lineage[str(path)]=sha(path)\n    copied=read(copy_path)\n    assert copied['wall']==parent\n    copied_files=obj(copied['files'])\n    assert len(copied_files)==4\n    for name,expected in copied_files.items():\n        assert sha(ROOT/name)==expected\n    assert sha(archive_path)=='ae4a797635edfbd146bd9bd8ce4df436ce599f601c6ab942f3779e4da32308cf'\n    transport=read(transport_path)\n    assert transport['exit_code']==parent['exit_code']\n    probes=copied['occupancy_release']\n    probe=obj(probes)\n    assert probe['exit_code']==1 and probe['stdout']=='128, 0\\n' and probe['stderr']==''\n    preflight = read(RESULTS/'cuda-asset-preflight-v2-20261005.json')\n    assert preflight['exit_code'] == 0\n    ready = obj(parse(cast(str, preflight['stdout'])))\n    assert ready['cuda_initialized'] is False and ready['cases'] == 77 and ready['all_tokens_endpoints_queries_validated'] is True\n    assert ready['admission'] == admission\n    assert sha(RESULTS/'cuda-asset-preflight-v2-20261005.json') == 'c7c3d933c8d987b0bd95c87bd70b4b6fb1a8e3878b21a490a91c10a8cb99704c'\n    assert read(RESULTS/'cuda-asset-preflight-20261005.json')['exit_code'] == 1\n    assert sha(main) == expected_sha and sha(manifest_path) == MANIFEST_SHA\n    return {'passed':True, 'numerical_passed':saved['quality_passed'], 'arm':arm, 'batch_size':batch_size, 'batch_lengths':batch_lengths, 'cuda_control_drift':cuda_drift, 'rows':77, 'unique_cases':77, 'scores':scores_total, 'softmax_reconstruction':{'max_abs_error':max_softmax_reconstruction_error,'differing_values':softmax_differing_values,'allowed_derived_error':'2 ULP per value; original quality gates unchanged'}, 'correct':correct, 'reference_correct':reference_correct, 'drift':drift, 'dtype_events':len(events), 'weights':saved['weight_dtypes'], 'memory':memory, 'occupancy_before':saved['occupancy_before'], 'occupancy_after':post, 'parent':parent, 'asset_count':44, 'source_count':len(sources), 'source_sha256':table, 'asset_sha256':{cast(str,item['path']):item['sha256'] for item in assets}, 'terminal_release_probe':probes, 'external_sources':external, 'artifact_sha256':lineage, 'per_case':details, 'limits':['Single cold development cohort; no speed/held-out-quality/production promotion.', 'MATH/IEEE/cleanup policy verified in frozen source; actual GPU kernel dispatch/independent precision-restoration trace not collected.', 'Raw dtype events observe first-layer projections and head; no every-operation trace.', 'Wall records terminal owned-worker cleanup policy; GPU memory is allocator metrics, not total process/system RSS.', 'Occupancy snapshots are not a hardware reservation; no foreign process was signaled.', 'Terminal128MiB/0-percent release probe combines shell statuses; exact command/per-command status attribution checked separately in parent audit communication.', 'Derived softmax may differ across platforms: at most2 ULP admitted; original engine1e-4 probability and full ranking gates unchanged.']}\n\n\ndef main() -> None:\n    started = time.perf_counter()\n    path, expected, review = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])\n    result = check(path, expected, path.with_suffix('.wall.json'))\n    script = Path(__file__).read_bytes()\n    script_sha = hashlib.sha256(script).hexdigest()\n    archive = review.with_suffix(f'.audit-{script_sha[:16]}.txt')\n    with archive.open('xb') as stream:\n        stream.write(script)\n    result.update(captured_utc=datetime.now(timezone.utc).isoformat(), scope='Independent framework-free CPU audit, no model/device allocation', audit_script={'path':str(archive),'sha256':script_sha,'text':script.decode()}, elapsed_seconds=time.perf_counter()-started, frameworks_imported=[name for name in ('torch','transformers','mlx','numpy') if name in sys.modules])\n    assert result['frameworks_imported'] == []\n    with review.open('x') as stream:\n        json.dump(result, stream, indent=2, allow_nan=False)\n        stream.write('\\n')\n    print(json.dumps({'review':str(review),'sha256':sha(review),'rows':result['rows'],'drift':result['drift'],'frameworks_imported':result['frameworks_imported']}))\n\n\nif __name__ == '__main__':\n    main()\n"
+  },
+  "elapsed_seconds": 0.5910242089885287,
+  "frameworks_imported": []
+}

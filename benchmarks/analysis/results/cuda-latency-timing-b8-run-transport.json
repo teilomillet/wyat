@@ -1,0 +1,20 @@
+{
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "cd /home/teilo/tmp/wyat-cuda-20261005 && timeout --signal=TERM --kill-after=5 200s env/bin/python -m benchmarks.analysis.cuda.latency.run .models/Decision-2.0-Kai-0.6B --output benchmarks/analysis/results/cuda-latency-timing-b8.json --mode timing --batch-size 8 --manifest benchmarks/analysis/results/cuda-transfer-manifest-v2-20261005.json --manifest-sha256 f7d9d7a4755a8df37e7e55d577489a1f9597760a68928b2a8213a0d19d3c6866 --sources benchmarks/analysis/results/cuda-latency-source-declaration-20261005.json --sources-sha256 a26d5be45598c29e9fe6f1a0d0e620c22d0101f060eda730274d404498c7a0a4 --control benchmarks/analysis/results/cuda-fp32-b1.json --control-sha256 d528a44e19ceb6097ea81081d7e57fd97454a26777e45f3a284cb52d044c5167 --confirmation benchmarks/analysis/results/cuda-latency-confirm-b8.json --confirmation-sha256 51a31cddb936fb9eb1c7c8887e04d10b34b569b0ef9051a3a5ebbc73fcd4b49e --confirmation-wall-sha256 f8e7fbd54b80f77701ec0f7a85ddfb526d490d3505e3939cf4e5304af9292780"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "cap_seconds": 230,
+  "elapsed_seconds": 26.244415124994703,
+  "input_bytes": 0,
+  "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr": "",
+  "verifier_sha256": "7dd3274e7ee67cdfd23cbc821c3dc7efd21805cf0323725ef77fb99294af38f3"
+}

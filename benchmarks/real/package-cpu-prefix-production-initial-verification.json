@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "/private/tmp/wyat-verify-cpu-prefix-production-package.py",
+    "--build-released"
+  ],
+  "cap_seconds": 120,
+  "elapsed_seconds": 4.8749110830249265,
+  "exit_code": 1,
+  "timed_out": false,
+  "reaped": true,
+  "stdout": "",
+  "stderr": "Traceback (most recent call last):\n  File \"/private/tmp/wyat-verify-cpu-prefix-production-package.py\", line 676, in <module>\n    main()\n  File \"/private/tmp/wyat-verify-cpu-prefix-production-package.py\", line 501, in main\n    member = archive.extractfile(f\"{prefix}/{name}\")\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/teilomillet/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/tarfile.py\", line 2462, in extractfile\n    tarinfo = self.getmember(member)\n              ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/Users/teilomillet/.local/share/uv/python/cpython-3.12-macos-aarch64-none/lib/python3.12/tarfile.py\", line 2035, in getmember\n    raise KeyError(\"filename %r not found\" % name)\nKeyError: \"filename 'wyat-0.0.1/benchmarks/analysis/results/cuda-latency-confirm-b1.log' not found\"\n"
+}

@@ -1,0 +1,2958 @@
+{
+  "schema_version": 1,
+  "hypothesis": "BF16 all backbone tensors with FP32 decision head preserves strict FP32 reference gates",
+  "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+  "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "cases": 77,
+  "device": "Apple M4 Pro Metal GPU",
+  "scope": "frozen BANKING77 development77; checkpoint data exposure unknown",
+  "first_scoring_seconds": 2.9244844160275534,
+  "quality_gate": {
+    "logit_atol": 0.001,
+    "logit_rtol": 0.001,
+    "probability_atol": 0.0001
+  },
+  "quality": {
+    "total": 77,
+    "comparable": 77,
+    "selected_equal": 77,
+    "ranking_equal": 69,
+    "baseline_correct": 67,
+    "candidate_correct": 67,
+    "max_abs_logit_difference": 0.10757434368133545,
+    "max_abs_probability_difference": 0.019102501664253757,
+    "logits_within_tolerance": false,
+    "probabilities_within_tolerance": false,
+    "passed": false
+  },
+  "passed": false,
+  "candidate_rows": [
+    {
+      "id": "banking77-train-05698",
+      "expected": [
+        "Refund_not_showing_up"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "request_refund",
+        "ranking": [
+          "request_refund",
+          "Refund_not_showing_up",
+          "atm_support",
+          "declined_transfer",
+          "topping_up_by_card",
+          "extra_charge_on_statement"
+        ],
+        "scores": [
+          -3.1694130897521973,
+          -2.4516336917877197,
+          -3.7555503845214844,
+          2.363703966140747,
+          -4.072502136230469,
+          0.4122854471206665
+        ],
+        "probabilities": [
+          0.0034143994441737436,
+          0.006999096136079196,
+          0.0019000198330535378,
+          0.8636077522168163,
+          0.0013839096494264237,
+          0.1226948227204509
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09214",
+      "expected": [
+        "activate_my_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "activate_my_card",
+        "ranking": [
+          "activate_my_card",
+          "failed_transfer",
+          "verify_my_identity",
+          "compromised_card",
+          "top_up_by_cash_or_cheque",
+          "card_arrival"
+        ],
+        "scores": [
+          -3.4240691661834717,
+          -3.8666231632232666,
+          -3.225979804992676,
+          -0.2636704742908478,
+          -4.0476484298706055,
+          -3.79526686668396
+        ],
+        "probabilities": [
+          0.03614363315098442,
+          0.02321844052084106,
+          0.044061666814229954,
+          0.852266696505454,
+          0.01937379822725324,
+          0.02493576478123751
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01636",
+      "expected": [
+        "age_limit"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "age_limit",
+        "ranking": [
+          "age_limit",
+          "balance_not_updated_after_bank_transfer",
+          "unable_to_verify_identity",
+          "verify_my_identity",
+          "get_physical_card",
+          "card_delivery_estimate"
+        ],
+        "scores": [
+          -2.95218563079834,
+          0.5424067974090576,
+          -3.779900074005127,
+          -4.460145950317383,
+          -3.8352954387664795,
+          -4.078110694885254
+        ],
+        "probabilities": [
+          0.028302060517578605,
+          0.9321810355868363,
+          0.012369331817810735,
+          0.006264973085242184,
+          0.011702761081555033,
+          0.009179837910977047
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09708",
+      "expected": [
+        "apple_pay_or_google_pay"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "apple_pay_or_google_pay",
+        "ranking": [
+          "apple_pay_or_google_pay",
+          "top_up_limits",
+          "failed_transfer",
+          "transaction_charged_twice",
+          "verify_my_identity",
+          "lost_or_stolen_phone"
+        ],
+        "scores": [
+          -4.377747535705566,
+          -4.659787654876709,
+          -1.7808821201324463,
+          -4.788413047790527,
+          -2.9533352851867676,
+          1.3903928995132446
+        ],
+        "probabilities": [
+          0.002941724205313412,
+          0.0022187761379766765,
+          0.03948264820380059,
+          0.0019509771736558245,
+          0.01222408424729772,
+          0.9411817900319558
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04562",
+      "expected": [
+        "atm_support"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "atm_support",
+        "ranking": [
+          "atm_support",
+          "cash_withdrawal_not_recognised",
+          "topping_up_by_card",
+          "activate_my_card",
+          "declined_card_payment",
+          "card_delivery_estimate"
+        ],
+        "scores": [
+          -3.6762194633483887,
+          -3.360408306121826,
+          -4.517752647399902,
+          -3.7906458377838135,
+          -2.4942471981048584,
+          2.017570972442627
+        ],
+        "probabilities": [
+          0.0032897722339260025,
+          0.0045114990857229855,
+          0.001418053488549628,
+          0.0029340741678065773,
+          0.01072728609504297,
+          0.9771193149289519
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01221",
+      "expected": [
+        "automatic_top_up"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "automatic_top_up",
+        "ranking": [
+          "automatic_top_up",
+          "pending_top_up",
+          "declined_transfer",
+          "balance_not_updated_after_bank_transfer",
+          "pending_transfer",
+          "reverted_card_payment?"
+        ],
+        "scores": [
+          -3.8093886375427246,
+          2.3754055500030518,
+          -4.053894519805908,
+          -3.416928768157959,
+          -3.83015775680542,
+          -1.4887633323669434
+        ],
+        "probabilities": [
+          0.0020010474925142093,
+          0.9711345015189546,
+          0.0015670030463650112,
+          0.0029627878286577762,
+          0.0019599161083166806,
+          0.020374744005191802
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-08638",
+      "expected": [
+        "balance_not_updated_after_bank_transfer"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "balance_not_updated_after_bank_transfer",
+        "ranking": [
+          "balance_not_updated_after_bank_transfer",
+          "fiat_currency_support",
+          "top_up_by_cash_or_cheque",
+          "transaction_charged_twice",
+          "activate_my_card",
+          "getting_spare_card"
+        ],
+        "scores": [
+          -3.673973321914673,
+          -3.2594306468963623,
+          -2.361985921859741,
+          0.22065390646457672,
+          -3.707758903503418,
+          -4.651712417602539
+        ],
+        "probabilities": [
+          0.01763422820046108,
+          0.026692549260115855,
+          0.06548552969658303,
+          0.8665059933763225,
+          0.017048397583290863,
+          0.006633301883226684
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03357",
+      "expected": [
+        "balance_not_updated_after_cheque_or_cash_deposit"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "balance_not_updated_after_cheque_or_cash_deposit",
+        "ranking": [
+          "balance_not_updated_after_cheque_or_cash_deposit",
+          "transfer_not_received_by_recipient",
+          "declined_card_payment",
+          "lost_or_stolen_card",
+          "extra_charge_on_statement",
+          "exchange_rate"
+        ],
+        "scores": [
+          -3.1738088130950928,
+          2.212911605834961,
+          -4.741515636444092,
+          -4.035571098327637,
+          -4.172844886779785,
+          -2.6082100868225098
+        ],
+        "probabilities": [
+          0.004499531844905907,
+          0.9830832200577311,
+          0.0009382550426540957,
+          0.0019006787736554748,
+          0.001656881602913723,
+          0.007921432678139653
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07093",
+      "expected": [
+        "beneficiary_not_allowed"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "transfer_not_received_by_recipient",
+        "ranking": [
+          "transfer_not_received_by_recipient",
+          "beneficiary_not_allowed",
+          "top_up_failed",
+          "topping_up_by_card",
+          "terminate_account",
+          "order_physical_card"
+        ],
+        "scores": [
+          0.9041544198989868,
+          -4.106906890869141,
+          -1.955911636352539,
+          -0.6735024452209473,
+          -4.12654972076416,
+          -3.175833225250244
+        ],
+        "probabilities": [
+          0.7728996772695194,
+          0.005150469861654799,
+          0.04426008257509307,
+          0.1595715468810874,
+          0.005050287214819717,
+          0.01306793619782562
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-02116",
+      "expected": [
+        "cancel_transfer"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "cancel_transfer",
+        "ranking": [
+          "cancel_transfer",
+          "card_acceptance",
+          "top_up_reverted",
+          "top_up_failed",
+          "card_swallowed",
+          "virtual_card_not_working"
+        ],
+        "scores": [
+          -2.810519218444824,
+          -3.3533201217651367,
+          -3.1157453060150146,
+          -3.22128963470459,
+          -4.328286647796631,
+          -4.473628997802734
+        ],
+        "probabilities": [
+          0.2949884230466612,
+          0.17142317521962558,
+          0.2173937062312809,
+          0.19561837509665642,
+          0.06466167536301813,
+          0.05591464504275785
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09630",
+      "expected": [
+        "card_about_to_expire"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_about_to_expire",
+        "ranking": [
+          "card_about_to_expire",
+          "pending_transfer",
+          "balance_not_updated_after_cheque_or_cash_deposit",
+          "verify_top_up",
+          "wrong_exchange_rate_for_cash_withdrawal",
+          "wrong_amount_of_cash_received"
+        ],
+        "scores": [
+          1.637740135192871,
+          -3.772395610809326,
+          -4.3356733322143555,
+          -4.3663530349731445,
+          -4.697279930114746,
+          -3.713951587677002
+        ],
+        "probabilities": [
+          0.9842534863843151,
+          0.004400630059391192,
+          0.0025054541226260745,
+          0.002429754690451423,
+          0.0017451899553840363,
+          0.004665484787832242
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03152",
+      "expected": [
+        "card_acceptance"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_acceptance",
+        "ranking": [
+          "card_acceptance",
+          "atm_support",
+          "transfer_not_received_by_recipient",
+          "card_payment_wrong_exchange_rate",
+          "cash_withdrawal_charge",
+          "transaction_charged_twice"
+        ],
+        "scores": [
+          -3.8079872131347656,
+          -4.471527576446533,
+          0.24272370338439941,
+          -1.5396264791488647,
+          -3.6073451042175293,
+          -4.414373874664307
+        ],
+        "probabilities": [
+          0.014207703278861393,
+          0.007317318521276268,
+          0.8160659872820271,
+          0.1372968041263171,
+          0.017364474276744982,
+          0.007747712514773216
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-00022",
+      "expected": [
+        "card_arrival"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "topping_up_by_card",
+        "ranking": [
+          "topping_up_by_card",
+          "card_arrival",
+          "verify_top_up",
+          "top_up_by_cash_or_cheque",
+          "getting_virtual_card",
+          "edit_personal_details"
+        ],
+        "scores": [
+          -4.085556983947754,
+          -3.7957632541656494,
+          -3.042306900024414,
+          -5.3878560066223145,
+          -4.705419540405273,
+          -2.9135208129882812
+        ],
+        "probabilities": [
+          0.10854153260273555,
+          0.1450279697262985,
+          0.3080872347637866,
+          0.029513089182057615,
+          0.058397339497295704,
+          0.3504328342278261
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01110",
+      "expected": [
+        "card_delivery_estimate"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_delivery_estimate",
+        "ranking": [
+          "card_delivery_estimate",
+          "contactless_not_working",
+          "card_payment_wrong_exchange_rate",
+          "transfer_fee_charged",
+          "Refund_not_showing_up",
+          "card_payment_fee_charged"
+        ],
+        "scores": [
+          -4.279308319091797,
+          -4.580827713012695,
+          -4.240218639373779,
+          -4.456850051879883,
+          -4.289539337158203,
+          -3.7944283485412598
+        ],
+        "probabilities": [
+          0.1604960101730539,
+          0.11871785239673673,
+          0.16689398045556464,
+          0.13438749098619904,
+          0.15886234387821305,
+          0.2606423221102327
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-00263",
+      "expected": [
+        "card_linking"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_linking",
+        "ranking": [
+          "card_linking",
+          "order_physical_card",
+          "balance_not_updated_after_bank_transfer",
+          "receiving_money",
+          "top_up_by_cash_or_cheque",
+          "verify_top_up"
+        ],
+        "scores": [
+          -3.659595489501953,
+          -1.9771103858947754,
+          -3.7393128871917725,
+          -3.8413825035095215,
+          -0.5126928091049194,
+          -3.1727561950683594
+        ],
+        "probabilities": [
+          0.03027814265764138,
+          0.16286329881819925,
+          0.027958148346485804,
+          0.025245276622443844,
+          0.7043875967152693,
+          0.04926753683996045
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01314",
+      "expected": [
+        "card_not_working"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_not_working",
+        "ranking": [
+          "card_not_working",
+          "balance_not_updated_after_cheque_or_cash_deposit",
+          "card_about_to_expire",
+          "top_up_limits",
+          "Refund_not_showing_up",
+          "get_disposable_virtual_card"
+        ],
+        "scores": [
+          -2.782439947128296,
+          -2.9086787700653076,
+          -4.223913192749023,
+          -3.506648302078247,
+          -4.508954048156738,
+          -0.9376795887947083
+        ],
+        "probabilities": [
+          0.10980349305178552,
+          0.09678127335493622,
+          0.02597719650824605,
+          0.05322264621355825,
+          0.019534423958298127,
+          0.6946809669131758
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-02539",
+      "expected": [
+        "card_payment_fee_charged"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_payment_fee_charged",
+        "ranking": [
+          "card_payment_fee_charged",
+          "top_up_by_bank_transfer_charge",
+          "card_payment_wrong_exchange_rate",
+          "getting_virtual_card",
+          "transfer_timing",
+          "edit_personal_details"
+        ],
+        "scores": [
+          -3.9476773738861084,
+          -4.639927864074707,
+          2.0021512508392334,
+          -1.3917346000671387,
+          -3.032432794570923,
+          -4.058333873748779
+        ],
+        "probabilities": [
+          0.002490882748215681,
+          0.0012465586502465953,
+          0.955720770892563,
+          0.032091138692234435,
+          0.00622069566858549,
+          0.0022299533481547275
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03502",
+      "expected": [
+        "card_payment_not_recognised"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_payment_not_recognised",
+        "ranking": [
+          "card_payment_not_recognised",
+          "fiat_currency_support",
+          "beneficiary_not_allowed",
+          "card_payment_wrong_exchange_rate",
+          "top_up_reverted",
+          "card_arrival"
+        ],
+        "scores": [
+          -0.4802837073802948,
+          -3.930572509765625,
+          -2.6825661659240723,
+          -3.592259168624878,
+          -1.6279710531234741,
+          -4.223222732543945
+        ],
+        "probabilities": [
+          0.6545127029122689,
+          0.02077192242439187,
+          0.07235673480447735,
+          0.029134281303680228,
+          0.20772262331601946,
+          0.0155017352391622
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-00566",
+      "expected": [
+        "card_payment_wrong_exchange_rate"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_payment_wrong_exchange_rate",
+        "ranking": [
+          "card_payment_wrong_exchange_rate",
+          "declined_cash_withdrawal",
+          "topping_up_by_card",
+          "transaction_charged_twice",
+          "cancel_transfer",
+          "transfer_timing"
+        ],
+        "scores": [
+          -3.609877824783325,
+          -3.4459264278411865,
+          2.9643871784210205,
+          -3.835406541824341,
+          -3.812954902648926,
+          -3.07303786277771
+        ],
+        "probabilities": [
+          0.0013851913427758652,
+          0.0016319729483977939,
+          0.9923772099072837,
+          0.001105513095133399,
+          0.0011306144046153628,
+          0.0023694983017938463
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06271",
+      "expected": [
+        "card_swallowed"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_swallowed",
+        "ranking": [
+          "card_swallowed",
+          "card_linking",
+          "balance_not_updated_after_cheque_or_cash_deposit",
+          "transfer_not_received_by_recipient",
+          "disposable_card_limits",
+          "exchange_rate"
+        ],
+        "scores": [
+          -5.289227485656738,
+          -3.916698455810547,
+          -3.532299041748047,
+          -3.806473970413208,
+          -3.5633645057678223,
+          -2.1741576194763184
+        ],
+        "probabilities": [
+          0.023096097880164985,
+          0.09112140244138646,
+          0.13383291570868308,
+          0.10173965979940554,
+          0.1297392491223335,
+          0.5204706750480264
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09360",
+      "expected": [
+        "cash_withdrawal_charge"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "cash_withdrawal_charge",
+        "ranking": [
+          "cash_withdrawal_charge",
+          "pending_cash_withdrawal",
+          "exchange_charge",
+          "card_payment_not_recognised",
+          "pending_transfer",
+          "exchange_rate"
+        ],
+        "scores": [
+          -3.3848252296447754,
+          -4.340653896331787,
+          -3.7635960578918457,
+          -5.2712225914001465,
+          0.8437978625297546,
+          -2.6902999877929688
+        ],
+        "probabilities": [
+          0.013727542416683529,
+          0.005278149397508311,
+          0.00939928273732728,
+          0.0020813294502591063,
+          0.9420207502938723,
+          0.027492945704349427
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-08940",
+      "expected": [
+        "cash_withdrawal_not_recognised"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "cash_withdrawal_not_recognised",
+        "ranking": [
+          "cash_withdrawal_not_recognised",
+          "fiat_currency_support",
+          "declined_card_payment",
+          "verify_source_of_funds",
+          "visa_or_mastercard",
+          "activate_my_card"
+        ],
+        "scores": [
+          -3.715855598449707,
+          -2.6480724811553955,
+          -2.847569704055786,
+          -3.575665235519409,
+          0.04709893465042114,
+          -1.7899885177612305
+        ],
+        "probabilities": [
+          0.017428027259707855,
+          0.05069679987055883,
+          0.0415279031674417,
+          0.02005081969212473,
+          0.7507210956480567,
+          0.11957535436211014
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06901",
+      "expected": [
+        "change_pin"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "change_pin",
+        "ranking": [
+          "change_pin",
+          "card_acceptance",
+          "lost_or_stolen_card",
+          "transfer_into_account",
+          "card_payment_wrong_exchange_rate",
+          "Refund_not_showing_up"
+        ],
+        "scores": [
+          -2.7351858615875244,
+          -4.630433559417725,
+          -3.1655969619750977,
+          -4.438547134399414,
+          -3.083104372024536,
+          2.2958896160125732
+        ],
+        "probabilities": [
+          0.006419048574620874,
+          0.0009646617201085561,
+          0.004173933218944549,
+          0.0011687194202753238,
+          0.004532852350012532,
+          0.9827407847160381
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04517",
+      "expected": [
+        "compromised_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "compromised_card",
+        "ranking": [
+          "compromised_card",
+          "topping_up_by_card",
+          "pin_blocked",
+          "card_payment_wrong_exchange_rate",
+          "exchange_charge",
+          "automatic_top_up"
+        ],
+        "scores": [
+          -4.3612961769104,
+          -4.000747203826904,
+          -1.8727247714996338,
+          -3.493752956390381,
+          -4.612404823303223,
+          -3.4944920539855957
+        ],
+        "probabilities": [
+          0.04995888189403702,
+          0.07164685633873331,
+          0.6017076585874993,
+          0.1189547924439135,
+          0.03886490501050603,
+          0.11886690572531092
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01792",
+      "expected": [
+        "contactless_not_working"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "contactless_not_working",
+        "ranking": [
+          "contactless_not_working",
+          "declined_transfer",
+          "direct_debit_payment_not_recognised",
+          "transfer_not_received_by_recipient",
+          "wrong_exchange_rate_for_cash_withdrawal",
+          "lost_or_stolen_phone"
+        ],
+        "scores": [
+          -4.0837860107421875,
+          -2.0065503120422363,
+          -3.6640186309814453,
+          -4.003208637237549,
+          1.6681549549102783,
+          -3.0959668159484863
+        ],
+        "probabilities": [
+          0.003038826934672869,
+          0.02425704917803816,
+          0.004623902030439498,
+          0.0032938231365323917,
+          0.9566260185369474,
+          0.00816038018336955
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09999",
+      "expected": [
+        "country_support"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "country_support",
+        "ranking": [
+          "country_support",
+          "receiving_money",
+          "pending_transfer",
+          "unable_to_verify_identity",
+          "pending_card_payment",
+          "apple_pay_or_google_pay"
+        ],
+        "scores": [
+          -3.9942123889923096,
+          -3.7343268394470215,
+          -4.682958602905273,
+          -4.590277671813965,
+          -4.478521347045898,
+          0.1656215786933899
+        ],
+        "probabilities": [
+          0.014700051910630094,
+          0.019062757732298905,
+          0.007382444458449539,
+          0.008099365637813433,
+          0.009057037384361121,
+          0.9416983428764469
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-05841",
+      "expected": [
+        "declined_card_payment"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "declined_card_payment",
+        "ranking": [
+          "declined_card_payment",
+          "card_not_working",
+          "topping_up_by_card",
+          "virtual_card_not_working",
+          "wrong_amount_of_cash_received",
+          "apple_pay_or_google_pay"
+        ],
+        "scores": [
+          -3.539083957672119,
+          -3.230719566345215,
+          -3.7375283241271973,
+          -3.0507657527923584,
+          1.023028016090393,
+          1.4469627141952515
+        ],
+        "probabilities": [
+          0.004049353178612999,
+          0.005511967021773507,
+          0.0033204914295530364,
+          0.006598717845050828,
+          0.38786957381143433,
+          0.5926498967135753
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-05021",
+      "expected": [
+        "declined_cash_withdrawal"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "declined_cash_withdrawal",
+        "ranking": [
+          "declined_cash_withdrawal",
+          "card_not_working",
+          "card_swallowed",
+          "card_arrival",
+          "activate_my_card",
+          "cancel_transfer"
+        ],
+        "scores": [
+          -1.881456971168518,
+          -3.0198473930358887,
+          2.5385429859161377,
+          -2.9538698196411133,
+          -0.08204875886440277,
+          -3.981740951538086
+        ],
+        "probabilities": [
+          0.010997798596963955,
+          0.0035229711255926354,
+          0.9138761713075984,
+          0.0037632474823503814,
+          0.06649344274925079,
+          0.0013463687382440088
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-05613",
+      "expected": [
+        "declined_transfer"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "declined_transfer",
+        "ranking": [
+          "declined_transfer",
+          "top_up_reverted",
+          "why_verify_identity",
+          "lost_or_stolen_card",
+          "verify_top_up",
+          "edit_personal_details"
+        ],
+        "scores": [
+          2.4706594944000244,
+          -3.5520055294036865,
+          -3.2283098697662354,
+          -3.838292360305786,
+          -3.1984798908233643,
+          -4.989250659942627
+        ],
+        "probabilities": [
+          0.9885143525622899,
+          0.002395371031901704,
+          0.00331094549910682,
+          0.001799036614282665,
+          0.0034111987762987612,
+          0.0005690955161201016
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04677",
+      "expected": [
+        "direct_debit_payment_not_recognised"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "direct_debit_payment_not_recognised",
+        "ranking": [
+          "direct_debit_payment_not_recognised",
+          "supported_cards_and_currencies",
+          "pending_card_payment",
+          "disposable_card_limits",
+          "top_up_by_card_charge",
+          "exchange_via_app"
+        ],
+        "scores": [
+          -4.507494926452637,
+          -3.706328868865967,
+          -1.3737359046936035,
+          -3.8348212242126465,
+          2.4375743865966797,
+          -3.79221248626709
+        ],
+        "probabilities": [
+          0.0009361442532383877,
+          0.0020858581637821123,
+          0.02149398920288829,
+          0.0018343459813966604,
+          0.9717354682145339,
+          0.001914194184160541
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04426",
+      "expected": [
+        "disposable_card_limits"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "disposable_card_limits",
+        "ranking": [
+          "disposable_card_limits",
+          "atm_support",
+          "cash_withdrawal_not_recognised",
+          "cancel_transfer",
+          "wrong_amount_of_cash_received",
+          "request_refund"
+        ],
+        "scores": [
+          -3.8946568965911865,
+          -3.4999537467956543,
+          -4.059850692749023,
+          3.082906484603882,
+          -1.5263307094573975,
+          -4.0240631103515625
+        ],
+        "probabilities": [
+          0.0009198005813327943,
+          0.0013649322011823667,
+          0.0007797419962821859,
+          0.9863043608162166,
+          0.00982301198981781,
+          0.0008081524151682062
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03650",
+      "expected": [
+        "edit_personal_details"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "edit_personal_details",
+        "ranking": [
+          "edit_personal_details",
+          "supported_cards_and_currencies",
+          "balance_not_updated_after_cheque_or_cash_deposit",
+          "passcode_forgotten",
+          "contactless_not_working",
+          "exchange_via_app"
+        ],
+        "scores": [
+          -4.553472995758057,
+          -3.3674399852752686,
+          0.644913375377655,
+          -4.302116870880127,
+          -4.875274181365967,
+          -0.4956687092781067
+        ],
+        "probabilities": [
+          0.004079770865826945,
+          0.013357444060716877,
+          0.738356815532398,
+          0.005245638405345377,
+          0.0029571904370036743,
+          0.2360031406987091
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09023",
+      "expected": [
+        "exchange_charge"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "exchange_charge",
+        "ranking": [
+          "exchange_charge",
+          "transfer_into_account",
+          "pending_top_up",
+          "top_up_reverted",
+          "getting_virtual_card",
+          "apple_pay_or_google_pay"
+        ],
+        "scores": [
+          -4.423592567443848,
+          -4.229631423950195,
+          -3.97632098197937,
+          -0.6335781812667847,
+          -4.45712947845459,
+          -3.3201558589935303
+        ],
+        "probabilities": [
+          0.019224612723712908,
+          0.023339623935267714,
+          0.030068044288025994,
+          0.8508243958737661,
+          0.018590569941597204,
+          0.057952753237630154
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-00350",
+      "expected": [
+        "exchange_rate"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "fiat_currency_support",
+        "ranking": [
+          "fiat_currency_support",
+          "exchange_rate",
+          "failed_transfer",
+          "pending_transfer",
+          "activate_my_card",
+          "card_swallowed"
+        ],
+        "scores": [
+          -3.1596763134002686,
+          -4.645572185516357,
+          -3.9099478721618652,
+          -0.9161965847015381,
+          -2.339855432510376,
+          -3.9891257286071777
+        ],
+        "probabilities": [
+          0.07230137871940723,
+          0.016361766895519294,
+          0.034143479803961686,
+          0.6815181799158756,
+          0.16413086702782353,
+          0.03154432763741264
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01466",
+      "expected": [
+        "exchange_via_app"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "exchange_via_app",
+        "ranking": [
+          "exchange_via_app",
+          "country_support",
+          "top_up_failed",
+          "order_physical_card",
+          "contactless_not_working",
+          "request_refund"
+        ],
+        "scores": [
+          -2.2810842990875244,
+          -4.2440571784973145,
+          0.8426331877708435,
+          -4.150267601013184,
+          -4.475184917449951,
+          -3.7943341732025146
+        ],
+        "probabilities": [
+          0.04105584838340701,
+          0.005765895157075857,
+          0.9332291556912339,
+          0.006332847604805104,
+          0.00457603396807056,
+          0.009040219195407586
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-00595",
+      "expected": [
+        "extra_charge_on_statement"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "extra_charge_on_statement",
+        "ranking": [
+          "extra_charge_on_statement",
+          "declined_card_payment",
+          "pending_transfer",
+          "card_about_to_expire",
+          "transfer_timing",
+          "passcode_forgotten"
+        ],
+        "scores": [
+          -3.5417978763580322,
+          -3.461819648742676,
+          -4.007899284362793,
+          -4.473956108093262,
+          -2.1553897857666016,
+          0.20308639109134674
+        ],
+        "probabilities": [
+          0.02023923744390565,
+          0.021924426830335204,
+          0.012698981075983344,
+          0.00796825032658529,
+          0.0809661574903224,
+          0.856202946832868
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07560",
+      "expected": [
+        "failed_transfer"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "failed_transfer",
+        "ranking": [
+          "failed_transfer",
+          "balance_not_updated_after_bank_transfer",
+          "top_up_by_bank_transfer_charge",
+          "verify_source_of_funds",
+          "age_limit",
+          "edit_personal_details"
+        ],
+        "scores": [
+          -4.8583784103393555,
+          -0.3221972584724426,
+          -2.1480140686035156,
+          3.8103342056274414,
+          -2.9959168434143066,
+          -5.066874980926514
+        ],
+        "probabilities": [
+          0.00016850266222712,
+          0.015726975491239532,
+          0.0025333957892935484,
+          0.9803492504818418,
+          0.0010850844707393332,
+          0.0001367911046584758
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-00972",
+      "expected": [
+        "fiat_currency_support"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "supported_cards_and_currencies",
+        "ranking": [
+          "supported_cards_and_currencies",
+          "fiat_currency_support",
+          "direct_debit_payment_not_recognised",
+          "top_up_by_bank_transfer_charge",
+          "request_refund",
+          "apple_pay_or_google_pay"
+        ],
+        "scores": [
+          -0.6053329110145569,
+          -3.6124770641326904,
+          -3.3012826442718506,
+          -4.209689140319824,
+          0.11405853927135468,
+          -4.193001747131348
+        ],
+        "probabilities": [
+          0.3100811754250999,
+          0.01532813404493017,
+          0.0209237397205586,
+          0.008435743781388585,
+          0.6366535115656405,
+          0.0085776954623821
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-08412",
+      "expected": [
+        "get_disposable_virtual_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "receiving_money",
+        "ranking": [
+          "receiving_money",
+          "card_payment_fee_charged",
+          "cancel_transfer",
+          "unable_to_verify_identity",
+          "apple_pay_or_google_pay",
+          "get_disposable_virtual_card"
+        ],
+        "scores": [
+          -3.8536980152130127,
+          -4.672026634216309,
+          -4.57811164855957,
+          -4.2600932121276855,
+          -3.8877081871032715,
+          -3.607595920562744
+        ],
+        "probabilities": [
+          0.2067219460696399,
+          0.09119919001106275,
+          0.10017924197191053,
+          0.13768651045853728,
+          0.19980951000338,
+          0.2644036014854696
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04006",
+      "expected": [
+        "get_physical_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "get_physical_card",
+        "ranking": [
+          "get_physical_card",
+          "verify_source_of_funds",
+          "transfer_not_received_by_recipient",
+          "declined_card_payment",
+          "top_up_by_card_charge",
+          "automatic_top_up"
+        ],
+        "scores": [
+          -3.835826873779297,
+          -2.2818965911865234,
+          -3.275570869445801,
+          -4.815213203430176,
+          -4.396556854248047,
+          -4.057323932647705
+        ],
+        "probabilities": [
+          0.10835648722226862,
+          0.5125287882465415,
+          0.18974529180842128,
+          0.04069235631894956,
+          0.061849042552298034,
+          0.08682803385152098
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07922",
+      "expected": [
+        "getting_spare_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "getting_spare_card",
+        "ranking": [
+          "getting_spare_card",
+          "card_acceptance",
+          "topping_up_by_card",
+          "cash_withdrawal_not_recognised",
+          "contactless_not_working",
+          "edit_personal_details"
+        ],
+        "scores": [
+          -4.261775493621826,
+          -3.1637654304504395,
+          -2.4816126823425293,
+          -1.6559288501739502,
+          -4.460788726806641,
+          2.1629576683044434
+        ],
+        "probabilities": [
+          0.0015595577481232288,
+          0.004675856476300997,
+          0.009249459316592792,
+          0.021120601313676757,
+          0.0012781184724310584,
+          0.9621164066728752
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03060",
+      "expected": [
+        "getting_virtual_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "getting_virtual_card",
+        "ranking": [
+          "getting_virtual_card",
+          "visa_or_mastercard",
+          "disposable_card_limits",
+          "verify_source_of_funds",
+          "verify_my_identity",
+          "lost_or_stolen_phone"
+        ],
+        "scores": [
+          -4.31254768371582,
+          2.432346820831299,
+          -3.572003126144409,
+          -3.9213833808898926,
+          -3.9287540912628174,
+          -5.100061416625977
+        ],
+        "probabilities": [
+          0.0011679403952563642,
+          0.9924100276321801,
+          0.002449261153846438,
+          0.0017270351539724201,
+          0.0017143524756409929,
+          0.0005313831891035887
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01498",
+      "expected": [
+        "lost_or_stolen_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "lost_or_stolen_card",
+        "ranking": [
+          "lost_or_stolen_card",
+          "getting_spare_card",
+          "get_disposable_virtual_card",
+          "country_support",
+          "verify_my_identity",
+          "exchange_charge"
+        ],
+        "scores": [
+          -3.3899717330932617,
+          -4.3217363357543945,
+          -2.803725242614746,
+          -5.287744045257568,
+          2.3760581016540527,
+          -1.6899687051773071
+        ],
+        "probabilities": [
+          0.003048012706470317,
+          0.0012004844743518843,
+          0.005477979327397141,
+          0.00045690375795115056,
+          0.9731319080094666,
+          0.016684711724362897
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-05253",
+      "expected": [
+        "lost_or_stolen_phone"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "lost_or_stolen_phone",
+        "ranking": [
+          "lost_or_stolen_phone",
+          "failed_transfer",
+          "reverted_card_payment?",
+          "top_up_limits",
+          "verify_top_up",
+          "transfer_timing"
+        ],
+        "scores": [
+          -3.730926990509033,
+          -4.2358856201171875,
+          1.907882571220398,
+          -4.097413063049316,
+          -4.139427185058594,
+          -3.3322296142578125
+        ],
+        "probabilities": [
+          0.003501657064031633,
+          0.002113356989974867,
+          0.9844133352978749,
+          0.002427228886688147,
+          0.00232736356269596,
+          0.0052170581987345845
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-08137",
+      "expected": [
+        "order_physical_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "order_physical_card",
+        "ranking": [
+          "order_physical_card",
+          "get_physical_card",
+          "getting_spare_card",
+          "declined_transfer",
+          "top_up_by_bank_transfer_charge",
+          "top_up_failed"
+        ],
+        "scores": [
+          -2.9221458435058594,
+          -3.8051795959472656,
+          -3.7732784748077393,
+          -2.609367847442627,
+          -3.721104383468628,
+          -1.1296664476394653
+        ],
+        "probabilities": [
+          0.10350044912151868,
+          0.042800175352181606,
+          0.04418756084957361,
+          0.14150767389660227,
+          0.04655420869887098,
+          0.6214499320812529
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04886",
+      "expected": [
+        "passcode_forgotten"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "passcode_forgotten",
+        "ranking": [
+          "passcode_forgotten",
+          "failed_transfer",
+          "top_up_failed",
+          "beneficiary_not_allowed",
+          "cash_withdrawal_charge",
+          "getting_spare_card"
+        ],
+        "scores": [
+          -3.699068546295166,
+          3.4257125854492188,
+          -4.314589977264404,
+          -4.112506866455078,
+          -3.6468095779418945,
+          -3.309993267059326
+        ],
+        "probabilities": [
+          0.000801855676108883,
+          0.996206424334486,
+          0.0004332899809117546,
+          0.0005303251539946788,
+          0.0008448740855322736,
+          0.0011832307689664324
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-05193",
+      "expected": [
+        "pending_card_payment"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "pending_card_payment",
+        "ranking": [
+          "pending_card_payment",
+          "reverted_card_payment?",
+          "request_refund",
+          "disposable_card_limits",
+          "pin_blocked",
+          "cash_withdrawal_charge"
+        ],
+        "scores": [
+          -3.2524948120117188,
+          -3.5370476245880127,
+          -4.108595848083496,
+          -4.055365562438965,
+          -1.0327699184417725,
+          -2.262481451034546
+        ],
+        "probabilities": [
+          0.0688644746845839,
+          0.05181023028278062,
+          0.02925467535428608,
+          0.03085410139047047,
+          0.6338835938840737,
+          0.18533292440380528
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-00758",
+      "expected": [
+        "pending_cash_withdrawal"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "pending_cash_withdrawal",
+        "ranking": [
+          "pending_cash_withdrawal",
+          "order_physical_card",
+          "card_payment_wrong_exchange_rate",
+          "change_pin",
+          "exchange_rate",
+          "edit_personal_details"
+        ],
+        "scores": [
+          -5.144394874572754,
+          3.569575786590576,
+          -3.9427711963653564,
+          -5.236642360687256,
+          -5.017992973327637,
+          -4.531437397003174
+        ],
+        "probabilities": [
+          0.00016405320499933462,
+          0.9986518087653413,
+          0.0005455609187715753,
+          0.00014959674538028147,
+          0.00018615742694961466,
+          0.00030282293855778835
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-02049",
+      "expected": [
+        "pending_top_up"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "pending_top_up",
+        "ranking": [
+          "pending_top_up",
+          "transfer_timing",
+          "declined_transfer",
+          "card_about_to_expire",
+          "visa_or_mastercard",
+          "Refund_not_showing_up"
+        ],
+        "scores": [
+          -3.753065347671509,
+          -1.2248648405075073,
+          -3.6561472415924072,
+          -3.168092966079712,
+          -2.9101016521453857,
+          -4.659983158111572
+        ],
+        "probabilities": [
+          0.05220662521011465,
+          0.6541979056662349,
+          0.057519700852790775,
+          0.09370783354589847,
+          0.12128863304202735,
+          0.021079301682933767
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06061",
+      "expected": [
+        "pending_transfer"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "pending_transfer",
+        "ranking": [
+          "pending_transfer",
+          "direct_debit_payment_not_recognised",
+          "top_up_by_card_charge",
+          "extra_charge_on_statement",
+          "apple_pay_or_google_pay",
+          "getting_virtual_card"
+        ],
+        "scores": [
+          -3.9607741832733154,
+          1.6271929740905762,
+          -4.351276874542236,
+          -4.555886268615723,
+          -2.8361544609069824,
+          -4.437119960784912
+        ],
+        "probabilities": [
+          0.003661391310340517,
+          0.9782941307227935,
+          0.002477724313403662,
+          0.0020192600436396094,
+          0.011273591294726005,
+          0.0022739023150966952
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01726",
+      "expected": [
+        "pin_blocked"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "pin_blocked",
+        "ranking": [
+          "pin_blocked",
+          "balance_not_updated_after_bank_transfer",
+          "card_payment_fee_charged",
+          "wrong_exchange_rate_for_cash_withdrawal",
+          "pending_top_up",
+          "exchange_charge"
+        ],
+        "scores": [
+          -4.069203853607178,
+          -3.1201512813568115,
+          -5.047783851623535,
+          -4.0996222496032715,
+          -4.090350151062012,
+          3.1387946605682373
+        ],
+        "probabilities": [
+          0.0007374112462371821,
+          0.0019049257475502353,
+          0.00027715190208827865,
+          0.0007153181014509192,
+          0.0007219814452277326,
+          0.9956432115574456
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07335",
+      "expected": [
+        "receiving_money"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "receiving_money",
+        "ranking": [
+          "receiving_money",
+          "pending_transfer",
+          "cancel_transfer",
+          "edit_personal_details",
+          "cash_withdrawal_charge",
+          "get_disposable_virtual_card"
+        ],
+        "scores": [
+          -1.8846632242202759,
+          -4.149163246154785,
+          -4.493776321411133,
+          -4.230630397796631,
+          -4.077564239501953,
+          -3.9412782192230225
+        ],
+        "probabilities": [
+          0.6610630654813322,
+          0.06867252709794018,
+          0.048654103249706156,
+          0.06329979375464492,
+          0.0737697111410607,
+          0.08454079927531588
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-05395",
+      "expected": [
+        "request_refund"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "request_refund",
+        "ranking": [
+          "request_refund",
+          "cash_withdrawal_not_recognised",
+          "pending_top_up",
+          "unable_to_verify_identity",
+          "lost_or_stolen_phone",
+          "pin_blocked"
+        ],
+        "scores": [
+          -3.428821563720703,
+          -4.460052490234375,
+          -3.8870911598205566,
+          2.679837465286255,
+          -4.251175880432129,
+          -4.617730140686035
+        ],
+        "probabilities": [
+          0.0022101004454149133,
+          0.0007880506129122141,
+          0.0013976166161277846,
+          0.9939600293412976,
+          0.0009711092037227309,
+          0.0006730937805247935
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06858",
+      "expected": [
+        "reverted_card_payment?"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "card_payment_not_recognised",
+        "ranking": [
+          "card_payment_not_recognised",
+          "reverted_card_payment?",
+          "card_not_working",
+          "card_arrival",
+          "card_linking",
+          "top_up_limits"
+        ],
+        "scores": [
+          -0.19384777545928955,
+          -1.7681069374084473,
+          -3.0730948448181152,
+          -0.4423147439956665,
+          -3.0962202548980713,
+          -4.182147026062012
+        ],
+        "probabilities": [
+          0.4724206325851939,
+          0.0978671158207564,
+          0.026539194820386136,
+          0.36848602648487727,
+          0.025932507045793654,
+          0.008754523242992562
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-02943",
+      "expected": [
+        "supported_cards_and_currencies"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "supported_cards_and_currencies",
+        "ranking": [
+          "supported_cards_and_currencies",
+          "fiat_currency_support",
+          "exchange_charge",
+          "cash_withdrawal_charge",
+          "unable_to_verify_identity",
+          "getting_virtual_card"
+        ],
+        "scores": [
+          -4.2421417236328125,
+          -3.636063575744629,
+          -4.585119724273682,
+          -0.5894948244094849,
+          -0.5551471710205078,
+          -4.439403533935547
+        ],
+        "probabilities": [
+          0.01206779616659356,
+          0.022123017417657036,
+          0.008563957688643027,
+          0.46553502239782796,
+          0.48180283934287343,
+          0.00990736698640496
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06227",
+      "expected": [
+        "terminate_account"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "terminate_account",
+        "ranking": [
+          "terminate_account",
+          "pending_transfer",
+          "top_up_by_cash_or_cheque",
+          "contactless_not_working",
+          "verify_my_identity",
+          "extra_charge_on_statement"
+        ],
+        "scores": [
+          -4.362412929534912,
+          1.3407466411590576,
+          -4.906085014343262,
+          -3.8189737796783447,
+          -4.236495494842529,
+          -4.129605770111084
+        ],
+        "probabilities": [
+          0.003273193375005684,
+          0.9813465374298671,
+          0.0019004562536581138,
+          0.005636172641652513,
+          0.0037124183489939096,
+          0.004131221950822756
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-01873",
+      "expected": [
+        "top_up_by_bank_transfer_charge"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "top_up_by_bank_transfer_charge",
+        "ranking": [
+          "top_up_by_bank_transfer_charge",
+          "fiat_currency_support",
+          "verify_source_of_funds",
+          "getting_virtual_card",
+          "pending_cash_withdrawal",
+          "order_physical_card"
+        ],
+        "scores": [
+          -3.288471221923828,
+          -4.326845645904541,
+          -4.552240371704102,
+          -1.9547063112258911,
+          -4.3226399421691895,
+          1.0052778720855713
+        ],
+        "probabilities": [
+          0.012653745536640575,
+          0.004479801947130474,
+          0.003575782779291656,
+          0.048024830147588946,
+          0.004498682341756654,
+          0.9267671572475916
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09168",
+      "expected": [
+        "top_up_by_card_charge"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "top_up_by_card_charge",
+        "ranking": [
+          "top_up_by_card_charge",
+          "country_support",
+          "receiving_money",
+          "transfer_timing",
+          "disposable_card_limits",
+          "edit_personal_details"
+        ],
+        "scores": [
+          -3.2338361740112305,
+          0.9406247735023499,
+          -0.6680206060409546,
+          -3.893592119216919,
+          -5.062333106994629,
+          -4.255797386169434
+        ],
+        "probabilities": [
+          0.012491634412070726,
+          0.8120160619898599,
+          0.1625319733022545,
+          0.006457893803495798,
+          0.0020068417952898016,
+          0.004495594697029207
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07988",
+      "expected": [
+        "top_up_by_cash_or_cheque"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "top_up_by_cash_or_cheque",
+        "ranking": [
+          "top_up_by_cash_or_cheque",
+          "top_up_limits",
+          "declined_transfer",
+          "activate_my_card",
+          "compromised_card",
+          "apple_pay_or_google_pay"
+        ],
+        "scores": [
+          -4.415665149688721,
+          -4.623958587646484,
+          -2.4303362369537354,
+          -3.477172374725342,
+          -4.02958345413208,
+          0.6160141229629517
+        ],
+        "probabilities": [
+          0.006012839116358242,
+          0.004882237396936762,
+          0.04378213898416146,
+          0.015369573536729547,
+          0.008846118111173659,
+          0.9211070928546403
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-08499",
+      "expected": [
+        "top_up_failed"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "top_up_failed",
+        "ranking": [
+          "top_up_failed",
+          "transaction_charged_twice",
+          "Refund_not_showing_up",
+          "age_limit",
+          "get_disposable_virtual_card",
+          "exchange_charge"
+        ],
+        "scores": [
+          -3.984750270843506,
+          -4.451737880706787,
+          2.3906328678131104,
+          -3.5699422359466553,
+          -4.31876277923584,
+          -4.82401704788208
+        ],
+        "probabilities": [
+          0.001690618759377337,
+          0.0010598283720684044,
+          0.9927488686430381,
+          0.0025597321564518292,
+          0.0012105588147171126,
+          0.000730393254347229
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-02239",
+      "expected": [
+        "top_up_limits"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "top_up_limits",
+        "ranking": [
+          "top_up_limits",
+          "verify_top_up",
+          "visa_or_mastercard",
+          "balance_not_updated_after_bank_transfer",
+          "exchange_rate",
+          "age_limit"
+        ],
+        "scores": [
+          1.0627297163009644,
+          -3.221815824508667,
+          -3.291294574737549,
+          -2.1010024547576904,
+          -4.873970031738281,
+          -5.043675422668457
+        ],
+        "probabilities": [
+          0.9312965468120583,
+          0.012833156980973813,
+          0.011971794928215346,
+          0.03936375938840926,
+          0.002459303066634397,
+          0.002075438823708865
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03275",
+      "expected": [
+        "top_up_reverted"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "verify_source_of_funds",
+        "ranking": [
+          "verify_source_of_funds",
+          "top_up_reverted",
+          "transfer_not_received_by_recipient",
+          "cancel_transfer",
+          "verify_my_identity",
+          "exchange_charge"
+        ],
+        "scores": [
+          -4.739160537719727,
+          -2.9719743728637695,
+          -4.652214050292969,
+          -2.6116013526916504,
+          -3.097315788269043,
+          -3.734692335128784
+        ],
+        "probabilities": [
+          0.04126316258975865,
+          0.24156928342161063,
+          0.04501143832150482,
+          0.34637754129734033,
+          0.213111372451536,
+          0.11266720191824968
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04276",
+      "expected": [
+        "topping_up_by_card"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "top_up_failed",
+        "ranking": [
+          "top_up_failed",
+          "topping_up_by_card",
+          "verify_top_up",
+          "pending_card_payment",
+          "cash_withdrawal_charge",
+          "card_payment_wrong_exchange_rate"
+        ],
+        "scores": [
+          -0.37908458709716797,
+          -4.185787200927734,
+          -4.00173282623291,
+          -4.330418109893799,
+          0.8061563968658447,
+          -1.617640733718872
+        ],
+        "probabilities": [
+          0.21600886340412864,
+          0.0048000043650079545,
+          0.005769994930854729,
+          0.004153643572474643,
+          0.7066676179012155,
+          0.0625998758263186
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06467",
+      "expected": [
+        "transaction_charged_twice"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "transaction_charged_twice",
+        "ranking": [
+          "transaction_charged_twice",
+          "transfer_into_account",
+          "top_up_failed",
+          "card_linking",
+          "order_physical_card",
+          "change_pin"
+        ],
+        "scores": [
+          -2.9246580600738525,
+          -4.127117156982422,
+          0.10707563161849976,
+          -4.438437461853027,
+          -2.604997396469116,
+          -3.531007766723633
+        ],
+        "probabilities": [
+          0.04136389013978723,
+          0.012427965113932044,
+          0.8576035871400574,
+          0.00910322621308016,
+          0.05694403508994353,
+          0.02255729630319973
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07323",
+      "expected": [
+        "transfer_fee_charged"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "country_support",
+        "ranking": [
+          "country_support",
+          "transfer_fee_charged",
+          "pending_cash_withdrawal",
+          "Refund_not_showing_up",
+          "unable_to_verify_identity",
+          "passcode_forgotten"
+        ],
+        "scores": [
+          -3.898235559463501,
+          -3.5019545555114746,
+          -1.9122464656829834,
+          -1.603060245513916,
+          -4.182465076446533,
+          -4.432592391967773
+        ],
+        "probabilities": [
+          0.047534496058580095,
+          0.07064989933052322,
+          0.34634825079327486,
+          0.4718357766526607,
+          0.035774171383602,
+          0.02785740578135913
+        ]
+      },
+      "correct": false,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07600",
+      "expected": [
+        "transfer_into_account"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "transfer_into_account",
+        "ranking": [
+          "transfer_into_account",
+          "balance_not_updated_after_bank_transfer",
+          "declined_cash_withdrawal",
+          "card_payment_not_recognised",
+          "lost_or_stolen_card",
+          "card_swallowed"
+        ],
+        "scores": [
+          -4.129148006439209,
+          -3.8164896965026855,
+          -1.5607290267944336,
+          -4.395646095275879,
+          -3.2537736892700195,
+          2.245556116104126
+        ],
+        "probabilities": [
+          0.001651828158002697,
+          0.0022581388561810087,
+          0.021548401312294355,
+          0.0012653952959367231,
+          0.003964013278670022,
+          0.9693122230989152
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-02793",
+      "expected": [
+        "transfer_not_received_by_recipient"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "transfer_not_received_by_recipient",
+        "ranking": [
+          "transfer_not_received_by_recipient",
+          "balance_not_updated_after_bank_transfer",
+          "Refund_not_showing_up",
+          "top_up_reverted",
+          "top_up_by_card_charge",
+          "transfer_fee_charged"
+        ],
+        "scores": [
+          -3.0183310508728027,
+          -3.7916715145111084,
+          -3.755615234375,
+          -1.1684486865997314,
+          -3.2513277530670166,
+          -0.6601096987724304
+        ],
+        "probabilities": [
+          0.050856322229561574,
+          0.02346861465911841,
+          0.02433024586643487,
+          0.32339898545084184,
+          0.040286150246131525,
+          0.5376596815479118
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06710",
+      "expected": [
+        "transfer_timing"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "transfer_timing",
+        "ranking": [
+          "transfer_timing",
+          "declined_cash_withdrawal",
+          "direct_debit_payment_not_recognised",
+          "terminate_account",
+          "get_disposable_virtual_card",
+          "lost_or_stolen_phone"
+        ],
+        "scores": [
+          -3.1087331771850586,
+          -4.463311672210693,
+          -2.6294031143188477,
+          -4.324948310852051,
+          -4.886257648468018,
+          -1.7566111087799072
+        ],
+        "probabilities": [
+          0.13881034716227222,
+          0.03582084897682211,
+          0.22417761358209473,
+          0.041136403479592465,
+          0.023466740511547925,
+          0.5365880462876705
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03956",
+      "expected": [
+        "unable_to_verify_identity"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "unable_to_verify_identity",
+        "ranking": [
+          "unable_to_verify_identity",
+          "card_payment_not_recognised",
+          "card_acceptance",
+          "beneficiary_not_allowed",
+          "passcode_forgotten",
+          "transfer_timing"
+        ],
+        "scores": [
+          -3.6143431663513184,
+          -4.152123928070068,
+          -2.9959306716918945,
+          -2.66957688331604,
+          -2.6662402153015137,
+          -1.9822551012039185
+        ],
+        "probabilities": [
+          0.0729523023210292,
+          0.04260727754237621,
+          0.13539796480609984,
+          0.18764879757753306,
+          0.18827596506134284,
+          0.3731176926916189
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-09779",
+      "expected": [
+        "verify_my_identity"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "verify_my_identity",
+        "ranking": [
+          "verify_my_identity",
+          "compromised_card",
+          "contactless_not_working",
+          "cash_withdrawal_charge",
+          "transfer_fee_charged",
+          "exchange_rate"
+        ],
+        "scores": [
+          -3.5138211250305176,
+          -4.998924732208252,
+          -1.3839603662490845,
+          -5.471902370452881,
+          -4.39990234375,
+          -4.726171493530273
+        ],
+        "probabilities": [
+          0.09531917614830322,
+          0.02158777974414003,
+          0.8019864945125375,
+          0.013452295542112297,
+          0.03929706328316398,
+          0.02835719076974298
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-06546",
+      "expected": [
+        "verify_source_of_funds"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "verify_source_of_funds",
+        "ranking": [
+          "verify_source_of_funds",
+          "fiat_currency_support",
+          "card_not_working",
+          "cancel_transfer",
+          "wrong_exchange_rate_for_cash_withdrawal",
+          "top_up_by_card_charge"
+        ],
+        "scores": [
+          -3.3299803733825684,
+          -2.1224985122680664,
+          -4.198805809020996,
+          -3.9143271446228027,
+          -3.9448039531707764,
+          0.8807241916656494
+        ],
+        "probabilities": [
+          0.013648762711338589,
+          0.04565580375014579,
+          0.005724890588199536,
+          0.007608774360200483,
+          0.0073803812256943765,
+          0.9199813873644211
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-07733",
+      "expected": [
+        "verify_top_up"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "verify_top_up",
+        "ranking": [
+          "verify_top_up",
+          "automatic_top_up",
+          "get_physical_card",
+          "getting_spare_card",
+          "pending_transfer",
+          "passcode_forgotten"
+        ],
+        "scores": [
+          -4.186826705932617,
+          -4.2342023849487305,
+          -3.3619651794433594,
+          -1.8585917949676514,
+          -4.696674346923828,
+          0.9824209213256836
+        ],
+        "probabilities": [
+          0.00523894210626492,
+          0.004996531195733141,
+          0.011952985936429218,
+          0.05375058231939983,
+          0.0031464409245682526,
+          0.9209145175176047
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-08199",
+      "expected": [
+        "virtual_card_not_working"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "virtual_card_not_working",
+        "ranking": [
+          "virtual_card_not_working",
+          "card_swallowed",
+          "verify_source_of_funds",
+          "transfer_not_received_by_recipient",
+          "get_physical_card",
+          "terminate_account"
+        ],
+        "scores": [
+          -3.9918112754821777,
+          -3.3916289806365967,
+          -3.325518846511841,
+          -3.567436695098877,
+          3.3836889266967773,
+          -3.3880841732025146
+        ],
+        "probabilities": [
+          0.0006232404513199276,
+          0.00113582517971826,
+          0.0012134524381680906,
+          0.0009527065957274168,
+          0.9949349167291711,
+          0.001139858605895137
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-04211",
+      "expected": [
+        "visa_or_mastercard"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "visa_or_mastercard",
+        "ranking": [
+          "visa_or_mastercard",
+          "verify_my_identity",
+          "exchange_via_app",
+          "get_disposable_virtual_card",
+          "pin_blocked",
+          "edit_personal_details"
+        ],
+        "scores": [
+          -4.262661933898926,
+          -5.274844646453857,
+          -4.820328712463379,
+          2.642793655395508,
+          -4.480191230773926,
+          -4.529940605163574
+        ],
+        "probabilities": [
+          0.0009987925750610642,
+          0.00036298605297254544,
+          0.0005718520739474475,
+          0.9964983011461923,
+          0.000803532656884936,
+          0.0007645354949417893
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-03835",
+      "expected": [
+        "why_verify_identity"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "why_verify_identity",
+        "ranking": [
+          "why_verify_identity",
+          "declined_transfer",
+          "verify_my_identity",
+          "request_refund",
+          "age_limit",
+          "exchange_rate"
+        ],
+        "scores": [
+          -3.1818671226501465,
+          -5.591684341430664,
+          -4.224109172821045,
+          -5.241921424865723,
+          -2.882267951965332,
+          -4.184385299682617
+        ],
+        "probabilities": [
+          0.3043015511377151,
+          0.027335929492149164,
+          0.10731593034800654,
+          0.03878233471377306,
+          0.4105995156508939,
+          0.11166473865746221
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-02413",
+      "expected": [
+        "wrong_amount_of_cash_received"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "wrong_amount_of_cash_received",
+        "ranking": [
+          "wrong_amount_of_cash_received",
+          "country_support",
+          "top_up_by_cash_or_cheque",
+          "disposable_card_limits",
+          "terminate_account",
+          "automatic_top_up"
+        ],
+        "scores": [
+          -4.096324920654297,
+          -2.7316834926605225,
+          -4.377500534057617,
+          2.557542085647583,
+          -3.6023082733154297,
+          -2.9999117851257324
+        ],
+        "probabilities": [
+          0.0012721351783789429,
+          0.0049795431982767365,
+          0.0009603294447059978,
+          0.9868950859468243,
+          0.0020848843350603557,
+          0.003808021896753588
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "id": "banking77-train-08275",
+      "expected": [
+        "wrong_exchange_rate_for_cash_withdrawal"
+      ],
+      "status": "ok",
+      "prediction": {
+        "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+        "selected": "wrong_exchange_rate_for_cash_withdrawal",
+        "ranking": [
+          "wrong_exchange_rate_for_cash_withdrawal",
+          "pending_cash_withdrawal",
+          "direct_debit_payment_not_recognised",
+          "card_swallowed",
+          "order_physical_card",
+          "change_pin"
+        ],
+        "scores": [
+          2.3698158264160156,
+          -1.9652447700500488,
+          -3.3947510719299316,
+          -3.5496881008148193,
+          -4.109903335571289,
+          -4.690844535827637
+        ],
+        "probabilities": [
+          0.9791281034378837,
+          0.012827635779622497,
+          0.0030712836060671276,
+          0.0026304595323472495,
+          0.0015022189624333256,
+          0.0008402986816459993
+        ]
+      },
+      "correct": true,
+      "latency_ms": 0.0,
+      "error": null
+    }
+  ],
+  "production_dtype_flag_added": false
+}

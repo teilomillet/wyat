@@ -1,0 +1,20 @@
+{
+  "command": [
+    "/Users/teilomillet/Code/wyat/.venv/bin/python",
+    "-S",
+    "/private/tmp/wyat-cuda-latency-audit.py",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-timing-b8.json",
+    "f72f3b8cbb61d9c6d40b8866d8afe6af59dcf0e9539c8e290e1aa76284d2d929",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-timing-b8-review.json",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-source-declaration-20261005.json",
+    "a26d5be45598c29e9fe6f1a0d0e620c22d0101f060eda730274d404498c7a0a4"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "reaped": true,
+  "cap_seconds": 60,
+  "elapsed_seconds": 1.200150584045332,
+  "stdout": "{\"path\": \"/Users/teilomillet/Code/wyat/benchmarks/analysis/results/cuda-latency-timing-b8-review.json\", \"sha256\": \"90cf3e329378d4ec7756c2fb7d79bc6e7377963c815bf53fc68af1c24ad2e8df\", \"attempted_rows\": 1078, \"numerical_passed\": true, \"performance\": {\"paired_ratios\": [1.0669610613767417, 1.064568123590334, 1.0660671052234083, 1.0742329499808811, 1.0625585181957125, 1.0604872098725069], \"median\": 1.065317614406871, \"p05\": 1.0610050369533082, \"aggregate\": 1.0658058455497357, \"cohort_p95_ratio\": 0.9369966103844943, \"passed\": true}}\n",
+  "stderr": "",
+  "script_sha256": "0af6e6efaa3795378d7d41de5f0b739f8f6f2d74fee035cb0de3c867dc8ed793"
+}

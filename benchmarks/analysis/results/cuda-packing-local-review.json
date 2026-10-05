@@ -1,0 +1,39 @@
+{
+  "scope": "Independent read-only team review plus root source/provenance receipt inspection; no recomputation",
+  "supported": true,
+  "reviewer": "/root/cuda_latency_audit",
+  "files": [
+    {
+      "path": "benchmarks/analysis/results/cuda-packing-probe-29e39581ac8d39e5.txt",
+      "sha256": "29e39581ac8d39e5c34c33484dd113515fd964615dae732c5709c1ca37050a7d",
+      "bytes": 13314
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-packing-feasibility.json",
+      "sha256": "20b4e8b71bfa332e431d08bf633cd3e6908abe87e2219238c51c2f32284b09f1",
+      "bytes": 2902
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-packing-provenance.json",
+      "sha256": "3496de12079e31b17fcc2bb0c597ccd5628200f678f70a1af0279f99440e1537",
+      "bytes": 10333
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-packing-owned-wall.json",
+      "sha256": "5b612293d594d7d9bab961d391f927d66a92e6c2c19a7d87c385cd7357fdc46e",
+      "bytes": 237
+    },
+    {
+      "path": "benchmarks/analysis/results/cuda-packing-collection-wall.json",
+      "sha256": "2bec3b19914aec261e71e53013545186214fe5b24df1e931dd06f5b1d95d2909",
+      "bytes": 1647
+    }
+  ],
+  "limits": [
+    "One localCPU real layer and captured activation; no fullmodel/CUDA/latency claim",
+    "Expired Parameter wrappers do not establish allocator/RSS release",
+    "Independent device transfers can destroy shared storage; explicit CUDA aliases require new evidence",
+    "Historical inherited environment and unrecorded before/after hashes remain unknown"
+  ],
+  "production_changed": false
+}

@@ -1,0 +1,37 @@
+{
+  "scope": "one real request through CLI with explicit512MiB allocator target; no latency claim",
+  "case_id": "banking77-train-05698",
+  "returncode": 0,
+  "prediction": {
+    "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+    "selected": "request_refund",
+    "ranking": [
+      "request_refund",
+      "Refund_not_showing_up",
+      "atm_support",
+      "declined_transfer",
+      "topping_up_by_card",
+      "extra_charge_on_statement"
+    ],
+    "scores": [
+      -3.166905164718628,
+      -2.461188793182373,
+      -3.7878594398498535,
+      2.323155403137207,
+      -4.077077865600586,
+      0.3924504518508911
+    ],
+    "probabilities": [
+      0.0035539430542712103,
+      0.007197790314425275,
+      0.0019100003617884965,
+      0.8610204662441603,
+      0.0014303011345818226,
+      0.12488749889077286
+    ]
+  },
+  "reference_quality_gate_passed": true,
+  "cli_sha256": "63779b59c455cb284dc08942d3481db855fd3089202d64d73a46b2957e48c1b0",
+  "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+  "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664"
+}

@@ -1,0 +1,35 @@
+{
+  "adapter": "wyat.interop.dmbench.as_dmbench",
+  "adapter_recipe": "dmbench-verbatim-choice-v1",
+  "adapter_sha256": "21637fed3c2496a4c0f3a52cd06e4b21d088821f6b1d2f83c9ec72beca7883bd",
+  "batch_adapter": "wyat.interop.dmbench.as_dmbench_batch",
+  "checks": {
+    "actual_dmbench_pytest_cases": 10,
+    "entire_chunk_validation_before_inference": true,
+    "explicit_batch_evaluation": "passed: caller order, probabilities, gold isolation, partial final chunk, real chunk timing",
+    "hypothesis_public_text_preservation": true,
+    "ruff": "passed",
+    "strict_mypy": "passed for adapter, package initializer and integration tests with canonical DMBench source on MYPYPATH"
+  },
+  "contract": {
+    "batch": "ordered tuples, native decide_many, no concurrency; empty returns empty, unsupported member rejects whole chunk",
+    "choices": "supplied IDs/text/order preserved",
+    "context": "empty",
+    "ownership": "DMBench case schemas, datasets, gold, scoring, groups and provenance; Wyat loading and inference",
+    "probabilities": "native choice softmax mapped by ID; not calibrated confidence",
+    "public_text": "verbatim Wyat query",
+    "unsupported": "choice-less requests raise; no invented choices or answers",
+    "usage": null,
+    "wyat_task": "choice"
+  },
+  "dmbench_source": "canonical /Users/teilomillet/Code/dmbench",
+  "dmbench_source_files_sha256": {
+    "docs/interface-contract.md": "f2c17229750de608c0b47e96bd53173cb00d2a059dba37f4d96d7de98e70aeb2",
+    "src/dmbench/__init__.py": "038fd8e7297ce3369531d9e293cdce25108df6d6769109f3a2ffaecde4488d8c",
+    "src/dmbench/api.py": "9b409120ce3d94164fa9d3a60ceb115074689521753c38a6796da90155246496",
+    "src/dmbench/evaluation.py": "f3a20ed6687cf437890b8e20416064e62c390f4c0d3648cef9e59d3216effa54"
+  },
+  "dmbench_version": "0.2.0",
+  "schema_version": 1,
+  "scope": "Optional choice-callable interoperability against current DMBench source; no model quality claim"
+}

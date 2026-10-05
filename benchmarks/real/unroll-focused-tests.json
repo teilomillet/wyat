@@ -1,0 +1,24 @@
+{
+  "command": [
+    ".venv/bin/pytest",
+    "-q",
+    "-rs",
+    "tests/analysis/test_mlx_unroll_kernel.py",
+    "tests/analysis/test_mlx_unroll_protocol.py"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "cap_seconds": 120,
+  "parent_seconds": 2.5070018339902163,
+  "child_pid": 33904,
+  "reaped": true,
+  "stdout": "............................................................             [100%]\n60 passed in 2.07s\n",
+  "source_sha256": {
+    "benchmarks/analysis/mlx/unroll/__init__.py": "6d83f42da8823852970f3c2755d618ae22468b596b7281ab076ca388bc716b86",
+    "benchmarks/analysis/mlx/unroll/kernel.py": "c2fb9c0fa3c23e18293f31c598e0be28ec575acd04b1e05908bc859984c6616a",
+    "benchmarks/analysis/mlx/unroll/run.py": "bcd6515108b24f3565ed05c3e875a522c6c46a355fee10693129e7f888119d69",
+    "benchmarks/analysis/mlx/unroll/study.py": "e6a5f4971732eacb98758727faf8aa26d4a1908eaee660f33c3f5e3e24befad3",
+    "tests/analysis/test_mlx_unroll_kernel.py": "c48a74734ed08f6bd9cceb98e0f6b3ea48ca3b4ddf38175be274c3a4579f35d8",
+    "tests/analysis/test_mlx_unroll_protocol.py": "d5659d06b18636e209ad903dab7355f21cf7aa75a453121f75e881adc16a7c5e"
+  }
+}

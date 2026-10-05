@@ -1,0 +1,298 @@
+{
+  "schema_version": 1,
+  "scope": "Independent read-only reconstruction of two completed CPU FP32 exact-prefix25 development assays; no new model run",
+  "verdict": "Both prepared batch-size confirmations satisfy all original numerical and prospective four CPU performance gates",
+  "production_promotion": "Not performed by reviewer; source is experiment-only and production lifecycle/integration remains a separate decision",
+  "total_raw_outputs_reconstructed": 2156,
+  "total_correct_outputs": 1876,
+  "same_executed_source_archive": true,
+  "shape_results": [
+    {
+      "batch_size": 8,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b8.json",
+          "sha256": "3d333417639b8f7cc5f5d49a4f2ccf4f2e9d3654d8df39b448aa62fb0d375d61"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b8.cycles.jsonl",
+          "sha256": "7aec4c6d8d779b133322df320f9598e1b512687b4f5332bfed2228aae9cb3fc1"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b8.wall.json",
+          "sha256": "cc6fd605d90bf9cf0c7e853a1f0b6e1d02dd8e30d6986dcf61397a1e1ddc89cc"
+        },
+        "source_archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b8.sources-d86eb841ae184bbb.json",
+          "sha256": "d86eb841ae184bbb6413418a86c542dc668eb14a310292b9cecfa1cfc3faeb31"
+        }
+      },
+      "reconstruction": {
+        "source_entries": 17,
+        "raw_outputs": 1078,
+        "correct": 938,
+        "errors": {
+          "cpu-full-prefill": [
+            9.5367431640625e-07,
+            2.9150456326565433e-08
+          ],
+          "cpu-exact-prefix25": [
+            9.834766387939453e-06,
+            1.5430003417193916e-06
+          ]
+        },
+        "ratios": [
+          1.1084496385091387,
+          1.1082159896106112,
+          1.0941595076406585,
+          1.0938676779696939,
+          1.1009749293718383
+        ],
+        "four_gates": {
+          "paired_median": 1.1009749293718383,
+          "paired_p05": 1.0939260439038867,
+          "aggregate_throughput_ratio": 1.1011660300924124,
+          "candidate_cohort_p95_ratio": 0.9021989360066079
+        },
+        "prefix_build_ms": 69.006041,
+        "per_shape_accepted": true
+      },
+      "quality_counts": {
+        "cycles": 14,
+        "cases_per_cycle": 77,
+        "successful_outputs": 1078,
+        "error_outputs": 0,
+        "full_ranking_matches": 1078,
+        "selection_matches": 1078,
+        "finite_outputs": 1078,
+        "strict_logit_passes": 1078,
+        "strict_probability_passes": 1078,
+        "correct_outputs": 938,
+        "correct_per_cycle": 67
+      },
+      "process": {
+        "parent_terminal_report": "CPU owner/root reported native parent and child exited 0; reconciles with retained owned-launcher wall receipt",
+        "wall": {
+          "command": [
+            "/Users/teilomillet/Code/wyat/.venv/bin/python",
+            "-m",
+            "benchmarks.analysis.torch.prefix.run",
+            "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+            "--output",
+            "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b8.json",
+            "--pairs",
+            "--batch-size",
+            "8",
+            "--worker"
+          ],
+          "timeout_seconds": 180,
+          "completed": true,
+          "timed_out": false,
+          "inductor_cache": "/var/folders/j5/d3tnw1ss41g29qttjgv4dhjr0000gn/T/torchinductor_teilomillet",
+          "exit_code": 0,
+          "elapsed_seconds": 80.54212420899421
+        }
+      },
+      "source_sha256": {
+        "artifact": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+        "backend": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+        "benchmark": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+        "cache": "136b3d85b4496b6c4d614a676bdfd4f32e926b88eafe9a88c7cf1e173e8390b5",
+        "candidate": "4aa9f8bc2432f47787cb4797b8ce3a87151aecd138b82cef75cfe9c9c270d3d6",
+        "core": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+        "encoding": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+        "evaluation": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+        "evidence": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+        "launcher": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+        "mask": "100c7fce03f65deeb83031152d5cafd3030c2173b3a8bec1803b6739996d682f",
+        "pairs": "b6a402179b0ed412b648f8205b02e4a24a2dba0139f42c7ca161a37c1272c08d",
+        "qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+        "reference": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+        "runner": "a0d068515cade7dcc19fddbc509c96d28c54072bf45cbfb8ec23ffdeaf2de36e",
+        "screen": "80c98506a623379cf97ac7e62aa733fb2b4e4022db52f51c42514a782d5ee6fc",
+        "sdpa": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad"
+      },
+      "canonical_input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8",
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "prefix_state_bytes": 5734400,
+      "performance_gate": {
+        "paired_median_minimum": 1.02,
+        "paired_p05_minimum_exclusive": 1.0,
+        "aggregate_throughput_ratio_minimum_exclusive": 1.0,
+        "candidate_cohort_p95_maximum_ratio": 1.0,
+        "declaration": "CPU confirmation strengthened before full77 results"
+      },
+      "protocol": {
+        "dtype": "float32",
+        "device": "cpu",
+        "threads": 8,
+        "max_length": 512,
+        "token_cache_size": 0,
+        "prefix_length": 25,
+        "warmup": 1,
+        "pairs": 5,
+        "order": "alternating baseline/candidate",
+        "context": "native Mac, unchanged HF flags",
+        "full_final_block": true,
+        "timing": "prefix build excluded; all fresh cache copying inside inference",
+        "promotion": "both B8 and separate B1 must pass; this receipt is one shape",
+        "memory": "shared cumulative RSS high-water, not per-engine peak"
+      }
+    },
+    {
+      "batch_size": 1,
+      "evidence": {
+        "receipt": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b1.json",
+          "sha256": "525cfce1066c6c1d3064838de85e9bbf880f71031596e56662c8c1d61badc915"
+        },
+        "journal": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b1.cycles.jsonl",
+          "sha256": "466d812155eaddf8f1b6aaf7f7808868986c47e7abb2dc59039c13b3dac383f0"
+        },
+        "wall": {
+          "path": "benchmarks/analysis/results/torch-prefix77-b1.wall.json",
+          "sha256": "b5e5be5fcf07fac2c0bee01070c55affc0aefe24cce2a66a47e5acaed0a9f79e"
+        },
+        "source_archive": {
+          "path": "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b1.sources-d86eb841ae184bbb.json",
+          "sha256": "d86eb841ae184bbb6413418a86c542dc668eb14a310292b9cecfa1cfc3faeb31"
+        }
+      },
+      "reconstruction": {
+        "source_entries": 17,
+        "raw_outputs": 1078,
+        "correct": 938,
+        "errors": {
+          "cpu-full-prefill": [
+            1.430511474609375e-06,
+            1.0496957181249655e-07
+          ],
+          "cpu-exact-prefix25": [
+            9.953975677490234e-06,
+            1.5595056228612236e-06
+          ]
+        },
+        "ratios": [
+          1.0760951842658857,
+          1.0768426710353423,
+          1.0740072402057883,
+          1.0801663319460018,
+          1.0761037188080156
+        ],
+        "four_gates": {
+          "paired_median": 1.0761037188080156,
+          "paired_p05": 1.0744248290178078,
+          "aggregate_throughput_ratio": 1.0766410604562568,
+          "candidate_cohort_p95_ratio": 0.9287237309617202
+        },
+        "prefix_build_ms": 67.698375,
+        "per_shape_accepted": true
+      },
+      "quality_counts": {
+        "cycles": 14,
+        "cases_per_cycle": 77,
+        "successful_outputs": 1078,
+        "error_outputs": 0,
+        "full_ranking_matches": 1078,
+        "selection_matches": 1078,
+        "finite_outputs": 1078,
+        "strict_logit_passes": 1078,
+        "strict_probability_passes": 1078,
+        "correct_outputs": 938,
+        "correct_per_cycle": 67
+      },
+      "process": {
+        "parent_terminal_report": "CPU owner/root reported native parent and child exited 0; reconciles with retained owned-launcher wall receipt",
+        "wall": {
+          "command": [
+            "/Users/teilomillet/Code/wyat/.venv/bin/python",
+            "-m",
+            "benchmarks.analysis.torch.prefix.run",
+            "/Users/teilomillet/Code/wyat/.models/Decision-2.0-Kai-0.6B",
+            "--output",
+            "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/torch-prefix77-b1.json",
+            "--pairs",
+            "--batch-size",
+            "1",
+            "--worker"
+          ],
+          "timeout_seconds": 180,
+          "completed": true,
+          "timed_out": false,
+          "inductor_cache": "/var/folders/j5/d3tnw1ss41g29qttjgv4dhjr0000gn/T/torchinductor_teilomillet",
+          "exit_code": 0,
+          "elapsed_seconds": 129.28290845802985
+        }
+      },
+      "source_sha256": {
+        "artifact": "2a39acc0f04531503403b4795bce09ada8fe912d9f5b5bb8f0b49a1307a7019a",
+        "backend": "6fda99b097a3dd7fbe001fb6d3e28d8913c72a3de2781b2bca9e832c4cae9a05",
+        "benchmark": "453041bbefe7a48290d8f4e79b599e3f7b9b2b75aedc04ae8a6a85a3105bdb76",
+        "cache": "136b3d85b4496b6c4d614a676bdfd4f32e926b88eafe9a88c7cf1e173e8390b5",
+        "candidate": "4aa9f8bc2432f47787cb4797b8ce3a87151aecd138b82cef75cfe9c9c270d3d6",
+        "core": "3dd97fc424c3bbe86c8ca88d4dc33eb0f9c2c61d4c8e57f45dd2dfea6ac905d8",
+        "encoding": "f25815f873d2048238d14fe336b0a9c3d36052ed666d0e6481ace841a0201ef5",
+        "evaluation": "3747a5169a7a2f2abc5f1d8ff433ce2b0912bc3e238807ea6b6d3437bc12a381",
+        "evidence": "d84b1274732acf67e00a3c1f049acb46cc69ba619f7aab48d602a3897cde0d69",
+        "launcher": "c500afe783bdb9c30f5b422d4e7737b157f7644bccd49e73e1835f6240bb4c12",
+        "mask": "100c7fce03f65deeb83031152d5cafd3030c2173b3a8bec1803b6739996d682f",
+        "pairs": "b6a402179b0ed412b648f8205b02e4a24a2dba0139f42c7ca161a37c1272c08d",
+        "qwen3": "849d80c7674793b313bc3f8f0843b42ccda28f0bd5e4edff5280b22e4b596641",
+        "reference": "54cd1da47bcbe2d055c103348b9da523c98213b47c7d609aebe68eb96069b394",
+        "runner": "a0d068515cade7dcc19fddbc509c96d28c54072bf45cbfb8ec23ffdeaf2de36e",
+        "screen": "80c98506a623379cf97ac7e62aa733fb2b4e4022db52f51c42514a782d5ee6fc",
+        "sdpa": "cc0ddaf52ca0fb84670154bed07860917f999a8cec047263a145a6be28ab8aad"
+      },
+      "canonical_input_sha256": "fd5dd942250c6416c4ab50c59a5164a20909d11ead12bf83c505efff6a5556e8",
+      "model_id": "kai:1f5525e01de43a724c71824579ef5195595fba916ce1e02be7bbbbea50f25cee",
+      "dataset_sha256": "0020d9a3c72a21941ba551cf31f404187f69c6a5dc30299cc0a24d303b904a03",
+      "reference_sha256": "b8a90b31941b60e793357a8cb360767520da70ec33d2161c1242606962b22664",
+      "prefix_state_bytes": 5734400,
+      "performance_gate": {
+        "paired_median_minimum": 1.02,
+        "paired_p05_minimum_exclusive": 1.0,
+        "aggregate_throughput_ratio_minimum_exclusive": 1.0,
+        "candidate_cohort_p95_maximum_ratio": 1.0,
+        "declaration": "CPU confirmation strengthened before full77 results"
+      },
+      "protocol": {
+        "dtype": "float32",
+        "device": "cpu",
+        "threads": 8,
+        "max_length": 512,
+        "token_cache_size": 0,
+        "prefix_length": 25,
+        "warmup": 1,
+        "pairs": 5,
+        "order": "alternating baseline/candidate",
+        "context": "native Mac, unchanged HF flags",
+        "full_final_block": true,
+        "timing": "prefix build excluded; all fresh cache copying inside inference",
+        "promotion": "both B8 and separate B1 must pass; this receipt is one shape",
+        "memory": "shared cumulative RSS high-water, not per-engine peak"
+      }
+    }
+  ],
+  "integrity_challenges": {
+    "finite_nonnegative_normalized_probabilities": true,
+    "recorded_ranking_reconstructed_from_supplied_order_and_probabilities": true,
+    "journal_equals_receipt_cycles": true,
+    "all_screen_warmup_measured_cycles_retained": true,
+    "all_five_pairs_used": true,
+    "archive_text_sha_matches_declared_and_current_disk_bytes": true,
+    "canonical_full_cohort_input_hash_reconstructed": true
+  },
+  "limits": [
+    "Fixed 77 BANKING77 training-source development cases with six supplied candidates; model exposure unknown; no held-out or arbitrary traffic quality claim.",
+    "One Mac/native Torch 2.14.1 + Transformers 5.18.0 context, FP32 CPU/eight threads, max_length512/token cache0; no CUDA or other CPU portability claim.",
+    "Five paired repetitions per shape; percentiles describe these observations, not confidence intervals.",
+    "Prefix build excluded from ordinary inference and reported separately; fresh cache seeding/copying remains charged inside inference.",
+    "RSS is a shared cumulative process high-water observation, not per-engine live or peak allocation; snapshot logical bytes do not include extended/transient KV copies.",
+    "Source archives freeze setup disk bytes and match held source; do not attest every dependency or loaded native binary.",
+    "Process-terminal statements combine direct owner/root observation with the retained wall receipts; reviewer did not launch or rerun models.",
+    "Probability normalization/rank reconstruction is a post-execution integrity challenge, not a new promotion gate."
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "status": "awaiting explicit authorization for changed payload",
+  "destination": "ssh gpu:/home/teilo/tmp/wyat-cuda-20261005",
+  "payload_files": [
+    "benchmarks/analysis/cuda/shape/__init__.py",
+    "benchmarks/analysis/cuda/shape/run.py",
+    "benchmarks/analysis/cuda/shape/study.py",
+    "tests/analysis/test_cuda_shape.py",
+    "docs/analysis/shape.md",
+    "benchmarks/analysis/results/cuda-shape-source-declaration-20261005.json",
+    "benchmarks/analysis/results/cuda-latency-timing-b1-review.json",
+    "benchmarks/analysis/results/cuda-latency-shape-review.json"
+  ],
+  "declaration_sha256": "16067a59ecebe08ff86fb6e101f8af568dd96d16a49bc6f62e4ad1aee31db79b",
+  "independent_source_review_sha256": "acf998a6218a27b52b0a615f15dbed3a63131a82263c6c079216432fbb8d28ac",
+  "native_local_verification_sha256": "e9946d7960edf45cc81d260b8b4226960685d358b689e4efe52e7403eda9308c",
+  "worker_cap_seconds": 180,
+  "transfer_started": false,
+  "gpu_job_started": false,
+  "auto_review_reason": "This transfers private source, tests, documentation, declarations and review artifacts to an external SSH destination; the user authorized an earlier eight-file transfer, but did not clearly authorize this changed payload, so specific sensitive-egress approval is missing.",
+  "authorization_requested": true,
+  "limits": [
+    "Elapsed time supplies no authorization",
+    "Original approved first-eight screen and later full77 studies are already preserved",
+    "This status file is local only and is not included in the transfer"
+  ]
+}

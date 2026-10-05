@@ -1,0 +1,26 @@
+{
+  "scope": "Local stdlib serialization of representative largest B1 payload using existing raw rows; no framework/GPU import; not remote wall prediction",
+  "cohorts": 14,
+  "chunks": 1078,
+  "source_case": "cuda-fp32-b1.json canonical77",
+  "measurements": {
+    "2": {
+      "bytes": 4794503,
+      "serialization_ms": [
+        57.082166,
+        56.155416,
+        56.357708,
+        55.8945
+      ]
+    },
+    "None": {
+      "bytes": 2899467,
+      "serialization_ms": [
+        14.318875,
+        14.209958,
+        14.158,
+        14.202416
+      ]
+    }
+  }
+}

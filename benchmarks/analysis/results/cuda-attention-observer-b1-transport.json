@@ -1,0 +1,19 @@
+{
+  "source": "import base64, hashlib, json, subprocess\nfrom pathlib import Path\nroot=Path(\"/home/teilo/tmp/wyat-cuda-20261005\")\nbase=root/\"benchmarks/analysis/results/cuda-attention-observer-b1.json\"\nsaved=json.loads(base.read_text())\npaths=[base,base.with_suffix(\".wall.json\"),base.with_suffix(\".log\")]\nif \"source_archive\" in saved:\n    paths.append(Path(saved[\"source_archive\"][\"path\"]))\nfiles=[]\nfor path in paths:\n    data=path.read_bytes()\n    files.append({\"path\":str(path.relative_to(root)),\"bytes\":len(data),\"sha256\":hashlib.sha256(data).hexdigest(),\"base64\":base64.b64encode(data).decode(\"ascii\")})\nqueries=[]\nfor command in ([\"nvidia-smi\",\"--query-gpu=memory.used,utilization.gpu\",\"--format=csv,noheader,nounits\"],[\"nvidia-smi\",\"--query-compute-apps=pid,process_name,used_memory\",\"--format=csv,noheader,nounits\"],[\"pgrep\",\"-af\",\"benchmarks.analysis.cuda.attention.run\"]):\n    result=subprocess.run(command,capture_output=True,text=True,timeout=5,check=False)\n    queries.append({\"command\":command,\"exit_code\":result.returncode,\"stdout\":result.stdout,\"stderr\":result.stderr})\nprint(json.dumps({\"files\":files,\"release_queries\":queries,\"summary\":{key:saved.get(key) for key in (\"completed\",\"quality_passed\",\"dispatch_passed\",\"phase\",\"error\",\"case_ids\",\"unknown_case_ids\",\"math_drift\",\"efficient_drift\")}},sort_keys=True))\n",
+  "command": [
+    "ssh",
+    "-o",
+    "BatchMode=yes",
+    "-o",
+    "ConnectTimeout=8",
+    "gpu",
+    "cd /home/teilo/tmp/wyat-cuda-20261005 && timeout 60s env/bin/python -"
+  ],
+  "exit_code": 0,
+  "timed_out": false,
+  "cap_seconds": 90,
+  "remote_cap_seconds": 60,
+  "elapsed_seconds": 2.3938142920378596,
+  "stderr": "",
+  "stdout_path": "/private/tmp/wyat-attention-observer-b1-copy.json"
+}
