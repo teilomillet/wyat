@@ -41,7 +41,15 @@ def product(projection: Linear, value: mx.array) -> mx.array:
     expected = projection.weight.dtype
     if expected not in (mx.bfloat16, mx.float32) or value.dtype != expected:
         raise ValueError("Declared projection operands must share their dtype")
-    result = projection(value)
+    if expected == mx.bfloat16 and mx.default_device().type == mx.cpu:
+        # Some CPU kernels round BF16 ties away from zero. Widen the maintained
+        # Linear, then make the declared nearest-even output rounding explicit.
+        result = projection(value.astype(mx.float32))
+        if result.dtype != mx.float32:
+            raise ValueError("CPU BF16 emulation must produce an FP32 intermediate")
+        result = result.astype(mx.bfloat16)
+    else:
+        result = projection(value)
     if result.dtype != expected:
         raise ValueError("Unexpected projection promotion changes the declared recipe")
     return result.astype(mx.float32)

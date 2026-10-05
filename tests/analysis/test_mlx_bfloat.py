@@ -220,6 +220,21 @@ def test_inexact_or_nonfinite_source_parameters_rejected(value: float) -> None:
             exact_bfloat_linear(projection)
 
 
+@pytest.mark.parametrize(
+    ("weight", "expected"),
+    [(0.1240234375, 0.04638671875), (-0.1240234375, -0.04638671875)],
+)
+def test_cpu_bfloat_product_rounds_halfway_to_even(
+    weight: float, expected: float
+) -> None:
+    with mx.stream(mx.cpu):
+        projection = Linear(1, 1, bias=False)
+        projection.weight = mx.array([[weight]], dtype=mx.bfloat16)
+        result = product(projection, mx.array([[0.375]], dtype=mx.bfloat16))
+        assert result.dtype == mx.float32
+        assert cast(float, result.item()) == expected
+
+
 def test_dtype_bias_and_unknown_arm_boundaries(backbone: Qwen3Model) -> None:
     with mx.stream(mx.cpu):
         with pytest.raises(ValueError, match="bias-free"):

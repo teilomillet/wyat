@@ -114,3 +114,26 @@ pinned identities, and confirmed the non-passing parent status. These results
 are limited to this pinned checkpoint and development cohort, with no held-out
 quality or performance claim. Parent and child processes exited and the coordinated
 CPU/RAM/Metal window was released before any subsequent work.
+
+## Current CPU compatibility
+
+The [hosted macOS check](https://github.com/teilomillet/wyat/actions/runs/37357181906)
+exposed a CPU rounding difference with MLX 0.32.3. For one nonzero input term,
+eight gate/up products disagreed, all at exact BF16 halfway values: the hosted MLX CPU
+matmul rounded away from zero, whereas Torch 2.14.1 and an independent
+nearest-even calculation agreed. The [captured stages](../../benchmarks/real/ci/bfloat/hosted.json)
+retain the tiny seeded fixture, inputs and both implementations' outputs.
+The [independent evaluation](../../benchmarks/real/ci/bfloat/independent.json)
+retains its source and input hash. It uses an exact one-term product and explicit
+BF16 nearest-even rounding; its later SiLU calculations are numerical references.
+The failing source was commit `191963ebfe1ef52fb635880a9c5a0a5c865c90f9`.
+
+Current CPU experiments widen the BF16 operand to FP32 for the maintained
+Linear operation, then explicitly cast its output to BF16 before restoring
+FP32. Exact BF16 weights promote to FP32 without changing their values. This
+keeps the declared rounding explicit in the CPU recipe. It is CPU
+emulation, with no native BF16 throughput claim. GPU execution retains its
+maintained BF16 Linear products. The original Torch oracle, tolerances and
+whole-model acceptance gates remain unchanged. The recorded GPU protocol,
+source archives and rejected outcomes above remain historical evidence; a new
+experiment must freeze its current sources and pass the same gates.

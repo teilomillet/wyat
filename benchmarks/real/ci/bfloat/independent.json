@@ -1,0 +1,352 @@
+{
+  "arm": "all-gate-up",
+  "reference": {
+    "gate": [
+      -0.00238037109375,
+      -0.022216796875,
+      0.07568359375,
+      0.076171875,
+      -0.017333984375,
+      -0.025390625,
+      -0.032958984375,
+      -0.072265625,
+      -0.080078125,
+      0.0517578125,
+      -0.042724609375,
+      0.000629425048828125,
+      -0.06884765625,
+      -0.037109375,
+      0.07470703125,
+      -0.09375,
+      0.0303955078125,
+      -0.016357421875,
+      0.08056640625,
+      -0.01043701171875,
+      -0.0791015625,
+      -0.0693359375,
+      -0.068359375,
+      -0.024658203125,
+      0.05712890625,
+      0.04638671875,
+      -0.08740234375,
+      0.0546875,
+      -0.0888671875,
+      -0.00360107421875,
+      -0.062255859375,
+      0.06982421875
+    ],
+    "up": [
+      -0.027099609375,
+      -0.02099609375,
+      0.0142822265625,
+      -0.0537109375,
+      -0.01416015625,
+      0.0556640625,
+      -0.0771484375,
+      0.06201171875,
+      0.08056640625,
+      -0.056640625,
+      0.0615234375,
+      0.09375,
+      -0.0341796875,
+      0.042724609375,
+      -0.07177734375,
+      0.0576171875,
+      -0.00860595703125,
+      -0.0380859375,
+      -0.0615234375,
+      0.0303955078125,
+      0.036865234375,
+      0.0693359375,
+      -0.039794921875,
+      0.0634765625,
+      -0.0223388671875,
+      -0.0022125244140625,
+      -0.07080078125,
+      0.025634765625,
+      0.04052734375,
+      -0.03857421875,
+      0.0322265625,
+      -0.057861328125
+    ],
+    "activation": [
+      3.221517545171082e-05,
+      0.00023064222477842122,
+      0.0005609075305983424,
+      -0.002123503480106592,
+      0.00012166232772869989,
+      -0.0006977017037570477,
+      0.0012504174374043941,
+      -0.0021597316954284906,
+      -0.003096714150160551,
+      -0.0015037222765386105,
+      -0.0012862106086686254,
+      2.9513583285734057e-05,
+      0.0011361087672412395,
+      -0.0007780343876220286,
+      -0.0027812395710498095,
+      -0.0025742980651557446,
+      -0.00013277879043016583,
+      0.00030894632800482213,
+      -0.002578143496066332,
+      -0.00015779139357618988,
+      -0.0014004119439050555,
+      -0.0023204367607831955,
+      0.0013137055793777108,
+      -0.0007729606004431844,
+      -0.0006563194910995662,
+      -5.2505845815176144e-05,
+      0.0029589482583105564,
+      0.0007201124681159854,
+      -0.0017208133358508348,
+      6.932926044100896e-05,
+      -0.0009719303925521672,
+      -0.002090557012706995
+    ],
+    "down": [
+      -0.00208214670419693,
+      -0.0011019425000995398,
+      -0.00019158128998242319,
+      0.0008266473305411637,
+      -0.00021845301671419293,
+      -0.00018692115554586053,
+      0.0008336352184414864,
+      -0.00044191203778609633,
+      -0.0022131551522761583,
+      -0.0003615447785705328,
+      -0.0012456864351406693,
+      0.0005000111414119601,
+      -0.0011316342279314995,
+      -8.337316830875352e-05,
+      -0.00034938714816235006,
+      0.0013073751470074058
+    ]
+  },
+  "comparisons": {
+    "mlx": {
+      "gate": {
+        "max_abs": 0.000244140625,
+        "unequal_indices": [
+          4,
+          5,
+          23,
+          25
+        ],
+        "original_tolerance_failures": [
+          4,
+          5,
+          23,
+          25
+        ]
+      },
+      "up": {
+        "max_abs": 0.00048828125,
+        "unequal_indices": [
+          3,
+          4,
+          9,
+          23
+        ],
+        "original_tolerance_failures": [
+          3,
+          4,
+          9,
+          23
+        ]
+      },
+      "activation": {
+        "max_abs": 9.753566700965166e-06,
+        "unequal_indices": [
+          3,
+          4,
+          5,
+          7,
+          9,
+          10,
+          14,
+          15,
+          16,
+          23,
+          24,
+          25,
+          28,
+          30,
+          31
+        ],
+        "original_tolerance_failures": [
+          3,
+          5,
+          9,
+          23
+        ]
+      },
+      "down": {
+        "max_abs": 3.543100319802761e-06,
+        "unequal_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ],
+        "original_tolerance_failures": [
+          5,
+          6,
+          13
+        ]
+      }
+    },
+    "torch": {
+      "gate": {
+        "max_abs": 0.0,
+        "unequal_indices": [],
+        "original_tolerance_failures": []
+      },
+      "up": {
+        "max_abs": 0.0,
+        "unequal_indices": [],
+        "original_tolerance_failures": []
+      },
+      "activation": {
+        "max_abs": 2.3283064365386963e-10,
+        "unequal_indices": [
+          7,
+          10,
+          15,
+          28,
+          30
+        ],
+        "original_tolerance_failures": []
+      },
+      "down": {
+        "max_abs": 2.3283064365386963e-10,
+        "unequal_indices": [
+          0,
+          2,
+          3,
+          4,
+          5,
+          7,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14
+        ],
+        "original_tolerance_failures": []
+      }
+    }
+  },
+  "cross_backend": {
+    "gate": {
+      "max_abs": 0.000244140625,
+      "unequal_indices": [
+        4,
+        5,
+        23,
+        25
+      ],
+      "original_tolerance_failures": [
+        4,
+        5,
+        23,
+        25
+      ]
+    },
+    "up": {
+      "max_abs": 0.00048828125,
+      "unequal_indices": [
+        3,
+        4,
+        9,
+        23
+      ],
+      "original_tolerance_failures": [
+        3,
+        4,
+        9,
+        23
+      ]
+    },
+    "activation": {
+      "max_abs": 9.753566700965166e-06,
+      "unequal_indices": [
+        3,
+        4,
+        5,
+        9,
+        14,
+        16,
+        23,
+        24,
+        25,
+        31
+      ],
+      "original_tolerance_failures": [
+        3,
+        5,
+        9,
+        23
+      ]
+    },
+    "down": {
+      "max_abs": 3.543100319802761e-06,
+      "unequal_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "original_tolerance_failures": [
+        5,
+        6,
+        13
+      ]
+    }
+  },
+  "first_cross_backend_unequal_stage": "gate",
+  "bf16_product_mismatch_stages": {
+    "mlx": [
+      "gate",
+      "up"
+    ],
+    "torch": []
+  },
+  "sparse_product_exact_fp32_before_rounding": true,
+  "verdict": "BF16 product rounding discrepancy localized",
+  "limits": "Sparse one-term BF16 operands yield an exactly representable F32 product before explicit BF16 ties-even rounding. Dense math.fsum contractions are numerical references, not a formal proof. Activation uses double math.exp; later-stage unequal bits alone do not establish incorrectness.",
+  "input_sha256": "993fa08f5f7aabb034040cfeb7125f81af47571428d402e3b74ce43cadae673d",
+  "evaluator_sha256": "be68843be546179e2cdcbd87a47c111705cf1e745162af85ae0ebc41bf774f95",
+  "evaluator_text": "\"\"\"Independent small BF16 stage evaluator; no MLX/Torch/framework imports.\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport hashlib\nimport json\nimport math\nimport struct\nfrom pathlib import Path\nfrom typing import cast\n\nMatrix = list[list[float]]\n\n\ndef object_map(value: object) -> dict[str, object]:\n    if not isinstance(value, dict) or not all(isinstance(key, str) for key in value):\n        raise ValueError(\"Expected JSON object with string keys\")\n    return cast(dict[str, object], value)\n\n\ndef matrix(value: object, rows: int, columns: int) -> Matrix:\n    if not isinstance(value, list) or len(value) != rows:\n        raise ValueError(\"Tiny fixture row count differs\")\n    result: Matrix = []\n    for row in cast(list[object], value):\n        if not isinstance(row, list) or len(row) != columns:\n            raise ValueError(\"Tiny fixture column count differs\")\n        converted: list[float] = []\n        for item in cast(list[object], row):\n            if type(item) not in (int, float):\n                raise ValueError(\"Expected ordinary finite JSON number\")\n            number = float(cast(int | float, item))\n            if not math.isfinite(number):\n                raise ValueError(\"Nonfinite fixture value\")\n            converted.append(number)\n        result.append(converted)\n    return result\n\n\ndef f32(value: float) -> float:\n    return cast(float, struct.unpack(\"<f\", struct.pack(\"<f\", value))[0])\n\n\ndef bf16(value: float) -> float:\n    \"\"\"IEEE nearest, ties-even BF16 from finite F32, independent of frameworks.\"\"\"\n    bits = cast(int, struct.unpack(\"<I\", struct.pack(\"<f\", value))[0])\n    rounded = ((bits + 0x7FFF + ((bits >> 16) & 1)) >> 16) << 16\n    return cast(float, struct.unpack(\"<f\", struct.pack(\"<I\", rounded))[0])\n\n\ndef linear(value: list[float], weights: Matrix, *, reduced: bool) -> list[float]:\n    operand = [bf16(item) for item in value] if reduced else value\n    return [\n        (bf16 if reduced else f32)(\n            math.fsum(\n                x * (bf16(w) if reduced else w)\n                for x, w in zip(operand, row, strict=True)\n            )\n        )\n        for row in weights\n    ]\n\n\ndef difference(actual: list[float], expected: list[float]) -> dict[str, object]:\n    absolute = [abs(a - e) for a, e in zip(actual, expected, strict=True)]\n    return {\n        \"max_abs\": max(absolute),\n        \"unequal_indices\": [\n            index\n            for index, (a, e) in enumerate(zip(actual, expected, strict=True))\n            if a != e\n        ],\n        \"original_tolerance_failures\": [\n            index\n            for index, (a, e) in enumerate(zip(actual, expected, strict=True))\n            if abs(a - e) > 2e-6 + 2e-5 * abs(e)\n        ],\n    }\n\n\ndef evaluate(payload: dict[str, object]) -> dict[str, object]:\n    arm = payload[\"arm\"]\n    if arm not in (\"all-down\", \"all-gate-up\", \"all-mlp\"):\n        raise ValueError(\"Unknown fixed arm\")\n    value = matrix(payload[\"input\"], 1, 16)[0]\n    if any(abs(item) > 2 or item * 8 != round(item * 8) for item in value):\n        raise ValueError(\"Input differs from declared eighth-integer tiny fixture\")\n    weights_object = object_map(payload[\"weights\"])\n    weights = {\n        \"gate\": matrix(weights_object[\"gate\"], 32, 16),\n        \"up\": matrix(weights_object[\"up\"], 32, 16),\n        \"down\": matrix(weights_object[\"down\"], 16, 32),\n    }\n    for weight in weights.values():\n        if any(abs(item) > 2 or bf16(item) != item for row in weight for item in row):\n            raise ValueError(\"Source weights must be finite, bounded, exact BF16\")\n    stages: dict[str, dict[str, list[float]]] = {}\n    for backend in (\"mlx\", \"torch\"):\n        observed = object_map(payload[backend])\n        stages[backend] = {\n            \"gate\": matrix(observed[\"gate\"], 1, 32)[0],\n            \"up\": matrix(observed[\"up\"], 1, 32)[0],\n            \"activation\": matrix(observed[\"activation\"], 1, 32)[0],\n            \"down\": matrix(observed[\"down\"], 1, 16)[0],\n        }\n    gate = linear(value, weights[\"gate\"], reduced=arm != \"all-down\")\n    up = linear(value, weights[\"up\"], reduced=arm != \"all-down\")\n    # Double-exp SiLU rounded to F32, then explicit F32 product. This bounds a\n    # numerical reference; it does not prove a transcendental implementation.\n    activation = [\n        f32(f32(g / (1 + math.exp(-g))) * u) for g, u in zip(gate, up, strict=True)\n    ]\n    reference = {\n        \"gate\": gate,\n        \"up\": up,\n        \"activation\": activation,\n        \"down\": linear(activation, weights[\"down\"], reduced=arm != \"all-gate-up\"),\n    }\n    comparisons = {\n        backend: {\n            name: difference(observed[name], reference[name])\n            for name in (\"gate\", \"up\", \"activation\", \"down\")\n        }\n        for backend, observed in stages.items()\n    }\n    cross_backend = {\n        name: difference(stages[\"mlx\"][name], stages[\"torch\"][name])\n        for name in (\"gate\", \"up\", \"activation\", \"down\")\n    }\n    product_mismatches = {\n        backend: [\n            name for name in (\"gate\", \"up\") if stages[backend][name] != reference[name]\n        ]\n        for backend in stages\n    }\n    first_divergent = next(\n        (\n            name\n            for name in (\"gate\", \"up\", \"activation\", \"down\")\n            if stages[\"mlx\"][name] != stages[\"torch\"][name]\n        ),\n        None,\n    )\n    sparse_exact = sum(item != 0 for item in value) <= 1\n    return {\n        \"arm\": arm,\n        \"reference\": reference,\n        \"comparisons\": comparisons,\n        \"cross_backend\": cross_backend,\n        \"first_cross_backend_unequal_stage\": first_divergent,\n        \"bf16_product_mismatch_stages\": product_mismatches,\n        \"sparse_product_exact_fp32_before_rounding\": sparse_exact,\n        \"verdict\": (\n            \"BF16 product rounding discrepancy localized\"\n            if sparse_exact and any(product_mismatches.values())\n            else \"No BF16 product rounding discrepancy; later-stage cause unknown\"\n        ),\n        \"limits\": (\n            \"Sparse one-term BF16 operands yield an exactly representable F32 product \"\n            \"before explicit BF16 ties-even rounding. Dense math.fsum contractions \"\n            \"are numerical references, not a formal proof. Activation uses double \"\n            \"math.exp; later-stage unequal bits alone do not establish incorrectness.\"\n        ),\n    }\n\n\ndef main() -> None:\n    parser = argparse.ArgumentParser(description=__doc__)\n    parser.add_argument(\"input\", type=Path)\n    parser.add_argument(\"output\", type=Path)\n    args = parser.parse_args()\n    input_path = cast(Path, args.input)\n    output_path = cast(Path, args.output)\n    input_bytes = input_path.read_bytes()\n    decoded: object = json.loads(input_bytes)\n    payload = object_map(decoded)\n    if \"diagnostic\" in payload:\n        payload = object_map(payload[\"diagnostic\"])\n    source = Path(__file__).read_bytes()\n    result = evaluate(payload)\n    result.update(\n        {\n            \"input_sha256\": hashlib.sha256(input_bytes).hexdigest(),\n            \"evaluator_sha256\": hashlib.sha256(source).hexdigest(),\n            \"evaluator_text\": source.decode(),\n            \"recorded_runtime\": payload.get(\"runtime\"),\n        }\n    )\n    with output_path.open(\"x\") as output:\n        output.write(json.dumps(result, indent=2, allow_nan=False) + \"\\n\")\n    print(\n        json.dumps(\n            {\n                key: result[key]\n                for key in (\n                    \"input_sha256\",\n                    \"evaluator_sha256\",\n                    \"first_cross_backend_unequal_stage\",\n                    \"bf16_product_mismatch_stages\",\n                    \"verdict\",\n                )\n            }\n        )\n    )\n\n\nif __name__ == \"__main__\":\n    main()\n",
+  "recorded_runtime": {
+    "platform": "macOS-15.7.9-arm64-arm-64bit",
+    "torch": "2.14.1",
+    "mlx": "0.32.3",
+    "threads": 8,
+    "stream": "cpu"
+  }
+}
