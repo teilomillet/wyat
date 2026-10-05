@@ -28,8 +28,10 @@ Examples and scripts are checked separately with directory-based module names
 because they and the checkout entry point use `main.py`. The main check retains the tests'
 existing module mapping.
 
-The same command runs in CI. It stops on the first failed check and gives each
-check a three-minute cap, terminating only its owned subprocesses. JUnit and
+The same command runs in CI. It stops on the first failed check or test and gives
+static checks a three-minute cap and pytest ten minutes, terminating only its
+owned subprocesses. The larger test cap accommodates slower hosted Apple Silicon
+machines. JUnit and
 branch-coverage reports go to ignored `artifacts/`. Coverage makes untested paths
 visible; it is not a model-quality or performance gate. For native Apple Silicon
 checks, install `--extra mlx` and pass `--require-mlx`; add `--require-metal` when

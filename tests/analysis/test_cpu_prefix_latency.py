@@ -18,6 +18,7 @@ from transformers.integrations import sdpa_attention
 
 from benchmarks.analysis.torch.prefix.latency import study as runner
 from benchmarks.analysis.torch.prefix.latency.study import Comparator
+from benchmarks.analysis.torch.prefix.memory.study import evidence_path
 from benchmarks.analysis.torch.prefix.pairs import admit_history, digest
 from wyat import Request
 from wyat.backends.kai.artifact import KaiArtifact
@@ -252,9 +253,8 @@ def test_any_confirmed_memory_history_drift_rejected(
         runner.ROOT / "benchmarks/analysis/results/torch-prefix-memory-review.json"
     )
     child = cast(list[dict[str, object]], review["children"])[0]
-    target = (
-        runner.ROOT
-        / cast(dict[str, dict[str, str]], child["evidence"])[evidence]["path"]
+    target = evidence_path(
+        cast(dict[str, dict[str, str]], child["evidence"])[evidence]["path"]
     )
     monkeypatch.setattr(
         runner, "digest", lambda path: "0" * 64 if path == target else digest(path)

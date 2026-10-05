@@ -480,8 +480,8 @@ def test_confirmed_full77_history_tamper_rejected(
         runner.ROOT / "benchmarks/analysis/results/torch-prefix77-review.json"
     )
     row = cast(list[dict[str, object]], review["shape_results"])[0]
-    target = (
-        runner.ROOT / cast(dict[str, dict[str, str]], row["evidence"])[evidence]["path"]
+    target = runner.evidence_path(
+        cast(dict[str, dict[str, str]], row["evidence"])[evidence]["path"]
     )
 
     def digest(path: Path) -> str:

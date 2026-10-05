@@ -47,9 +47,10 @@ def product(projection: Linear, value: mx.array) -> mx.array:
     return result.astype(mx.float32)
 
 
-class BFloatMLP(Module):
+# MLX's base type is unavailable on CPU-only installations.
+class BFloatMLP(Module):  # type: ignore[misc, unused-ignore]
     def __init__(self, original: MLP, arm: Arm) -> None:
-        super().__init__()  # type: ignore[no-untyped-call]  # Maintained Module boundary.
+        super().__init__()  # type: ignore[no-untyped-call, unused-ignore]
         if arm not in ARMS:
             raise ValueError("Unknown fixed BF16 role arm")
         self.gate_up_reduced = arm in ("all-gate-up", "all-mlp")

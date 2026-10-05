@@ -124,6 +124,58 @@ def inventory_complete(rows: Sequence[StorageObservation], prefix_bytes: int) ->
 
 
 REVIEW_SHA256 = "48055f286b2a2443da7e194d794258dbfae69bfd1514df7900fca40693443065"
+RESULTS_DIRECTORY = Path("benchmarks/analysis/results")
+LEGACY_RESULTS_DIRECTORY = Path("/Users/teilomillet/Code/wyat") / RESULTS_DIRECTORY
+
+
+def evidence_path(value: str, root: Path = ROOT) -> Path:
+    """Relocate a pinned review's result file; never follow its old checkout."""
+    recorded = Path(value)
+    directory = (
+        LEGACY_RESULTS_DIRECTORY if recorded.is_absolute() else RESULTS_DIRECTORY
+    )
+    try:
+        relative = recorded.relative_to(directory)
+    except ValueError as error:
+        raise ValueError(
+            "Historical evidence must remain in the results folder"
+        ) from error
+    if len(relative.parts) != 1 or relative.name in {".", ".."} or "\\" in value:
+        raise ValueError("Historical evidence must name one results file")
+    results = root / RESULTS_DIRECTORY
+    path = results / relative
+    if path.resolve().parent != results.resolve():
+        raise ValueError("Historical evidence escapes the results folder")
+    return path
+
+
+def source_paths(root: Path = ROOT) -> dict[str, Path]:
+    """Current execution owners, including the actually imported HF modules."""
+    prefix = root / "benchmarks/analysis/torch/prefix"
+    memory = prefix / "memory"
+    return {
+        "scorer": memory / "scorer.py",
+        "study": memory / "study.py",
+        "runner": memory / "run.py",
+        "measure": memory / "measure.py",
+        "prefix": prefix / "cache.py",
+        "one_use": prefix / "lifetime.py",
+        "admission": prefix / "pairs.py",
+        "first8_study": prefix / "study.py",
+        "launcher": root / "benchmarks/analysis/torch/process.py",
+        "reference": root / "benchmarks/analysis/reference.py",
+        "evidence": root / "benchmarks/analysis/evidence.py",
+        "benchmark": root / "wyat/benchmark.py",
+        "core": root / "wyat/core.py",
+        "evaluation": root / "wyat/evaluation.py",
+        "backend": root / "wyat/backends/kai/torch.py",
+        "encoding": root / "wyat/backends/kai/encoding.py",
+        "artifact": root / "wyat/backends/kai/artifact.py",
+        "qwen3": Path(modeling_qwen3.__file__),
+        "maintained_cache": Path(cache_utils.__file__),
+        "maintained_mask": Path(masking_utils.__file__),
+        "sdpa": Path(sdpa_attention.__file__),
+    }
 
 
 def admit_confirmation(
@@ -140,9 +192,9 @@ def admit_confirmation(
     for row in results:
         evidence = cast(dict[str, dict[str, str]], row["evidence"])
         for item in evidence.values():
-            if digest(root / item["path"]) != item["sha256"]:
+            if digest(evidence_path(item["path"], root)) != item["sha256"]:
                 raise ValueError("Full77 confirmed history changed")
-        receipt = read_object(root / evidence["receipt"]["path"])
+        receipt = read_object(evidence_path(evidence["receipt"]["path"], root))
         if any(
             receipt[name] != history[name]
             for name in ("model_id", "dataset_sha256", "reference_sha256")
@@ -160,7 +212,7 @@ def admit_confirmation(
             )
         ):
             raise ValueError("Full77 confirmation not accepted")
-        archive = read_object(root / evidence["source_archive"]["path"])
+        archive = read_object(evidence_path(evidence["source_archive"]["path"], root))
         sources = cast(list[dict[str, str]], archive["files"])
         if (
             len(sources) != len(cast(dict[str, str], receipt["source_sha256"]))
@@ -214,32 +266,7 @@ def study(model: Path, output: Path, *, arm: Arm, repeat: int) -> bool:
         write()
         history = admit_history()
         payload["full77_admission"] = admit_confirmation(history)
-        sources = freeze_sources(
-            {
-                "scorer": Path(__file__).with_name("scorer.py"),
-                "study": Path(__file__),
-                "runner": Path(__file__).with_name("run.py"),
-                "measure": Path(__file__).with_name("measure.py"),
-                "prefix": Path(__file__).parents[1] / "cache.py",
-                "one_use": Path(__file__).parents[1] / "lifetime.py",
-                "admission": Path(__file__).parents[1] / "pairs.py",
-                "first8_study": Path(__file__).parents[1] / "study.py",
-                "launcher": ROOT / "benchmarks/analysis/torch/process.py",
-                "reference": ROOT / "benchmarks/analysis/reference.py",
-                "evidence": ROOT / "benchmarks/analysis/evidence.py",
-                "benchmark": ROOT / "wyat/benchmark.py",
-                "core": ROOT / "wyat/core.py",
-                "evaluation": ROOT / "wyat/evaluation.py",
-                "backend": ROOT / "wyat/backends/kai/torch.py",
-                "encoding": ROOT / "wyat/backends/kai/encoding.py",
-                "artifact": ROOT / "wyat/backends/kai/artifact.py",
-                "qwen3": Path(modeling_qwen3.__file__),
-                "maintained_cache": Path(cache_utils.__file__),
-                "maintained_mask": Path(masking_utils.__file__),
-                "sdpa": Path(sdpa_attention.__file__),
-            },
-            output,
-        )
+        sources = freeze_sources(source_paths(), output)
         dataset = ROOT / "benchmarks/real/banking77-train-dev-menu6.jsonl"
         reference_path = ROOT / "benchmarks/real/torch-fp32-reference77.json"
         all_cases = tuple(

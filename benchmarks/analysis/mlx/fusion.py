@@ -63,11 +63,12 @@ def packed_linear(projections: Sequence[Linear]) -> Linear:
     return packed
 
 
-class PackedAttention(Module):
+# MLX's base type is unavailable on CPU-only installations.
+class PackedAttention(Module):  # type: ignore[misc, unused-ignore]
     """Same full causal prefill; grouped query width need not equal hidden width."""
 
     def __init__(self, original: Attention) -> None:
-        super().__init__()  # type: ignore[no-untyped-call]  # Upstream Module boundary.
+        super().__init__()  # type: ignore[no-untyped-call, unused-ignore]
         self.n_heads = original.n_heads
         self.n_kv_heads = original.n_kv_heads
         self.scale = original.scale
@@ -111,9 +112,9 @@ class PackedAttention(Module):
         )
 
 
-class PackedMLP(Module):
+class PackedMLP(Module):  # type: ignore[misc, unused-ignore]
     def __init__(self, original: MLP) -> None:
-        super().__init__()  # type: ignore[no-untyped-call]  # Upstream Module boundary.
+        super().__init__()  # type: ignore[no-untyped-call, unused-ignore]
         self.gate_up = packed_linear([original.gate_proj, original.up_proj])
         self.down_proj = original.down_proj
 

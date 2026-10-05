@@ -57,6 +57,8 @@ def commands(python: str, reports: Path) -> tuple[tuple[str, ...], ...]:
             "pytest",
             "-q",
             "-rs",
+            "-x",
+            "--tb=short",
             f"--junitxml={reports / 'tests.xml'}",
             "--cov=wyat",
             "--cov-branch",
@@ -114,7 +116,9 @@ def main() -> int:
     reports = ROOT / "artifacts"
     reports.mkdir(exist_ok=True)
     for command in commands(sys.executable, reports):
-        status = run(command)
+        # Hosted Apple Silicon needs more time than the local native runner.
+        timeout = 600 if command[1:3] == ("-m", "pytest") else 180
+        status = run(command, timeout=timeout)
         if status:
             return status
     return 0

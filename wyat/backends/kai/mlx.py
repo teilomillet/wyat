@@ -27,11 +27,12 @@ from .encoding import EncodedRequest, KaiEncoder
 Forward = Callable[[mx.array, mx.array, mx.array], mx.array]
 
 
-class MLXCandidateHead(Module):
+# MLX's base type is unavailable on CPU-only installations.
+class MLXCandidateHead(Module):  # type: ignore[misc, unused-ignore]
     """Released exact-GELU bilinear + MLP readout, entirely in FP32."""
 
     def __init__(self, hidden_size: int, head_dim: int) -> None:
-        super().__init__()  # type: ignore[no-untyped-call]  # Upstream MLX boundary.
+        super().__init__()  # type: ignore[no-untyped-call, unused-ignore]
         self.head_dim = head_dim
         self.candidate_norm = LayerNorm(hidden_size, eps=1e-5)
         self.query_norm = LayerNorm(hidden_size, eps=1e-5)

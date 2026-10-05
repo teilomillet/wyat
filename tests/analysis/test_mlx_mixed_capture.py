@@ -114,9 +114,10 @@ def test_real_module_restores_registered_projection_identity(error: bool) -> Non
     from mlx.nn.layers.base import Module
     from mlx.nn.layers.linear import Linear
 
-    class Owner(Module):
+    # MLX's base type is unavailable on CPU-only installations.
+    class Owner(Module):  # type: ignore[misc, unused-ignore]
         def __init__(self) -> None:
-            super().__init__()  # type: ignore[no-untyped-call]
+            super().__init__()  # type: ignore[no-untyped-call, unused-ignore]
             self.gate_proj = Linear(2, 2, bias=False)
 
     owner = Owner()

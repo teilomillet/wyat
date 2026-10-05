@@ -16,7 +16,11 @@ from transformers.integrations import sdpa_attention
 from benchmarks.analysis.evidence import freeze_sources, process_diagnostic
 from benchmarks.analysis.reference import read_reference
 from benchmarks.analysis.torch.prefix.memory.scorer import MemoryScorer
-from benchmarks.analysis.torch.prefix.memory.study import admit_confirmation
+from benchmarks.analysis.torch.prefix.memory.study import (
+    admit_confirmation,
+    evidence_path,
+    source_paths,
+)
 from benchmarks.analysis.torch.prefix.pairs import admit_history, digest
 from benchmarks.analysis.torch.threads import DATASET_SHA256
 from wyat import Model
@@ -63,15 +67,15 @@ def admit_resource(root: Path = ROOT) -> tuple[dict[str, object], dict[str, Path
         or review["resource_screen_supported"] is not True
     ):
         raise ValueError("Six-child memory evidence incomplete/unsupported")
-    paths: dict[str, Path] = {}
+    paths = source_paths(root)
     for child in children:
         evidence = cast(dict[str, dict[str, str]], child["evidence"])
         for item in evidence.values():
-            if digest(root / item["path"]) != item["sha256"]:
+            if digest(evidence_path(item["path"], root)) != item["sha256"]:
                 raise ValueError(
                     "Confirmed memory receipt/journal/wall/archive changed"
                 )
-        receipt = read_object(root / evidence["receipt"]["path"])
+        receipt = read_object(evidence_path(evidence["receipt"]["path"], root))
         if (
             any(
                 receipt[name] != history[name]
@@ -82,19 +86,18 @@ def admit_resource(root: Path = ROOT) -> tuple[dict[str, object], dict[str, Path
             raise ValueError("Memory canonical identity differs from admitted history")
         if receipt["completed"] is not True or receipt["screen_passed"] is not True:
             raise ValueError("Memory child did not complete passing screen")
-        archive = read_object(root / evidence["archive"]["path"])
+        archive = read_object(evidence_path(evidence["archive"]["path"], root))
         sources = cast(list[dict[str, str]], archive["files"])
         if (
             len(sources) != len(cast(dict[str, str], receipt["source_sha256"]))
             or {source["name"]: source["sha256"] for source in sources}
             != receipt["source_sha256"]
+            or {source["name"] for source in sources} != paths.keys()
         ):
             raise ValueError("Confirmed memory source inventory changed")
         for source in sources:
-            source_path = Path(source["path"])
             if hashlib.sha256(source["text"].encode()).hexdigest() != source["sha256"]:
                 raise ValueError("Confirmed memory archived mechanics changed")
-            paths[source["name"]] = source_path
     return {
         "first8": history,
         "full77": full77,
