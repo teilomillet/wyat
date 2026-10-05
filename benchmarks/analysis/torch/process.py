@@ -45,7 +45,7 @@ def launch(
             TORCHINDUCTOR_COMPILE_THREADS="1",
         )
         environment["TORCHINDUCTOR_CACHE_DIR"] = tempfile.mkdtemp(
-            prefix="wyat-cpu-autotune-", dir="/private/tmp"
+            prefix="wyat-cpu-autotune-"
         )
     started = time.perf_counter()
     status: dict[str, object] = {

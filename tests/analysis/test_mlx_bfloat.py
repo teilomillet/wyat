@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import json
+import platform
+from collections.abc import Callable
+from importlib.metadata import version
 from typing import cast
 
 import pytest
-from hypothesis import HealthCheck, given, settings
+from hypothesis import HealthCheck, example, given, settings
 from hypothesis import strategies as st
 
 pytest.importorskip("mlx.core", exc_type=ImportError)
@@ -15,6 +19,7 @@ pytest.importorskip("torch", exc_type=ImportError)
 import mlx.core as mx
 import torch
 from mlx.nn.layers.linear import Linear
+from mlx_lm.models.activations import swiglu
 from mlx_lm.models.qwen3 import MLP, ModelArgs, Qwen3Model
 
 from benchmarks.analysis.mlx.bfloat.products import (
@@ -84,8 +89,70 @@ def oracle(original: MLP, value: torch.Tensor, arm: Arm) -> torch.Tensor:
     return torch.nn.functional.linear(operand, weight).float()
 
 
+def failure_stages(
+    message: str,
+    original: MLP,
+    projection: BFloatMLP,
+    value: mx.array,
+    arm: Arm,
+    actual: torch.Tensor,
+    expected: torch.Tensor,
+) -> str:
+    """Replay this tiny recipe only on failure; preserve both original outputs."""
+    gate_input = value.astype(mx.bfloat16) if projection.gate_up_reduced else value
+    gate = product(projection.gate_proj, gate_input)
+    up = product(projection.up_proj, gate_input)
+    activation = cast(Callable[[mx.array, mx.array], mx.array], swiglu)(gate, up)
+    operand = tensor(value).bfloat16() if arm != "all-down" else tensor(value)
+    dtype = torch.bfloat16 if arm != "all-down" else torch.float32
+    torch_gate = torch.nn.functional.linear(
+        operand, tensor(original.gate_proj.weight).to(dtype)
+    ).float()
+    torch_up = torch.nn.functional.linear(
+        operand, tensor(original.up_proj.weight).to(dtype)
+    ).float()
+    torch_activation = torch.nn.functional.silu(torch_gate) * torch_up
+
+    def primitive(array: torch.Tensor) -> list[list[float]]:
+        # The fixture is H16 / intermediate32, never real model parameters.
+        if array.ndim != 2 or array.numel() > 512:
+            raise ValueError("BF16 diagnostic exceeds the tiny fixture boundary")
+        return cast(list[list[float]], array.tolist())
+
+    payload = {
+        "arm": arm,
+        "input": primitive(tensor(value)),
+        "weights": {
+            "gate": primitive(tensor(original.gate_proj.weight)),
+            "up": primitive(tensor(original.up_proj.weight)),
+            "down": primitive(tensor(original.down_proj.weight)),
+        },
+        "mlx": {
+            "gate": primitive(tensor(gate)),
+            "up": primitive(tensor(up)),
+            "activation": primitive(tensor(activation)),
+            "down": primitive(actual),
+        },
+        "torch": {
+            "gate": primitive(torch_gate),
+            "up": primitive(torch_up),
+            "activation": primitive(torch_activation),
+            "down": primitive(expected),
+        },
+        "runtime": {
+            "platform": platform.platform(),
+            "torch": str(torch.__version__),
+            "mlx": version("mlx"),
+            "threads": torch.get_num_threads(),
+            "stream": "cpu",
+        },
+    }
+    return message + "\nBFLOAT_STAGES=" + json.dumps(payload, allow_nan=False)
+
+
 @pytest.mark.parametrize("arm", ARMS)
 @given(values=st.lists(st.integers(-16, 16), min_size=16, max_size=16))
+@example(values=[0] * 15 + [3])
 @settings(
     max_examples=8,
     deadline=None,
@@ -100,7 +167,15 @@ def test_projection_roles_match_independent_cpu_recipe(
         value = mx.array([values], dtype=mx.float32) / 8
         actual = tensor(projection(value))
         expected = oracle(original, tensor(value), arm)
-        torch.testing.assert_close(actual, expected, atol=2e-6, rtol=2e-5)
+        torch.testing.assert_close(
+            actual,
+            expected,
+            atol=2e-6,
+            rtol=2e-5,
+            msg=lambda message: failure_stages(
+                message, original, projection, value, arm, actual, expected
+            ),
+        )
         assert projection(value).dtype == mx.float32
         assert projection.gate_proj.weight.dtype == (
             mx.bfloat16 if arm != "all-down" else mx.float32

@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import signal
 import subprocess
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -39,6 +40,7 @@ def test_timeout_kills_only_owned_group_and_reaps(
 
     monkeypatch.setattr(subprocess, "Popen", popen)
     monkeypatch.setattr(os, "killpg", killpg)
+    monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
     output = tmp_path / "run.json"
     assert (
         process.launch(
@@ -60,7 +62,11 @@ def test_timeout_kills_only_owned_group_and_reaps(
     assert isinstance(environment, dict)
     assert environment["TORCHINDUCTOR_COMPILE_THREADS"] == "1"
     assert environment["TORCHINDUCTOR_FREEZING"] == "1"
+    cache = environment["TORCHINDUCTOR_CACHE_DIR"]
+    assert isinstance(cache, str)
+    assert Path(cache).parent == tmp_path and Path(cache).is_dir()
     receipt = read_object(output.with_suffix(".wall.json"))
+    assert receipt["inductor_cache"] == cache
     assert receipt["timed_out"] is True
     assert receipt["completed"] is False
     assert not output.exists()
