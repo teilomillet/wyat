@@ -126,8 +126,10 @@ They also work on coherent values created with the existing four-argument
 numbers, and preserve supplied values. They do not verify probability bounds,
 normalization, or calibration. The constructor itself remains unchanged.
 
-Probabilities are the softmax of the supplied candidate logits. They are
-relative to that candidate set and are not calibrated confidence.
+For decisions returned by `Model`, probabilities are the softmax of the
+scorer's candidate logits. They are relative to that candidate set and are not
+calibrated confidence. A directly constructed `Decision` preserves supplied
+probabilities; establish its producer before claiming this relationship.
 `decision.to_dict()` provides the JSON-compatible result used by the CLI and
 HTTP server. It contains `model_id`, `selected`, `ranking`, `scores`, and
 `probabilities`.

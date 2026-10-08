@@ -15,6 +15,8 @@ def _raise_missing_runtime(
     if backend == "torch":
         message = (
             "PyTorch is not installed; in your application's project, run: "
+            "uv add /absolute/path/to/wyat-0.0.1-py3-none-any.whl --extra inference "
+            "(use the wheel you installed). For a source checkout, run: "
             "uv add /absolute/path/to/wyat --extra inference. "
             "From the Wyat checkout, run: uv sync --extra inference"
         )
@@ -22,6 +24,8 @@ def _raise_missing_runtime(
         message = (
             "MLX is not installed; it requires Apple Silicon macOS. "
             "In your application's project, run: "
+            "uv add /absolute/path/to/wyat-0.0.1-py3-none-any.whl --extra mlx "
+            "(use the wheel you installed). For a source checkout, run: "
             "uv add /absolute/path/to/wyat --extra mlx. "
             "From the Wyat checkout, run: uv sync --extra mlx"
         )

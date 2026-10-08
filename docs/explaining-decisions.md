@@ -37,6 +37,12 @@ keeps distinctions that the average loses. Noul exposes the true weight so the
 team can choose a policy reflecting its error costs instead of receiving a
 hidden library threshold. These are design reasons, not evidence of accuracy.
 
+Write instructions, evidence and outcome descriptions in your team's language.
+Keep Python/JSON field names and task values such as `query`, `context`, `type`,
+`criteria`, `choice`, `score` and `noul` unchanged. Noul's option IDs stay `true`
+and `false`; translate their descriptions. Application IDs keep their exact
+spelling between input and result, including distinct NFC/NFD spellings.
+
 These numbers come from the fixed-logit example below, not a trained model's
 assessment. **Noul is a yes/no task.** It is distinct from Python `None`, JSON
 `null`, an absent answer or an automatic abstention. In the input contract,

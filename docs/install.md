@@ -32,6 +32,16 @@ uv add /tmp/wyat-wheel/wyat-0.0.1-py3-none-any.whl --extra inference
 Keep the wheel's hash with your application lockfile. This is a locally built
 distribution, not the older registry release with the same version number.
 
+Run from your application directory. To check which environment and package
+your application uses, run:
+
+```sh
+uv run python -c 'import sys, wyat; print(sys.executable); print(wyat.__file__)'
+```
+
+For an ordinary wheel installation, both paths should belong to your
+application environment. A source-checkout import does not verify that wheel.
+
 uv builds and installs a local path dependency into your application's environment;
 `--extra` selects the dependency's optional features. Use `uv run` to execute in
 that environment. [uv dependency guidance](https://docs.astral.sh/uv/concepts/projects/dependencies/#path),
