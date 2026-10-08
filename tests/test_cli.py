@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import importlib
 import io
 import json
 import subprocess
 import sys
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 from pathlib import Path
 from types import ModuleType
 
@@ -97,6 +99,121 @@ def install_model(monkeypatch: pytest.MonkeyPatch) -> Scorer:
     scorer = Scorer()
     monkeypatch.setattr(cli, "load", lambda *args, **kwargs: Model(scorer, "fixture"))
     return scorer
+
+
+@contextmanager
+def byte_streams(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Iterator[tuple[io.BytesIO, io.BytesIO, io.BytesIO]]:
+    buffers = (io.BytesIO(), io.BytesIO(), io.BytesIO())
+    with (
+        io.TextIOWrapper(buffers[0], encoding="cp1252", errors="replace") as stdin,
+        io.TextIOWrapper(buffers[1], encoding="cp1252", errors="replace") as stdout,
+        io.TextIOWrapper(buffers[2], encoding="cp1252", errors="replace") as stderr,
+        monkeypatch.context() as patch,
+    ):
+        patch.setattr(sys, "stdin", stdin)
+        patch.setattr(sys, "stdout", stdout)
+        patch.setattr(sys, "stderr", stderr)
+        yield buffers
+
+
+@pytest.mark.parametrize("command", ["decide", "evaluate"])
+def test_cli_uses_strict_utf8_bytes_for_multilingual_jsonl(
+    monkeypatch: pytest.MonkeyPatch,
+    command: str,
+) -> None:
+    scorer = install_model(monkeypatch)
+    candidates = [
+        {"id": "é", "text": "First"},
+        {"id": "e\u0301-日本-العربية-🧪", "text": "Second"},
+    ]
+    selected_id = candidates[1]["id"]
+    body = {
+        "query": "Choisir café / 選択 / اختر 👩🏽\u200d💻",
+        "context": "é e\u0301 日本語 العربية",
+        "candidates": candidates,
+    }
+    row = (
+        {
+            "id": "é-日本-العربية-🧪",
+            "request": body,
+            "expected": [selected_id],
+        }
+        if command == "evaluate"
+        else body
+    )
+    with byte_streams(monkeypatch) as (stdin, stdout, stderr):
+        stdin.write((json.dumps(row, ensure_ascii=False) + "\n").encode("utf-8"))
+        stdin.seek(0)
+        streams = (sys.stdin, sys.stdout, sys.stderr)
+        assert cli.main([command, "local-fixture"]) == 0
+        sys.stdout.flush()
+        sys.stderr.flush()
+        assert (sys.stdin, sys.stdout, sys.stderr) == streams
+        assert all(
+            stream.encoding == "utf-8" and stream.errors == "strict"
+            for stream in streams
+        )
+        assert not any(stream.closed for stream in streams)
+        assert scorer.calls[0][0].query == body["query"]
+        assert scorer.calls[0][0].context == body["context"]
+        output = stdout.getvalue()
+        assert selected_id.encode("utf-8") in output
+        report = json.loads(output.decode("utf-8"))
+        if command == "evaluate":
+            assert report["rows"][0]["id"] == row["id"]
+            assert report["accuracy"] == 1.0
+            decision = report["rows"][0]["prediction"]
+        else:
+            decision = report
+        assert decision["selected"] == selected_id
+        assert stderr.getvalue() == b""
+
+
+def test_invalid_utf8_input_is_rejected_without_replacement_or_inference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    scorer = install_model(monkeypatch)
+    with byte_streams(monkeypatch) as (stdin, stdout, stderr):
+        stdin.write(json.dumps(BODY).encode("utf-8").replace(b"Question", b"caf\xe9"))
+        stdin.seek(0)
+        assert cli.main(["decide", "local-fixture"]) == 1
+        sys.stdout.flush()
+        sys.stderr.flush()
+        assert stdout.getvalue() == b""
+        diagnostic = stderr.getvalue().decode("utf-8")
+        assert "utf-8" in diagnostic and "decode" in diagnostic
+        assert "�" not in diagnostic
+        assert scorer.calls == []
+
+
+def test_import_does_not_reconfigure_standard_streams(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with byte_streams(monkeypatch):
+        streams = (sys.stdin, sys.stdout, sys.stderr)
+        importlib.reload(cli)
+        assert (sys.stdin, sys.stdout, sys.stderr) == streams
+        assert all(
+            stream.encoding == "cp1252" and stream.errors == "replace"
+            for stream in streams
+        )
+
+
+def test_main_preserves_custom_injected_text_streams(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class CustomTextStream(io.StringIO):
+        def reconfigure(self, **kwargs: object) -> None:
+            raise AssertionError("custom streams own their encoding")
+
+    install_model(monkeypatch)
+    streams = tuple(CustomTextStream() for _ in range(3))
+    for name, stream in zip(("stdin", "stdout", "stderr"), streams, strict=True):
+        monkeypatch.setattr(sys, name, stream)
+    assert cli.main(["decide", "local-fixture"]) == 0
+    assert (sys.stdin, sys.stdout, sys.stderr) == streams
 
 
 def test_decide_streams_jsonl_with_explicit_batches(
@@ -366,3 +483,17 @@ def test_explicit_runtime_controls_explain_missing_primary_dependency(
     assert result.stdout == ""
     assert f"uv sync --extra {extra}" in result.stderr
     assert "Traceback" not in result.stderr
+
+
+def test_help_preserves_already_read_strict_utf8_stdin(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    with io.TextIOWrapper(io.BytesIO(b"already read"), encoding="utf-8") as stdin:
+        assert stdin.read(1) == "a"
+        monkeypatch.setattr(sys, "stdin", stdin)
+        monkeypatch.setattr(sys, "stdout", io.StringIO())
+        monkeypatch.setattr(sys, "stderr", io.StringIO())
+        with pytest.raises(SystemExit) as error:
+            cli.main(["--help"])
+        assert error.value.code == 0
+        assert stdin.read() == "lready read"

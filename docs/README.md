@@ -10,7 +10,14 @@ Use the [release guide](releasing.md) to prepare and inspect a distribution.
 | Need | Guide |
 | --- | --- |
 | Install in an application | [Application installation](install.md) |
+| Acquire and verify the supported Kai artifact | [Pinned model acquisition](model-acquisition.md) |
+| Run routing, prioritization, human-review and policy-evaluation workflows | [Complete workflows](agent-workflows.md) |
 | Understand the Python input and output | [Python API](api.md) |
+| Distinguish raw scores, Choice, rubric Score, and yes/no Noul | [Decision task meanings](decision-tasks.md) |
+| Explain a result, its calculation and the team's policy | [Explaining decisions](explaining-decisions.md) |
+| Understand the ergonomic objective and API design standards | [Ergonomics standard](ergonomics.md) |
+| Inspect timed agent integration evidence and limitations | [Agent study](ergonomics-agent-study.md) |
+| Repeat interpretation checks and plan independent language validation | [Agent and international protocol](agent-validation.md) |
 | Run the measured FP32 configuration on Apple Silicon | [Native CPU and MLX](analysis/runtime/native.md) |
 | Understand Torch devices and precision | [CPU and CUDA inference](torch-inference.md) |
 | Understand the MLX loader and optional runtime | [MLX inference](mlx-inference.md) |

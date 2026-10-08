@@ -69,6 +69,34 @@ def test_duplicate_case_ids_fail_before_any_inference() -> None:
     assert scorer.calls == []
 
 
+@pytest.mark.parametrize("identifier", ["\ud800", "case-\udfff"])
+def test_invalid_unicode_case_id_is_rejected_at_construction(identifier: str) -> None:
+    with pytest.raises(ValueError, match="case ID must contain valid Unicode"):
+        EvaluationCase(identifier, request(), ("b",))
+
+
+def test_unicode_case_and_label_ids_remain_exact_with_failures_in_denominator() -> None:
+    candidates = (Candidate("é", "First"), Candidate("e\u0301", "Second"))
+    first_id = "é-日本-العربية-🧪"
+    second_id = "e\u0301-日本-العربية-🧪"
+    cases = [
+        EvaluationCase(
+            first_id, Request("Choisir / 選択 / اختر", candidates), ("e\u0301",)
+        ),
+        EvaluationCase(second_id, Request("failure", candidates), ("é",)),
+    ]
+    report = evaluate(Model(Scorer(), model_id="fixture"), cases).to_dict()
+    rows = cast(list[dict[str, object]], report["rows"])
+    assert [row["id"] for row in rows] == [first_id, second_id]
+    assert rows[0]["expected"] == ["e\u0301"]
+    prediction = cast(dict[str, object], rows[0]["prediction"])
+    assert prediction["selected"] == "e\u0301"
+    assert prediction["ranking"] == ["e\u0301", "é"]
+    assert rows[1]["status"] == "error"
+    assert report["total"] == 2
+    assert report["accuracy"] == report["coverage"] == 0.5
+
+
 @pytest.mark.parametrize("expected", [(), ("unknown",), ("a", "a")])
 def test_invalid_expected_labels_fail_before_any_inference(
     expected: tuple[str, ...],

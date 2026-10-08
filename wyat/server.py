@@ -11,7 +11,13 @@ from fastapi import Request as HttpRequest
 from starlette.concurrency import run_in_threadpool
 from starlette.requests import ClientDisconnect
 
-from .core import Model, ModelOutputError, request_from_dict
+from .core import (
+    _MODEL_INPUT_REASONS,
+    Model,
+    ModelInputError,
+    ModelOutputError,
+    request_from_dict,
+)
 from .wire import decode_json
 
 logger = logging.getLogger(__name__)
@@ -73,6 +79,19 @@ def create_app(model: Model, *, max_body_bytes: int = 1_048_576) -> FastAPI:
         except ModelOutputError as exc:
             logger.exception("model output contract failed")
             raise HTTPException(500, "model inference failed") from exc
+        except ModelInputError as exc:
+            # Keep the v1 status/body; only the validated reason crosses HTTP.
+            reason = exc.reason
+            headers = (
+                {"X-Wyat-Rejection": reason}
+                if type(reason) is str and reason in _MODEL_INPUT_REASONS
+                else None
+            )
+            raise HTTPException(
+                422,
+                "request is unsupported by this model",
+                headers=headers,
+            ) from exc
         except ValueError as exc:
             # Backend input-policy errors must not echo submitted prompt text.
             raise HTTPException(422, "request is unsupported by this model") from exc

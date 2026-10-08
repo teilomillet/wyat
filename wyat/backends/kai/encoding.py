@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import NamedTuple, Protocol, cast
 
-from wyat.core import Request
+from wyat.core import ModelInputError, Request
 from wyat.wire import read_object
 
 from .artifact import KaiArtifact, positive_integer
@@ -95,19 +95,27 @@ class KaiEncoder:
 
     def _tokens(self, text: str) -> tuple[int, ...]:
         if len(text.encode("utf-8")) > self.max_length * 32:
-            raise ValueError("Input segment exceeds tokenization byte limit")
+            raise ModelInputError(
+                "Input segment exceeds tokenization byte limit", reason="input-segment"
+            )
         ids = tuple(self.tokenizer.encode(text, add_special_tokens=False))
         if not ids or len(ids) > self.max_length:
-            raise ValueError(
-                "Input segment is empty or exceeds max_length; no truncation"
+            raise ModelInputError(
+                "Input segment is empty or exceeds max_length; no truncation",
+                reason="input-segment",
             )
         return ids
 
     def encode_request(self, request: Request) -> EncodedRequest:
         if request.task != "choice":
-            raise ValueError("Kai currently supports choice requests only")
+            raise ModelInputError(
+                "Kai currently supports choice requests only", reason="unsupported-task"
+            )
         if not 2 <= len(request.candidates) <= self.max_options:
-            raise ValueError(f"Kai requires 2..{self.max_options} candidates")
+            raise ModelInputError(
+                f"Kai requires 2..{self.max_options} candidates",
+                reason="candidate-count",
+            )
         prefix = (
             f"Context:\n{request.context}\n\n"
             f"Task type: choice\nQuestion:\n{request.query}\nOptions:"
@@ -125,7 +133,9 @@ class KaiEncoder:
             positions.append(len(ids) - 1)
         ids.extend(self._suffix)
         if len(ids) > self.max_length:
-            raise ValueError(
-                f"{len(ids)} tokens exceeds max_length={self.max_length}; no truncation"
+            raise ModelInputError(
+                f"{len(ids)} tokens exceeds max_length={self.max_length}; "
+                "no truncation",
+                reason="input-length",
             )
         return EncodedRequest(tuple(ids), tuple(positions), len(ids) - 1)

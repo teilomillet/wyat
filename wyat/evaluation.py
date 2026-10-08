@@ -9,7 +9,7 @@ import time
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 
-from .core import Decision, Model, Request, request_from_dict
+from .core import Decision, Model, Request, _text, request_from_dict
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,8 +19,7 @@ class EvaluationCase:
     expected: tuple[str, ...]
 
     def __post_init__(self) -> None:
-        if not isinstance(self.id, str) or not self.id.strip():
-            raise ValueError("case ID must be nonempty text")
+        _text(self.id, "case ID", nonempty=True)
         if not isinstance(self.request, Request):
             raise ValueError("case request must be a Request")
         if (

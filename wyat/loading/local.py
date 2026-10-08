@@ -14,13 +14,16 @@ def _raise_missing_runtime(
         return
     if backend == "torch":
         message = (
-            "PyTorch is not installed; install the inference extra "
-            "(from this checkout: uv sync --extra inference)"
+            "PyTorch is not installed; in your application's project, run: "
+            "uv add /absolute/path/to/wyat --extra inference. "
+            "From the Wyat checkout, run: uv sync --extra inference"
         )
     else:
         message = (
             "MLX is not installed; it requires Apple Silicon macOS. "
-            "Install the mlx extra (from this checkout: uv sync --extra mlx)"
+            "In your application's project, run: "
+            "uv add /absolute/path/to/wyat --extra mlx. "
+            "From the Wyat checkout, run: uv sync --extra mlx"
         )
     raise ModuleNotFoundError(message, name=backend) from error
 

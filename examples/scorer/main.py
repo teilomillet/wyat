@@ -1,4 +1,8 @@
-"""Show the scorer interface with fixed logits; no trained model or dependencies."""
+"""Fixed-logit scoring and keyed results; no trained model or quality claim.
+
+Softmax probabilities depend on the supplied candidates; they are not calibrated
+confidence.
+"""
 
 from collections.abc import Sequence
 
@@ -9,7 +13,7 @@ class FixedScorer:
     def score_many(
         self, requests: Sequence[wyat.Request]
     ) -> tuple[tuple[float, ...], ...]:
-        return tuple((2.0, 0.0) for _ in requests)
+        return tuple((0.0, 2.0) for _ in requests)
 
 
 def main() -> None:
@@ -17,12 +21,16 @@ def main() -> None:
     request = wyat.Request(
         query="Choose the requested action",
         context="Cancel my booking",
-        candidates=(
-            wyat.Candidate("cancel", "Cancel the booking"),
+        candidates=[
             wyat.Candidate("create", "Create a booking"),
-        ),
+            wyat.Candidate("cancel", "Cancel the booking"),
+        ],
     )
-    print(model.decide(request).to_dict())
+    decision = model.decide(request)
+    result = decision.to_dict()
+    result["selected_score"] = decision.scores_by_id[decision.selected]
+    result["selected_probability"] = decision.probabilities_by_id[decision.selected]
+    print(result)
 
 
 if __name__ == "__main__":

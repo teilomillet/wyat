@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import sys
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from typing import Literal
 
 from . import load
-from .core import Request, request_from_dict
+from .core import Decision, Model, Request, request_from_dict
 from .loading.local import _raise_missing_runtime
 from .wire import JsonValue, decode_json
 
@@ -50,8 +51,33 @@ def _write(value: object) -> None:
     print(json.dumps(value, ensure_ascii=False, allow_nan=False, separators=(",", ":")))
 
 
+def _decide_batch(
+    model: Model, rows: Sequence[tuple[int, Request]]
+) -> tuple[Decision, ...]:
+    try:
+        return model.decide_many([request for _, request in rows])
+    except BrokenPipeError:
+        raise
+    except Exception:
+        if rows:
+            first, last = rows[0][0], rows[-1][0]
+            location = f"line {first}" if first == last else f"lines {first}..{last}"
+            print(
+                f"wyat: inference failed for input {location}; "
+                "no decisions emitted for this batch",
+                file=sys.stderr,
+            )
+        raise
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Run a command; explicitly requested runtime settings persist in this process."""
+    """Run with UTF-8 standard streams; encoding and runtime settings persist."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
+        if isinstance(stream, io.TextIOWrapper) and (
+            stream.encoding.lower().replace("-", "") != "utf8"
+            or stream.errors != "strict"
+        ):
+            stream.reconfigure(encoding="utf-8", errors="strict")
     parser = argparse.ArgumentParser(
         prog="wyat", description="Load, evaluate and serve local decision models."
     )
@@ -215,17 +241,17 @@ def main(argv: list[str] | None = None) -> int:
             compile=args.compile,
         )
         if args.command == "decide":
-            pending: list[Request] = []
+            pending: list[tuple[int, Request]] = []
             for number, value in _rows():
                 try:
-                    pending.append(request_from_dict(value))
+                    pending.append((number, request_from_dict(value)))
                 except ValueError as exc:
                     raise ValueError(f"line {number}: {exc}") from exc
                 if len(pending) == args.batch_size:
-                    for result in model.decide_many(pending):
+                    for result in _decide_batch(model, pending):
                         _write(result.to_dict())
                     pending.clear()
-            for result in model.decide_many(pending):
+            for result in _decide_batch(model, pending):
                 _write(result.to_dict())
         elif args.command in ("evaluate", "benchmark"):
             from .evaluation import case_from_dict, evaluate

@@ -6,7 +6,7 @@ import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from numbers import Real
-from typing import Protocol, cast
+from typing import Literal, Protocol, cast
 
 
 def _text(value: object, name: str, *, nonempty: bool = False) -> str:
@@ -31,12 +31,13 @@ class Candidate:
         _text(self.text, "candidate.text", nonempty=True)
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False)
 class Request:
     """One decision's inputs, independent of a model or HTTP connection.
 
     Query supplies the instruction; context supplies supporting information.
-    Candidates are an immutable ordered tuple with unique application-owned IDs.
+    Ordered candidate sequences are stored as an immutable tuple with unique
+    application-owned IDs.
     Construct with named fields to make the two text inputs easy to distinguish.
     The loaded scorer enforces its supported tasks and input-size limits.
     """
@@ -46,12 +47,29 @@ class Request:
     context: str = ""
     task: str = "choice"
 
+    def __init__(
+        self,
+        query: str,
+        candidates: Sequence[Candidate],
+        context: str = "",
+        task: str = "choice",
+    ) -> None:
+        if isinstance(candidates, (str, bytes, bytearray, Mapping)) or not isinstance(
+            candidates, Sequence
+        ):
+            raise ValueError("candidates must be a nonempty ordered sequence")
+        object.__setattr__(self, "query", query)
+        object.__setattr__(self, "candidates", tuple(candidates))
+        object.__setattr__(self, "context", context)
+        object.__setattr__(self, "task", task)
+        self.__post_init__()
+
     def __post_init__(self) -> None:
         _text(self.query, "query", nonempty=True)
         _text(self.context, "context")
         _text(self.task, "task", nonempty=True)
         if not isinstance(self.candidates, tuple) or not self.candidates:
-            raise ValueError("candidates must be a nonempty tuple")
+            raise ValueError("candidates must be a nonempty ordered sequence")
         if not all(isinstance(candidate, Candidate) for candidate in self.candidates):
             raise ValueError("candidates must contain Candidate values")
         ids = [candidate.id for candidate in self.candidates]
@@ -70,6 +88,36 @@ class Scorer(Protocol):
     def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]: ...
 
 
+_MODEL_INPUT_REASONS = frozenset(
+    {"unsupported-task", "candidate-count", "input-length", "input-segment"}
+)
+
+
+class ModelInputError(ValueError):
+    """A model rejected input with a safe, application-readable reason.
+
+    The message is for local diagnostics. Transports expose only the allowlisted
+    reason, never arbitrary exception text or request content.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        reason: Literal[
+            "unsupported-task", "candidate-count", "input-length", "input-segment"
+        ],
+    ) -> None:
+        if type(reason) is not str or reason not in _MODEL_INPUT_REASONS:
+            raise ValueError("unknown model input rejection reason")
+        self._reason: str = reason
+        super().__init__(message)
+
+    @property
+    def reason(self) -> str:
+        return self._reason
+
+
 class ModelOutputError(ValueError):
     """A scorer violated its output contract, rather than rejecting an input."""
 
@@ -79,7 +127,8 @@ class Decision:
     """Raw logits and probabilities follow input candidate order.
 
     Ranking contains candidate IDs in descending score order, preserving input
-    order for exact ties. Softmax probabilities are not calibrated confidence.
+    order for exact ties. Derived candidate IDs and mappings rely on this stable
+    ranking contract. Softmax probabilities are not calibrated confidence.
     """
 
     model_id: str
@@ -90,6 +139,66 @@ class Decision:
     @property
     def selected(self) -> str:
         return self.ranking[0]
+
+    @property
+    def candidate_ids(self) -> tuple[str, ...]:
+        """Candidate IDs in original score order for a coherent result."""
+        self._validate_numbers(self.scores, "scores")
+        if not isinstance(self.ranking, Sequence) or isinstance(
+            self.ranking, (str, bytes, bytearray)
+        ):
+            raise ValueError("decision.ranking must be a sequence of candidate IDs")
+        if len(self.ranking) != len(self.scores):
+            raise ValueError("decision ranking and scores must have equal lengths")
+        for candidate_id in self.ranking:
+            _text(candidate_id, "decision candidate ID", nonempty=True)
+        if len(set(self.ranking)) != len(self.ranking):
+            raise ValueError("decision candidate IDs must be unique")
+        # Invert the stable score ranking to preserve the four-field dataclass
+        # and wire format, including coherent legacy four-argument results.
+        order = sorted(
+            range(len(self.scores)), key=self.scores.__getitem__, reverse=True
+        )
+        ids = [""] * len(order)
+        for index, candidate_id in zip(order, self.ranking, strict=True):
+            ids[index] = candidate_id
+        return tuple(ids)
+
+    @property
+    def scores_by_id(self) -> dict[str, float]:
+        """A detached score dictionary in original candidate order."""
+        return dict(zip(self.candidate_ids, self.scores, strict=True))
+
+    @property
+    def probabilities_by_id(self) -> dict[str, float]:
+        """A detached probability dictionary in original candidate order."""
+        ids = self.candidate_ids
+        self._validate_numbers(self.probabilities, "probabilities")
+        if len(self.probabilities) != len(ids):
+            raise ValueError(
+                "decision probabilities and scores must have equal lengths"
+            )
+        return dict(zip(ids, self.probabilities, strict=True))
+
+    @staticmethod
+    def _validate_numbers(values: Sequence[float], name: str) -> None:
+        if (
+            not isinstance(values, Sequence)
+            or isinstance(values, (str, bytes, bytearray))
+            or not values
+        ):
+            raise ValueError(f"decision.{name} must be a nonempty numeric sequence")
+        for value in values:
+            if isinstance(value, bool) or not isinstance(value, Real):
+                raise ValueError(f"decision.{name} must contain finite numbers")
+            try:
+                finite = math.isfinite(value)
+            except (TypeError, ValueError, OverflowError) as error:
+                raise ValueError(
+                    f"decision.{name} must contain finite numbers"
+                ) from error
+            if not finite:
+                raise ValueError(f"decision.{name} must contain finite numbers")
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -105,11 +214,24 @@ def decision_from_logits(
     request: Request, logits: Sequence[float], model_id: str
 ) -> Decision:
     """Pure interpretation; softmax values are relative, uncalibrated likelihoods."""
-    if len(logits) != len(request.candidates):
+    try:
+        candidate_count = len(logits)
+        values = iter(logits)
+    except TypeError as error:
+        raise ModelOutputError("scorer logits must be a sequence") from error
+    if candidate_count != len(request.candidates):
         raise ModelOutputError("scorer returned a different candidate count")
-    if any(isinstance(value, bool) or not isinstance(value, Real) for value in logits):
-        raise ModelOutputError("scorer logits must be numbers")
-    scores = tuple(float(value) for value in logits)
+    converted: list[float] = []
+    for value in values:
+        if isinstance(value, bool) or not isinstance(value, Real):
+            raise ModelOutputError("scorer logits must be numbers")
+        try:
+            converted.append(float(value))
+        except (TypeError, ValueError, OverflowError) as error:
+            raise ModelOutputError("scorer logits must be finite numbers") from error
+    if len(converted) != len(request.candidates):
+        raise ModelOutputError("scorer returned a different candidate count")
+    scores = tuple(converted)
     if not all(math.isfinite(value) for value in scores):
         raise ModelOutputError("scorer logits must be finite")
     peak = max(scores)
@@ -150,12 +272,29 @@ class Model:
         if not batch:
             return ()
         logits = self._scorer.score_many(batch)
-        if len(logits) != len(batch):
+        try:
+            request_count = len(logits)
+            rows = iter(logits)
+        except TypeError as error:
+            raise ModelOutputError(
+                "scorer output must be a sequence of rows"
+            ) from error
+        if request_count != len(batch):
             raise ModelOutputError("scorer returned a different request count")
-        return tuple(
-            decision_from_logits(request, scores, self.model_id)
-            for request, scores in zip(batch, logits, strict=True)
-        )
+        decisions: list[Decision] = []
+        for request in batch:
+            try:
+                scores = next(rows)
+            except StopIteration as error:
+                raise ModelOutputError(
+                    "scorer returned a different request count"
+                ) from error
+            decisions.append(decision_from_logits(request, scores, self.model_id))
+        try:
+            next(rows)
+        except StopIteration:
+            return tuple(decisions)
+        raise ModelOutputError("scorer returned a different request count")
 
 
 def request_from_dict(value: object) -> Request:

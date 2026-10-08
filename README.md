@@ -14,15 +14,18 @@ this loader can deploy them. See [supported model contracts](docs/training-contr
 In your own Python **3.12 or newer** uv project, add this checkout as a dependency:
 
 ```sh
-uv add /path/to/wyat --extra inference --extra server
+uv add /path/to/wyat --extra inference
 uv run wyat --help
 ```
 
-On **Apple Silicon macOS**, use `--extra mlx --extra server` instead.
+On **Apple Silicon macOS**, use `--extra mlx` instead. Add `--extra server`
+when you need HTTP serving.
 The package and Python import are `wyat`; the public input value is `wyat.Request`.
 uv supports [local path dependencies and dependency extras](https://docs.astral.sh/uv/concepts/projects/dependencies/).
 The [PyPI 0.0.1 release](https://pypi.org/project/wyat/) differs from this
 implementation, so use the local path until a matching release is available.
+The installed-package guide also shows how to build and use a transferable wheel,
+so an application need not retain an editable checkout.
 The [installed-package guide](docs/install.md) has copyable load and server
 examples; the [Python API guide](docs/api.md) explains the public contract.
 
@@ -32,14 +35,16 @@ From this checkout, with Python **3.12 or newer** and `uv`:
 
 ```sh
 uv sync
-source .venv/bin/activate
-python examples/scorer/main.py
-wyat --help
+uv run python examples/scorer/main.py
+uv run wyat --help
 ```
 
 The example uses a small custom scorer to exercise the public API. It does not
 load trained weights or establish model quality. The Python core has no runtime
 dependencies.
+
+The [result](examples/results/main.py) and [evaluation](examples/evaluation/main.py)
+examples also run without weights. Use `uv run python` with either path.
 
 ## Install an inference backend
 
@@ -69,7 +74,8 @@ configuration.
 
 ## Load and decide
 
-Obtain a supported local Kai artifact separately. It needs
+Follow the [pinned acquisition and integrity guide](docs/model-acquisition.md)
+to obtain the supported local Kai artifact. It needs
 `decision_config.json`, local tokenizer files, `backbone/config.json`, full
 Safetensors backbone weights, and `decision_head.safetensors`. Loading does not
 download files or execute custom model Python. Adapter-only and unsupported
@@ -82,13 +88,15 @@ model = wyat.load("/path/to/Decision-2.0-Kai-0.6B")  # PyTorch CPU
 request = wyat.Request(
     query="Choose the requested action",
     context="Cancel my booking",
-    candidates=(
+    candidates=[
         wyat.Candidate(id="cancel", text="Cancel the booking"),
         wyat.Candidate(id="create", text="Create a booking"),
-    ),
+    ],
 )
 decision = model.decide(request)
 print(decision.selected)
+print(decision.scores_by_id[decision.selected])
+print(decision.probabilities_by_id[decision.selected])
 print(decision.to_dict())
 
 # Reuse the loaded model for a batch.
@@ -107,11 +115,22 @@ candidate IDs, with input order preserved for exact ties. Probabilities are
 relative to the supplied candidates and are not calibrated confidence. The model
 ID fingerprints the local artifact contents.
 
+Use `scores_by_id` and `probabilities_by_id` for ID-based lookups; do not zip
+ranked IDs with input-ordered values. Candidate lists are accepted and stored as
+immutable tuple snapshots. `query` is the instruction; `context` is the evidence.
+Unicode IDs remain exact. Raw candidate scores are not rubric ratings; the
+[task guide](docs/decision-tasks.md) distinguishes Choice, Score, and Noul.
+
 Kai requires **at least 2 candidates** and enforces the artifact's declared
 `max_options` (up to 255), unique candidate IDs, and `task="choice"`.
 Inputs exceeding `max_length` fail without truncation; the
 loader default is 2048 tokens. Token caching and compilation are opt-in and are
 not required for first use.
+
+The [complete workflows](docs/agent-workflows.md) connect preparation, result
+interpretation, application policy, action dispatch and failure handling. Their
+routing, prioritization, human-review and policy-evaluation examples use fixed
+logits, run without weights and state their limits explicitly.
 
 ## Decide and evaluate from JSONL
 
@@ -223,3 +242,8 @@ its rendering, limits, resource lifetime and concurrency. It returns finite raw
 logits in request and candidate order. Embeddings, sigmoid validity scores and
 calibrated probabilities require their own interpretation; see the
 [dependency-free example](examples/scorer/main.py).
+
+The [decision-task guide](docs/decision-tasks.md) also documents the pure native
+Choice/Score/Noul training contract. Try its no-weight readout example with
+`uv run python examples/tasks/main.py`. This does not enable native research
+adapters in the ordinary Kai loader.

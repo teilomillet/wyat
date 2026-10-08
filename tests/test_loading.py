@@ -102,11 +102,18 @@ def test_missing_primary_runtime_explains_optional_extra(
     with pytest.raises(ModuleNotFoundError) as error:
         wyat.load("local", backend=backend)
     extra = "inference" if backend == "torch" else "mlx"
-    assert f"uv sync --extra {extra}" in str(error.value)
+    message = str(error.value)
+    application_command = f"uv add /absolute/path/to/wyat --extra {extra}"
+    checkout_command = f"uv sync --extra {extra}"
+    assert application_command in message
+    assert checkout_command in message
+    assert message.index(application_command) < message.index(checkout_command)
+    assert "your application's project" in message
+    assert "From the Wyat checkout" in message
     assert error.value.name == backend
     assert error.value.__cause__ is original
     if backend == "mlx":
-        assert "Apple Silicon macOS" in str(error.value)
+        assert "Apple Silicon macOS" in message
 
 
 @pytest.mark.parametrize(
