@@ -1,0 +1,108 @@
+{
+  "schema": "wyat-decision-quality-run-preparation-template-v1",
+  "status": "BLANK_NOT_EXECUTABLE_NOT_RUN_READY",
+  "is_wyat_campaign_manifest": false,
+  "protocol_pin": {
+    "path": "docs/studies/quality/PROTOCOL.json",
+    "sha256": null,
+    "bytes": null
+  },
+  "application_owner": null,
+  "data_owner": null,
+  "evaluation_owner": null,
+  "runtime_owner": null,
+  "permissions_and_source_admission": null,
+  "model": {
+    "artifact_path": null,
+    "artifact_manifest_sha256": null,
+    "weights_sha256": null,
+    "tokenizer_sha256": null,
+    "installed_wheel_sha256": null,
+    "recipe": null,
+    "supported_tasks": null,
+    "runtime": null,
+    "device": null,
+    "precision": null,
+    "readout_policy": null,
+    "admission_receipt_pin": null
+  },
+  "cohorts": {
+    "development": {
+      "cases_pin": null,
+      "source_owners_pin": null,
+      "annotations_pin": null
+    },
+    "confirmation": {
+      "cases_pin": null,
+      "source_owners_pin": null,
+      "annotations_pin": null
+    },
+    "owner_nonoverlap_audit_pin": null,
+    "rubric_examples_pin": null,
+    "label_adjudication_receipt_pin": null,
+    "exposure_clearance_pin": null
+  },
+  "required_cells": [],
+  "cell_definition": {
+    "language": null,
+    "task": null,
+    "family": null,
+    "cardinality": null,
+    "minimum_source_owners": null,
+    "minimum_questions": null,
+    "minimum_prediction_coverage": null,
+    "maximum_full_denominator_loss": null,
+    "loss_name": null,
+    "required_paired_gain": null,
+    "acceptance_uncertainty_rule": null
+  },
+  "comparison": {
+    "baseline_artifact_pin": null,
+    "baseline_predictions_pin": null,
+    "same_cohort_and_policy": null
+  },
+  "policy": {
+    "id": null,
+    "accept_min": null,
+    "reject_max": null,
+    "false_accept_cost": null,
+    "false_reject_cost": null,
+    "review_cost": null,
+    "operational_failure_cost": null,
+    "maximum_false_accept_rate": null,
+    "maximum_false_reject_rate": null,
+    "maximum_review_load": null,
+    "maximum_operational_failure_load": null,
+    "development_search_ledger_pin": null
+  },
+  "budget": {
+    "maximum_questions": null,
+    "maximum_model_calls": null,
+    "maximum_seconds": null,
+    "maximum_spend": null,
+    "inference_authority_receipt": null
+  },
+  "freeze": {
+    "recorded_before_confirmation": null,
+    "complete_public_requests_pin": null,
+    "canonical_contract_pin": null,
+    "source_pins": null,
+    "secondary_calibration_analysis_registration_pin": null
+  },
+  "outputs": {
+    "raw_predictions_pin": null,
+    "report_pin": null,
+    "policy_report_pin": null,
+    "calibration_report_pin": null,
+    "retained_failures_pin": null,
+    "actual_action_and_review_receipts_pin": null
+  },
+  "completion": "No null prerequisite may be promoted to ready. Execution requires the separately reviewed benchmark integration and its own schema/preflight; this preparation form adds no runtime or evaluator.",
+  "benchmark_integration": {
+    "reviewed_integration_pin": null,
+    "supported_schema": null,
+    "supported_cli": null,
+    "source_and_contract_pins": null,
+    "availability": "PENDING_SEPARATE_INTEGRATION"
+  }
+}

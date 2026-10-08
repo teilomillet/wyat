@@ -1,0 +1,1 @@
+language,family,question_id,bin_lower,bin_upper,upper_inclusive,valid_rows,distinct_source_owners,mean_probability_true,empirical_true_fraction,uncertainty_method,lower_interval,upper_interval,total_assigned_questions,valid_prediction_coverage

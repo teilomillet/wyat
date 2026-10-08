@@ -1,0 +1,48 @@
+{
+  "schema": "wyat-prospective-human-study-v1",
+  "study_id": null,
+  "study_phase": "pilot",
+  "design": "single-design acceptance; no comparative superiority claim",
+  "wheel_path": null,
+  "expected_wheel_sha256": null,
+  "artifact_identity": null,
+  "artifact_files": [],
+  "files_to_pin": [],
+  "environment": {
+    "python_version": null,
+    "uv_version": null,
+    "os_version": null,
+    "runtime": "torch-cpu",
+    "acquisition_condition": null,
+    "network_dependency_condition": null,
+    "workspace_isolation_enforced": null,
+    "locks_and_versions_recorded": null,
+    "observer_preparation_receipt": null
+  },
+  "participants": [],
+  "assignment_rule": "PROTOCOL.md persona table and odd/even anonymous ID order",
+  "assistance_rule": "No AI, web search, implementation/test sources or technical hints; frozen public docs allowed",
+  "caps_seconds": {
+    "U2": 1800,
+    "other": 600
+  },
+  "objective": [
+    "correct_unassisted_execution_and_interpretation",
+    "lower_failure_inclusive_T95",
+    "fewer_required_concepts"
+  ],
+  "observed_targets": {
+    "equally_weighted_cell_Q": 0.9,
+    "every_cell": 0.8
+  },
+  "confirmation_minimum_per_persona": 30,
+  "pilot_minimum_per_persona": 6,
+  "population_support_rule": "Q bootstrap lower bound >= .90 and every cell Wilson lower bound >= .80; no population claim from degenerate bootstrap; no formal joint confidence claim",
+  "bootstrap": {
+    "unit": "participant within persona",
+    "repetitions": 5000,
+    "seed": 20261008
+  },
+  "human_observations": "NONE",
+  "instruction_language": "en"
+}

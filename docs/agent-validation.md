@@ -93,3 +93,11 @@ Human understanding requires a separate human study with its own consent,
 participants and frozen task protocol. Agent trials cannot supply its completion
 rates. The [ergonomics standard](ergonomics.md) retains the prospective human
 targets; the existing agent study and this software suite do not establish them.
+
+Use the [human acceptance study](human-acceptance-study.md) for prepared task
+cards, an observer rubric and anonymous recording forms. The retained
+[quality-validation packet](studies/quality/README.md)
+provides separate label, split and policy forms. Executing that study requires
+the separate reviewed typed benchmark integration described in its protocol.
+These research packets are included in the source checkout; copy the linked packet
+folders when sharing them. They are not distributed in the wheel.

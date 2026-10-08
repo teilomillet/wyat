@@ -1,0 +1,36 @@
+{
+  "schema": "wyat-quality-annotation-preparation-template-v1",
+  "status": "BLANK_NOT_BENCHMARK_INPUT",
+  "cases": [],
+  "case_definition": {
+    "id": null,
+    "source_owner_id": null,
+    "source_ancestry": null,
+    "split": null,
+    "language": null,
+    "family": null,
+    "public_record": {
+      "state": null,
+      "questions": null
+    },
+    "private_reference_by_question": null,
+    "independent_annotations": [],
+    "adjudication": null,
+    "permission_receipt": null
+  },
+  "reference_formats": {
+    "choice": {
+      "type": "choice",
+      "acceptable": null
+    },
+    "score": {
+      "type": "score",
+      "ordinal_index": null
+    },
+    "noul": {
+      "type": "noul",
+      "truth": null
+    }
+  },
+  "materialization": "Only adjudicated nonblank accepted references become references in the separately reviewed benchmark integration schema, once available. Source ancestry metadata stays external. Never infer false/zero from null."
+}

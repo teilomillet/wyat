@@ -1,0 +1,112 @@
+{
+  "schema": "wyat-decision-quality-measurement-protocol-v1",
+  "status": "MEASUREMENT_METHOD_BLANK_RUN_INPUTS_PENDING_BENCHMARK_INTEGRATION",
+  "scope": "Independently labeled actual model quality; separate from human library usability and pure software conformance.",
+  "objective": "First require correct task semantics, complete failure accounting, independent source-owner-separated labels and untouched confirmation; then meet every predeclared task-language quality and application-cost limit. No combined task score.",
+  "recipe": null,
+  "analysis": {
+    "unit": "public question, retained inside complete source-owned records",
+    "strata": [
+      "language",
+      "task",
+      "family",
+      "cardinality"
+    ],
+    "uncertainty": {
+      "method": "paired source-owner bootstrap through the separately reviewed benchmark integration",
+      "resamples": 2000,
+      "seed": 17,
+      "confidence": 0.95,
+      "too_few_owners": "UNKNOWN; no unsupported interval is fabricated"
+    },
+    "metrics": {
+      "choice": [
+        "choice_accuracy",
+        "choice_error"
+      ],
+      "score": [
+        "normalized_mae",
+        "rps"
+      ],
+      "noul": [
+        "brier"
+      ]
+    },
+    "failure_penalty": 1,
+    "failure_statuses": [
+      "missing",
+      "invalid",
+      "failed",
+      "unsupported"
+    ],
+    "likelihood": "valid-only, probability floor 1e-15; disclose coverage",
+    "headline": "no pooled combination of tasks"
+  },
+  "label_policy": {
+    "independent_initial_annotators": 2,
+    "language_competence_required": true,
+    "adjudicator_required_for_disagreement": true,
+    "labels_never_enter_public_record": true,
+    "labels_blinded_to_predictions": true,
+    "split": "nonoverlapping ancestry/source owners in development and confirmation",
+    "variants": "all translations, paraphrases and menu permutations share their source ancestry owner"
+  },
+  "policy_accounting": {
+    "cutoffs": "application-owned; fit on development only, freeze before confirmation",
+    "accept": "canonical unrounded probability_true >= accept_min",
+    "reject": "canonical unrounded probability_true <= reject_max",
+    "review": "valid value between cutoffs",
+    "operational_failure": "no semantic review label or correctness credit",
+    "denominator_zero": null,
+    "empty_inventory": "reject",
+    "metrics": {
+      "false_accept_rate": "false_accepts / all_negatives",
+      "false_reject_rate": "false_rejects / all_positives",
+      "review_load": "uncertainty_reviews / all_questions",
+      "operational_failure_load": "operational_failures / all_questions",
+      "autonomous_coverage": "(accepts + rejects) / all_questions",
+      "autonomous_error_rate": "(false_accepts + false_rejects) / (accepts + rejects)",
+      "accept_precision": "true_accepts / accepts"
+    }
+  },
+  "calibration": {
+    "status": "UNKNOWN_NOT_MEASURED",
+    "existing_evaluator": "Required binary Brier and valid-only log loss; reliability diagram or ECE requires separate registered support",
+    "secondary_analysis_requires": "existing evaluation-owner registration before confirmation",
+    "bins": {
+      "edges": [
+        0.0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6,
+        0.7,
+        0.8,
+        0.9,
+        1.0
+      ],
+      "intervals": "left-closed, right-open, final interval includes 1",
+      "empty_bin": null
+    },
+    "source": "https://proceedings.mlr.press/v70/guo17a.html",
+    "no_probability_repair_or_calibration_transform": true
+  },
+  "gates": [
+    "Any missing run prerequisite is unknown, never a pass.",
+    "Each frozen required language/task/family/cardinality cell must meet its application-owned limits.",
+    "Insufficient owners, annotation review or source permission rejects a quality claim.",
+    "Confirmation cannot tune thresholds, recipe, model or calibration.",
+    "Pipeline conformance and multilingual transport do not establish learned quality."
+  ],
+  "authorization_boundary": {
+    "actual_inference_authorized_by_this_packet": false,
+    "protected_payloads_read": false,
+    "model_calls": 0,
+    "training_calls": 0,
+    "download_calls": 0,
+    "new_evaluator": false
+  },
+  "execution_prerequisite": "Separate reviewed typed benchmark integration, supported schema/CLI and frozen source/contract identities; unavailable in this publication."
+}
