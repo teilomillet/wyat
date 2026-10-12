@@ -233,3 +233,6 @@ __marimo__/
 
 # Maintainer-only CLI retained during release isolation.
 /scripts/private_runtime/
+
+# Local editor tool configuration.
+/.zcodeignore
