@@ -28,7 +28,7 @@ def factory() -> Callable[[], FastAPI]:
     return cast(Callable[[], FastAPI], values["app"])
 
 
-@pytest.mark.parametrize("name", ["model", "server"])
+@pytest.mark.parametrize("name", ["model", "quickstart", "server"])
 def test_import_does_not_load_weights(
     name: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -77,6 +77,14 @@ def test_cpu_model_and_server_examples(
     assert decision["selected"] == ranking[0]
     assert calls == [(bundle, "torch")]
 
+    monkeypatch.setattr(sys, "argv", ["main.py", "--model", str(bundle)])
+    runpy.run_path(str(EXAMPLES / "quickstart" / "main.py"), run_name="__main__")
+    output = capsys.readouterr().out
+    assert "Message: Please cancel my booking." in output
+    assert output.splitlines()[-1] in {"Selected: create", "Selected: cancel"}
+    assert "Demo mode" not in output
+    assert calls == [(bundle, "torch"), (bundle, "torch")]
+
     monkeypatch.setenv("WYAT_MODEL", str(bundle))
     monkeypatch.delenv("WYAT_BACKEND", raising=False)
     with TestClient(factory()()) as client:
@@ -95,7 +103,26 @@ def test_cpu_model_and_server_examples(
             )
             assert response.status_code == 200
             assert response.json() == decision
-    assert calls == [(bundle, "torch"), (str(bundle), "torch")]
+    assert calls == [(bundle, "torch"), (bundle, "torch"), (str(bundle), "torch")]
+
+
+def test_quickstart_without_weights(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def unexpected_load(*args: object, **kwargs: object) -> wyat.Model:
+        raise AssertionError("Demo mode must not load weights")
+
+    monkeypatch.setattr(wyat, "load", unexpected_load)
+    monkeypatch.setattr(sys, "argv", ["main.py", "--demo"])
+    runpy.run_path(str(EXAMPLES / "quickstart" / "main.py"), run_name="__main__")
+    assert capsys.readouterr().out == (
+        "Demo mode: fixed scores, no trained model.\n"
+        "Message: Please cancel my booking.\n"
+        "Choices:\n"
+        "  create: Create a booking\n"
+        "  cancel: Cancel the booking\n"
+        "Selected: cancel\n"
+    )
 
 
 @pytest.mark.parametrize("path", [None, "", "   "])

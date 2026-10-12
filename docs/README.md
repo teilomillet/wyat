@@ -1,11 +1,12 @@
 # Documentation
 
-Start with the [quickstart](../README.md), then use the
+Start with [your first decision](quickstart.md), then use the
 [installation guide](install.md) for a checked local wheel or a matching registry
 release. Model weights are acquired separately.
 
 | Need | Guide |
 | --- | --- |
+| Install and make your first decision | [Quickstart demo](quickstart.md) |
 | Install Wyat and serve it from your application | [Installation](install.md) |
 | Download and verify the supported full Kai artifact | [Model acquisition](model-acquisition.md) |
 | Understand requests, results, batches, evaluation and errors | [Python API](api.md) |

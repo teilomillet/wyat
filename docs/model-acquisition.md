@@ -12,8 +12,7 @@ Run it from your application project after [installing Wyat](install.md):
 
 ```sh
 export WYAT_MODEL="$PWD/models/Decision-2.0-Kai-0.6B"
-python -m pip install 'huggingface-hub==1.33.0'
-hf download \
+uvx --from 'huggingface-hub==1.33.0' hf download \
   vllm-sr/Decision-2.0-Kai-0.6B \
   LICENSE MODEL_MANIFEST.json config.json decision_config.json \
   decision_head.safetensors tokenizer.json tokenizer_config.json \
@@ -53,7 +52,7 @@ Copy [verify.py](../examples/model/verify.py) from this checkout into your
 application as `verify_kai.py`, then run:
 
 ```sh
-python verify_kai.py "$WYAT_MODEL"
+uv run python verify_kai.py "$WYAT_MODEL"
 ```
 
 The verifier uses only the Python standard library. It first checks the
