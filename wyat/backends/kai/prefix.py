@@ -6,7 +6,7 @@ from collections.abc import Callable, Sequence
 from typing import Protocol, cast
 
 import mlx.core as mx
-from mlx_lm.models.cache import KVCache
+from mlx_lm.models.cache import ConcatenateKVCache
 
 from wyat.core import Request
 
@@ -27,15 +27,16 @@ class PrefixCache(EndpointCache, Protocol):
 
 type CachedForward = Callable[[mx.array, list[PrefixCache]], mx.array]
 # The maintained cache/model APIs are untyped; narrow only those boundaries.
-new_cache = cast(Callable[[], PrefixCache], KVCache)
+new_cache = cast(Callable[[], PrefixCache], ConcatenateKVCache)
 
 
 class PrefixScorer:
     """One immutable prefix for fixed weights/device; fresh cache owners per call.
 
-    Exact logical-length snapshots force KVCache to grow before suffix writes,
-    so broadcast prefix views are never appended to in place. A mixed or
-    overlapping-readout batch falls back intact to the original scorer.
+    Each fresh cache concatenates the suffix once at its exact logical length;
+    it never writes into the broadcast immutable prefix views or reserves
+    decoding capacity. A mixed or overlapping-readout batch falls back intact
+    to the original scorer.
     Weights, device and encoder must remain fixed for this resource lifetime.
     The admitted path is eager; the final block visits only actual readouts.
     """

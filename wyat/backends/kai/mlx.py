@@ -56,7 +56,12 @@ class MLXCandidateHead(Module):  # type: ignore[misc, unused-ignore]
         return bilinear + nonlinear
 
 
-def _weights(path: Path, *, head: bool) -> dict[str, mx.array]:
+def _weights(
+    path: Path,
+    *,
+    head: bool,
+    projection_weight: Callable[[str, mx.array], mx.array] | None = None,
+) -> dict[str, mx.array]:
     loaded: object = mx.load(str(path))
     if not isinstance(loaded, dict):
         raise ValueError(f"Expected named checkpoint tensors: {path.name}")
@@ -72,7 +77,11 @@ def _weights(path: Path, *, head: bool) -> dict[str, mx.array]:
         for start in range(0, flat.size, 1 << 20):
             if not bool(mx.all(mx.isfinite(flat[start : start + (1 << 20)])).item()):
                 raise ValueError(f"Nonfinite checkpoint tensor: {name}")
-        weights[name] = value.astype(mx.float32)
+        weights[name] = (
+            projection_weight(name, value)
+            if projection_weight is not None and not head
+            else value.astype(mx.float32)
+        )
     return weights
 
 
@@ -133,8 +142,22 @@ class MLXKaiScorer:
             args = arguments(artifact.config)
             backbone = Qwen3Model(args)
             head = MLXCandidateHead(args.hidden_size, artifact.head_dim)
+            projection_operation = None
+            prepare_weight = None
+            if device == "gpu" and not compile:
+                from .metal import (
+                    _checkpoint_weights,
+                    _prepare,
+                    optimize_projections,
+                )
+
+                projection_operation = _prepare(device=target, compiled=compile)
+                if projection_operation is not None:
+                    prepare_weight = _checkpoint_weights(backbone)
             backbone_weights = _weights(
-                artifact.root / "backbone/model.safetensors", head=False
+                artifact.root / "backbone/model.safetensors",
+                head=False,
+                projection_weight=prepare_weight,
             )
             head_weights = _weights(
                 artifact.root / "decision_head.safetensors", head=True
@@ -144,6 +167,14 @@ class MLXKaiScorer:
             backbone.eval()
             head.eval()
             mx.eval(backbone_weights, head_weights)
+            del backbone_weights, head_weights
+            if projection_operation is not None:
+                optimize_projections(
+                    backbone,
+                    device=target,
+                    compiled=compile,
+                    operation=projection_operation,
+                )
         return cls(
             backbone,
             head,
@@ -170,6 +201,19 @@ class MLXKaiScorer:
         if not requests:
             return []
         encoded = [self.encode_request(request) for request in requests]
+        if self.device.type == mx.gpu and len(encoded) > 1:
+            groups = _batch_groups([len(row.ids) for row in encoded])
+            if len(groups) > 1:
+                result: list[list[float]] = [[] for _ in encoded]
+                for indices in groups:
+                    values = self._score_encoded([encoded[index] for index in indices])
+                    for index, row in zip(indices, values, strict=True):
+                        result[index] = row
+                return result
+        return self._score_encoded(encoded)
+
+    def _score_encoded(self, encoded: Sequence[EncodedRequest]) -> list[list[float]]:
+        """One synchronous causal prefill with the native packing recipe."""
         with mx.stream(self.device):
             ids, endpoints, positions = _pack(encoded, self.encoder.pad_id)
             logits = self._forward(ids, endpoints, positions)
@@ -179,6 +223,35 @@ class MLXKaiScorer:
             row[: len(item.candidate_positions)]
             for row, item in zip(values, encoded, strict=True)
         ]
+
+
+def _batch_groups(lengths: Sequence[int]) -> tuple[tuple[int, ...], ...]:
+    """Avoid heavy padding only when splitting halves the rounded token work.
+
+    Encoding has already validated every positive length. Similar lengths keep
+    their original batch; factor-two groups bound padding within each prefill.
+    This conservative threshold pays for extra dispatches and smaller GEMMs.
+    """
+    if not lengths:
+        return ()
+    original = (tuple(range(len(lengths))),)
+    if max(lengths) < 2 * min(lengths):
+        return original
+    order = sorted(range(len(lengths)), key=lengths.__getitem__)
+    groups: list[tuple[int, ...]] = []
+    current: list[int] = []
+    for index in order:
+        if current and lengths[index] >= 2 * lengths[current[0]]:
+            groups.append(tuple(current))
+            current = []
+        current.append(index)
+    groups.append(tuple(current))
+    original_tokens = len(lengths) * (-(-max(lengths) // 8) * 8)
+    grouped_tokens = sum(
+        len(indices) * (-(-max(lengths[index] for index in indices) // 8) * 8)
+        for indices in groups
+    )
+    return tuple(groups) if grouped_tokens * 2 <= original_tokens else original
 
 
 def _pack(
