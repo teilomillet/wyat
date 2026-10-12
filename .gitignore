@@ -40,6 +40,17 @@ pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 artifacts/
+# Private training workspace and research; public runtime stays under wyat/.
+/training/
+/data/
+/scripts/french_data/
+/scripts/french_eval/
+/scripts/french_assess/
+/scripts/training_optimization/
+/docs/french-first/
+/docs/next-training.md
+/docs/training-optimization.md
+/tests/test_*training*.py
 htmlcov/
 .tox/
 .nox/
@@ -219,3 +230,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Maintainer-only CLI retained during release isolation.
+/scripts/private_runtime/

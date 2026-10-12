@@ -8,6 +8,7 @@ from typing import cast
 
 import pytest
 import torch
+from fixtures.kai import create_kai_bundle
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from torch import nn
@@ -15,7 +16,6 @@ from transformers.cache_utils import DynamicLayer
 from transformers.masking_utils import create_causal_mask
 from transformers.modeling_outputs import BaseModelOutputWithPast
 
-from benchmarks.fixtures.kai import create_kai_bundle
 from wyat import Candidate, Model, Request
 from wyat.backends.kai.cpu import prefix as runtime
 from wyat.backends.kai.cpu.prefix import PrefixScorer

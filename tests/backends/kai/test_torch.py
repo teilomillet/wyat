@@ -10,12 +10,12 @@ from pathlib import Path
 
 import pytest
 import torch
+from fixtures.kai import create_kai_bundle
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from safetensors.torch import load_file, save_file
 from torch.nn import functional as F
 
-from benchmarks.fixtures.kai import create_kai_bundle
 from wyat import Candidate, Request
 from wyat.backends.kai.torch import CandidateHead, KaiScorer, _config
 

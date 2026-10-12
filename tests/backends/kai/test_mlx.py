@@ -15,7 +15,8 @@ mx = pytest.importorskip("mlx.core")
 pytest.importorskip("mlx_lm")
 torch = pytest.importorskip("torch")
 
-from benchmarks.fixtures.kai import create_kai_bundle  # noqa: E402
+from fixtures.kai import create_kai_bundle  # noqa: E402
+
 from wyat import Candidate, Request  # noqa: E402
 from wyat.backends.kai.mlx import MLXCandidateHead, MLXKaiScorer  # noqa: E402
 from wyat.backends.kai.torch import CandidateHead, KaiScorer  # noqa: E402

@@ -12,7 +12,8 @@ Run it from your application project after [installing Wyat](install.md):
 
 ```sh
 export WYAT_MODEL="$PWD/models/Decision-2.0-Kai-0.6B"
-uv run --with 'huggingface-hub==1.33.0' hf download \
+python -m pip install 'huggingface-hub==1.33.0'
+hf download \
   vllm-sr/Decision-2.0-Kai-0.6B \
   LICENSE MODEL_MANIFEST.json config.json decision_config.json \
   decision_head.safetensors tokenizer.json tokenizer_config.json \
@@ -52,7 +53,7 @@ Copy [verify.py](../examples/model/verify.py) from this checkout into your
 application as `verify_kai.py`, then run:
 
 ```sh
-uv run python verify_kai.py "$WYAT_MODEL"
+python verify_kai.py "$WYAT_MODEL"
 ```
 
 The verifier uses only the Python standard library. It first checks the
@@ -63,27 +64,20 @@ optional tokenizer files. Missing or changed files fail before inference.
 Wyat additionally validates the architecture, tensor storage, configured limits
 and consumed file hashes when loading.
 
-Continue with [load, decide and use the ID](install.md#load-decide-and-use-the-id).
+Continue with [load, decide and use the ID](install.md#acquire-and-load-a-trained-model).
 Keep the loaded model across calls. CPU inference promotes supported storage to
 FP32 and needs memory beyond the download's file size.
 
-## Verification scope
+## Artifact identity and rights
 
-On 8 October 2026, the pinned upstream manifest was fetched and matched the local
-manifest. All nine local files passed integrity verification; the exact download
-command resolved the complete cached artifact in offline mode. An installed-wheel
-consumer outside the checkout exercised trained Torch CPU and MLX CPU inference.
-MLX initialization needed an unsandboxed process; both runs selected CPU explicitly
-and performed no GPU inference. The receipt
-distinguishes cached acquisition from a new download and existing inference
-dependencies from a fresh dependency installation. This setup check does not
-establish model quality, calibration or multilingual understanding.
+Wyat's Apache-2.0 source license does not replace the model's license. Keep the
+downloaded `LICENSE` with the artifact and review it before using or redistributing
+weights. [NOTICE](../NOTICE) attributes the adapter to the vLLM Semantic Router
+Team's pinned Decision 2.0 Kai release. Wyat's package contains no model weights.
 
-The tested Transformers runtime emitted model-type and Mistral-regex notices.
-They were retained in the verification record; no tokenizer repair flag was
-applied. Changing the tokenizer configuration changes the model recipe and needs
-separate evaluation. Seven diagnostic strings matched the saved tokenizer's
-token IDs, which is a bounded check rather than general tokenizer conformance.
+The verifier establishes file identity for this pinned release. It does not
+establish model quality, calibration, language coverage or suitability for an
+application. Evaluate those properties on your own relevant cases.
 
 If acquisition fails, retain its error and complete the missing download or
 permission step. Do not substitute an adapter-only checkpoint or silently load a

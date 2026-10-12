@@ -129,7 +129,7 @@ def safe_name(name: str) -> str:
     if (
         not value
         or "\\" in value
-        or "\x00" in value
+        or any(ord(character) < 32 or ord(character) == 127 for character in value)
         or PurePosixPath(value).is_absolute()
         or any(part in {"", ".", ".."} for part in value.split("/"))
         or ":" in value.split("/")[0]
@@ -194,8 +194,11 @@ def source_files(path: Path, project: Project) -> dict[str, bytes]:
 
 
 def runtime_files(root: Path) -> dict[str, bytes]:
-    paths = sorted((root / "wyat").rglob("*.py")) + [root / "wyat/py.typed"]
-    return {path.relative_to(root).as_posix(): path.read_bytes() for path in paths}
+    return {
+        name: (root / name).read_bytes()
+        for name in sorted(required_sources(root))
+        if name.startswith("wyat/")
+    }
 
 
 def check_record(files: dict[str, bytes], name: str) -> None:
@@ -252,34 +255,49 @@ def check_wheel(path: Path, root: Path, project: Project) -> dict[str, bytes]:
 
 
 def required_sources(root: Path) -> set[str]:
-    names = {
-        "pyproject.toml",
-        "uv.lock",
-        "README.md",
-        "CONTRIBUTING.md",
-        "LICENSE",
-        "NOTICE",
-    }
-    for folder in (
-        "wyat",
-        "examples",
-        "docs",
-        "scripts",
-        ".github",
-        "tests",
-        "benchmarks",
-    ):
-        for path in (root / folder).rglob("*"):
-            name = path.relative_to(root).as_posix()
-            if path.is_file() and not forbidden(name) and path.suffix != ".pyc":
-                names.add(name)
+    configuration = tomllib.loads((root / "pyproject.toml").read_text("utf-8"))
+    try:
+        selected = strings(
+            configuration["tool"]["hatch"]["build"]["targets"]["sdist"]["only-include"]
+        )
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError(
+            "Source distribution requires an explicit only-include list"
+        ) from error
+    if not selected:
+        raise ValueError("Source distribution requires a nonempty only-include list")
+    names: set[str] = set()
+    for selection in selected:
+        name = safe_name(selection)
+        if any(character in name for character in "*?[]"):
+            raise ValueError("Source selections must be literal files")
+        source = root / name
+        ancestors = (
+            root / part
+            for part in (PurePosixPath(name), *PurePosixPath(name).parents)
+            if str(part) != "."
+        )
+        if any(path.is_symlink() for path in ancestors) or not source.exists():
+            raise ValueError(f"Missing or symbolic source selection: {name}")
+        if not source.is_file():
+            raise ValueError(f"Source selection must be a literal file: {name}")
+        if forbidden(name) or source.suffix == ".pyc":
+            raise ValueError(f"Forbidden source selection: {name}")
+        if name in names:
+            raise ValueError(f"Duplicate source selection: {name}")
+        names.add(name)
     return names
 
 
 def check_source(path: Path, root: Path, project: Project) -> dict[str, bytes]:
     files = source_files(path, project)
-    if not required_sources(root) <= set(files):
+    required = required_sources(root)
+    if not required <= set(files):
         raise ValueError("Source distribution omits required project files")
+    if set(files) - required - {"PKG-INFO"}:
+        raise ValueError(
+            "Source distribution contains files outside the public selection"
+        )
     for name, raw in files.items():
         if name == "PKG-INFO":
             check_metadata(raw, project)
@@ -342,6 +360,7 @@ def run(command: tuple[str, ...], cwd: Path, timeout: int = 120) -> None:
 
 SMOKE = """
 import sys
+import importlib.util
 from collections.abc import Sequence
 sys.path.insert(0, sys.argv[1])
 import wyat
@@ -362,6 +381,11 @@ assert decision.scores == (0.0, 2.0, 2.0)
 assert decision.ranking == ("b", "c", "a") and decision.selected == "b"
 assert model.decide_many((request, request)) == (decision, decision)
 assert not {"torch", "transformers", "mlx", "fastapi", "dmbench"} & sys.modules.keys()
+for private in (
+    "wyat.data", "wyat.bench", "wyat.tasks", "wyat.benchmark", "wyat.loading.native",
+    "wyat.interop",
+):
+    assert importlib.util.find_spec(private) is None, private
 from wyat.cli import main
 main(["--help"])
 """
@@ -371,6 +395,52 @@ def smoke(wheel: Path, cwd: Path) -> None:
     run(
         (sys.executable, "-I", "-S", "-c", SMOKE, str(wheel.resolve())), cwd, timeout=30
     )
+
+
+def installed_smoke(wheel: Path, cwd: Path) -> None:
+    """Exercise a real dependency-free install and generated console script."""
+    environment = cwd / "installed"
+    cache = cwd / "install-cache"
+    run(
+        (
+            "uv",
+            "--cache-dir",
+            str(cache),
+            "venv",
+            "--offline",
+            "--no-project",
+            "--python",
+            sys.executable,
+            str(environment),
+        ),
+        cwd,
+    )
+    scripts = environment / ("Scripts" if os.name == "nt" else "bin")
+    python = scripts / ("python.exe" if os.name == "nt" else "python")
+    run(
+        (
+            "uv",
+            "--cache-dir",
+            str(cache),
+            "pip",
+            "install",
+            "--offline",
+            "--no-deps",
+            "--python",
+            str(python),
+            str(wheel.resolve()),
+        ),
+        cwd,
+    )
+    # Reuse the public-contract exercise, selecting the installed package first.
+    installed = SMOKE.replace("sys.path.insert(0, sys.argv[1])", "").replace(
+        'assert wyat.__file__.startswith(sys.argv[1] + "/")',
+        "assert wyat.__file__.startswith(sys.argv[1])",
+    )
+    run((str(python), "-I", "-c", installed, str(environment)), cwd, timeout=30)
+    command = scripts / ("wyat.exe" if os.name == "nt" else "wyat")
+    for arguments in (("--help",), ("decide", "--help"), ("serve", "--help")):
+        run((str(command), *arguments), cwd, timeout=30)
 
 
 def check(directory: Path, root: Path = ROOT, tag: str | None = None) -> None:
@@ -387,6 +457,7 @@ def check(directory: Path, root: Path = ROOT, tag: str | None = None) -> None:
     with tempfile.TemporaryDirectory(prefix="wyat-package-") as temporary:
         workspace = Path(temporary)
         smoke(wheel, workspace)
+        installed_smoke(wheel, workspace)
         extracted = workspace / "source"
         extracted.mkdir()
         for name, raw in contents.items():

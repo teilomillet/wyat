@@ -1,101 +1,109 @@
-# Releasing Wyat
+# Preparing a public Wyat release
 
-Releases are deliberate. [The release workflow](../.github/workflows/release.yml)
-accepts an existing tag through **Run workflow** on `main`; ordinary pushes,
-tag pushes, and GitHub release events do not publish anything. Its `publish`
-input defaults to `false`. Publication additionally requires the repository
-variable `PYPI_PUBLISH_ENABLED` to equal `true` and the `pypi` environment's
-protection rules to pass.
+Release preparation covers two public surfaces: the pip distributions and the
+source code. Both must contain only explicitly approved files. The mixed
+maintainer workspace and its Git history remain private.
 
-The existing [PyPI version 0.0.1](https://pypi.org/project/wyat/0.0.1/) differs
-from this implementation. Do not publish current code under that version.
-Choose a new, unused version in a separate reviewed change; this infrastructure
-does not change the package version or publish a release.
+Version **0.0.9 is the candidate version**. The existing PyPI `0.0.1` release
+contains a different implementation and must not be reused. No candidate is
+published merely by building, exporting or checking it.
 
-## One-time maintainer setup
+## Export a clean source candidate
 
-These are administrative actions, not settings this checkout has configured.
-Keep `PYPI_PUBLISH_ENABLED` unset or `false` until all are complete.
-PyPI makes the distributions public. Review that audience for the runtime and
-the source archive, which retains historical research evidence, before enabling
-publication from this private repository.
+The release file allowlist defines the approved runtime, public examples,
+documentation, tests and check tooling. Private datasets, models, operational
+receipts, benchmark and research tooling are excluded. Keep their original
+files in the private workspace; an export is a copy of the selected public
+files, not a move or deletion.
 
-1. Protect `main` with reviewed changes and required CI checks. Protect release
-   tags from deletion or movement, and restrict who can create them. Review
-   workflow changes as executable release infrastructure.
-2. Create the GitHub environment **`pypi`**. Restrict its deployment branch to
-   **`main`**, because the manual workflow runs on that branch even though it
-   tests a selected tag. Configure required reviewers, prevent self-review,
-   and disable administrator bypass where the repository's plan permits those
-   controls. Confirm the controls actually apply to this repository's visibility
-   and plan before enabling publishing. GitHub describes their availability and
-   setup in [Managing environments](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments).
-3. As an owner of the existing `wyat` PyPI project, add its GitHub trusted
-   publisher with **owner `teilomillet`**, **repository `wyat`**, **workflow
-   filename `release.yml`**, and **environment `pypi`**. Those values must match
-   exactly; follow [PyPI's configuration guide](https://docs.pypi.org/trusted-publishers/adding-a-publisher/).
-4. After a successful dry run and review of those settings, set the GitHub
-   repository Actions variable **`PYPI_PUBLISH_ENABLED=true`**. This variable
-   is an enable switch, not a credential. Remove it or set it to `false` to
-   disable subsequent publication requests.
+From the maintainer workspace, choose a fresh destination:
 
-No PyPI API token or GitHub personal token belongs in this workflow. Only the
-publishing job receives `id-token: write`; PyPI exchanges that OIDC identity for
-short-lived publishing credentials. The `pypi` environment supplies the review
-boundary. See [Using a trusted publisher](https://docs.pypi.org/trusted-publishers/using-a-publisher/).
+```sh
+.venv/bin/python scripts/package/export.py artifacts/public-release/source
+```
 
-## Prepare and inspect a candidate
+The exporter must reject an existing destination and produce an inventory of
+selected files. The public source tree must have no inherited `.git` directory,
+commit history, ignored artifacts or credentials. Do not make the mixed private
+repository public. Git history pruning is deferred until V1; before changing
+repository visibility, review the pruned history as well as the current files.
+The clean snapshot provides the candidate file boundary for that review.
 
-1. Choose an unused version, update `pyproject.toml` and refresh `uv.lock` in a
-   reviewed change, and merge it with passing CI. Check the release notes and
-   installed-package examples against that implementation.
-2. Create an immutable tag **`v<version>`** on the reviewed commit reachable
-   from `main`. For example, version `0.0.2` would require tag `v0.0.2`; this is
-   an illustration, not a selected next version or an instruction to tag now.
-3. Open **Actions → Release → Run workflow**, select branch **`main`**, enter
-   that existing tag, and leave **publish unchecked**.
-4. Inspect every CI lane, including failures and skips, then download the
-   **`ci-distributions`** artifact and its **`SHA256SUMS`**. Inspect the wheel,
-   source archive, metadata, and installed-package behavior before publication.
+Inspect the source inventory and the content of every selected file. An
+allowlisted filename does not establish that its contents are suitable for the
+public audience. Review documentation links, examples, local paths, attribution,
+model licenses and workflow destinations as well as Python code.
 
-The workflow resolves the tag once to a commit, rejects tags outside `main`'s
-history, and requires its version to match `pyproject.toml`. It calls the same
-[CI workflow](../.github/workflows/ci.yml) for that exact commit. CI runs locked
-dependency installation, types, formatting, tests, and package checks; only
-the Linux Python 3.12 lane builds the wheel and source archive with
-`uv build --no-build-isolation`, using the build backend installed from
-`uv.lock`. The package
-checker validates the release version, package contents, and isolated core/CLI
-imports, then writes the checksums. [uv's GitHub Actions guide](https://docs.astral.sh/uv/guides/integration/github/)
-describes the underlying locked-environment workflow.
+## Check and build from the exported source
 
-The other lanes exercise Python compatibility and the MLX dependency path.
-They do not establish deployment performance, downloaded-model quality, CUDA
-coverage, or Metal availability on a particular hosted runner. Read the actual
-test results and capability skips.
+Run the public checks inside the exported directory:
 
-## Publish the checked artifact
+```sh
+cd artifacts/public-release/source
+uv sync --locked --extra inference --extra server
+uv run --no-sync python scripts/checks/main.py
+uv build --no-build-isolation
+uv run --no-sync python scripts/package/check.py dist
+```
 
-After the administrative setup and explicit release approval, dispatch **Release**
-again on `main` with the same immutable tag and **publish checked**. This run
-rechecks the tag and reruns CI; it publishes that run's checked artifact, not
-an artifact from the earlier dry run. Approve the `pypi` environment only after
-reviewing its selected commit and complete CI results.
+The public check command covers public code, examples and tests. Optional
+capability skips remain visible. On Apple Silicon, install `--extra mlx` and use
+`--require-mlx` when MLX availability is required; use `--require-metal` for a
+required Apple GPU check.
 
-The publishing job downloads the same run's `ci-distributions`, verifies its
-exact checksum inventory, and rejects a version already present on PyPI. It
-does not check out project code, install project dependencies, or rebuild.
-It sends only the verified wheel and source archive to PyPI, with trusted
-publishing and provenance attestations. External actions use reviewed full
-commit hashes; see [GitHub's secure-use guidance](https://docs.github.com/en/actions/reference/security/secure-use).
+The package checker inspects metadata and exact archive contents, rebuilds from
+the source distribution, exercises the installed core and CLI in isolation, and
+writes distribution checksums. Inspect both archives and keep their hashes
+with the source inventory. The wheel contains the approved runtime; the source
+archive also includes the approved public source, examples, documentation,
+tests and check tooling. Neither archive contains private research material.
 
-If uploading fails, retain the workflow logs and compare the recorded hashes
-with any files already visible on PyPI before deciding how to recover. Uploads
-can partially succeed: the workflow deliberately does not skip existing files
-or cancel a publishing run to start another one. Never move the tag or silently
-replace a published version. A partial release needs an explicit maintainer
+Then install the candidate wheel into a separate application environment and
+exercise the [installation guide](install.md), including no-weight first use.
+Run trained-model checks separately with an explicitly selected supported
+artifact and runtime. A fixture check establishes API mechanics, not trained
+quality, calibration, device coverage or performance.
+
+## Prepare publication
+
+Before publishing, confirm the unused version, reviewed source snapshot,
+license and attribution, complete check results, dependency installation and
+release notes. Choose the public source destination and inspect its actual
+contents and access settings. Publication changes the audience; preparation
+does not authorize that external action by itself.
+
+For GitHub Actions publication, configure the workflow and PyPI trusted publisher
+for the approved source repository. The repository owner, name, workflow filename
+and environment must match the trusted publisher exactly. Keep publication
+disabled until those settings and a dry run have been reviewed.
+
+The supplied release workflow is manually dispatched. Its `publish` input
+defaults to `false`; publication additionally requires
+`PYPI_PUBLISH_ENABLED=true` and the `pypi` environment's protection rules.
+Protect the release branch and immutable tags, configure required environment
+reviewers where supported, and verify that the controls apply to the chosen
+repository and plan. These administrative settings are not established by this
+source tree.
+
+Create an immutable `v<version>` tag only on the reviewed public commit. A dry
+run must check that exact commit and retain checked distributions with their
+checksums. Review every CI lane, including failures and skipped capabilities,
+before requesting publication. CI execution, trusted publishing and environment
+protection remain unverified until exercised on the destination repository.
+
+## Publish the checked candidate
+
+After explicit publication approval, use the reviewed source destination and
+release workflow. Publish only its checked wheel and source archive. Do not
+rebuild during upload or substitute artifacts with different hashes. PyPI
+trusted publishing uses short-lived OIDC credentials; no publishing token
+belongs in the source tree.
+
+After upload, verify the registry files and hashes, then install the exact
+published version in a clean consumer environment and repeat first use. Only
+then describe `pip install wyat` as providing this API.
+
+If an upload fails, retain its logs and compare recorded hashes with any files
+already present on PyPI. Uploads can partially succeed. Never move the release
+tag or replace a published version; recovery requires a deliberate maintainer
 decision, usually a new version.
-
-CI and release execution, PyPI trust, environment approval, and registry
-publication remain unverified until they are exercised on GitHub. Local checks
-of these files do not establish that those administrative controls exist.

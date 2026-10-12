@@ -1,6 +1,6 @@
 [project]
 name = "wyat"
-version = "0.0.1"
+version = "0.0.9"
 description = "Local decision-model inference, evaluation, and serving"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -13,14 +13,98 @@ Repository = "https://github.com/teilomillet/wyat"
 Issues = "https://github.com/teilomillet/wyat/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["wyat"]
+bypass-selection = true
+
+[tool.hatch.build.hooks.custom]
+path = "scripts/package/hatch.py"
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.sdist]
-exclude = ["artifacts/**", "**/*.trace/**", "**/*.gputrace/**", "**/*.raw.xml", "**/*.tensors.safetensors"]
+# Canonical reviewed public source inventory. New files require explicit admission.
+only-include = [
+    ".editorconfig",
+    ".github/dependabot.yml",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml",
+    ".gitignore",
+    ".python-version",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "docs/README.md",
+    "docs/agent-workflows.md",
+    "docs/api.md",
+    "docs/decision-tasks.md",
+    "docs/ergonomics.md",
+    "docs/explaining-decisions.md",
+    "docs/install.md",
+    "docs/mlx-inference.md",
+    "docs/model-acquisition.md",
+    "docs/releasing.md",
+    "docs/torch-inference.md",
+    "examples/booking/cases.jsonl",
+    "examples/booking/requests.jsonl",
+    "examples/evaluation/main.py",
+    "examples/model/main.py",
+    "examples/model/verify.py",
+    "examples/results/main.py",
+    "examples/scorer/main.py",
+    "examples/server/main.py",
+    "examples/workflows/routing.py",
+    "pyproject.toml",
+    "scripts/checks/main.py",
+    "scripts/package/check.py",
+    "scripts/package/export.py",
+    "scripts/package/hatch.py",
+    "tests/backends/cpu/test_reuse.py",
+    "tests/backends/kai/test_encoding.py",
+    "tests/backends/kai/test_mlx.py",
+    "tests/backends/kai/test_torch.py",
+    "tests/examples/test_model_verification.py",
+    "tests/examples/test_usage.py",
+    "tests/fixtures/__init__.py",
+    "tests/fixtures/kai.py",
+    "tests/infrastructure/test_checks.py",
+    "tests/infrastructure/test_export.py",
+    "tests/infrastructure/test_hatch.py",
+    "tests/infrastructure/test_package.py",
+    "tests/infrastructure/test_public_boundary.py",
+    "tests/infrastructure/test_release.py",
+    "tests/server/test_admission.py",
+    "tests/test_cli.py",
+    "tests/test_core.py",
+    "tests/test_evaluation.py",
+    "tests/test_installation_recovery.py",
+    "tests/test_loading.py",
+    "tests/test_recovery.py",
+    "tests/test_server.py",
+    "uv.lock",
+    "wyat/__init__.py",
+    "wyat/__main__.py",
+    "wyat/backends/__init__.py",
+    "wyat/backends/kai/__init__.py",
+    "wyat/backends/kai/artifact.py",
+    "wyat/backends/kai/cpu/__init__.py",
+    "wyat/backends/kai/cpu/prefix.py",
+    "wyat/backends/kai/encoding.py",
+    "wyat/backends/kai/mlx.py",
+    "wyat/backends/kai/prefix.py",
+    "wyat/backends/kai/readout.py",
+    "wyat/backends/kai/torch.py",
+    "wyat/cli.py",
+    "wyat/core.py",
+    "wyat/evaluation.py",
+    "wyat/loading/__init__.py",
+    "wyat/loading/local.py",
+    "wyat/py.typed",
+    "wyat/server.py",
+    "wyat/wire.py",
+]
 
 [project.optional-dependencies]
 inference = ["torch>=2.5,<3", "transformers>=5.17,<6", "safetensors>=0.5,<1"]
@@ -52,10 +136,12 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
+mypy_path = ["tests"]
 files = ["wyat"]
 
 [tool.coverage.run]

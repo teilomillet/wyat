@@ -25,17 +25,6 @@ from wyat.core import Model, Request
         ),
         ("evaluate", ("labeled case JSONL from stdin", "evaluation report")),
         ("serve", ("HTTP", "1048576", "body bytes", "127.0.0.1", "8000")),
-        (
-            "benchmark",
-            (
-                "labeled case JSONL from stdin",
-                "exit status 0 indicate quality",
-                "not a guaranteed speed improvement",
-                "CPU for both runtimes",
-                "measured alternating pairs",
-                "minimum 3",
-            ),
-        ),
     ],
 )
 def test_command_help_explains_input_and_operational_defaults(
@@ -281,37 +270,6 @@ def test_broken_pipe_is_quiet_success(
     assert capsys.readouterr().err == ""
 
 
-def test_benchmark_loads_two_engines_and_keeps_all_paired_rows(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    scorer = install_model(monkeypatch)
-    rows = [
-        {"id": f"case-{index}", "request": BODY, "expected": ["b"]}
-        for index in range(3)
-    ]
-    monkeypatch.setattr(sys, "stdin", io.StringIO("\n".join(map(json.dumps, rows))))
-    assert cli.main(["benchmark", "local", "--batch-size", "2", "--repeats", "3"]) == 0
-    report = json.loads(capsys.readouterr().out)
-    assert report["passed"] is True
-    assert report["quality"]["total"] == 9
-    assert report["baseline"]["batch_size"] == 1
-    assert report["candidate"]["batch_size"] == 2
-    assert len(scorer.calls) == 20  # 4 cycles, each containing 3 + 2 batches
-
-
-def test_benchmark_quality_failure_returns_nonzero_with_receipt(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    install_model(monkeypatch)
-    row = {"id": "failed", "request": {**BODY, "query": "failure"}, "expected": ["b"]}
-    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(row)))
-    assert cli.main(["benchmark", "local", "--repeats", "3"]) == 1
-    report = json.loads(capsys.readouterr().out)
-    assert report["passed"] is False
-    assert report["baseline"]["failed"] == 3
-    assert report["candidate"]["failed"] == 3
-
-
 def install_cache_runtime(
     monkeypatch: pytest.MonkeyPatch, *, available: bool = True
 ) -> list[int]:
@@ -404,39 +362,6 @@ def test_cache_control_rejects_out_of_range_before_runtime_import(
     with pytest.raises(SystemExit) as error:
         cli.main(["decide", "local", "--mlx-cache-limit-mib", mib])
     assert error.value.code == 2
-
-
-def test_cache_setting_is_shared_and_recorded_for_benchmark_baseline(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    install_model(monkeypatch)
-    limits = install_cache_runtime(monkeypatch)
-    monkeypatch.setattr(
-        sys,
-        "stdin",
-        io.StringIO(json.dumps({"id": "case", "request": BODY, "expected": ["b"]})),
-    )
-    assert (
-        cli.main(
-            [
-                "benchmark",
-                "local",
-                "--baseline-backend",
-                "mlx",
-                "--baseline-device",
-                "gpu",
-                "--mlx-cache-limit-mib",
-                "512",
-                "--repeats",
-                "3",
-            ]
-        )
-        == 0
-    )
-    report = json.loads(capsys.readouterr().out)
-    assert limits == [512 * (1 << 20)]
-    for engine in ("baseline", "candidate"):
-        assert report[engine]["conditions"]["mlx_cache_limit_mib"] == "512"
 
 
 def test_default_cli_does_not_import_mlx_or_change_cache_policy(

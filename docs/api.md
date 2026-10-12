@@ -36,7 +36,7 @@ text internally; exact application IDs do not establish learned language quality
 The default is PyTorch on CPU. On Apple Silicon, use
 `wyat.load(path, backend="mlx")` for native MLX. See the
 [application installation guide](install.md) and
-[artifact requirements](training-contracts.md).
+[artifact requirements](model-acquisition.md).
 Keep the loaded model outside your per-request handler. Loading and inference
 have separate lifetimes.
 
@@ -62,7 +62,8 @@ original list do not change the request. Unordered collections and generators
 are not input forms. The query and candidate text must
 also be nonempty. The current Kai loader requires at least two candidates,
 `task="choice"`, and enforces its artifact's candidate and token limits.
-These model limits are described in the [training contracts](training-contracts.md).
+The loader rejects unsupported tasks and inputs beyond the configured limits;
+it never truncates a request silently.
 
 Reuse a loaded model and the same request values for batching:
 
@@ -253,8 +254,7 @@ their own model contract.
 The [result example](../examples/results/main.py) exercises a winner in the second
 position and multilingual IDs through keyed score and probability access.
 
-The [ergonomics standard](ergonomics.md) defines the task-based objective,
-comparison evidence, code guidelines, and remaining usability hypotheses.
+The [ergonomics standard](ergonomics.md) describes the public API design principles.
 
 
 The CLI configures real standard text streams as strict UTF-8 when needed. It

@@ -38,6 +38,11 @@ def test_failed_check_stops_later_effects(
     monkeypatch.setattr(checks, "ROOT", tmp_path)
     monkeypatch.setattr(sys, "argv", ["checks"])
     calls: list[tuple[str, ...]] = []
+    monkeypatch.setattr(
+        checks,
+        "commands",
+        lambda python, reports: ((python, "first"), (python, "later")),
+    )
 
     def fail(command: tuple[str, ...], timeout: int = 180) -> int:
         calls.append(command)

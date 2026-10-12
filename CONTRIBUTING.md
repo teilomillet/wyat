@@ -1,8 +1,7 @@
-# Working on Wyat
+# Contributing to Wyat
 
-Use Python 3.12 or newer and run commands from a source checkout. `uv sync`
-installs the development group by default. The core example needs no model
-weights or optional inference libraries:
+Use Python 3.12 or newer. From the public source checkout, install the development
+environment and run the core example:
 
 ```sh
 uv sync
@@ -10,41 +9,18 @@ uv run python examples/scorer/main.py
 uv run wyat --help
 ```
 
-The example returns fixed logits to show the public interface; it has no learned
-decision quality. For backend and HTTP checks, install the existing extras:
+The example uses fixed logits and requires no model weights. Install optional
+runtimes for the connected checks:
 
 ```sh
 uv sync --extra inference --extra server
 uv run --no-sync python scripts/checks/main.py
 ```
 
-Tests use small seeded local fixtures rather than downloading released weights.
-MLX checks require `--extra mlx` on Apple Silicon; GPU checks also require usable
-Metal access. DMBench checks skip when that optional project is absent. Read the
-reported skips: unavailable checks establish no backend or integration result.
-The mypy flags isolate optional third-party imports; maintained Wyat code keeps
-strict checking from `pyproject.toml`.
-Examples and scripts are checked separately with directory-based module names
-because they and the checkout entry point use `main.py`. The main check retains the tests'
-existing module mapping.
-
-The same command runs in CI. It stops on the first failed check or test and gives
-static checks a three-minute cap and pytest ten minutes, terminating only its
-owned subprocesses. The larger test cap accommodates slower hosted Apple Silicon
-machines. JUnit and
-branch-coverage reports go to ignored `artifacts/`. Coverage makes untested paths
-visible; it is not a model-quality or performance gate. For native Apple Silicon
-checks, install `--extra mlx` and pass `--require-mlx`; add `--require-metal` when
-GPU execution is required. An unavailable backend remains an explicit skip in
-the test reports.
-
-To check DMBench against its actual source, set both paths explicitly:
-
-```sh
-PYTHONPATH=/path/to/dmbench/src uv run pytest -q tests/test_dmbench.py tests/interop/dmbench
-MYPYPATH=/path/to/dmbench/src uv run mypy --ignore-missing-imports \
-  --follow-imports=silent wyat/interop tests/test_dmbench.py tests/interop/dmbench
-```
+MLX checks require `--extra mlx` on Apple Silicon macOS. Pass `--require-mlx` when
+MLX must be available, and `--require-metal` when Apple GPU execution is required.
+Read the reported skips; an unavailable capability is not a passing check. Tests use small local
+fixtures and do not download model weights.
 
 ## Code map
 
@@ -52,37 +28,32 @@ MYPYPATH=/path/to/dmbench/src uv run mypy --ignore-missing-imports \
 | --- | --- |
 | `wyat/core.py` | Request validation, scorer contract, ranking and softmax |
 | `wyat/loading/` | Explicit local backend selection |
-| `wyat/backends/kai/` | Artifact admission, rendering and Kai runtime implementations |
+| `wyat/backends/kai/` | Artifact admission, rendering and Kai runtimes |
 | `wyat/wire.py`, `wyat/cli.py` | JSON decoding and command orchestration |
-| `wyat/evaluation.py`, `wyat/benchmark.py` | Quality reports and paired engine measurements |
+| `wyat/evaluation.py` | Failure-inclusive labeled evaluation |
 | `wyat/server.py` | HTTP admission, body limits and worker lifetime |
-| `wyat/interop/` | Optional DMBench projections |
-| `examples/` | Small runnable public-interface examples |
-| `scripts/checks/`, `scripts/package/` | Shared quality and distribution checks |
-| `tests/` | Contract, regression and Hypothesis checks |
-| `benchmarks/` | Research runners, fixtures and immutable measurement history |
-| `docs/` | User guides, contracts and experiment explanations |
+| `examples/` | Runnable public-interface examples |
+| `tests/` | Public contract and regression checks |
+| `scripts/checks/`, `scripts/package/` | Quality, export and distribution checks |
+| `docs/` | User guides and maintainer instructions |
 
-Keep domain transformations separate from I/O when that makes ownership clearer.
-Use precise types, explicit failures and straightforward control flow. New files
-belong in folders named for their role; avoid speculative abstractions. Optional
-libraries load at their runtime boundary so importing `wyat` remains lightweight.
+Keep optional libraries at their runtime boundary so importing `wyat` remains
+lightweight. Preserve application IDs, score ordering, explicit loading, and
+failure outcomes. For a public API change, start with the caller's complete task
+and follow the [ergonomics standard](docs/ergonomics.md).
 
 ## Making a change
 
-Identify the observable behavior and preserved contracts before editing. Run
-focused checks first, then connected regressions. Runtime optimizations need
-real-model measurements as well as fixture tests; preserve numerical and complete
-ranking gates. Follow the [measurement protocol](docs/real-benchmark.md) and record
-the baseline, data, device, settings, raw repetitions and rejected hypotheses.
+Identify the requested behavior and preserved contracts before editing. Keep
+changes focused, run proportionate checks, and retain failures or unavailable
+checks in the result. Do not infer trained-model quality or performance from
+fixture tests. New dependencies and public interfaces need a present purpose.
 
-Write new experiment outputs to a fresh location, such as a new directory under
-`/tmp`. Existing result files and source archives describe past executions and
-must remain unchanged. Their embedded source text is historical evidence, not a
-second maintained implementation. Model weights and raw capture tensors stay
-outside distributable code.
+The shared check command runs types, formatting and public regressions. It writes
+ignored JUnit and coverage outputs under `artifacts/`. Coverage exposes untested
+paths; it does not measure model quality.
 
-Build with the locked development backend, then verify both distributions:
+Build and inspect both distributions from the public source checkout:
 
 ```sh
 uv build --no-build-isolation
@@ -90,11 +61,25 @@ uv run --no-sync python scripts/package/check.py dist
 ```
 
 The checker validates metadata and contents, rebuilds the source distribution,
-and exercises the built wheel without optional runtimes. Building does not
-publish a release. See [release preparation](docs/releasing.md) and the
-[documentation index](docs/README.md) for the current supported backends and
-research boundaries.
+and exercises the installed core and CLI without optional inference runtimes.
+Building does not publish a release. The wheel contains the approved runtime,
+type marker and attribution. The source distribution also contains approved
+public tests, examples, documentation and check tooling.
 
-The wheel contains the runtime package, type marker and attribution. The source
-distribution also retains research tooling, tests and their required evidence;
-it is intentionally larger. Those files are not imported by the installed runtime.
+## Maintaining the public boundary
+
+The maintainer workspace can contain private research, datasets, model artifacts
+and execution history. Public release content is selected by an explicit file
+allowlist; those private files are excluded from the wheel, source distribution
+and public source snapshot. Preserve private work in its private location.
+
+To prepare a public source snapshot from the maintainer workspace, use a fresh
+destination:
+
+```sh
+.venv/bin/python scripts/package/export.py artifacts/public-release/source
+```
+
+The export must contain only approved files and must not inherit the workspace's
+`.git` directory or history. Build and check the exported source before choosing
+an audience or publishing anything. See the [release guide](docs/releasing.md).

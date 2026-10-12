@@ -12,23 +12,16 @@ def _raise_missing_runtime(
     """Explain an absent runtime; leave nested dependency failures untouched."""
     if error.name != backend:
         return
-    if backend == "torch":
-        message = (
-            "PyTorch is not installed; in your application's project, run: "
-            "uv add /absolute/path/to/wyat-0.0.1-py3-none-any.whl --extra inference "
-            "(use the wheel you installed). For a source checkout, run: "
-            "uv add /absolute/path/to/wyat --extra inference. "
-            "From the Wyat checkout, run: uv sync --extra inference"
-        )
-    else:
-        message = (
-            "MLX is not installed; it requires Apple Silicon macOS. "
-            "In your application's project, run: "
-            "uv add /absolute/path/to/wyat-0.0.1-py3-none-any.whl --extra mlx "
-            "(use the wheel you installed). For a source checkout, run: "
-            "uv add /absolute/path/to/wyat --extra mlx. "
-            "From the Wyat checkout, run: uv sync --extra mlx"
-        )
+    extra = "inference" if backend == "torch" else "mlx"
+    runtime = "PyTorch" if backend == "torch" else "MLX"
+    platform = " MLX requires Apple Silicon macOS." if backend == "mlx" else ""
+    message = (
+        f"{runtime} is not installed; in your application's project, "
+        f"run: python -m pip install 'wyat[{extra}]'."
+        f"{platform} For a local wheel, install the same wheel with [{extra}]. "
+        f"For a source checkout, run: uv add /absolute/path/to/wyat --extra {extra}. "
+        f"From the Wyat checkout, run: uv sync --extra {extra}"
+    )
     raise ModuleNotFoundError(message, name=backend) from error
 
 

@@ -16,7 +16,7 @@ from .wire import JsonValue, decode_json
 
 
 class Arguments(argparse.Namespace):
-    command: Literal["decide", "evaluate", "serve", "benchmark"]
+    command: Literal["decide", "evaluate", "serve"]
     model: str
     backend: Literal["torch", "mlx"]
     device: str | None
@@ -27,11 +27,6 @@ class Arguments(argparse.Namespace):
     torch_threads: int | None
     mlx_cache_limit_mib: int | None
     batch_size: int
-    baseline_backend: Literal["torch", "mlx"]
-    baseline_device: str | None
-    baseline_batch_size: int
-    repeats: int
-    warmup: int
     host: str
     port: int
     max_body_bytes: int
@@ -79,18 +74,14 @@ def main(argv: list[str] | None = None) -> int:
         ):
             stream.reconfigure(encoding="utf-8", errors="strict")
     parser = argparse.ArgumentParser(
-        prog="wyat", description="Load, evaluate and serve local decision models."
+        prog="wyat",
+        description="Load, evaluate and serve local decision models.",
     )
     subcommands = parser.add_subparsers(dest="command", required=True)
     descriptions = {
         "decide": "Read request JSONL from stdin; write decision JSONL to stdout.",
         "evaluate": "Read labeled case JSONL from stdin; write one evaluation report.",
         "serve": "Serve the local model over HTTP; no stdin input required.",
-        "benchmark": (
-            "Read labeled case JSONL from stdin; compare paired baseline and "
-            "candidate timings. Report passed and exit status 0 indicate quality "
-            "gates passed, not a guaranteed speed improvement."
-        ),
     }
     for name, description in descriptions.items():
         command = subcommands.add_parser(
@@ -138,36 +129,9 @@ def main(argv: list[str] | None = None) -> int:
                 "omitted leaves runtime unchanged"
             ),
         )
-        if name in ("decide", "benchmark"):
+        if name == "decide":
             command.add_argument(
                 "--batch-size", type=int, default=1, help="requests per batch"
-            )
-        if name == "benchmark":
-            command.add_argument(
-                "--baseline-backend",
-                choices=("torch", "mlx"),
-                default="torch",
-                help="baseline runtime",
-            )
-            command.add_argument(
-                "--baseline-device",
-                default="cpu",
-                help="baseline device; defaults to CPU for both runtimes",
-            )
-            command.add_argument(
-                "--baseline-batch-size",
-                type=int,
-                default=1,
-                help="baseline requests per batch",
-            )
-            command.add_argument(
-                "--repeats",
-                type=int,
-                default=5,
-                help="measured alternating pairs; minimum 3",
-            )
-            command.add_argument(
-                "--warmup", type=int, default=1, help="warmup pairs; minimum 1"
             )
         if name == "serve":
             command.add_argument(
@@ -182,13 +146,8 @@ def main(argv: list[str] | None = None) -> int:
             )
     args = Arguments()
     parser.parse_args(argv, namespace=args)
-    if args.command in ("decide", "benchmark") and args.batch_size <= 0:
+    if args.command == "decide" and args.batch_size <= 0:
         parser.error("--batch-size must be positive")
-    if args.command == "benchmark":
-        if args.baseline_batch_size <= 0 or args.repeats < 3 or args.warmup < 1:
-            parser.error(
-                "positive batch sizes, at least 3 repeats and 1 warmup required"
-            )
     if args.torch_threads is not None and args.torch_threads <= 0:
         parser.error("--torch-threads must be positive")
     if args.mlx_cache_limit_mib is not None and not (
@@ -202,9 +161,7 @@ def main(argv: list[str] | None = None) -> int:
             parser.error("--max-body-bytes must be positive")
     try:
         if args.torch_threads is not None:
-            if args.backend != "torch" and (
-                args.command != "benchmark" or args.baseline_backend != "torch"
-            ):
+            if args.backend != "torch":
                 raise ValueError("--torch-threads requires a PyTorch engine")
             try:
                 import torch
@@ -215,12 +172,7 @@ def main(argv: list[str] | None = None) -> int:
             torch.set_num_threads(args.torch_threads)
         if args.mlx_cache_limit_mib is not None:
             metal_candidate = args.backend == "mlx" and args.device in (None, "gpu")
-            metal_baseline = (
-                args.command == "benchmark"
-                and args.baseline_backend == "mlx"
-                and args.baseline_device == "gpu"
-            )
-            if not (metal_candidate or metal_baseline):
+            if not metal_candidate:
                 raise ValueError("--mlx-cache-limit-mib requires a Metal MLX engine")
             try:
                 import mlx.core as mx
@@ -253,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
                     pending.clear()
             for result in _decide_batch(model, pending):
                 _write(result.to_dict())
-        elif args.command in ("evaluate", "benchmark"):
+        elif args.command == "evaluate":
             from .evaluation import case_from_dict, evaluate
 
             cases = []
@@ -262,60 +214,9 @@ def main(argv: list[str] | None = None) -> int:
                     cases.append(case_from_dict(value))
                 except ValueError as exc:
                     raise ValueError(f"line {number}: {exc}") from exc
-            if args.command == "evaluate":
-                report = evaluate(model, cases)
-                _write(report.to_dict())
-                return 1 if report.failed else 0
-            from .benchmark import BenchmarkEngine, BenchmarkProtocol, benchmark_pair
-
-            baseline = load(
-                args.model,
-                backend=args.baseline_backend,
-                device=args.baseline_device,
-                max_length=args.max_length,
-                token_cache_size=0,
-            )
-            benchmark = benchmark_pair(
-                BenchmarkEngine(
-                    "baseline",
-                    baseline,
-                    args.baseline_batch_size,
-                    conditions={
-                        "backend": args.baseline_backend,
-                        "device": str(args.baseline_device),
-                        "torch_threads": str(args.torch_threads),
-                        "max_length": str(args.max_length),
-                        "mlx_cache_limit_mib": str(args.mlx_cache_limit_mib),
-                        "token_cache_size": "0",
-                        "compile": "False",
-                        "attention": "sdpa"
-                        if args.baseline_backend == "torch"
-                        else "native",
-                    },
-                ),
-                BenchmarkEngine(
-                    "candidate",
-                    model,
-                    args.batch_size,
-                    conditions={
-                        "backend": args.backend,
-                        "device": args.device
-                        or ("cpu" if args.backend == "torch" else "gpu"),
-                        "compile": str(args.compile),
-                        "token_cache_size": str(args.token_cache_size),
-                        "attention": args.attention
-                        if args.backend == "torch"
-                        else "native",
-                        "torch_threads": str(args.torch_threads),
-                        "max_length": str(args.max_length),
-                        "mlx_cache_limit_mib": str(args.mlx_cache_limit_mib),
-                    },
-                ),
-                cases,
-                protocol=BenchmarkProtocol(repeats=args.repeats, warmup=args.warmup),
-            )
-            _write(benchmark.to_dict())
-            return 0 if benchmark.passed else 1
+            report = evaluate(model, cases)
+            _write(report.to_dict())
+            return 1 if report.failed else 0
         else:
             import uvicorn
 

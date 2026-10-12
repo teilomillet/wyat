@@ -13,11 +13,11 @@ from typing import Literal, cast
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from fixtures.kai import create_kai_bundle
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 import wyat
-from benchmarks.fixtures.kai import create_kai_bundle
 from wyat.wire import decode_json, read_object
 
 EXAMPLES = Path(__file__).resolve().parents[2] / "examples"

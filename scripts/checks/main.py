@@ -8,6 +8,7 @@ import platform
 import signal
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,28 +20,16 @@ class Arguments(argparse.Namespace):
 
 
 def commands(python: str, reports: Path) -> tuple[tuple[str, ...], ...]:
-    """Keep maintained code scopes explicit; historical snapshots stay sealed."""
-    lint_scope = ("wyat", "tests", "benchmarks", "examples", "scripts", "main.py")
-    type_scope = (
-        "wyat",
-        "tests",
-        "benchmarks/analysis",
-        "benchmarks/real/dmbench",
-        "main.py",
-    )
-    exclude = ("--exclude", "benchmarks/analysis/results")
+    """Check exactly the maintained public source selection, including its tests."""
+    configuration = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))
+    selected = configuration["tool"]["hatch"]["build"]["targets"]["sdist"][
+        "only-include"
+    ]
+    source = tuple(name for name in selected if name.endswith(".py"))
+    tests = tuple(name for name in source if name.startswith("tests/"))
     return (
-        (python, "-m", "ruff", "check", *lint_scope, *exclude),
-        (python, "-m", "ruff", "format", "--check", *lint_scope, *exclude),
-        (
-            python,
-            "-m",
-            "mypy",
-            "--ignore-missing-imports",
-            "--follow-imports=silent",
-            *type_scope,
-            *exclude,
-        ),
+        (python, "-m", "ruff", "check", *source),
+        (python, "-m", "ruff", "format", "--check", *source),
         (
             python,
             "-m",
@@ -48,8 +37,7 @@ def commands(python: str, reports: Path) -> tuple[tuple[str, ...], ...]:
             "--explicit-package-bases",
             "--ignore-missing-imports",
             "--follow-imports=silent",
-            "examples",
-            "scripts",
+            *source,
         ),
         (
             python,
@@ -59,6 +47,7 @@ def commands(python: str, reports: Path) -> tuple[tuple[str, ...], ...]:
             "-rs",
             "-x",
             "--tb=short",
+            *tests,
             f"--junitxml={reports / 'tests.xml'}",
             "--cov=wyat",
             "--cov-branch",

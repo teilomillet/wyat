@@ -72,7 +72,10 @@ def root(tmp_path: Path) -> Path:
     (source / "NOTICE").write_bytes(b"Attribution text")
     (source / "pyproject.toml").write_text(
         '[project]\nname="wyat"\nversion="0.0.1"\nrequires-python=">=3.12"\n'
-        'license="Apache-2.0"\ndependencies=[]\n',
+        'license="Apache-2.0"\ndependencies=[]\n'
+        "[tool.hatch.build.targets.sdist]\n"
+        'only-include=["wyat/__init__.py", "wyat/py.typed", "README.md", '
+        '"LICENSE", "NOTICE", "pyproject.toml"]\n',
         encoding="utf-8",
     )
     for name in ("uv.lock", "README.md", "CONTRIBUTING.md"):
@@ -185,6 +188,122 @@ def test_source_bytes_and_required_files(root: Path, tmp_path: Path) -> None:
     archive(path, members[1:])
     with pytest.raises(ValueError, match="omits required"):
         check.check_source(path, root, PROJECT)
+
+
+def test_source_selection_keeps_private_training_siblings_out(root: Path) -> None:
+    private = (
+        "training/run.toml",
+        "scripts/french_data/decision_training_run.py",
+        "docs/french-first/selected-training-recipe.md",
+        "tests/test_decision_training_run.py",
+        "data/train.jsonl",
+        "artifacts/training-review.json",
+    )
+    for name in private:
+        path = root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"Private training information\n")
+    assert check.required_sources(root) == {
+        "wyat/__init__.py",
+        "wyat/py.typed",
+        "README.md",
+        "LICENSE",
+        "NOTICE",
+        "pyproject.toml",
+    }
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "training/run.toml",
+        "scripts/french_data/train.py",
+        "docs/french-first/review.md",
+    ],
+)
+def test_injected_private_source_is_rejected(
+    root: Path, tmp_path: Path, name: str
+) -> None:
+    private = root / name
+    private.parent.mkdir(parents=True, exist_ok=True)
+    private.write_bytes(b"Private information")
+    path = tmp_path / "source.tar.gz"
+    members = tuple(
+        ("wyat-0.0.1/" + item, (root / item).read_bytes(), tarfile.REGTYPE)
+        for item in sorted(check.required_sources(root))
+    ) + (
+        ("wyat-0.0.1/PKG-INFO", METADATA, tarfile.REGTYPE),
+        ("wyat-0.0.1/" + name, private.read_bytes(), tarfile.REGTYPE),
+    )
+    archive(path, members)
+    with pytest.raises(ValueError, match="outside the public selection"):
+        check.check_source(path, root, PROJECT)
+
+
+@pytest.mark.parametrize(
+    "selection", ["", "../private", "/private", "wyat/**", "wyat", "absent"]
+)
+def test_invalid_source_selection_is_rejected(root: Path, selection: str) -> None:
+    project = root / "pyproject.toml"
+    project.write_text(
+        '[tool.hatch.build.targets.sdist]\nonly-include=["' + selection + '"]\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError):
+        check.required_sources(root)
+
+
+def test_source_selection_cannot_follow_symbolic_parent(
+    root: Path, tmp_path: Path
+) -> None:
+    external = tmp_path / "private"
+    external.mkdir()
+    (external / "run.toml").write_bytes(b"Private information")
+    (root / "link").symlink_to(external, target_is_directory=True)
+    (root / "pyproject.toml").write_text(
+        '[tool.hatch.build.targets.sdist]\nonly-include=["link/run.toml"]\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="symbolic source selection"):
+        check.required_sources(root)
+
+
+def test_unlisted_private_runtime_is_not_required(root: Path) -> None:
+    (root / "wyat/private_training.py").write_bytes(b"private = True\n")
+    assert set(check.runtime_files(root)) == {"wyat/__init__.py", "wyat/py.typed"}
+
+
+def test_unlisted_runtime_cannot_enter_wheel(root: Path, tmp_path: Path) -> None:
+    path = tmp_path / "wyat-0.0.1-py3-none-any.whl"
+    make_wheel(path, root)
+    (root / "wyat/private_training.py").write_bytes(b"private = True\n")
+    check.check_wheel(path, root, PROJECT)
+    with zipfile.ZipFile(path, "a") as output:
+        output.writestr("wyat/private_training.py", b"private = True\n")
+    with pytest.raises(ValueError, match="runtime resources differ"):
+        check.check_wheel(path, root, PROJECT)
+
+
+@pytest.mark.parametrize("selection", ["artifacts/private.py", "wyat/private.pyc"])
+def test_forbidden_selection_is_rejected(root: Path, selection: str) -> None:
+    path = root / selection
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b"private")
+    (root / "pyproject.toml").write_text(
+        '[tool.hatch.build.targets.sdist]\nonly-include=["' + selection + '"]\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Forbidden source selection"):
+        check.required_sources(root)
+
+
+def test_duplicate_source_selection_is_rejected(root: Path) -> None:
+    (root / "pyproject.toml").write_text(
+        '[tool.hatch.build.targets.sdist]\nonly-include=["README.md", "README.md"]\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="Duplicate source selection"):
+        check.required_sources(root)
 
 
 def test_hash_manifest_is_exact_and_never_rewritten(tmp_path: Path) -> None:

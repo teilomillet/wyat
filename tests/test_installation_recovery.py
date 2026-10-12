@@ -15,7 +15,7 @@ import wyat
 
 
 @pytest.mark.parametrize("backend,extra", [("torch", "inference"), ("mlx", "mlx")])
-def test_application_missing_runtime_offers_original_wheel_first(
+def test_application_missing_runtime_offers_pip_extra(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     backend: Literal["torch", "mlx"],
@@ -30,19 +30,10 @@ def test_application_missing_runtime_offers_original_wheel_first(
 
     error = caught.value
     message = str(error)
-    wheel_command = message.split("run: ", 1)[1].split(" (use the wheel", 1)[0]
-    arguments = shlex.split(wheel_command)
-    assert arguments == [
-        "uv",
-        "add",
-        "/absolute/path/to/wyat-0.0.1-py3-none-any.whl",
-        "--extra",
-        extra,
-    ]
-    assert "use the wheel you installed" in message
-    assert f"uv add /absolute/path/to/wyat --extra {extra}" in message
+    command = message.split("run: ", 1)[1].split(".", 1)[0]
+    assert shlex.split(command) == ["python", "-m", "pip", "install", f"wyat[{extra}]"]
+    assert f"install the same wheel with [{extra}]" in message
     assert f"uv sync --extra {extra}" in message
-    assert message.index(".whl") < message.index("For a source checkout")
     assert error.name == backend
     assert error.__cause__ is original
     if backend == "mlx":
