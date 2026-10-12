@@ -1,0 +1,59 @@
+{
+  "head": "72c33878b75f225658646f427638b0fd5bdb4bfe",
+  "protected": {
+    "wyat/backends/kai/torch.py": {
+      "expected": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+      "actual": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+      "pass": true
+    },
+    "wyat/backends/kai/mlx.py": {
+      "expected": "642ece3fe97523108248891a953061a75e90873ca60c536e90748fa9d49382a1",
+      "actual": "642ece3fe97523108248891a953061a75e90873ca60c536e90748fa9d49382a1",
+      "pass": true
+    },
+    "wyat/backends/kai/metal.py": {
+      "expected": "1e72a6fa5c9699bd52cd40aaeef2872757b0ab4f58f0684f4f97a971b15f1d6d",
+      "actual": "1e72a6fa5c9699bd52cd40aaeef2872757b0ab4f58f0684f4f97a971b15f1d6d",
+      "pass": true
+    },
+    "wyat/tasks.py": {
+      "expected": "69a574d6ec5e8e28d7685d0c94a20c2b4981ba63eb657bd56f13752368cdab8b",
+      "actual": "69a574d6ec5e8e28d7685d0c94a20c2b4981ba63eb657bd56f13752368cdab8b",
+      "pass": true
+    },
+    "wyat/loading/local.py": {
+      "expected": "3a1841a57a250f28dd3b16aa00d44e6c239ec66823501df428bf100cb91fb6fa",
+      "actual": "3a1841a57a250f28dd3b16aa00d44e6c239ec66823501df428bf100cb91fb6fa",
+      "pass": true
+    },
+    "scripts/training_optimization/native.py": {
+      "expected": "799ffb54b3abeaeafb77cf0a909f6af5846669441b53e170130bd6266aa1be31",
+      "actual": "799ffb54b3abeaeafb77cf0a909f6af5846669441b53e170130bd6266aa1be31",
+      "pass": true
+    }
+  },
+  "native_torch_ast": {
+    "_finite_state": true,
+    "_Adapter": true,
+    "NativeModel": true,
+    "load_native": true
+  },
+  "production_sha256": {
+    "wyat/loading/mlx.py": "78ffd601637f2f4fa14c34d54aa3a404fc537c9b76a8ab654497c848c627a593",
+    "wyat/loading/native_artifact.py": "10dc3c4318c0c61c3f946b75cd6d0642391ba9b4c8ba87a1ad75de0802782110",
+    "wyat/loading/native.py": "da7edc4a88c12a622c71eb60fc728d1c0941e7c2fbf966c8b4eb444eb30f5f7c"
+  },
+  "harness_sha256": "00c73e707bdb579b074a55b728725cc8ee1b97842d4b33b35f64aa7cf758246a",
+  "fusion_helper_absent": true,
+  "static_checks": {
+    "ruff_check": "pass;15 scoped files",
+    "ruff_format": "pass;15 scoped files",
+    "mypy_strict": "pass;14 scoped files excluding frozen benchmark harness",
+    "frozen_benchmark_harness_mypy": "7 annotation/indexing errors; frozen source kept unchanged; production scope passes"
+  },
+  "cuda_throughput": "unmeasured; no CUDA device used",
+  "final_regression": {
+    "command": "nice -n10 env -u MLX_ENABLE_TF32 OMP_NUM_THREADS=4 MKL_NUM_THREADS=4 .venv/bin/python -m pytest -q tests/test_native_mlx.py tests/test_native_mlx_resources.py tests/test_native_mlx_rope.py tests/test_native_contract.py tests/test_native_artifact_inventory.py tests/test_tasks.py",
+    "result": "206 passed in 3.90s"
+  }
+}

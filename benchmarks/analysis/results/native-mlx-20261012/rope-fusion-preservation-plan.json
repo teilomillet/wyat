@@ -1,0 +1,21 @@
+{
+  "classification": "fresh confirmation of GPU arithmetic preservation",
+  "interpretation_changed_after_observation": "Expanded NumPy qualification failed on normal-to-subnormal in both baseline and candidate. The failed receipt is retained. This new confirmation separates original independent gates, GPU preservation, and expanded CPU equivalence.",
+  "original_eight_numpy_bitwise_required": true,
+  "all_twelve_gpu_baseline_bitwise_required": true,
+  "expanded_numpy_qualification_separate": true,
+  "expanded_numpy_failure_never_relabelled_pass": true,
+  "fresh_underflow_perturbation_seed": 20261012,
+  "full_model_cpu_gates": "unchanged frozen.json all38cases including ranks",
+  "pairs_each_shape": 15,
+  "all_three_shapes_required": true,
+  "minimum_median_speedup": 1.05,
+  "minimum_p05_speedup": 1.0,
+  "sources_sha256": {
+    "benchmarks/analysis/native_mlx_rope_fusion_20261012.py": "7d1bd6fbe036429bf1cbb1a2f2268aade68e2b1d59e2ac24020456d1bd85febf",
+    "wyat/loading/mlx.py": "78ffd601637f2f4fa14c34d54aa3a404fc537c9b76a8ab654497c848c627a593",
+    "benchmarks/analysis/results/native-mlx-20261012/frozen.json": "6dc92635e49950369b1594d16274079790ff1aafa0dfc724daa5ad9c8c986202",
+    "benchmarks/analysis/results/native-mlx-20261012/cpu4.json": "a5d9109c0ddb713feda61cbba9fec86ea6e9a6767b2872008f41ba0beda7de7c"
+  },
+  "resource_policy": "one model; sequential low priority;250ms pauses;native4layerpacing;6GiB allocator guideline;256MiB cache guideline"
+}

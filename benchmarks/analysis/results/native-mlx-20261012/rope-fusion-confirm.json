@@ -1,0 +1,227 @@
+{
+  "schema": "native-mlx-rope-fusion-v1",
+  "completed": false,
+  "passed": false,
+  "source_sha256": {
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/native_mlx_rope_fusion_20261012.py": "964627dc8eb7421336c26290b13737167cf92ace6115a538af44657240297976",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/native_mlx_benchmark_20261012.py": "00c73e707bdb579b074a55b728725cc8ee1b97842d4b33b35f64aa7cf758246a",
+    "/Users/teilomillet/Code/wyat/wyat/loading/mlx.py": "78ffd601637f2f4fa14c34d54aa3a404fc537c9b76a8ab654497c848c627a593",
+    "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/mlx_lm/models/activations.py": "dbca5bae41ba0a8380a53903c3e98da37c1e15b46383bc2edb5806ba94fafe72",
+    "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/mlx_lm/models/base.py": "61330e1c065739cd712bfeb09d673f33797cde7e613e95bf6d9ebbee9006f373",
+    "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/mlx_lm/models/qwen3.py": "2284df96ecb669109b281df4534470b18f285aa9a5e41735ad682f601f93c639",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/native-mlx-20261012/frozen.json": "6dc92635e49950369b1594d16274079790ff1aafa0dfc724daa5ad9c8c986202",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/native-mlx-20261012/cpu4.json": "a5d9109c0ddb713feda61cbba9fec86ea6e9a6767b2872008f41ba0beda7de7c",
+    "/Users/teilomillet/Code/wyat/artifacts/native-mlx-runtime-admission-20261012/model/native_manifest.json": "effbd0fc5fb18d312e20bf617593d9048d545d8b015bedf59df9a692b3ce7104"
+  },
+  "protocol": {
+    "one_model": true,
+    "shared_tables": "existing _RoPE owns frequencies, cosines, sines and eviction",
+    "kernel_source": "\n#pragma clang fp contract(off)\nconst uint i = thread_position_in_grid.x;\nif (i >= Size) return;\nconst uint lane = i % Dims;\nconst uint partner = lane < Dims / 2 ? i + Dims / 2 : i - Dims / 2;\nconst float rotated = lane < Dims / 2 ? -X[partner] : X[partner];\nconst float original_product = X[i] * C[i % TableSize];\nconst float rotated_product = rotated * S[i % TableSize];\nY[i] = original_product + rotated_product;\n",
+    "kernel_math_mode": "safe",
+    "fp_contract": "off",
+    "tf32_environment": null,
+    "cache_limit_bytes": 268435456,
+    "mlx_memory_guideline_bytes": 6442450944,
+    "pause_ms_between_forwards": 250,
+    "responsive": "unchanged native every-four-layer eval and 1 ms idle",
+    "quality": "all frozen CPU cases and exact full rank before any timing",
+    "quality_gates": {
+      "logit_atol": 0.001,
+      "logit_rtol": 0.001,
+      "probability_atol": 0.0001,
+      "noul_atol": 0.0001,
+      "score_atol_per_interval": 0.0001,
+      "exact_choice": true,
+      "exact_full_rank": true
+    },
+    "pairs_per_timing_case": 15,
+    "qualification": "bounded exploratory screen only",
+    "process_nice": 10
+  },
+  "quality_cases": [],
+  "timing_cases": [],
+  "primitive": {
+    "passed": false,
+    "oracle": "independent NumPy CPU float32 multiply, multiply, add; exact uint32 bits",
+    "seed": 20261012,
+    "numpy_version": "2.5.3",
+    "cases": [
+      {
+        "id": "seeded-normal",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "seeded-wide-exponents",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "signed-zeros",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "exact-cancellation",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "fma-rounding-trap",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "finite-exponent--100",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "finite-exponent-120",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "normal-to-subnormal",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 6528,
+        "candidate_vs_numpy_bit_mismatches": 6528,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": false
+      },
+      {
+        "id": "smallest-subnormal",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "largest-finite-safe-products",
+        "shape": [
+          2,
+          3,
+          17,
+          128
+        ],
+        "elements": 13056,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      },
+      {
+        "id": "odd-width-strided",
+        "shape": [
+          1,
+          3,
+          33,
+          128
+        ],
+        "elements": 12672,
+        "baseline_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_numpy_bit_mismatches": 0,
+        "candidate_vs_baseline_bit_mismatches": 0,
+        "passed": true
+      }
+    ],
+    "archive": "benchmarks/analysis/results/native-mlx-20261012/rope-fusion-confirm.primitive.npz",
+    "archive_sha256": "56a214ecfb74ce731f4135ebb4e3ecaab1c5f73f0aaa0fe585cdf4cee87b2766"
+  },
+  "error": "RuntimeError('independent bitwise primitive oracle failed; model/timing skipped')",
+  "memory_at_end": {
+    "rss_bytes": 346570752,
+    "peak_rss_bytes": 346570752,
+    "active_mlx_bytes": 8,
+    "peak_mlx_bytes": 541704,
+    "cache_mlx_bytes": 591872
+  },
+  "source_end_sha256": {
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/native_mlx_rope_fusion_20261012.py": "964627dc8eb7421336c26290b13737167cf92ace6115a538af44657240297976",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/native_mlx_benchmark_20261012.py": "00c73e707bdb579b074a55b728725cc8ee1b97842d4b33b35f64aa7cf758246a",
+    "/Users/teilomillet/Code/wyat/wyat/loading/mlx.py": "78ffd601637f2f4fa14c34d54aa3a404fc537c9b76a8ab654497c848c627a593",
+    "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/mlx_lm/models/activations.py": "dbca5bae41ba0a8380a53903c3e98da37c1e15b46383bc2edb5806ba94fafe72",
+    "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/mlx_lm/models/base.py": "61330e1c065739cd712bfeb09d673f33797cde7e613e95bf6d9ebbee9006f373",
+    "/Users/teilomillet/Code/wyat/.venv/lib/python3.12/site-packages/mlx_lm/models/qwen3.py": "2284df96ecb669109b281df4534470b18f285aa9a5e41735ad682f601f93c639",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/native-mlx-20261012/frozen.json": "6dc92635e49950369b1594d16274079790ff1aafa0dfc724daa5ad9c8c986202",
+    "/Users/teilomillet/Code/wyat/benchmarks/analysis/results/native-mlx-20261012/cpu4.json": "a5d9109c0ddb713feda61cbba9fec86ea6e9a6767b2872008f41ba0beda7de7c",
+    "/Users/teilomillet/Code/wyat/artifacts/native-mlx-runtime-admission-20261012/model/native_manifest.json": "effbd0fc5fb18d312e20bf617593d9048d545d8b015bedf59df9a692b3ce7104"
+  },
+  "source_fence_pass": true
+}

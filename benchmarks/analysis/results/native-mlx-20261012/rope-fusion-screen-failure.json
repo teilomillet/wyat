@@ -1,0 +1,58 @@
+{
+  "status": "failed_before_model_load",
+  "cause": "NumPy bool in JSON primitive receipt; checkpoint and final serialization failed",
+  "script_sha256": "7f486840d449378f6627d8d7a051774dc5bfc444ca725dcc714ffc7157a0a9bf",
+  "primitive_archive_sha256": "c50e879601bdf10ae5706156a4ac29406e3facab5b4c025874df6a06fe7154f0",
+  "recovered_raw_primitive_checks": [
+    {
+      "index": 0,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    },
+    {
+      "index": 1,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    },
+    {
+      "index": 2,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    },
+    {
+      "index": 3,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    },
+    {
+      "index": 4,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    },
+    {
+      "index": 5,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    },
+    {
+      "index": 6,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    },
+    {
+      "index": 7,
+      "baseline_vs_numpy": 0,
+      "candidate_vs_numpy": 0,
+      "candidate_vs_baseline": 0
+    }
+  ],
+  "model_cases_observed": 0,
+  "timing_pairs_observed": 0
+}

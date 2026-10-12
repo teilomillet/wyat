@@ -1,0 +1,38 @@
+{
+  "receipt_sha256": "b2b73e217de66bab1f936da2532b910e0c5e7342ad7425b7eb493bce8f3f509e",
+  "quality_pass": true,
+  "source_fence_pass": true,
+  "receipt_top_level_passed_means": "quality only; not speed admission",
+  "performance_cases": [
+    {
+      "id": "single-00",
+      "complete_pairs": 15,
+      "requested_pairs": 15,
+      "median_speedup": 1.063787172254847,
+      "p05_speedup": 1.0088485393347795,
+      "quality_pass": true,
+      "performance_pass": true
+    },
+    {
+      "id": "batch8-short",
+      "complete_pairs": 15,
+      "requested_pairs": 15,
+      "median_speedup": 1.0528572414683641,
+      "p05_speedup": 0.9814453611157448,
+      "quality_pass": true,
+      "performance_pass": false
+    },
+    {
+      "id": "batch8-mixed",
+      "complete_pairs": 15,
+      "requested_pairs": 15,
+      "median_speedup": 1.0411613820793788,
+      "p05_speedup": 0.8952623110257603,
+      "quality_pass": true,
+      "performance_pass": false
+    }
+  ],
+  "performance_pass": false,
+  "decision": "reject; unused helper and candidate tests removed; keep qualified explicit FP32 RoPE",
+  "independent_review": "native_resource_review independently reconstructed the same medians and fifth percentiles from raw timings; no production blocker found"
+}

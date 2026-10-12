@@ -1,0 +1,1386 @@
+{
+  "pass": false,
+  "identity_pass": true,
+  "metal_admission_pass": true,
+  "reference_sha256": "a5d9109c0ddb713feda61cbba9fec86ea6e9a6767b2872008f41ba0beda7de7c",
+  "candidate_sha256": "b72752612d52852e6174d7d875a9c0f4f2e9969e034ef516101f2e842faa7c67",
+  "cases": [
+    {
+      "id": "single-00",
+      "quality_pass": true,
+      "performance_pass": false,
+      "median_speedup": 1.0399937804217334,
+      "p05_speedup": 1.0155207007274607,
+      "checks": [
+        {
+          "pair": 0,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 1,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 2,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 3,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 4,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 5,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 6,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 7,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 8,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 9,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 10,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 11,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 12,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 13,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 14,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.291534423828125e-05,
+              "probability_absolute": 9.272595784884374e-07,
+              "value_absolute": 0.0
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "batch8-short",
+      "quality_pass": true,
+      "performance_pass": false,
+      "median_speedup": 1.0440942194352691,
+      "p05_speedup": 1.0083051085263979,
+      "checks": [
+        {
+          "pair": 0,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 1,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 2,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 3,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 4,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 5,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 6,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 7,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 8,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 9,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 10,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 11,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 12,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 13,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 14,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 3.215670585632324e-05,
+              "probability_absolute": 6.022432565533364e-06,
+              "value_absolute": 1.38278812067405e-07
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "batch8-mixed",
+      "quality_pass": true,
+      "performance_pass": false,
+      "median_speedup": 1.051460632611887,
+      "p05_speedup": 0.9295610716341824,
+      "checks": [
+        {
+          "pair": 0,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 1,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 2,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 3,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 4,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 5,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 6,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 7,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 8,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 9,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 10,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 11,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 12,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 13,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        },
+        {
+          "pair": 14,
+          "cpu_to_ordinary": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "cpu_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 4.267692565917969e-05,
+              "probability_absolute": 7.99825510217067e-06,
+              "value_absolute": 1.1927260028077313e-05
+            }
+          },
+          "ordinary_to_metal": {
+            "pass": true,
+            "failures": [],
+            "max_error": {
+              "logit_absolute": 0.0,
+              "probability_absolute": 0.0,
+              "value_absolute": 0.0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

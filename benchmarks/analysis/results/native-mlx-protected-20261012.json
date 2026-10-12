@@ -1,0 +1,11 @@
+{
+  "head": "72c33878b75f225658646f427638b0fd5bdb4bfe",
+  "protected_sha256": {
+    "wyat/backends/kai/torch.py": "79aafb2775d6f10750acb0952b977ea44c55f1843db710e5aaa3f594c47bcc03",
+    "wyat/backends/kai/mlx.py": "642ece3fe97523108248891a953061a75e90873ca60c536e90748fa9d49382a1",
+    "wyat/backends/kai/metal.py": "1e72a6fa5c9699bd52cd40aaeef2872757b0ab4f58f0684f4f97a971b15f1d6d",
+    "wyat/tasks.py": "69a574d6ec5e8e28d7685d0c94a20c2b4981ba63eb657bd56f13752368cdab8b",
+    "wyat/loading/local.py": "3a1841a57a250f28dd3b16aa00d44e6c239ec66823501df428bf100cb91fb6fa",
+    "scripts/training_optimization/native.py": "799ffb54b3abeaeafb77cf0a909f6af5846669441b53e170130bd6266aa1be31"
+  }
+}

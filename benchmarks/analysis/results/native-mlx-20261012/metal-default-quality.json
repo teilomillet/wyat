@@ -1,0 +1,865 @@
+{
+  "reference_sha256": "a5d9109c0ddb713feda61cbba9fec86ea6e9a6767b2872008f41ba0beda7de7c",
+  "candidate_sha256": "e7b0ceb28b23406953dfa24a5433e0a3ef7bdd4c32f8e967a74c533077d7c135",
+  "frozen_sha256": "6dc92635e49950369b1594d16274079790ff1aafa0dfc724daa5ad9c8c986202",
+  "identity_pass": true,
+  "case_denominator_pass": true,
+  "negative_checks_pass": true,
+  "repeated_quality_pass": true,
+  "repeated_quality": [
+    {
+      "arm": "cpu",
+      "id": "single-00",
+      "mode": "encoded",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "single-00",
+      "mode": "encoded",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "single-00",
+      "mode": "encoded",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "single-00",
+      "mode": "public",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "single-00",
+      "mode": "public",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "single-00",
+      "mode": "public",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-short",
+      "mode": "encoded",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-short",
+      "mode": "encoded",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-short",
+      "mode": "encoded",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-short",
+      "mode": "public",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-short",
+      "mode": "public",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-short",
+      "mode": "public",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-mixed",
+      "mode": "encoded",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-mixed",
+      "mode": "encoded",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-mixed",
+      "mode": "encoded",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-mixed",
+      "mode": "public",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-mixed",
+      "mode": "public",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "cpu",
+      "id": "batch8-mixed",
+      "mode": "public",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.0,
+        "probability_absolute": 0.0,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "single-00",
+      "mode": "encoded",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.291534423828125e-05,
+        "probability_absolute": 9.272595784884374e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "single-00",
+      "mode": "encoded",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.291534423828125e-05,
+        "probability_absolute": 9.272595784884374e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "single-00",
+      "mode": "encoded",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.291534423828125e-05,
+        "probability_absolute": 9.272595784884374e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "single-00",
+      "mode": "public",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.291534423828125e-05,
+        "probability_absolute": 9.272595784884374e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "single-00",
+      "mode": "public",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.291534423828125e-05,
+        "probability_absolute": 9.272595784884374e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "single-00",
+      "mode": "public",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.291534423828125e-05,
+        "probability_absolute": 9.272595784884374e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-short",
+      "mode": "encoded",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.215670585632324e-05,
+        "probability_absolute": 6.022432565533364e-06,
+        "value_absolute": 1.38278812067405e-07
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-short",
+      "mode": "encoded",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.215670585632324e-05,
+        "probability_absolute": 6.022432565533364e-06,
+        "value_absolute": 1.38278812067405e-07
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-short",
+      "mode": "encoded",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.215670585632324e-05,
+        "probability_absolute": 6.022432565533364e-06,
+        "value_absolute": 1.38278812067405e-07
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-short",
+      "mode": "public",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.215670585632324e-05,
+        "probability_absolute": 6.022432565533364e-06,
+        "value_absolute": 1.38278812067405e-07
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-short",
+      "mode": "public",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.215670585632324e-05,
+        "probability_absolute": 6.022432565533364e-06,
+        "value_absolute": 1.38278812067405e-07
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-short",
+      "mode": "public",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.215670585632324e-05,
+        "probability_absolute": 6.022432565533364e-06,
+        "value_absolute": 1.38278812067405e-07
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-mixed",
+      "mode": "encoded",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.267692565917969e-05,
+        "probability_absolute": 7.99825510217067e-06,
+        "value_absolute": 1.1927260028077313e-05
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-mixed",
+      "mode": "encoded",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.267692565917969e-05,
+        "probability_absolute": 7.99825510217067e-06,
+        "value_absolute": 1.1927260028077313e-05
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-mixed",
+      "mode": "encoded",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.267692565917969e-05,
+        "probability_absolute": 7.99825510217067e-06,
+        "value_absolute": 1.1927260028077313e-05
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-mixed",
+      "mode": "public",
+      "repeat": 0,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.267692565917969e-05,
+        "probability_absolute": 7.99825510217067e-06,
+        "value_absolute": 1.1927260028077313e-05
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-mixed",
+      "mode": "public",
+      "repeat": 1,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.267692565917969e-05,
+        "probability_absolute": 7.99825510217067e-06,
+        "value_absolute": 1.1927260028077313e-05
+      }
+    },
+    {
+      "arm": "metal",
+      "id": "batch8-mixed",
+      "mode": "public",
+      "repeat": 2,
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.267692565917969e-05,
+        "probability_absolute": 7.99825510217067e-06,
+        "value_absolute": 1.1927260028077313e-05
+      }
+    }
+  ],
+  "predict_readout_pass": true,
+  "pass": false,
+  "cases": [
+    {
+      "id": "single-00",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.291534423828125e-05,
+        "probability_absolute": 9.272595784884374e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-01",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.5762786865234375e-05,
+        "probability_absolute": 3.9816037542550475e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-02",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.4437904357910156e-05,
+        "probability_absolute": 3.1830887015082965e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-03",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 6.67572021484375e-06,
+        "probability_absolute": 3.991069936516711e-08,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-04",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.814697265625e-05,
+        "probability_absolute": 4.745911344944398e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-05",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 1.9222497940063477e-05,
+        "probability_absolute": 6.049202207463605e-08,
+        "value_absolute": 6.049202205815618e-08
+      }
+    },
+    {
+      "id": "single-06",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 1.430511474609375e-05,
+        "probability_absolute": 1.8379273850621658e-06,
+        "value_absolute": 2.802926864831079e-06
+      }
+    },
+    {
+      "id": "single-07",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.3365020751953125e-05,
+        "probability_absolute": 3.822604896785986e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-08",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 1.811981201171875e-05,
+        "probability_absolute": 1.5910783759398583e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-09",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.1961669921875e-05,
+        "probability_absolute": 5.61929375253456e-08,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-10",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.38690185546875e-05,
+        "probability_absolute": 5.674217301576689e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-11",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.218650817871094e-05,
+        "probability_absolute": 5.232841659430498e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-12",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.574920654296875e-05,
+        "probability_absolute": 7.939077827368024e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-13",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.384185791015625e-05,
+        "probability_absolute": 5.752804501324427e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-14",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 1.6689300537109375e-05,
+        "probability_absolute": 5.242379419456711e-09,
+        "value_absolute": 5.242379211615154e-09
+      }
+    },
+    {
+      "id": "single-15",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 1.811981201171875e-05,
+        "probability_absolute": 3.6043583945266633e-06,
+        "value_absolute": 7.793849184700719e-06
+      }
+    },
+    {
+      "id": "single-16",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 1.9073486328125e-05,
+        "probability_absolute": 2.0391797317387272e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-17",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.288818359375e-05,
+        "probability_absolute": 2.0740779655969988e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-18",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.47955322265625e-05,
+        "probability_absolute": 5.26762163319261e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-19",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.9591064453125e-05,
+        "probability_absolute": 2.686878422641925e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-20",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 7.343292236328125e-05,
+        "probability_absolute": 2.7374391441958856e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-21",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 9.059906005859375e-06,
+        "probability_absolute": 2.7180888295674777e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-22",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 5.0067901611328125e-05,
+        "probability_absolute": 6.5116913114948716e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-23",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 1.0013580322265625e-05,
+        "probability_absolute": 6.981411670992088e-09,
+        "value_absolute": 6.981411670992088e-09
+      }
+    },
+    {
+      "id": "single-24",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.3603439331054688e-05,
+        "probability_absolute": 5.553875969621647e-06,
+        "value_absolute": 1.2744631538552653e-05
+      }
+    },
+    {
+      "id": "single-25",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.170967102050781e-05,
+        "probability_absolute": 5.522009759562074e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-26",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.574920654296875e-05,
+        "probability_absolute": 6.100587995661044e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-27",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 5.042552947998047e-05,
+        "probability_absolute": 6.275429494551066e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-28",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 6.580352783203125e-05,
+        "probability_absolute": 2.9986485166055843e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-29",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 6.151199340820312e-05,
+        "probability_absolute": 1.2095697631171742e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-30",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 7.3909759521484375e-06,
+        "probability_absolute": 1.1628225410342807e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-31",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.384185791015625e-05,
+        "probability_absolute": 2.5738104240113913e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-32",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 2.3365020751953125e-05,
+        "probability_absolute": 4.422534052306304e-07,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-33",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 0.00012302398681640625,
+        "probability_absolute": 5.191559123318701e-06,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "single-34",
+      "pass": false,
+      "failures": [
+        "row 0: ranking differs"
+      ],
+      "max_error": {
+        "logit_absolute": 0.0002899169921875,
+        "probability_absolute": 1.1844625697032818e-05,
+        "value_absolute": 0.0
+      }
+    },
+    {
+      "id": "three-independent-questions",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 9.775161743164062e-06,
+        "probability_absolute": 1.7225555319910768e-06,
+        "value_absolute": 1.7296271415112585e-06
+      }
+    },
+    {
+      "id": "batch8-short",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 3.215670585632324e-05,
+        "probability_absolute": 6.022432565533364e-06,
+        "value_absolute": 1.38278812067405e-07
+      }
+    },
+    {
+      "id": "batch8-mixed",
+      "pass": true,
+      "failures": [],
+      "max_error": {
+        "logit_absolute": 4.267692565917969e-05,
+        "probability_absolute": 7.99825510217067e-06,
+        "value_absolute": 1.1927260028077313e-05
+      }
+    }
+  ]
+}
