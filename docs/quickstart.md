@@ -107,4 +107,5 @@ the query, context, and candidates. IDs must be unique; Kai needs at least two
 choices. Invalid requests raise an error rather than silently changing the input.
 
 Continue with the [Python API](api.md) for batching, scores, and errors, or
+[watch a coding agent use Wyat step by step](embedded.md). See
 [application workflows](agent-workflows.md) for using a selected ID in an application.

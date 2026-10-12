@@ -1,5 +1,8 @@
 # Complete decision workflows
 
+For a plain-language introduction, [watch a tiny coding agent](embedded.md)
+ask Wyat what to do, run the chosen function, and check what happened.
+
 Use a result through the whole application path:
 
 ```text

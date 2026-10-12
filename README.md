@@ -73,6 +73,7 @@ pairs your application's `id` with model-readable `text`. Keep the loaded model
 across calls. Selecting an ID executes no application action.
 
 For a complete walkthrough, follow [your first Wyat decision](docs/quickstart.md).
+To see it inside an application, [watch the coding-agent demo](docs/embedded.md).
 To try the API with only the core installed, copy the
 [demo](examples/quickstart/main.py) as `demo.py` and run:
 

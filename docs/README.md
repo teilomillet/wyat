@@ -7,6 +7,7 @@ release. Model weights are acquired separately.
 | Need | Guide |
 | --- | --- |
 | Install and make your first decision | [Quickstart demo](quickstart.md) |
+| Watch Wyat choose and a coding agent act | [Step-by-step embedded demo](embedded.md) |
 | Install Wyat and serve it from your application | [Installation](install.md) |
 | Download and verify the supported full Kai artifact | [Model acquisition](model-acquisition.md) |
 | Understand requests, results, batches, evaluation and errors | [Python API](api.md) |
