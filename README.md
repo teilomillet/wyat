@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://wyat.io">wyat.io</a> ·
-  <a href="https://wyat.io/decision-model/">The decision model</a> ·
+  <a href="https://huggingface.co/teilomillet/wyat-1-600m">wyat-1-600m</a> ·
   <a href="https://github.com/teilomillet/wyat/blob/main/docs/README.md">Documentation</a>
 </p>
 
