@@ -27,7 +27,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument(
-        "--model", type=Path, help="Directory containing local Kai weights"
+        "--model", type=Path, help="Directory containing local Wyat model weights"
     )
     source.add_argument(
         "--demo", action="store_true", help="Try fixed scores without weights"

@@ -1,6 +1,6 @@
 # CPU and CUDA inference
 
-Kai performs one causal forward pass, then reads each candidate endpoint and the
+Wyat performs one causal forward pass, then reads each candidate endpoint and the
 final decision endpoint. It has no autoregressive decode loop. Wyat retains the
 released segmented tokenizer recipe and FP32 decision head; replacing this with
 last-token classification would change the trained contract.
@@ -42,7 +42,7 @@ Load a supported local artifact through the public API:
 ```python
 import wyat
 
-model = wyat.load("/path/to/Decision-2.0-Kai-0.6B", device="cpu")
+model = wyat.load("/path/to/wyat-model", device="cpu")
 # For a compatible CUDA device: device="cuda".
 ```
 

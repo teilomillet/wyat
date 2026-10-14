@@ -9,7 +9,7 @@ release. Model weights are acquired separately.
 | Install and make your first decision | [Quickstart demo](quickstart.md) |
 | Watch Wyat choose and a coding agent act | [Step-by-step embedded demo](embedded.md) |
 | Install Wyat and serve it from your application | [Installation](install.md) |
-| Download and verify the supported full Kai artifact | [Model acquisition](model-acquisition.md) |
+| Download and verify a supported Wyat model artifact | [Model acquisition](model-acquisition.md) |
 | Understand requests, results, batches, evaluation and errors | [Python API](api.md) |
 | Integrate routing, prioritization, review and recovery | [Application workflows](agent-workflows.md) |
 | Explain a result and application-owned policy | [Explaining decisions](explaining-decisions.md) |

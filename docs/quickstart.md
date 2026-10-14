@@ -62,13 +62,13 @@ uv add /absolute/path/to/wyat-0.0.9-py3-none-any.whl --extra inference
 ```
 
 After a matching PyPI release, use `uv add wyat --extra inference`.
-Then [download and verify the supported Kai artifact](model-acquisition.md).
+Then [download and verify a supported Wyat model](model-acquisition.md).
 Weights are separate from the Python package; `wyat.load` reads a local directory.
 
 Run the same demo with that directory:
 
 ```sh
-uv run python demo.py --model /path/to/Decision-2.0-Kai-0.6B
+uv run python demo.py --model /path/to/wyat-model
 ```
 
 The model chooses the result; the fixed demonstration output above is not an
@@ -83,7 +83,7 @@ runtime and obtaining weights:
 ```python
 import wyat
 
-model = wyat.load("/path/to/Decision-2.0-Kai-0.6B")
+model = wyat.load("/path/to/wyat-model")
 
 request = wyat.Request(
     query="Choose the requested booking action.",
@@ -103,8 +103,8 @@ print(decision.selected)
 - `decision.selected` is one of those IDs. Selecting it performs no booking action.
 
 Load the model once and reuse it for later requests. To try your own task, edit
-the query, context, and candidates. IDs must be unique; Kai needs at least two
-choices. Invalid requests raise an error rather than silently changing the input.
+the query, context, and candidates. IDs must be unique and a decision requires at
+least two choices. Invalid requests raise an error rather than silently changing the input.
 
 Continue with the [Python API](api.md) for batching, scores, and errors, or
 [watch a coding agent use Wyat step by step](embedded.md). See

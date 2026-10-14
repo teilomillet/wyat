@@ -1,15 +1,14 @@
 # Native MLX inference
 
 Wyat uses [MLX-LM's Qwen3 backbone](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py)
-for Apple Silicon. The runtime reads a local full Kai choice checkpoint directly;
+for Apple Silicon. The runtime reads a local Wyat or Kai choice checkpoint directly;
 there is no model conversion, downloaded Python execution, vocabulary projection,
-generation loop, or persistent KV cache in the default scorer. This backend
-implements the supported Kai Choice contract.
+generation loop, or persistent KV cache in the default scorer.
 
 ```python
 from wyat import Candidate, Request, load
 
-model = load("/path/to/Decision-2.0-Kai-0.6B", backend="mlx", device="gpu")
+model = load("/path/to/wyat-model", backend="mlx", device="gpu")
 request = Request(
     query="Where should this request go?",
     context="I need to reset my password.",

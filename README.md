@@ -30,7 +30,7 @@ uv run python examples/quickstart/main.py --demo
 ```python
 import wyat
 
-model = wyat.load("/path/to/Decision-2.0-Kai-0.6B")
+model = wyat.load("/path/to/wyat-model")
 
 decision = model.decide(wyat.Request(
     query="Choose the requested booking action.",
