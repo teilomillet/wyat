@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib
 import io
 import json
+import logging
 import math
 import selectors
 import subprocess
@@ -600,12 +601,25 @@ def test_cli_forwards_prefix_cache_size_and_serve_queue_options(
         app_kwargs.append(dict(kwargs))
         return "fake-app"
 
+    access_logger = logging.Logger("fixture.access")
     monkeypatch.setattr(server_mod, "create_app", fake_create_app, raising=False)
+    monkeypatch.setattr(server_mod, "access_logger", access_logger, raising=False)
     monkeypatch.setitem(sys.modules, "wyat.server", server_mod)
 
+    run_kwargs: list[dict[str, object]] = []
     uvicorn_mod = ModuleType("uvicorn")
-    monkeypatch.setattr(uvicorn_mod, "run", lambda app, **kwargs: None, raising=False)
+    monkeypatch.setattr(
+        uvicorn_mod,
+        "run",
+        lambda app, **kwargs: run_kwargs.append(dict(kwargs)),
+        raising=False,
+    )
     monkeypatch.setitem(sys.modules, "uvicorn", uvicorn_mod)
+
+    assert cli.main(["serve", "local-path", "--no-access-log"]) == 0
+    assert app_kwargs.pop()["log_access"] is False
+    assert not access_logger.handlers
+    load_kwargs.clear()
 
     assert (
         cli.main(
@@ -629,9 +643,11 @@ def test_cli_forwards_prefix_cache_size_and_serve_queue_options(
         "queue_timeout": 15.5,
         "log_access": True,
     }
-
-    assert cli.main(["serve", "local-path", "--no-access-log"]) == 0
-    assert app_kwargs[1]["log_access"] is False
+    # Wyat's access record is printed, and replaces uvicorn's own access line.
+    assert len(access_logger.handlers) == 1
+    assert access_logger.level == logging.INFO
+    assert not access_logger.propagate
+    assert all(kwargs["access_log"] is False for kwargs in run_kwargs)
 
     for bad_args in (
         ["decide", "local", "--prefix-cache-size", "-1"],

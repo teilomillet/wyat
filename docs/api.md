@@ -354,9 +354,11 @@ it matches `[A-Za-z0-9._-]{1,64}`; otherwise, or when the header is absent, the
 server generates a 32-character hex identifier. The response echoes the safe
 value it used. When the access log is enabled the app also emits one INFO
 record per request on the `wyat.server.access` logger with the method, path,
-status, request ID and wall-clock latency; configure a handler at INFO level to
-record it. It never logs request text, headers or bodies. Disable it with `create_app(model, log_access=False)` or
-`wyat serve --no-access-log`.
+status, request ID and wall-clock latency. It never logs request text, headers,
+bodies or client addresses. `wyat serve` prints these records to stderr in place
+of Uvicorn's access line unless logging is already configured; an embedded app
+configures its own handler. Disable them with
+`create_app(model, log_access=False)` or `wyat serve --no-access-log`.
 
 ## Recover from transport failures
 

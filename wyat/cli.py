@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import logging
 import math
 import sys
 from collections.abc import Iterator, Sequence
@@ -74,6 +75,17 @@ def _decide_batch(
                 file=sys.stderr,
             )
         raise
+
+
+def _show_access_log(access_logger: logging.Logger) -> None:
+    """Print access records to stderr unless the process already handles them."""
+    if access_logger.hasHandlers():
+        return
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(levelname)s:     %(message)s"))
+    access_logger.addHandler(handler)
+    access_logger.setLevel(logging.INFO)
+    access_logger.propagate = False
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -207,8 +219,9 @@ def main(argv: list[str] | None = None) -> int:
                 action=argparse.BooleanOptionalAction,
                 default=True,
                 help=(
-                    "emit one structured access log line per request with "
-                    "X-Request-ID and latency; never logs request text"
+                    "print one access log line per request to stderr with "
+                    "X-Request-ID and latency; never logs request text or "
+                    "client addresses (default: on)"
                 ),
             )
     download_help = "Download and verify the pinned model release; print its path."
@@ -335,8 +348,10 @@ def main(argv: list[str] | None = None) -> int:
         else:
             import uvicorn
 
-            from .server import create_app
+            from .server import access_logger, create_app
 
+            if args.log_access:
+                _show_access_log(access_logger)
             uvicorn.run(
                 create_app(
                     model,
@@ -347,6 +362,8 @@ def main(argv: list[str] | None = None) -> int:
                 ),
                 host=args.host,
                 port=args.port,
+                # Wyat's record replaces uvicorn's line, which adds the client address.
+                access_log=False,
             )
     except BrokenPipeError:
         return 0

@@ -156,17 +156,16 @@ artifact's identity (its `model_id` is a content digest for native artifacts) an
 the admission limits, so a load balancer or release check can confirm the exact
 model behind a deployment. Every response carries an `X-Request-ID`: a supplied
 value is echoed when it matches `[A-Za-z0-9._-]{1,64}` and the server generates
-one otherwise. When enabled, the app emits one INFO record per request (method,
-path, status, request ID and latency, never request text) on the
-`wyat.server.access` logger; configure a handler at INFO level to record it.
-Uvicorn's own access log, which includes client addresses, is separate.
+one otherwise. `wyat serve` prints one access line per request to stderr
+(method, path, status, request ID and latency, never request text or client
+addresses) in place of Uvicorn's own access line; `--no-access-log` turns it
+off. In an embedded app, the same records go to the `wyat.server.access` logger
+at INFO level; configure a handler to record them.
 
 By default, `create_app(model)` admits one active inference and returns 503 for
 overlapping requests; pass `max_queue_size` and `queue_timeout` (enabled by
 default in `wyat serve`) to bound concurrent queueing and micro-batching. Pass
-`log_access=False`, or run `wyat serve --no-access-log`, to disable Wyat's
-access records.
-Applications choose authentication and TLS at their deployment boundary.
+`log_access=False` to disable the access records. Applications choose authentication and TLS at their deployment boundary.
 Relative probabilities do not certify correctness, and a selection performs no
 action. The [application workflows](agent-workflows.md) connect ID lookup,
 dispatch, review and recovery.
