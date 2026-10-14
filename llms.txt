@@ -10,11 +10,17 @@ This file is an index of Wyat's documentation for coding agents and other progra
 - **Model weights are separate from the package.** Installing Wyat, with or without extras, gives you no trained weights. Load the model by name: `wyat.load("teilomillet/wyat-1-600m")` downloads [Wyat-1 600M](https://huggingface.co/teilomillet/wyat-1-600m) (about 1.5 GB) into `~/.cache/wyat/` on first use, checks every file's SHA-256 against pins in the installed Wyat, and loads it; later loads reuse the verified cache. `uv run wyat download` fetches it ahead of time. Only that exact name downloads anything; any other string or path is treated as a local directory, so do not pass other Hugging Face names. See [model acquisition](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/model-acquisition.md).
 - **To try Wyat without weights, use a demo.** Every example accepts `--demo`, which uses fixed or stand-in scores. Demo output shows how the API works and nothing about model quality.
 - **Load once, decide many times.** Create the model outside any per-request handler and reuse it. Use `decide_many` or `predict_many` for batches.
+- **Write the options for a reader.** The model reads each candidate's ID and its text. Describe what each option covers, as you would for a person choosing. If a fallback is acceptable, offer it as an option, such as `"human": "Unclear: ask a person"`.
 - **Your code owns the action.** `decision.selected` is a candidate ID. Look it up in your own allowlist or dispatch table. Never pass model output directly to `eval`, a shell, or an unchecked tool call.
 - **Probabilities are not calibrated confidence.** They are softmax weights over the options you supplied. Choose abstention thresholds (`probability_margin`, `score_gap`, `normalized_entropy`) from labeled cases using `wyat.evaluation`, then confirm them on cases you did not use to choose them.
 - **Use the right task type.** For a yes/no question, use `Request.noul` and read `probability_true`. A Choice with options named `true` and `false` is not the same task. For ratings, use `Request.score` and read `expected_ordinal_value`.
-- **Wyat never silently changes input.** Inputs that are too long, have too many candidates, or use an unsupported task raise `wyat.ModelInputError`, whose `.reason` is one of `unsupported-task`, `candidate-count`, `input-length` or `input-segment`. Wyat does not truncate input or retry calls.
+- **Wyat never silently changes input.** Inputs that are too long, have too many candidates, or use an unsupported task raise `wyat.ModelInputError` (a `ValueError`), whose `.reason` is one of `unsupported-task`, `candidate-count`, `input-length` or `input-segment`. Wyat-1 600M accepts 2 to 255 options for Choice and Score, and exactly 2 for Noul; the loaded model sets the token limits, and the error message can state them. Retrying the same input gives the same refusal: shorten it deliberately or route it elsewhere. `wyat.ModelOutputError` means the backend failed, not the input. Wyat does not truncate input or retry calls.
 - **Python 3.12 or newer, managed with uv.** In a checkout, run scripts with `uv run python ...`.
+
+## When Wyat fits
+
+- **It fits** when the answer is one of a set of options your code defines: routing a message, choosing an agent's next tool, rating against a rubric, checking an answer against its source, reranking results, or answering several fixed questions about one document.
+- **It does not fit** when you need generated text, free-form values extracted from text (names, dates, amounts) or an open-ended answer. Wyat only scores the options you supply.
 
 ## Setup
 
@@ -44,7 +50,7 @@ import wyat
 
 model = wyat.load("teilomillet/wyat-1-600m")                    # PyTorch CPU
 # model = wyat.load("teilomillet/wyat-1-600m", backend="mlx")   # Apple Silicon
-# model = wyat.load("teilomillet/wyat-1-600m", device="cuda")   # NVIDIA GPU
+# model = wyat.load("teilomillet/wyat-1-600m", device="cuda")   # NVIDIA GPU, BF16-capable
 
 # Choice: which option?
 d = model.decide(wyat.Request.choice(
@@ -79,6 +85,25 @@ answers.choice("share").choice, answers.noul("exit").probability_true, answers.s
 results = model.decide_many(requests, errors="return")
 ```
 
+Put it together: route on the selected ID, and send refused or uncertain cases to a person.
+
+```python
+model = wyat.load("teilomillet/wyat-1-600m")              # once, at startup
+OPTIONS = {"billing": "Payments, invoices, refunds", "tech": "Bugs and errors"}
+HANDLERS = {"billing": send_to_billing, "tech": send_to_tech}   # your allowlist
+MIN_MARGIN = 0.2                                          # choose it with report.selective() below
+
+def route(message: str) -> None:
+    request = wyat.Request.choice("Which team should handle this message?", OPTIONS, context=message)
+    try:
+        d = model.decide(request)
+    except wyat.ModelInputError as error:                 # e.g. "input-length"; retrying unchanged fails again
+        return send_to_person(message, reason=error.reason)
+    if d.probability_margin < MIN_MARGIN:
+        return send_to_person(message, reason="uncertain")
+    HANDLERS[d.selected](message)                         # dispatch by ID lookup, never by eval
+```
+
 The general form is `wyat.Request(query, candidates, context="", task="choice")`, where `candidates` is an ordered list of `wyat.Candidate(id, text)` with unique IDs. Use `wyat.Candidate.from_schema(id, schema)` to turn a tool or JSON schema into a candidate. Pass a dict or list `context` directly; do not call `json.dumps` on it first. `decision.to_dict()` returns `model_id`, `selected`, `ranking`, `scores` and `probabilities`. `scores` and `probabilities` follow the input order, not the ranking order.
 
 Evaluate the model and calibrate its probabilities on labeled cases:
@@ -87,8 +112,9 @@ Evaluate the model and calibrate its probabilities on labeled cases:
 from wyat.evaluation import EvaluationCase, evaluate
 report = evaluate(model, [EvaluationCase(id="c1", request=req, expected=("billing",))])
 report.accuracy, report.expected_calibration_error
-temperature, calibrated = report.calibrate()
+temperature, calibrated = report.calibrate()       # fitted on these cases, without retraining
 report.selective(min_margin=0.2)        # accuracy and automation rate when only confident cases are automated
+model = wyat.load("teilomillet/wyat-1-600m", temperature=temperature)   # or model.decide(req, temperature=...)
 ```
 
 ## CLI and HTTP
