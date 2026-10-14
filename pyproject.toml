@@ -51,7 +51,7 @@ only-include = [
     ".github/dependabot.yml",
     ".github/PULL_REQUEST_TEMPLATE.md",
     ".github/workflows/ci.yml",
-    ".github/workflows/release.yml",
+    ".github/workflows/pypi.yml",
     ".gitignore",
     ".python-version",
     "CONTRIBUTING.md",

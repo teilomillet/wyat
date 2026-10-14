@@ -1,20 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Teïlo Millet - teilomillet
 # SPDX-License-Identifier: Apache-2.0
 
-name: Release
+name: Publish to PyPI
 
+# Pushing a v<version> tag on a main commit checks, builds and publishes it.
+# A manual run is a dry run of main: the same checks and build, never an upload.
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
-    inputs:
-      tag:
-        description: Existing main-branch tag, exactly v<pyproject version>
-        required: true
-        type: string
-      publish:
-        description: Publish after checks and pypi environment approval
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -30,7 +24,7 @@ defaults:
 
 jobs:
   prepare:
-    name: Validate the release tag
+    name: Resolve the release commit and version
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     outputs:
@@ -38,16 +32,16 @@ jobs:
       tag: ${{ steps.tag.outputs.tag }}
       version: ${{ steps.tag.outputs.version }}
     steps:
-      - name: Check out the workflow's reviewed main commit
+      - name: Check out the tagged commit or main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Resolve an existing tag and match the project version
+      - name: Match the commit to main and the tag to the project version
         id: tag
         env:
-          RELEASE_TAG: ${{ inputs.tag }}
+          WORKFLOW_EVENT: ${{ github.event_name }}
           WORKFLOW_REF: ${{ github.ref }}
           WORKFLOW_REPOSITORY: ${{ github.repository }}
         run: |
@@ -59,14 +53,19 @@ jobs:
 
           if os.environ["WORKFLOW_REPOSITORY"] != "teilomillet/wyat":
               raise SystemExit("Release only from teilomillet/wyat")
-          if os.environ["WORKFLOW_REF"] != "refs/heads/main":
-              raise SystemExit("Select main when dispatching this workflow")
-          tag = os.environ["RELEASE_TAG"]
-          if not re.fullmatch(r"v[0-9][0-9A-Za-z.!+-]*", tag):
-              raise SystemExit("Expected an existing v<version> tag")
+          ref = os.environ["WORKFLOW_REF"]
+          if os.environ["WORKFLOW_EVENT"] == "push":
+              tag = ref.removeprefix("refs/tags/")
+              if tag == ref or not re.fullmatch(r"v[0-9][0-9A-Za-z.!+-]*", tag):
+                  raise SystemExit("Publish only from a pushed v<version> tag")
+              revision = f"refs/tags/{tag}^{{commit}}"
+          elif ref == "refs/heads/main":
+              tag = None
+              revision = "HEAD^{commit}"
+          else:
+              raise SystemExit("Select main when dispatching a dry run")
           commit = subprocess.check_output(
-              ["git", "rev-parse", "--verify", f"refs/tags/{tag}^{{commit}}"],
-              text=True,
+              ["git", "rev-parse", "--verify", revision], text=True
           ).strip()
           subprocess.run(
               ["git", "merge-base", "--is-ancestor", commit, "origin/main"],
@@ -77,6 +76,7 @@ jobs:
           )
           project = tomllib.loads(metadata)["project"]
           version = project["version"]
+          tag = tag or f"v{version}"
           if project["name"] != "wyat" or tag != f"v{version}":
               raise SystemExit("Tag must match wyat's pyproject.toml version exactly")
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
@@ -96,7 +96,7 @@ jobs:
   publish:
     name: Publish the checked distributions
     needs: [prepare, checks]
-    if: inputs.publish && vars.PYPI_PUBLISH_ENABLED == 'true'
+    if: github.event_name == 'push' && vars.PYPI_PUBLISH_ENABLED == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     environment:

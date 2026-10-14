@@ -37,7 +37,7 @@ def mapping(value: object) -> dict[object, object]:
 def workflow() -> dict[object, object]:
     # PyYAML's untyped external boundary is narrowed before any traversal.
     value: object = yaml.safe_load(
-        (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+        (ROOT / ".github/workflows/pypi.yml").read_text(encoding="utf-8")
     )
     return mapping(value)
 
@@ -60,7 +60,7 @@ def script(name: str) -> CodeType:
     marker = "python3 - <<'PY'\n"
     assert run.startswith(marker) and run.rstrip().endswith("\nPY")
     source = textwrap.dedent(run[len(marker) :].rsplit("\nPY", 1)[0])
-    return compile(ast.parse(source), f"release.yml:{name}", "exec")
+    return compile(ast.parse(source), f"pypi.yml:{name}", "exec")
 
 
 @pytest.fixture
@@ -68,8 +68,8 @@ def reports(monkeypatch: pytest.MonkeyPatch) -> dict[str, io.StringIO]:
     values = {"output": io.StringIO(), "summary": io.StringIO()}
     for key, value in {
         "WORKFLOW_REPOSITORY": "teilomillet/wyat",
-        "WORKFLOW_REF": "refs/heads/main",
-        "RELEASE_TAG": "v0.0.2",
+        "WORKFLOW_EVENT": "push",
+        "WORKFLOW_REF": "refs/tags/v0.0.2",
         "GITHUB_OUTPUT": "output",
         "GITHUB_STEP_SUMMARY": "summary",
     }.items():
@@ -109,7 +109,7 @@ def git(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, ...]]:
     return calls
 
 
-def test_existing_main_tag_emits_exact_commit_and_version(
+def test_pushed_main_tag_emits_exact_commit_and_version(
     reports: dict[str, io.StringIO], git: list[tuple[str, ...]]
 ) -> None:
     prepare(reports)
@@ -119,24 +119,59 @@ def test_existing_main_tag_emits_exact_commit_and_version(
     assert len(git) == 3
 
 
+def test_dispatch_dry_runs_main_under_its_project_version(
+    reports: dict[str, io.StringIO],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("WORKFLOW_EVENT", "workflow_dispatch")
+    monkeypatch.setenv("WORKFLOW_REF", "refs/heads/main")
+    calls: list[tuple[str, ...]] = []
+
+    def output(command: list[str], *, text: bool) -> str:
+        calls.append(tuple(command))
+        if command[1] == "rev-parse":
+            assert command == ["git", "rev-parse", "--verify", "HEAD^{commit}"]
+            return COMMIT
+        return '[project]\nname="wyat"\nversion="0.0.2"\n'
+
+    def run(command: list[str], *, check: bool) -> subprocess.CompletedProcess[str]:
+        assert command == ["git", "merge-base", "--is-ancestor", COMMIT, "origin/main"]
+        calls.append(tuple(command))
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr(subprocess, "check_output", output)
+    monkeypatch.setattr(subprocess, "run", run)
+    prepare(reports)
+    assert reports["output"].getvalue() == (
+        f"commit={COMMIT}\ntag=v0.0.2\nversion=0.0.2\n"
+    )
+    assert len(calls) == 3
+
+
 @pytest.mark.parametrize(
-    ("key", "value"),
+    ("event", "ref", "repository"),
     [
-        ("WORKFLOW_REPOSITORY", "fork/wyat"),
-        ("WORKFLOW_REF", "refs/heads/feature"),
-        ("RELEASE_TAG", "../../main"),
-        ("RELEASE_TAG", "v0.0.2\ninjected=yes"),
-        ("RELEASE_TAG", "v0.0.2$(touch injected)"),
+        ("push", "refs/tags/v0.0.2", "fork/wyat"),
+        ("push", "refs/heads/main", "teilomillet/wyat"),
+        ("push", "refs/tags/latest", "teilomillet/wyat"),
+        ("push", "refs/tags/../../main", "teilomillet/wyat"),
+        ("push", "refs/tags/v0.0.2\ninjected=yes", "teilomillet/wyat"),
+        ("push", "refs/tags/v0.0.2$(touch injected)", "teilomillet/wyat"),
+        ("workflow_dispatch", "refs/heads/feature", "teilomillet/wyat"),
+        ("workflow_dispatch", "refs/tags/v0.0.2", "teilomillet/wyat"),
     ],
 )
-def test_untrusted_dispatch_stops_before_git_or_outputs(
-    key: str,
-    value: str,
+def test_untrusted_trigger_stops_before_git_or_outputs(
+    event: str,
+    ref: str,
+    repository: str,
     reports: dict[str, io.StringIO],
     git: list[tuple[str, ...]],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv(key, value)
+    monkeypatch.setenv("WORKFLOW_EVENT", event)
+    monkeypatch.setenv("WORKFLOW_REF", ref)
+    monkeypatch.setenv("WORKFLOW_REPOSITORY", repository)
     with pytest.raises(SystemExit):
         prepare(reports)
     assert git == [] and reports["output"].getvalue() == ""
@@ -257,13 +292,13 @@ def test_invalid_artifacts_stop_before_registry_and_upload_staging(
     assert calls == [] and not (artifacts.parent / "dist").exists()
 
 
-def test_publication_policy_is_disabled_and_reuses_gated_ci_artifact() -> None:
+def test_only_tag_pushes_publish_and_reuse_the_gated_ci_artifact() -> None:
     value = workflow()
     # YAML 1.1 resolves the unquoted GitHub key "on" to True.
     events = mapping(value.get("on", value.get(True)))
-    assert set(events) == {"workflow_dispatch"}
-    inputs = mapping(mapping(events["workflow_dispatch"])["inputs"])
-    assert mapping(inputs["publish"])["default"] is False
+    assert set(events) == {"push", "workflow_dispatch"}
+    assert mapping(events["push"]) == {"tags": ["v*"]}
+    assert events["workflow_dispatch"] is None
     assert mapping(value["permissions"]) == {"contents": "read"}
     assert mapping(value["concurrency"])["cancel-in-progress"] is False
     checked = job("checks")
@@ -275,7 +310,9 @@ def test_publication_policy_is_disabled_and_reuses_gated_ci_artifact() -> None:
     }
     published = job("publish")
     assert published["needs"] == ["prepare", "checks"]
-    assert published["if"] == "inputs.publish && vars.PYPI_PUBLISH_ENABLED == 'true'"
+    assert published["if"] == (
+        "github.event_name == 'push' && vars.PYPI_PUBLISH_ENABLED == 'true'"
+    )
     assert mapping(published["environment"])["name"] == "pypi"
     assert mapping(published["permissions"]) == {"id-token": "write"}
     assert "permissions" not in job("prepare") and "permissions" not in checked

@@ -102,29 +102,33 @@ release notes. Choose the public source destination and inspect its actual
 contents and access settings. Publication changes the audience; preparation
 does not authorize that external action by itself.
 
-For GitHub Actions publication, configure the workflow and PyPI trusted publisher
-for the approved source repository. The repository owner, name, workflow filename
-and environment must match the trusted publisher exactly. Keep publication
-disabled until those settings and a dry run have been reviewed.
+For GitHub Actions publication, configure the PyPI trusted publisher for the
+approved source repository with workflow `pypi.yml` and environment `pypi`. The
+repository owner, name, workflow filename and environment must match the trusted
+publisher exactly.
 
-The supplied release workflow is manually dispatched. Its `publish` input
-defaults to `false`; publication additionally requires
-`PYPI_PUBLISH_ENABLED=true` and the `pypi` environment's protection rules.
-Protect the release branch and immutable tags, configure required environment
-reviewers where supported, and verify that the controls apply to the chosen
-repository and plan. These administrative settings are not established by this
-source tree.
+`.github/workflows/pypi.yml` publishes when a `v<version>` tag is pushed on a
+commit already on `main`: it rejects a tag that differs from the project version,
+runs the full CI matrix on that commit, verifies the built distributions' checksums,
+refuses a version already on PyPI and uploads through trusted publishing. Upload
+additionally requires the repository variable `PYPI_PUBLISH_ENABLED=true` and the
+`pypi` environment's protection rules; without them a tag push checks and builds
+but uploads nothing. Configure required environment reviewers where supported,
+protect `v*` tags, and verify that the controls apply to the chosen repository and
+plan. These administrative settings are not established by this source tree.
 
-Create an immutable `v<version>` tag only on the reviewed public commit. A dry
-run must check that exact commit and retain checked distributions with their
-checksums. Review every CI lane, including failures and skipped capabilities,
-before requesting publication. CI execution, trusted publishing and environment
-protection remain unverified until exercised on the destination repository.
+Dispatching the workflow manually on `main` is the dry run: the same checks and
+build for main's version, never an upload. Run it on the reviewed commit, review
+every CI lane, including failures and skipped capabilities, and retain the checked
+distributions with their checksums. Pushing the tag is the publication request, so
+push an immutable `v<version>` tag only on that dry-run commit after explicit
+approval. CI execution, trusted publishing and environment protection remain
+unverified until exercised on the destination repository.
 
 ## Publish the checked candidate
 
-After explicit publication approval, use the reviewed source destination and
-release workflow. Publish only its checked wheel and source archive. Do not
+After explicit publication approval, push the tag on the reviewed source
+destination. The workflow publishes only its checked wheel and source archive. Do not
 rebuild during upload or substitute artifacts with different hashes. PyPI
 trusted publishing uses short-lived OIDC credentials; no publishing token
 belongs in the source tree.
