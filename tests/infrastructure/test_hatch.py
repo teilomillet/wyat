@@ -1,5 +1,8 @@
 """The build backend admits only explicitly reviewed regular source files."""
 
+import subprocess
+import sys
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -31,6 +34,32 @@ def test_wheel_uses_only_admitted_runtime_files(tmp_path: Path) -> None:
     data = {}
     hook(tmp_path, "sdist").initialize("standard", data)
     assert data == {}
+
+    data = {}
+    hook(tmp_path, "wheel").initialize("editable", data)
+    assert data == {}
+
+
+def test_editable_wheel_links_source_without_copying_runtime(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-c",
+            "from hatchling.build import build_editable; import sys; "
+            "print(build_editable(sys.argv[1]))",
+            str(tmp_path),
+        ],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+    with zipfile.ZipFile(tmp_path / result.stdout.strip()) as archive:
+        assert archive.read("_wyat.pth").decode() == str(root)
+        assert not any(name.startswith("wyat/") for name in archive.namelist())
 
 
 @pytest.mark.parametrize("name", ["wyat", "../private", "/private", "wyat/*.py"])

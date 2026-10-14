@@ -183,6 +183,26 @@ admission limits, and error responses. To embed the server in your application,
 use `from wyat.server import create_app`, then `app = create_app(model)` with an
 already-loaded model.
 
+The server publishes its OpenAPI 3.1 contract at `/openapi.json`, with interactive
+Swagger UI at `/docs` and ReDoc at `/redoc`. `POST /v1/decide` declares a required
+JSON body, a five-field decision response, examples for Choice and a custom task,
+and typed `{"detail": "..."}` errors for 400, 413, 422, 500 and 503. The optional
+`X-Wyat-Rejection` header declares the model-owned rejection categories.
+
+Unknown request and candidate fields are rejected. Query, task, candidate IDs
+and descriptions must contain non-whitespace text; all text must be valid UTF-8.
+Candidate IDs must be unique. Candidates are a required nonempty array of
+objects with exactly id and text. Custom task names remain available to scorers
+that support them; the schema does not imply model support. The loaded
+model owns candidate-count and input-size limits.
+
+The schema is generated from Pydantic models. HTTP decoding and semantic
+validation still use the shared core parser after bounded stream reading, so
+oversized bodies, duplicate JSON keys, malformed JSON and model admission retain
+their existing behavior. Cross-field rules such as unique candidate IDs and
+equal response-vector lengths are described in the contract and enforced by the
+core rather than inferred from an array's JSON Schema alone.
+
 ## Recover from transport failures
 
 CLI `decide` reports the physical input line or line range for a failing inference

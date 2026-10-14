@@ -41,5 +41,5 @@ class CustomBuildHook(BuildHookInterface[BuilderConfig]):
                 runtime[str(source)] = name
         if not runtime:
             raise ValueError("Public source inventory omits the runtime")
-        if self.target_name == "wheel":
+        if self.target_name == "wheel" and version != "editable":
             build_data["force_include"] = runtime

@@ -6,6 +6,7 @@ from threading import Event
 
 import pytest
 from fastapi.testclient import TestClient
+from jsonschema import Draft202012Validator
 
 from wyat.core import Model, Request
 from wyat.server import create_app
@@ -29,6 +30,89 @@ def test_health_and_decision_round_trip() -> None:
     assert response.json()["selected"] == "b"
     assert response.json()["scores"] == [1.0, 2.0]
     assert response.json()["model_id"] == "fixture"
+
+
+def test_openapi_contract_and_examples() -> None:
+    class ExampleScorer:
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            return [list(map(float, range(len(item.candidates)))) for item in requests]
+
+    with TestClient(create_app(Model(ExampleScorer(), model_id="fixture"))) as client:
+        document = client.get("/openapi.json").json()
+        assert client.get("/docs").status_code == 200
+        assert client.get("/redoc").status_code == 200
+        operation = document["paths"]["/v1/decide"]["post"]
+        assert operation["requestBody"]["required"] is True
+        content = operation["requestBody"]["content"]["application/json"]
+        schema = {**content["schema"], "components": document["components"]}
+        Draft202012Validator.check_schema(schema)
+        validator = Draft202012Validator(schema)
+        for example in content["examples"].values():
+            validator.validate(example["value"])
+            response = client.post("/v1/decide", json=example["value"])
+            assert response.status_code == 200
+            response_schema = operation["responses"]["200"]["content"][
+                "application/json"
+            ]["schema"]
+            Draft202012Validator(
+                {**response_schema, "components": document["components"]}
+            ).validate(response.json())
+        assert set(operation["responses"]) == {"200", "400", "413", "422", "500", "503"}
+        for status in ("400", "413", "422", "500", "503"):
+            error = operation["responses"][status]["content"]["application/json"]
+            Draft202012Validator(
+                {**error["schema"], "components": document["components"]}
+            ).validate(error["example"])
+        header = operation["responses"]["422"]["headers"]["X-Wyat-Rejection"]
+        assert set(header["schema"]["enum"]) == {
+            "unsupported-task",
+            "candidate-count",
+            "input-length",
+            "input-segment",
+        }
+
+
+@pytest.mark.parametrize(
+    "body,valid",
+    [
+        (BODY, True),
+        ({**BODY, "task": "custom"}, True),
+        ({"query": "Q", "task": "noul"}, False),
+        ({"query": "Q", "task": "noul", "candidates": []}, False),
+        ({"query": "Q", "task": "score", "candidates": ["Level"]}, False),
+        (
+            {
+                "query": "Q",
+                "task": "score",
+                "candidates": ["Level", {"id": "other", "text": "Other"}],
+            },
+            False,
+        ),
+        ({"query": "Q"}, False),
+        ({"query": "Q", "candidates": ["Level"]}, False),
+        ({"query": "Q", "task": "custom", "candidates": ["Level"]}, False),
+        ({**BODY, "candidates": []}, False),
+        ({**BODY, "candidates": None, "task": "noul"}, False),
+        ({**BODY, "query": 1}, False),
+        ({**BODY, "query": "  "}, False),
+        ({**BODY, "expected": "a"}, False),
+        ({**BODY, "candidates": [{"id": "a", "text": "First", "extra": 1}]}, False),
+    ],
+)
+def test_openapi_request_constraints_match_core(body: object, valid: bool) -> None:
+    from wyat.core import request_from_dict
+
+    document = create_app(Model(Scorer(), model_id="fixture")).openapi()
+    schema = {
+        "$ref": "#/components/schemas/DecisionBody",
+        "components": document["components"],
+    }
+    assert Draft202012Validator(schema).is_valid(body) is valid
+    if valid:
+        request_from_dict(body)
+    else:
+        with pytest.raises(ValueError):
+            request_from_dict(body)
 
 
 @pytest.mark.parametrize(
