@@ -120,11 +120,13 @@ commit already on `main`: it rejects a tag that differs from the project version
 runs the full CI matrix on that commit, verifies the built distributions' checksums,
 refuses a version already on PyPI and uploads through trusted publishing.
 Upload runs only when the repository variable `PYPI_PUBLISH_ENABLED` is `true`;
-otherwise a tag push checks and builds but uploads nothing. Create the `pypi`
-environment with required reviewers before enabling the variable: GitHub creates
-a missing environment without protection on first use. Protect `v*` tags, and
-verify that the controls apply to the repository and plan. These administrative
-settings are not established by this source tree.
+otherwise a tag push checks and builds but uploads nothing. The `pypi`
+environment requires a maintainer's approval before the upload job runs and
+accepts deployments only from `v*` tags, and a repository ruleset blocks
+updating or deleting `v*` tags. These are GitHub settings, not files in this
+tree: check them under the repository's Environments and Rulesets before
+enabling the variable, and keep the environment in place, because GitHub
+recreates a missing environment without protection.
 
 Dispatching the workflow manually on `main` is the dry run: the same checks and
 build for main's version, never an upload. Run it on the reviewed commit, review

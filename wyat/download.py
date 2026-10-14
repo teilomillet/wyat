@@ -3,10 +3,11 @@
 
 """Download and verify the pinned Wyat model release.
 
-This is Wyat's only network path, and it runs only when explicitly called.
-``wyat.load`` stays local. Every file is checked against a pinned SHA-256
-digest before it is moved into place, so an interrupted or altered download
-never looks complete.
+This is Wyat's only network path. It runs when ``wyat download`` is called, or
+when ``wyat.load`` receives the exact release name and no local path of that
+name exists; any other path loads locally. Every file is checked against a
+pinned SHA-256 digest before it is moved into place, so an interrupted or
+altered download never looks complete.
 """
 
 from __future__ import annotations
