@@ -1,4 +1,4 @@
-# CPU and CUDA inference
+# PyTorch inference (CPU and CUDA)
 
 Wyat performs one causal forward pass, then reads each candidate endpoint and the
 final decision endpoint. It has no autoregressive decode loop. Wyat retains the
@@ -8,7 +8,9 @@ last-token classification would change the trained contract.
 PyTorch owns matrix kernels and attention dispatch. Its
 [scaled dot-product attention](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
 selects an available implementation for the device and input. Wyat defaults to
-SDPA and exposes eager attention as a reference for numerical checks. Different
+SDPA. For candidate-head artifacts, `attention="eager"` is available as a
+reference for numerical checks; native artifacts, including the published
+wyat-1-600m, require SDPA. Different
 kernels and batch shapes can produce different floating-point rounding, so
 compare raw logits and selected-candidate agreement when changing runtime settings.
 
@@ -26,29 +28,33 @@ Both distinguish operation parallelism from simultaneous-request parallelism.
 The CLI's `--torch-threads` option sets the count at the process boundary;
 omitting it preserves PyTorch's default.
 
-CUDA inference requires a BF16-capable device. Linear parameters that were stored
-as exactly representable BF16 values are restored to BF16; embeddings, norms,
-the residual stream and the decision head retain FP32. Linear operations run
-under BF16 autocast. Arbitrary FP32 weights are not silently rounded during
-loading. CPU and CUDA therefore require explicit numerical and decision parity
+CUDA inference requires a BF16-capable device. For candidate-head artifacts,
+Linear parameters that were stored as exactly representable BF16 values are
+restored to BF16; embeddings, norms, the residual stream and the decision head
+retain FP32. Native artifacts keep each backbone tensor in its stored FP32 or
+BF16 dtype, with LoRA adapters and the decision head in FP32. Both run under BF16
+autocast. Arbitrary FP32 weights are not silently rounded during loading. CPU and CUDA therefore require explicit numerical and decision parity
 checks for each released artifact.
 
-`inference_mode` and disabled KV caching keep training graphs and unused decode
-state out of the runtime. Results are materialized on the CPU before returning,
-so returned scores have completed device execution.
+`inference_mode` keeps training graphs out of the runtime. Candidate-head
+artifacts disable the KV cache. Native artifacts keep the K/V state of up to
+`prefix_cache_size` shared token prefixes (default 16); `prefix_cache_size=0`,
+or the CLI's `--prefix-cache-size 0`, restores full prefill. Results are
+materialized on the CPU before returning, so returned scores have completed
+device execution.
 
 Load a supported local artifact through the public API:
 
 ```python
 import wyat
 
-model = wyat.load("/path/to/wyat-model", device="cpu")
+model = wyat.load("teilomillet/wyat-1-600m", device="cpu")
 # For a compatible CUDA device: device="cuda".
 ```
 
 Install the inference extra in the same environment as your application; see
 [installation](install.md). Dependencies and weights are separate: follow the
-[pinned acquisition guide](model-acquisition.md) before loading. Missing runtime
+[model acquisition guide](model-acquisition.md) before loading. Missing runtime
 dependencies require installation; malformed or incomplete artifacts require
 repairing the artifact. The loader never substitutes another model or retries
 inference automatically.

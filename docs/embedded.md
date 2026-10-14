@@ -106,8 +106,9 @@ A score gap, probability margin, or entropy cutoff is a routing signal, not a
 model-independent guarantee of correctness:
 
 - **Temperature belongs to a specific trained model**: Use `report.calibrate()`
-  in [wyat.evaluation](api.md) on held-out calibration cases for the exact model
-  you deploy, and evaluate fallback coverage and accuracy on separate test cases.
+  in [wyat.evaluation](api.md#evaluate-labeled-cases-in-python) on held-out
+  calibration cases for the exact model you deploy, pass the fitted value with
+  `--temperature` (small model only), and evaluate fallback coverage and accuracy on separate test cases.
   Do not reuse a temperature or threshold fit on an earlier checkpoint or
   in-sample validation set.
 - **Fallback rate is a product decision**: Escalating 10%, 40%, or 60% of
@@ -153,13 +154,14 @@ Install the inference runtime, then [obtain and verify local Wyat weights](model
 
 ```sh
 uv add wyat --extra inference
-uv run python agent_demo.py --model /path/to/small-wyat --larger-model /path/to/larger-wyat
+uv run python agent_demo.py --model teilomillet/wyat-1-600m --larger-model /path/to/larger-model
 ```
 
 For Apple Silicon, use the `mlx` extra and add `--backend mlx` to the run command.
 
-Supply both local models; the example requires a fallback rather than silently
-disabling it. Both must work with Wyat's supported local model loader.
+Supply both models; the example requires a fallback rather than silently
+disabling it. Both must work with `wyat.load`. Wyat publishes one size,
+wyat-1-600m, so the larger fallback is a model directory you provide.
 An arbitrary chat-model directory cannot be passed to that loader. Another model
 runtime can be connected in Python through a custom [scorer](api.md).
 

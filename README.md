@@ -83,7 +83,7 @@ and answers yes or no with a probability (`Request.noul`).
 | [Quickstart](https://github.com/teilomillet/wyat/blob/main/docs/quickstart.md) | Your first decision, step by step |
 | [Embedded demo](https://github.com/teilomillet/wyat/blob/main/docs/embedded.md) | A coding agent acting on Wyat's choice |
 | [Python API](https://github.com/teilomillet/wyat/blob/main/docs/api.md) | Requests, results, batching, serving, evaluation |
-| [Workflows](https://github.com/teilomillet/wyat/blob/main/docs/agent-workflows.md) | Routing, prioritization, review, recovery |
+| [Workflows](https://github.com/teilomillet/wyat/blob/main/docs/agent-workflows.md) | Routing, review, recovery |
 | [Explaining decisions](https://github.com/teilomillet/wyat/blob/main/docs/explaining-decisions.md) | Reading scores and owning policy |
 | [Use cases](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/README.md) | Choice, Score and Noul in short scripts |
 | [Expert use cases](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/expert/README.md) | Triage, agents, RAG gates, calibration |

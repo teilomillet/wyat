@@ -22,7 +22,7 @@ trained Choice, complete [installation](install.md) and
 Run [routing.py](../examples/workflows/routing.py):
 
 ```sh
-python examples/workflows/routing.py
+uv run python examples/workflows/routing.py
 ```
 
 The application prepares a request, reuses one fixture model, looks up the exact
@@ -38,6 +38,21 @@ retries that retained action, and toy in-memory duplicate suppression prevents a
 second write. This is not a general retry policy: an external action may succeed
 before its acknowledgement fails and needs its own reconciliation contract.
 
+## Human review
+
+Run [human_review.py](../examples/workflows/human_review.py):
+
+```sh
+uv run python examples/workflows/human_review.py
+```
+
+A fixed Noul scorer returns `probability_true` 0.75. An illustrative caller
+policy (accept at 0.9 or above, reject at 0.1 or below) sends it to a pending
+review record that keeps the input, result and policy version. The billing
+effect happens only after a simulated reviewer approves it, and only once. A
+malformed output is retained as a separate failure. The cutoffs are not Wyat
+defaults or calibrated thresholds.
+
 ## Evaluate the decisions
 
 Use [Python evaluation](api.md#evaluate-labeled-cases-in-python) with labeled
@@ -46,7 +61,7 @@ The report retains failed calls in the accuracy denominator and reports coverage
 separately. Run the [fixed-scorer example](../examples/evaluation/main.py):
 
 ```sh
-python examples/evaluation/main.py
+uv run python examples/evaluation/main.py
 ```
 
 This example includes a correct prediction, a wrong prediction and a failed
@@ -58,8 +73,8 @@ failures separately from the model's choice accuracy.
 
 Wheels contain Wyat's runtime, not these example files. Copy a selected script
 into your application, install Wyat as described in [installation](install.md),
-then run it from that directory. The routing and evaluation scripts need only
-`wyat` and the Python standard library.
+then run it from that directory. The routing, review and evaluation scripts
+need only `wyat` and the Python standard library.
 
 A production integration owns durable action records, duplicate suppression,
 retries, review outcomes and privacy. The in-memory examples illustrate those

@@ -6,17 +6,18 @@ selected choice's ID. Here we choose between creating and cancelling a booking.
 ## 1. Install
 
 Start in your application's [uv](https://docs.astral.sh/uv/getting-started/installation/)
-project with Python **3.12 or newer**:
-
-```sh
-uv add wyat
-```
-
-If you do not have a project yet, create one before adding Wyat:
+project with Python **3.12 or newer**. If you do not have a project yet, create
+one first:
 
 ```sh
 uv init --bare --python 3.12 wyat-demo
 cd wyat-demo
+```
+
+Then add Wyat:
+
+```sh
+uv add wyat
 ```
 
 uv manages the project's environment and lockfile; no activation is needed.

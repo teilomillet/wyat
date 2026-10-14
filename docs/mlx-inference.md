@@ -1,14 +1,14 @@
-# Native MLX inference
+# MLX inference (Apple Silicon)
 
 Wyat uses [MLX-LM's Qwen3 backbone](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py)
-for Apple Silicon. The runtime reads a local Wyat checkpoint directly;
-there is no model conversion, downloaded Python execution, vocabulary projection,
-generation loop, or persistent KV cache in the default scorer.
+for Apple Silicon. The runtime reads a local Wyat checkpoint directly; there is
+no model conversion, downloaded Python execution, vocabulary projection or
+generation loop.
 
 ```python
 from wyat import Candidate, Request, load
 
-model = load("/path/to/wyat-model", backend="mlx", device="gpu")
+model = load("teilomillet/wyat-1-600m", backend="mlx", device="gpu")
 request = Request(
     query="Where should this request go?",
     context="I need to reset my password.",
@@ -17,59 +17,85 @@ request = Request(
 decision = model.decide(request)
 ```
 
-`device="cpu"` is available for runtime parity checks. On macOS, even importing
-the Metal-enabled MLX wheel requires access to the Metal device; a sandbox that
-hides it cannot establish a passing inference check.
+`device="gpu"` is the default; `device="cpu"` is available for runtime parity
+checks. On macOS, even importing the Metal-enabled MLX wheel requires access to
+the Metal device; a sandbox that hides it cannot establish a passing inference
+check.
 
 The loader shares artifact validation, file hashes and segmented tokenization
 with the Torch backend. It rejects missing, unexpected, malformed and nonfinite
 weights. Backbone tensors are expanded losslessly from BF16 storage to FP32,
-except for the qualified projection path described below. The decision head
-stays FP32, including its exact GELU and LayerNorm with
-epsilon `1e-5`. No quantization or reduced-precision approximation is enabled.
+except for the qualified candidate-head projection path described below. The
+decision head stays FP32, including its exact GELU and LayerNorm with epsilon
+`1e-5`. No quantization or reduced-precision approximation is enabled. On Apple
+GPUs where MLX can use TF32 for FP32 matrix products, set `MLX_ENABLE_TF32=0`
+before starting Python to keep FP32 products; see [installation](install.md).
+
+Rows are right-padded and the causal mask excludes all future padding from each
+selected endpoint. Candidate endpoints and the final query endpoint are gathered
+before head scoring. Output rows retain the original request and candidate
+order. Scoring evaluates the MLX graph and materializes host floats before
+returning, so wall-clock timings include device execution.
+
+## Native artifacts
+
+The published `teilomillet/wyat-1-600m` is a native (`wyat-native-full-v1`)
+artifact. Its FP32 LoRA adapters on `q_proj` and `v_proj` load unmerged from
+`native-adapters.safetensors`.
+
+- **Prefix cache.** A small least-recently-used cache keeps the K/V state of
+  the token prefix before the candidates; later requests that begin with the
+  same tokens reuse the longest cached match instead of recomputing it. Set its size with `load(..., prefix_cache_size=N)` (default
+  16, `0` disables it) or the CLI's `--prefix-cache-size`.
+- **Batches.** A batch keeps its original width and order. A padded batch above
+  the artifact's token budget is rejected with `ModelInputError`
+  (`reason="input-length"`) rather than split or truncated.
+- **GPU sharing.** On the GPU, inference pauses for 1 ms after every fourth
+  backbone layer so other applications can submit GPU work. Include this in
+  latency measurements.
+- **Compilation.** Native artifacts reject `compile=True`.
+
+## Candidate-head artifacts
+
+Single-choice candidate-head artifacts use a different scorer with these
+additional runtime paths.
 
 With MLX 0.32.3 and the `applegpu_g16s` architecture, eager GPU inference uses
 Metal TensorOps for the supported Wyat projection shapes. Eligible bias-free
 layers use exact BF16 checkpoint values in independent inference storage; an
-FP32 checkpoint weight is compressed only when every bit survives the conversion.
-Activations, accumulation and outputs remain FP32. Split reductions preserve MLX's partition
-boundaries and addition order. The capability check runs while loading; missing
-optional compiler support keeps native projections, while allocation failures
-and numerical failures remain errors. Other MLX versions, architectures, shapes,
-biased layers, CPU and compiled resources keep native inference. No global
-precision or runtime setting is changed. Preparation and first-call costs should
-be measured separately from repeated inference.
+FP32 checkpoint weight is compressed only when every bit survives the
+conversion. Activations, accumulation and outputs remain FP32. Split reductions
+preserve MLX's partition boundaries and addition order. The capability check
+runs while loading; missing optional compiler support keeps ordinary MLX
+projections, while allocation failures and numerical failures remain errors.
+Other MLX versions, architectures, shapes, biased layers, CPU and compiled
+resources keep ordinary projections. No global precision or runtime setting is
+changed. Measure preparation and first-call costs separately from repeated
+inference.
 
 On the GPU, batches with widely different encoded lengths are split into
 groups only when this removes at least half the rounded padded token work.
 Otherwise, the original batch is used. Single requests and CPU inference keep
 their original path. Each group runs a complete causal prefill with the same
-FP32 arithmetic; no prefix reuse or additional cache is required. This can
-substantially accelerate mixed-length batches, rather than every workload.
-Measure workload-specific gains, unchanged controls and output parity on your
-own requests; detailed development evidence is retained privately.
-Candidate endpoints and the final query endpoint are gathered before head
-scoring. Rows are right-padded;
-the causal mask excludes all future padding from each selected endpoint. Output
-rows retain the original request and candidate order. `score_many` evaluates the
-MLX graph and materializes host floats before returning, so wall-clock timings
-include device execution.
+FP32 arithmetic. Measure workload-specific gains, unchanged controls and output
+parity on your own requests.
 
 `compile=True` opts into [MLX compilation](https://ml-explore.github.io/mlx/build/html/usage/compile.html).
 Weights are loaded once and captured as immutable inference parameters. Measure
 cold compilation separately from warm throughput: compiled graphs specialize
-to input shapes and a new batch shape can incur compilation. It remains opt-in
-until the selected real workload demonstrates a benefit within its parity gate.
+to input shapes and a new batch shape can incur compilation.
 
-For repeated requests with an exact shared token prefix, `PrefixScorer` reuses
-the prefix's K/V state and computes the final block only at decision readouts:
+Ordinary `load(..., backend="mlx")` of a candidate-head artifact uses full
+prefill. For repeated requests with an exact shared token prefix, `PrefixScorer`
+reuses the prefix's K/V state and computes the final block only at decision
+readouts:
 
 ```python
 from wyat import Model
 from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.backends.wyat.prefix import PrefixScorer
 
-base = MLXWyatScorer.from_directory("/path/to/wyat-model", device="gpu", compile=False)
+base = MLXWyatScorer.from_directory("/path/to/candidate-head-model", device="gpu", compile=False)
 # Choose a length shared by your encoded requests, before all candidate readouts.
 # request is the representative Request above; 3 is an example, not a speed policy.
 prefix = base.encode_request(request).ids[:3]
@@ -84,12 +110,13 @@ one-time preparation cost. Each call gets fresh concatenating caches sized to
 its suffix, with no reserved decoding capacity. Prefix mismatches or a readout
 inside the prefix fall back to the ordinary scorer for the complete batch.
 Scaled RoPE and compiled bases are rejected. Candidate order, FP32 arithmetic,
-input limits and synchronous output are preserved. This remains explicit;
-ordinary `load(..., backend="mlx")` still uses full prefill.
+input limits and synchronous output are preserved.
 
-Install the MLX extra in the same application environment; see [installation](install.md).
-MLX requires Apple Silicon macOS. The artifact is the same full local download
-used by PyTorch; follow [model acquisition](model-acquisition.md).
+## Installation and dependencies
+
+Install the MLX extra in the same application environment; see
+[installation](install.md). MLX requires Apple Silicon macOS. The artifact is
+the same download used by PyTorch; follow [model acquisition](model-acquisition.md).
 
 MLX-LM depends on Transformers and may initialize its optional Torch integration
 when Torch happens to be installed. Wyat's MLX inference uses MLX tensors and

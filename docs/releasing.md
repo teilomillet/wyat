@@ -1,14 +1,9 @@
 # Preparing a public Wyat release
 
 Release preparation covers two public surfaces: the pip distributions and the
-source code. Both must contain only explicitly approved files. The mixed
-maintainer workspace and its Git history remain private.
-
-For model releases, every bundled code file must also carry the attribution
-`Teïlo Millet - teilomillet` and its appropriate SPDX license header. Add headers
-before generating source-bound manifests and checksums, retain third-party
-notices, and reject missing headers before upload. This applies to every future
-model release, including its examples and bundled runtime source.
+public source repository `teilomillet/wyat`. Both must contain only explicitly
+approved files. Ignored files in the maintainer workspace (research, data,
+models, receipts) remain private and are never committed or exported.
 
 Version **0.1.0** is the first release of this API. The existing PyPI `0.0.1`
 release contains a different implementation; never reuse or overwrite a
@@ -29,12 +24,11 @@ From the maintainer workspace, choose a fresh destination:
 .venv/bin/python scripts/package/export.py artifacts/public-release/source
 ```
 
-The exporter must reject an existing destination and produce an inventory of
-selected files. The public source tree must have no inherited `.git` directory,
-commit history, ignored artifacts or credentials. Do not make the mixed private
-repository public. Git history pruning is deferred until V1; before changing
-repository visibility, review the pruned history as well as the current files.
-The clean snapshot provides the candidate file boundary for that review.
+The exporter rejects an existing destination and writes a checksum inventory
+of the selected files. The exported tree has no `.git` directory, ignored
+artifacts or credentials. Git tracks only the allowlisted public files; keep
+private work in ignored paths and review `git diff --cached` before each commit.
+The export is a check of that boundary, not a separate publication channel.
 
 Inspect the source inventory and the content of every selected file. An
 allowlisted filename does not establish that its contents are suitable for the
@@ -57,7 +51,7 @@ Run the public checks inside the exported directory:
 
 ```sh
 cd artifacts/public-release/source
-uv sync --locked --extra inference --extra server
+uv sync --locked --extra inference --extra server --group examples
 uv run --no-sync python scripts/checks/main.py
 uv build --no-build-isolation
 uv run --no-sync python scripts/package/check.py dist
@@ -75,6 +69,10 @@ with the source inventory. The wheel contains the approved runtime; the source
 archive also includes the approved public source, examples, documentation,
 tests and check tooling. Neither archive contains private research material.
 
+This local build is a pre-check. The distributions uploaded to PyPI are rebuilt
+by `pypi.yml` from the tagged commit and checked again there; compare their
+`SHA256SUMS` with your local build.
+
 Then install the candidate wheel into a separate application environment and
 exercise the [installation guide](install.md), including no-weight first use.
 Run trained-model checks separately with an explicitly selected supported
@@ -91,44 +89,55 @@ refuse to run until a release is pinned. After publishing the model to
 `REVISION` and `MANIFEST_SHA256` into the verifier; a test keeps the two equal.
 Then run `wyat download` into an empty directory, load the result and make one
 decision before tagging. A model only loads when its manifest records the
-encoding recipe (`wyat.tasks.RECIPE`) and head version (`PREDICTOR` in
-`wyat/loading/native_artifact.py`) of the version being released.
+artifact contract of the version being released (`artifact_contract()` in
+`wyat/loading/native_artifact.py`, versioned by `wyat.tasks.RECIPE` and
+`PREDICTOR`).
+
+Every code file bundled with a model release must carry the attribution
+`Teïlo Millet - teilomillet` and its SPDX license header, and third-party
+notices are retained. The maintainer model-release tooling, kept outside the
+public source, adds and checks these headers before generating manifests and
+checksums, and before upload.
 
 ## Prepare publication
 
+Set the version in `pyproject.toml`, run `uv lock`, and update the minimum
+version in `llms.txt` if it changes. The tag must be `v<version>`.
+
 Before publishing, confirm the unused version, reviewed source snapshot,
 license and attribution, complete check results, dependency installation and
-release notes. Choose the public source destination and inspect its actual
-contents and access settings. Publication changes the audience; preparation
+release notes. Inspect the repository's actual contents and access settings. Publication changes the audience; preparation
 does not authorize that external action by itself.
 
-For GitHub Actions publication, configure the PyPI trusted publisher for the
-approved source repository with workflow `pypi.yml` and environment `pypi`. The
+For GitHub Actions publication, configure the PyPI trusted publisher for
+repository `teilomillet/wyat` (the workflow refuses any other) with workflow
+`pypi.yml` and environment `pypi`. The
 repository owner, name, workflow filename and environment must match the trusted
 publisher exactly.
 
 `.github/workflows/pypi.yml` publishes when a `v<version>` tag is pushed on a
 commit already on `main`: it rejects a tag that differs from the project version,
 runs the full CI matrix on that commit, verifies the built distributions' checksums,
-refuses a version already on PyPI and uploads through trusted publishing. Upload
-additionally requires the repository variable `PYPI_PUBLISH_ENABLED=true` and the
-`pypi` environment's protection rules; without them a tag push checks and builds
-but uploads nothing. Configure required environment reviewers where supported,
-protect `v*` tags, and verify that the controls apply to the chosen repository and
-plan. These administrative settings are not established by this source tree.
+refuses a version already on PyPI and uploads through trusted publishing.
+Upload runs only when the repository variable `PYPI_PUBLISH_ENABLED` is `true`;
+otherwise a tag push checks and builds but uploads nothing. Create the `pypi`
+environment with required reviewers before enabling the variable: GitHub creates
+a missing environment without protection on first use. Protect `v*` tags, and
+verify that the controls apply to the repository and plan. These administrative
+settings are not established by this source tree.
 
 Dispatching the workflow manually on `main` is the dry run: the same checks and
 build for main's version, never an upload. Run it on the reviewed commit, review
 every CI lane, including failures and skipped capabilities, and retain the checked
 distributions with their checksums. Pushing the tag is the publication request, so
 push an immutable `v<version>` tag only on that dry-run commit after explicit
-approval. CI execution, trusted publishing and environment protection remain
-unverified until exercised on the destination repository.
+approval. Trusted publishing and environment protection remain unverified
+until the first tagged upload.
 
 ## Publish the checked candidate
 
-After explicit publication approval, push the tag on the reviewed source
-destination. The workflow publishes only its checked wheel and source archive. Do not
+After explicit publication approval, push the tag on the reviewed commit. The
+workflow publishes only its checked wheel and source archive. Do not
 rebuild during upload or substitute artifacts with different hashes. PyPI
 trusted publishing uses short-lived OIDC credentials; no publishing token
 belongs in the source tree.

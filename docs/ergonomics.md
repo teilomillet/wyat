@@ -5,8 +5,8 @@ The preferred public path is **load once → describe a request → decide → u
 application ID**. This is a design choice supported by the current application
 tasks, open to revision when comparative user evidence supports a better one.
 
-The Python package remains `wyat`. Ergonomic work does not select a new model
-architecture or establish trained-model quality.
+Ergonomic work does not select a new model architecture or establish
+trained-model quality.
 
 ## Hard contracts
 
@@ -15,9 +15,11 @@ architecture or establish trained-model quality.
 - Retain finite raw-logit interpretation and relative, uncalibrated softmax
   probabilities. A selected ID identifies an action; it does not execute it.
 - Keep local loading explicit. Importing the package does not load weights or
-  optional runtimes. Do not add implicit downloads or custom model-code execution.
-- Reject unsupported input explicitly. Do not truncate, retry, split, repair,
-  skip, or invent successful output to hide a failure.
+  optional runtimes. The only network access is the pinned release, fetched and
+  verified when its exact name is passed to `wyat.load` or `wyat download`. Do
+  not add other downloads or custom model-code execution.
+- Reject unsupported input explicitly. Never truncate, retry, repair or skip
+  input, split it to hide a failure, or invent successful output.
 - Preserve the wire format, failure-inclusive evaluation, and explicit resource,
   concurrency, cancellation, and model-lifetime ownership.
 - Preserve existing user work, model contracts, and privacy. Diagnostics must
@@ -60,6 +62,8 @@ The documentation and examples should let callers:
 - Install a runtime, obtain a supported artifact and make a local decision.
 - Use an exact selected ID through an application's permitted action map.
 - Reuse one model across scalar and batch calls while preserving request order.
+- Ask Choice, Score and Noul questions of a native artifact through the same
+  `Request` and `Decision` types.
 - Read input-ordered scores by candidate ID and understand relative probabilities.
 - Correct invalid inputs and missing dependencies using actionable errors.
 - Integrate a custom scorer with finite raw logits and explicit output failures.

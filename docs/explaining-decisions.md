@@ -24,16 +24,19 @@ preserve input order. Scores and probabilities follow the original candidate
 order; use `decision.scores_by_id` and `decision.probabilities_by_id` when
 looking up a specific ID.
 
-For decisions returned by `Model`, the probabilities are stable softmax weights:
+For decisions returned by `Model`, the probabilities are stable softmax weights
+at the model's temperature `T` (default 1.0):
 
 ```text
-p[i] = exp(logit[i] - max(logits)) / sum(exp(logit[j] - max(logits)))
+p[i] = exp((logit[i] - max(logits)) / T) / sum(exp((logit[j] - max(logits)) / T))
 ```
 
-With fixed logits `[0, 2]` for `[wait, refund]`, the weights are approximately
-`[0.119, 0.881]`. A teammate can say: “`refund` ranked first among these supplied
-options, with relative weight 0.881.” That explains the calculation. It does not
-establish a semantic reason such as “refund because the invoice is duplicated.”
+With fixed logits `[0, 2]` for `[create, cancel]` and `T = 1`, as in the
+[scorer example](#run-a-result-example) below, the weights are approximately
+`[0.119, 0.881]`. A teammate can say: “`cancel` ranked first among these
+supplied options, with relative weight 0.881.” That explains the calculation. It
+does not establish a semantic reason such as “cancel because the user asked to
+cancel.”
 
 These probabilities describe the supplied menu. They are not calibrated
 probabilities that the selected action is correct. Changing the question,
@@ -58,13 +61,14 @@ Then evaluate the actual model on relevant examples, languages and menus.
 Report task quality and failure cases. If the application treats `0.75` as a
 real-world frequency, test calibration for that use. Choose policy thresholds
 against observed errors and their costs; evaluate the review path too.
-The example's synthetic logits establish none of these empirical claims.
+The fixed logits above establish none of these empirical claims.
 
 Retain a small decision note that lets a teammate reconstruct the result:
 
 - The exact input, or a retrievable access-controlled reference to it.
 - The question and ordered option IDs and descriptions.
-- The model/artifact identity, task recipe and readout version.
+- The model ID and the artifact manifest's format, recipe and predictor
+  identifiers.
 - The raw logits, complete distribution and selected ID.
 - The application policy and version, its decision, and any action actually taken.
 
@@ -83,10 +87,10 @@ then state the relevant validation evidence and what remains unknown.
 With Wyat installed, run the [custom scorer example](../examples/scorer/main.py):
 
 ```sh
-python examples/scorer/main.py
+uv run python examples/scorer/main.py
 ```
 
 It uses fixed logits, loads no weights and executes no application actions.
-It demonstrates looking up the selected candidate's score and probability by ID. Use
-[Python evaluation](api.md#evaluate-labeled-cases-in-python) to assess the model
-on cases relevant to your application.
+It demonstrates looking up the selected candidate's score and probability by
+ID. Use [Python evaluation](api.md#evaluate-labeled-cases-in-python) to assess
+the model on cases relevant to your application.

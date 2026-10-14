@@ -23,7 +23,8 @@ print(decision.selected)
 ```
 
 The candidate ID identifies a choice in your application; the text describes
-that choice to the model. Wyat renders both IDs and descriptions in its input.
+that choice to the model. Wyat renders both IDs and descriptions in its input
+(Score renders rubric positions, not custom IDs).
 Use the selected ID to dispatch an action. A decision chooses among supplied
 candidates; it does not execute that action.
 
@@ -31,14 +32,14 @@ candidates; it does not execute that action.
 evidence, as text or as a JSON object or array. Python constructors store a JSON
 context as the same canonical text that `predict` renders for a record `state`
 (sorted keys, compact separators), so do not call `json.dumps` first. The HTTP
-`context` field remains text. Candidate IDs and text preserve their exact Unicode spelling in Python
-values, rendering and JSON transport. The configured tokenizer may normalize
+`context` field remains text. Candidate IDs and text preserve their exact
+Unicode spelling in Python values, rendering and JSON transport. The configured tokenizer may normalize
 text internally; exact application IDs do not establish learned language quality.
 
 `wyat.load` takes a local model directory or the name of the pinned release,
 `"teilomillet/wyat-1-600m"`, which it downloads and verifies into the Wyat cache
-on first use; no other name downloads anything. The default is PyTorch on CPU. On Apple Silicon, use
-`wyat.load(path, backend="mlx")` for native MLX. See the
+on first use; no other name downloads anything. The default is PyTorch on CPU.
+On Apple Silicon, use `wyat.load(path, backend="mlx")` for native MLX. See the
 [application installation guide](install.md) and
 [artifact requirements](model-acquisition.md).
 Keep the loaded model outside your per-request handler. Loading and inference
@@ -54,11 +55,14 @@ have separate lifetimes.
 | `wyat.Decision` | Model identity, raw scores, probabilities, ranked IDs, uncertainty metrics (`score_gap`, `probability_margin`, `entropy`, `normalized_entropy`), and task properties (`probability_true`, `expected_ordinal_value`). |
 | `wyat.load(path, ...)` | Load a supported local Wyat model (`wyat-native-full-v1` or single-choice candidate-head) and return a `wyat.Model`. |
 | `model.decide(request, *, temperature=None)` | Return one `Decision`. |
-| `model.decide_many(requests, *, temperature=None)` | Return decisions in request order, using one scorer batch call. |
+| `model.decide_many(requests, *, temperature=None, errors="raise")` | Return decisions in request order, using one scorer batch call; with `errors="return"`, a refused request gets its `ModelInputError` in its slot. |
+| `wyat.PublicRecord` | Input to `predict`: `{"state": text or JSON, "questions": {id: {"type", "instructions"?, "criteria"}}}`. Choice and Noul `criteria` map IDs to text; Score `criteria` is an ordered list of levels. |
 | `model.predict(record, *, temperature=None)` | Interpret a public multi-question record (`choice`, `score`, `noul`) into typed answers (`ChoiceAnswer`, `ScoreAnswer`, `NoulAnswer`) with the same uncertainty properties as `Decision`, the model ID and an input digest. Returns `wyat.Answers`. |
 | `wyat.Answers` | The `dict` of typed answers keyed by question ID that `predict` and `predict_many` return. `answers.choice(id)`, `answers.score(id)` and `answers.noul(id)` return that question's answer with its type narrowed, and raise `TypeError` if the question has another type. |
-| `model.predict_many(records, *, temperature=None)` | Typed answers for several records, in record order. Native models encode every record before scoring any, so one refused record fails the call before compute; each record is then scored in its own budgeted groups. Throughput matches a `predict` loop. |
-| `model.logits(record)` | Return raw option logit tuples per question in a public multi-question record. |
+| `model.predict_many(records, *, temperature=None)` | Typed answers for several records, in record order. Native models encode every record before scoring any, so one refused record fails the call before compute; each record is then scored in its own budgeted groups. |
+| `model.logits(record)` | Return one raw option logit list per question in a public multi-question record. |
+| `wyat.public_questions(record)` | Validate a record into its canonical state and `wyat.Question` values. |
+| `wyat.interpret(question, logits)` | Interpret raw logits for a `wyat.Question` as a typed answer, without temperature. |
 | `wyat.Scorer` | Typed boundary for custom models returning raw logits. |
 | `wyat.Model(scorer, model_id, *, temperature=1.0)` | Wrap a custom scorer with the same decision interpretation. |
 | `wyat.ModelOutputError` | A scorer returned output that violates the logit contract. |
@@ -70,8 +74,8 @@ sequence of `Candidate` values, such as a list or tuple, with unique, nonempty
 IDs. The request stores an immutable tuple snapshot; later changes to the
 original list do not change the request. Unordered collections and generators
 are not input forms. The query and candidate text must also be nonempty. The
-single-choice candidate-head loader requires at least two candidates, `task="choice"`, and enforces its
-artifact's candidate and token limits; the native full-task loader
+single-choice candidate-head loader requires at least two candidates,
+`task="choice"`, and enforces its artifact's candidate and token limits; the native full-task loader
 (`wyat-native-full-v1`) supports `choice`, `score`, and `noul` tasks as well as
 prefix KV caching (`prefix_cache_size`). Loaders reject unsupported tasks and
 inputs beyond the configured limits; they never truncate a request silently.
@@ -91,8 +95,7 @@ assert len(decisions) == 2
 An empty batch returns an empty tuple without invoking the scorer. Input errors
 raise `ValueError`. Invalid output shape, cardinality, or numeric logits raise
 `wyat.ModelOutputError`, a subclass of `ValueError`: catch it first when the
-distinction matters. Missing
-runtime dependencies, unreadable artifacts, and exceptions raised while executing
+distinction matters. Missing runtime dependencies, unreadable artifacts, and exceptions raised while executing
 the scorer retain their own exceptions. A failed inference produces no successful
 `Decision` for that call.
 
@@ -133,9 +136,8 @@ The [bulk-job example](../examples/use_cases/expert/09_batch_throughput.py)
 uses this to label a backlog in which one pasted log is too long for the model.
 
 The wrapper does not relabel exceptions thrown by the scorer itself or while
-advancing a custom output iterator. In
-particular, a custom scorer can raise its own `ValueError`; inspect its documented
-failure contract rather than assuming every such exception originates in request
+advancing a custom output iterator. In particular, a custom scorer can raise its
+own `ValueError`; inspect its documented failure contract rather than assuming every such exception originates in request
 validation.
 
 `ModelInputError.reason` is one of `unsupported-task`, `candidate-count`,
@@ -167,10 +169,10 @@ for candidate_id, score in decision.scores_by_id.items():
 `decision.candidate_ids` gives IDs in original input order. The keyed properties
 return independent dictionary snapshots in that order. They need no retained
 request, and changing a returned dictionary does not change the decision.
-They also work on coherent values created with the existing four-argument
-`Decision` constructor. These properties reject invalid structure and non-finite
-numbers, and preserve supplied values. They do not verify probability bounds,
-normalization, or calibration. The constructor itself remains unchanged.
+They also work on a `Decision` built directly from its four fields
+(`model_id`, `scores`, `probabilities`, `ranking`). These properties reject
+invalid structure and non-finite numbers, and preserve supplied values. They do
+not verify probability bounds, normalization, or calibration.
 
 For abstention and fallback routing, `Decision` also provides four read-only
 uncertainty properties:
@@ -204,13 +206,22 @@ answer's FP32 logit snapshots. Each answer also records its source:
 Log the digest to match an answer to its exact input without storing the
 input. A JSON instruction and its canonical text give the same digest.
 `answer.to_dict()` includes `model_id` and `input_sha256` when they are set.
-Answers built directly with `wyat.tasks.interpret` leave them empty.
+Answers built directly with `wyat.interpret` leave them empty.
 
 `predict` returns a `wyat.Answers` dict. `answers.choice(id)`,
 `answers.score(id)` and `answers.noul(id)` give an answer with its type
 narrowed for type checkers, and raise `TypeError` for another question type.
 
 ```python
+record = {
+    "state": "Cancel my booking",
+    "questions": {
+        "route": {
+            "type": "choice",
+            "criteria": {"cancel": "Cancel the booking", "create": "Create a booking"},
+        },
+    },
+}
 answers = model.predict(record)
 route = answers.choice("route")
 if route.probability_margin < 0.2:
@@ -263,6 +274,10 @@ an explicitly fixed scorer without weights. The
 goes on to choose an abstention threshold from labelled cases and check it on
 held-back ones.
 
+From the command line, `wyat evaluate MODEL < cases.jsonl` reads one
+`{"id", "request", "expected": [ids]}` object per line, writes one report, and
+exits with status 1 if any call failed.
+
 ## Use the same input over HTTP
 
 The JSON request has the same fields as the Python value; JSON arrays replace
@@ -281,8 +296,9 @@ Python tuples:
 
 Send this object to `POST /v1/decide`, or one object per line to `wyat decide`.
 The server validates JSON, constructs a `Request`, and calls the same
-`model.decide` operation. See [serving](../README.md#serve) for startup,
-admission limits, and error responses. To embed the server in your application,
+`model.decide` operation. See [serving](install.md#serve-the-same-model) for
+startup and admission limits, and
+[recovery](#recover-from-transport-failures) for error responses. To embed the server in your application,
 use `from wyat.server import create_app`, then `app = create_app(model)` with an
 already-loaded model.
 
@@ -303,25 +319,25 @@ when candidates are omitted or empty. Custom task names remain available to
 scorers that support them; the schema does not imply model support. The loaded
 model owns candidate-count and input-size limits.
 
-The schema is generated from Pydantic models. HTTP decoding and semantic
-validation still use the shared core parser after bounded stream reading, so
-oversized bodies, duplicate JSON keys, malformed JSON and model admission retain
-their existing behavior. Cross-field rules such as unique candidate IDs and
-equal response-vector lengths are described in the contract and enforced by the
-core rather than inferred from an array's JSON Schema alone.
+The schema is generated from Pydantic models, but requests are decoded and
+validated by the core parser after a bounded body read: oversized bodies,
+duplicate JSON keys and malformed JSON are rejected there. Cross-field rules
+such as unique candidate IDs and equal response-vector lengths are described in
+the contract and enforced by the core, not by JSON Schema alone.
 
 ## Health, readiness and request IDs
 
 `GET /health` is a cheap liveness probe for the process and returns the typed
 `HealthResponse`, `{"status": "ok", "model_id": "..."}`. `GET /readyz` reports
 readiness together with the loaded artifact's identity and the server's admission
-limits as a typed `ReadinessResponse`:
+limits as a typed `ReadinessResponse` (values shown for `wyat serve` defaults
+with a native artifact):
 
 ```json
 {
   "status": "ready",
-  "model_id": "sha256:…",
-  "model_type": "WyatScorer",
+  "model_id": "native-…",
+  "model_type": "NativeModel",
   "temperature": 1.0,
   "max_body_bytes": 1048576,
   "max_queue_size": 16,
@@ -336,10 +352,10 @@ request data and is safe to expose to a load balancer.
 Every HTTP response carries an `X-Request-ID`. A supplied value is echoed when
 it matches `[A-Za-z0-9._-]{1,64}`; otherwise, or when the header is absent, the
 server generates a 32-character hex identifier. The response echoes the safe
-value it used. When the access log is enabled the server also writes one line per
-request at INFO level to the `wyat.server.access` logger with the method, path,
-status, request ID and wall-clock latency. It never logs request text, headers or
-bodies. Disable it with `create_app(model, log_access=False)` or
+value it used. When the access log is enabled the app also emits one INFO
+record per request on the `wyat.server.access` logger with the method, path,
+status, request ID and wall-clock latency; configure a handler at INFO level to
+record it. It never logs request text, headers or bodies. Disable it with `create_app(model, log_access=False)` or
 `wyat serve --no-access-log`.
 
 ## Recover from transport failures
@@ -350,7 +366,13 @@ emitted; no decisions from the failed batch are emitted. A range identifies the
 whole batch, not a known failing member. Inference is not retried or split to find
 one. Keep the input and diagnostic together and correct the cause before a new run.
 
-HTTP keeps its existing status codes and JSON bodies. A model-owned rejection
+The CLI configures real standard text streams as strict UTF-8 when needed. It
+keeps injected custom text streams unchanged. Applications embedding
+`wyat.cli.main()` must supply fresh standard input or input already configured
+as strict UTF-8: Python cannot change a text input's encoding after it has been
+read. Use the Python API for ordinary in-process integration.
+
+HTTP uses the status codes and JSON bodies below. A model-owned rejection
 additionally carries `X-Wyat-Rejection`; generic backend `ValueError` has no such
 header. Do not infer an input-policy reason from an arbitrary backend exception.
 
@@ -358,8 +380,8 @@ header. Do not infer an input-policy reason from an arbitrary backend exception.
 | --- | --- |
 | 400 invalid JSON | Correct UTF-8, duplicate keys or JSON syntax before resubmission. |
 | 413 body limit | Reduce the body deliberately; do not silently discard evidence. |
-| 422 with `unsupported-task` | Use the admitted Choice path; changing a task string cannot admit native Score/Noul. |
-| 422 with `candidate-count` | Supply 2 through the artifact's declared `max_options` candidates. |
+| 422 with `unsupported-task` | Use a task the loaded artifact supports: native artifacts accept `choice`, `score` and `noul`; candidate-head artifacts accept only `choice`. |
+| 422 with `candidate-count` | Supply a count the artifact accepts: 2–255 for native Choice and Score, exactly 2 for Noul, or 2 through `max_options` for candidate-head artifacts. |
 | 422 with `input-length` or `input-segment` | Inspect the complete rendered input and configured token/segment limits; shorten deliberately or use an independently admitted larger-limit model. |
 | 422 without a reason header | Inspect request validation and the documented backend contract; no successful decision exists. |
 | 500 | Investigate the producer/runtime failure; keep it separate from semantic review. |
@@ -411,10 +433,3 @@ logits in request and candidate order; embeddings and other score semantics need
 their own model contract.
 
 The [ergonomics standard](ergonomics.md) describes the public API design principles.
-
-
-The CLI configures real standard text streams as strict UTF-8 when needed. It
-keeps injected custom text streams unchanged. Applications embedding
-`wyat.cli.main()` must supply fresh standard input or input already configured
-as strict UTF-8: Python cannot change a text input's encoding after it has been
-read. Use the Python API for ordinary in-process integration.

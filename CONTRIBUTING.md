@@ -13,7 +13,7 @@ The example uses fixed logits and requires no model weights. Install optional
 runtimes for the connected checks:
 
 ```sh
-uv sync --extra inference --extra server
+uv sync --extra inference --extra server --group examples
 uv run --no-sync python scripts/checks/main.py
 ```
 

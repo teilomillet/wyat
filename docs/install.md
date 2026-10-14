@@ -45,7 +45,7 @@ works with the core alone. Installed wheels do not include the source checkout's
 ## Acquire and load a trained model
 
 Pass the model's name, `teilomillet/wyat-1-600m`, to `wyat.load`. On first use
-it downloads [Wyat-1 600M](https://huggingface.co/teilomillet/wyat-1-600m)
+it downloads [wyat-1-600m](https://huggingface.co/teilomillet/wyat-1-600m)
 (about 1.5 GB) into the Wyat cache, checks every file against pinned SHA-256
 digests, and loads it; later loads use the verified cache. Run
 `uv run wyat download` beforehand to fetch it ahead of time, for example
@@ -82,20 +82,20 @@ WYAT_MODEL=teilomillet/wyat-1-600m uv run python decide.py
 
 With the `mlx` extra, change the load call to
 `wyat.load(os.environ["WYAT_MODEL"], backend="mlx")`. MLX defaults to the Apple
-GPU; `device="cpu"` selects MLX CPU explicitly. For the documented FP32 MLX
-configuration, set `MLX_ENABLE_TF32=0` before starting Python:
+GPU; `device="cpu"` selects MLX CPU explicitly. To keep the FP32 configuration
+described in the [MLX guide](mlx-inference.md), set `MLX_ENABLE_TF32=0` before
+starting Python:
 
 ```sh
 MLX_ENABLE_TF32=0 WYAT_MODEL=teilomillet/wyat-1-600m uv run python decide.py
 ```
 
 Keep the loaded model across requests. Call `model.decide_many((request,
-request))` for a batch. Wyat requires requests with two through the
-artifact's maximum number of candidates and rejects over-limit inputs without
-truncation. See the [API guide](api.md) and runtime guides for
+request))` for a batch. Wyat requires 2 to 255 candidates per request and
+rejects other counts with `ModelInputError` instead of truncating. See the [API guide](api.md) and runtime guides for
 [PyTorch](torch-inference.md) and [MLX](mlx-inference.md).
 
-For Windows PowerShell, set the path before running the same Python script:
+For Windows PowerShell, set the model name before running the same Python script:
 
 ```powershell
 $env:WYAT_MODEL = "teilomillet/wyat-1-600m"
@@ -156,14 +156,16 @@ artifact's identity (its `model_id` is a content digest for native artifacts) an
 the admission limits, so a load balancer or release check can confirm the exact
 model behind a deployment. Every response carries an `X-Request-ID`: a supplied
 value is echoed when it matches `[A-Za-z0-9._-]{1,64}` and the server generates
-one otherwise. When enabled, the server writes one access log line per request
-(method, path, status, request ID and latency, never request text) to the
-`wyat.server.access` logger.
+one otherwise. When enabled, the app emits one INFO record per request (method,
+path, status, request ID and latency, never request text) on the
+`wyat.server.access` logger; configure a handler at INFO level to record it.
+Uvicorn's own access log, which includes client addresses, is separate.
 
 By default, `create_app(model)` admits one active inference and returns 503 for
 overlapping requests; pass `max_queue_size` and `queue_timeout` (enabled by
 default in `wyat serve`) to bound concurrent queueing and micro-batching. Pass
-`log_access=False` to silence the access log, or run `wyat serve --no-access-log`.
+`log_access=False`, or run `wyat serve --no-access-log`, to disable Wyat's
+access records.
 Applications choose authentication and TLS at their deployment boundary.
 Relative probabilities do not certify correctness, and a selection performs no
 action. The [application workflows](agent-workflows.md) connect ID lookup,
@@ -171,7 +173,8 @@ dispatch, review and recovery.
 
 ## Alternative: pip
 
-If you prefer pip, create and activate a Python 3.12+ virtual environment:
+If you prefer pip, copy `demo.py` from the [quickstart](quickstart.md), then
+create and activate a Python 3.12+ virtual environment:
 
 ```sh
 python -m venv .venv
@@ -181,7 +184,7 @@ wyat download
 python demo.py --model teilomillet/wyat-1-600m
 ```
 
-Copy `demo.py` from the [quickstart](quickstart.md) first. On PowerShell, activate
+On PowerShell, activate
 with `.venv/Scripts/Activate.ps1`. Use `python -m pip install wyat` for the
 core-only demo. Once the environment is active, run Python scripts and the
 `wyat` CLI directly instead of prefixing them with `uv run`.
