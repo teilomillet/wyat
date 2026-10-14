@@ -213,9 +213,9 @@ def assay(model_path: Path, peer: Path, output: Path) -> dict[str, object]:
             "cases": peer / "benchmarks/wyat-native-dev-assay/cases.jsonl",
             "evidence": root / "benchmarks/analysis/evidence.py",
             "adapter": root / "wyat/interop/dmbench.py",
-            "backend": root / "wyat/backends/kai/mlx.py",
-            "encoding": root / "wyat/backends/kai/encoding.py",
-            "artifact": root / "wyat/backends/kai/artifact.py",
+            "backend": root / "wyat/backends/wyat/mlx.py",
+            "encoding": root / "wyat/backends/wyat/encoding.py",
+            "artifact": root / "wyat/backends/wyat/artifact.py",
             "core": root / "wyat/core.py",
             "loading": root / "wyat/loading/local.py",
             "wire": root / "wyat/wire.py",
@@ -278,11 +278,11 @@ def assay(model_path: Path, peer: Path, output: Path) -> dict[str, object]:
             )
         import mlx.core as mx
 
-        from wyat.backends.kai.mlx import MLXKaiScorer
+        from wyat.backends.wyat.mlx import MLXWyatScorer
 
         previous_limit = mx.set_cache_limit(CACHE_BYTES)
         try:
-            scorer = MLXKaiScorer.from_directory(
+            scorer = MLXWyatScorer.from_directory(
                 model_path,
                 max_length=2048,
                 device="gpu",

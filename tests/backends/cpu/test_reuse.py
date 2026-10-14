@@ -8,7 +8,7 @@ from typing import cast
 
 import pytest
 import torch
-from fixtures.kai import create_kai_bundle
+from fixtures.wyat import create_wyat_bundle
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from torch import nn
@@ -17,15 +17,17 @@ from transformers.masking_utils import create_causal_mask
 from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from wyat import Candidate, Model, Request
-from wyat.backends.kai.cpu import prefix as runtime
-from wyat.backends.kai.cpu.prefix import PrefixScorer
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.cpu import prefix as runtime
+from wyat.backends.wyat.cpu.prefix import PrefixScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 
 
 @pytest.fixture
-def base(tmp_path: Path) -> KaiScorer:
-    return KaiScorer.from_directory(create_kai_bundle(tmp_path / "kai"), max_length=512)
+def base(tmp_path: Path) -> WyatScorer:
+    return WyatScorer.from_directory(
+        create_wyat_bundle(tmp_path / "wyat"), max_length=512
+    )
 
 
 def request(query: str = "read?", count: int = 2) -> Request:
@@ -37,7 +39,7 @@ def request(query: str = "read?", count: int = 2) -> Request:
 
 
 def suffix_hidden(
-    base: KaiScorer, prefix: PrefixScorer, ids: torch.Tensor
+    base: WyatScorer, prefix: PrefixScorer, ids: torch.Tensor
 ) -> torch.Tensor:
     with torch.inference_mode():
         result = cast(
@@ -63,7 +65,7 @@ def suffix_hidden(
     batch=st.integers(1, 3),
 )
 def test_absolute_offset_mask_and_suffix_match_full_causal_oracle(
-    base: KaiScorer, prefix_length: int, suffix_length: int, batch: int
+    base: WyatScorer, prefix_length: int, suffix_length: int, batch: int
 ) -> None:
     vocab = base.backbone.config.vocab_size
     tokens = tuple((i + 1) % vocab for i in range(prefix_length))
@@ -103,7 +105,7 @@ def test_absolute_offset_mask_and_suffix_match_full_causal_oracle(
 
 
 def test_ragged_public_decisions_preserve_candidate_order_and_base_defaults(
-    base: KaiScorer,
+    base: WyatScorer,
 ) -> None:
     inputs = (request(), request("write? " * 3, 3), request("é 世界?", 4))
     retained = PrefixScorer(base, base.encode_request(inputs[0]).ids[:2])
@@ -141,7 +143,7 @@ def test_ragged_public_decisions_preserve_candidate_order_and_base_defaults(
 
 
 def test_fresh_cache_storage_and_interleaving_do_not_mutate_prefix(
-    base: KaiScorer,
+    base: WyatScorer,
 ) -> None:
     retained = PrefixScorer(base, (1, 2, 3))
     snapshots = tuple((k.clone(), v.clone()) for k, v in retained._states)
@@ -175,7 +177,7 @@ def test_fresh_cache_storage_and_interleaving_do_not_mutate_prefix(
 
 @pytest.mark.parametrize("kind", ["mismatch", "candidate", "query", "empty"])
 def test_one_nonadmitted_member_uses_whole_original_batch(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, kind: str
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, kind: str
 ) -> None:
     inputs = (request(), request("write?"))
     row = base.encode_request(inputs[0])
@@ -215,7 +217,7 @@ def test_one_nonadmitted_member_uses_whole_original_batch(
     ],
 )
 def test_complete_original_input_admission_precedes_prefix_removal(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, invalid: Request
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, invalid: Request
 ) -> None:
     retained = PrefixScorer(base, base.encode_request(request()).ids[:2])
 
@@ -231,7 +233,7 @@ def test_complete_original_input_admission_precedes_prefix_removal(
     "tokens", [[], (), (True,), (-1,), (100000,), (1.0,), (1,) * 512]
 )
 def test_invalid_prefix_is_rejected_before_any_backbone_call(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, tokens: object
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, tokens: object
 ) -> None:
     def forbidden(*args: object, **kwargs: object) -> object:
         raise AssertionError("No prefill for invalid prefix")
@@ -243,7 +245,7 @@ def test_invalid_prefix_is_rejected_before_any_backbone_call(
 
 @pytest.mark.parametrize("when", ["construction", "call"])
 def test_ambient_cpu_autocast_is_rejected_and_caller_context_preserved(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, when: str
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, when: str
 ) -> None:
     retained = (
         PrefixScorer(base, base.encode_request(request()).ids[:2])
@@ -268,7 +270,7 @@ def test_ambient_cpu_autocast_is_rejected_and_caller_context_preserved(
 
 @pytest.mark.parametrize("when", ["construction", "call"])
 def test_backbone_hooks_reject_before_cached_extra_effects(
-    base: KaiScorer, when: str
+    base: WyatScorer, when: str
 ) -> None:
     retained = (
         PrefixScorer(base, base.encode_request(request()).ids[:2])
@@ -293,7 +295,7 @@ def test_backbone_hooks_reject_before_cached_extra_effects(
 
 
 def test_ordinary_shared_helper_keeps_exact_forward_arguments(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     calls: list[dict[str, object]] = []
     ordinary = base.backbone.forward
@@ -315,7 +317,7 @@ def test_ordinary_shared_helper_keeps_exact_forward_arguments(
 
 
 def test_suffix_failure_does_not_poison_retained_cache(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     value = request()
     retained = PrefixScorer(base, base.encode_request(value).ids[:2])
@@ -345,7 +347,7 @@ def test_suffix_failure_does_not_poison_retained_cache(
 
 @pytest.mark.parametrize("condition", ["train", "half", "eager", "rope", "sliding"])
 def test_unsupported_runtime_rejects_before_prefill(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, condition: str
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, condition: str
 ) -> None:
     if condition == "train":
         cast(nn.Module, base.backbone).train()
@@ -368,7 +370,7 @@ def test_unsupported_runtime_rejects_before_prefill(
 
 
 def test_cached_shared_helper_rejects_non_cpu_before_tensor_allocation(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     row = base.encode_request(request())
     retained = PrefixScorer(base, row.ids[:2])
@@ -385,7 +387,7 @@ def test_cached_shared_helper_rejects_non_cpu_before_tensor_allocation(
 
 @pytest.mark.parametrize("fault", ["constructor", "subclass", "alias", "discard"])
 def test_incompatible_cache_semantics_reject_before_model_prefill(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, fault: str
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, fault: str
 ) -> None:
     from transformers.cache_utils import DynamicCache
 
@@ -438,7 +440,7 @@ def test_incompatible_cache_semantics_reject_before_model_prefill(
 
 
 def test_real_overlapping_candidate_readout_falls_back_to_full_prefill(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     value = request()
     row = base.encode_request(value)
@@ -461,7 +463,9 @@ def test_real_overlapping_candidate_readout_falls_back_to_full_prefill(
     assert retained.score_many((value,)) == expected and calls == [True]
 
 
-def test_head_hooks_run_on_each_readout_without_prefix_effects(base: KaiScorer) -> None:
+def test_head_hooks_run_on_each_readout_without_prefix_effects(
+    base: WyatScorer,
+) -> None:
     effects: list[str] = []
 
     def hook(module: nn.Module, args: tuple[object, ...], result: object) -> None:

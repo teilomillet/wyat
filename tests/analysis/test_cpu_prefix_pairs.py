@@ -14,8 +14,8 @@ from transformers.integrations import sdpa_attention
 
 from benchmarks.analysis.torch.prefix import pairs
 from benchmarks.analysis.torch.prefix.study import ROOT
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle, BenchmarkEngine, _run
 from wyat.core import Request, decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow
@@ -79,7 +79,7 @@ def test_failed_model_load_retains_admission_and_restores_threads(
     def fail(*args: object, **kwargs: object) -> None:
         raise ValueError("deliberate load failure")
 
-    monkeypatch.setattr(KaiScorer, "from_directory", fail)
+    monkeypatch.setattr(WyatScorer, "from_directory", fail)
     monkeypatch.setattr(sdpa_attention, "_is_torch_mps_available", True)
     monkeypatch.setattr(sdpa_attention, "_is_torch_greater_or_equal_than_2_13", True)
     prior = torch.get_num_threads()
@@ -107,7 +107,7 @@ def test_failed_history_blocks_model_load_and_retains_failure(
         raise AssertionError("model load before admission")
 
     monkeypatch.setattr(pairs, "admit_history", invalid_history)
-    monkeypatch.setattr(KaiScorer, "from_directory", forbidden)
+    monkeypatch.setattr(WyatScorer, "from_directory", forbidden)
     output = tmp_path / "receipt.json"
     with pytest.raises(ValueError, match="invalid raw history"):
         pairs.study(tmp_path / "model", output, batch_size=8)
@@ -127,7 +127,7 @@ def test_setup_write_failure_preserves_nonacceptance(
     def fail(*args: object, **kwargs: object) -> None:
         raise ValueError("artifact failure after setup")
 
-    monkeypatch.setattr(KaiScorer, "from_directory", fail)
+    monkeypatch.setattr(WyatScorer, "from_directory", fail)
     original = Path.write_text
 
     def write(path: Path, text: str, *args: object, **kwargs: object) -> int:
@@ -215,7 +215,7 @@ def fake_engines(monkeypatch: pytest.MonkeyPatch) -> None:
     def load(*args: object, **kwargs: object) -> FakeScorer:
         return FakeScorer()
 
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     monkeypatch.setattr(pairs, "PrefixScorer", FakePrefix)
     monkeypatch.setattr(pairs, "read_reference", reference)
     monkeypatch.setattr(sdpa_attention, "_is_torch_mps_available", True)

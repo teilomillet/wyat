@@ -22,9 +22,9 @@ from benchmarks.analysis.evidence import freeze_sources
 from benchmarks.analysis.mlx.cache import DATASET_SHA256, memory
 from benchmarks.analysis.mlx.endpoints import bounded_cache, paired_with_telemetry
 from benchmarks.analysis.reference import read_reference
-from wyat.backends.kai.mlx import MLXKaiScorer
-from wyat.backends.kai.prefix import PrefixCache
-from wyat.backends.kai.prefix import PrefixScorer as ProductionPrefixScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
+from wyat.backends.wyat.prefix import PrefixCache
+from wyat.backends.wyat.prefix import PrefixScorer as ProductionPrefixScorer
 from wyat.benchmark import BenchmarkEngine, QualityGate, _run, compare_cycles
 from wyat.core import Model
 from wyat.evaluation import case_from_dict, percentile
@@ -83,10 +83,10 @@ def study(
                     "benchmarks/analysis/mlx/profile.py",
                     "benchmarks/analysis/reference.py",
                     "benchmarks/analysis/evidence.py",
-                    "wyat/backends/kai/mlx.py",
-                    "wyat/backends/kai/prefix.py",
-                    "wyat/backends/kai/readout.py",
-                    "wyat/backends/kai/encoding.py",
+                    "wyat/backends/wyat/mlx.py",
+                    "wyat/backends/wyat/prefix.py",
+                    "wyat/backends/wyat/readout.py",
+                    "wyat/backends/wyat/encoding.py",
                     "wyat/benchmark.py",
                     "wyat/core.py",
                     "wyat/evaluation.py",
@@ -118,7 +118,7 @@ def study(
         reference_path = root / "benchmarks/real/torch-fp32-reference77.json"
         reference_hash = hashlib.sha256(reference_path.read_bytes()).hexdigest()
         with bounded_cache(512 * 1024**2) as previous_cap:
-            base = MLXKaiScorer.from_directory(
+            base = MLXWyatScorer.from_directory(
                 root / ".models/Decision-2.0-Kai-0.6B",
                 max_length=512,
                 token_cache_size=0,

@@ -15,8 +15,8 @@ from hypothesis import strategies as st
 from transformers.integrations import sdpa_attention
 
 from benchmarks.analysis.torch.prefix.production import study as assay
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle, BenchmarkEngine, _run
 from wyat.core import Request, decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow
@@ -68,8 +68,8 @@ def test_current_source_inventory_covers_final_runtime_and_benchmark() -> None:
     paths = assay.source_paths()
     assert all(path.is_file() for path in paths.values())
     assert {
-        "wyat/backends/kai/cpu/prefix.py",
-        "wyat/backends/kai/torch.py",
+        "wyat/backends/wyat/cpu/prefix.py",
+        "wyat/backends/wyat/torch.py",
         "wyat/server.py",
         "benchmarks/analysis/torch/prefix/production/study.py",
         "benchmarks/analysis/torch/prefix/production/run.py",
@@ -153,7 +153,7 @@ def fake(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         milliseconds = 2.0 if engine.name == "cpu-full-prefill" else 1.5
         return BenchmarkCycle(milliseconds, actual.rows, 0, 0)
 
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     monkeypatch.setattr(assay, "PrefixScorer", FakePrefix)
     monkeypatch.setattr(assay, "read_reference", reference)
     monkeypatch.setattr(assay, "_run", run)

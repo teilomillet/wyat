@@ -51,7 +51,7 @@ Exact inspected installed files, relative to
 | `include/mlx/backend/metal/kernels/bf16.h` | `abd87446a310b77ac530ef52a324feae5cb285d03ec9613e3a88ebb71410fdcb` |
 | `include/mlx/backend/metal/kernels/steel/gemm/mma.h` | `9b37709de40c3acaa5411875e52c8d26e6de093261741f671fbdab9c39a852b7` |
 
-The inspected production `wyat/backends/kai/mlx.py` SHA256 is
+The inspected production `wyat/backends/wyat/mlx.py` SHA256 is
 `2d56fa59c2fc0f04b6d9ba0fa210af1755ad8b265fead8b87a63505f140c8829`.
 
 ## One projection and conditional limit

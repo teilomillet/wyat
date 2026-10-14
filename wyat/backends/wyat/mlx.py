@@ -22,7 +22,7 @@ from wyat.core import Request
 from wyat.wire import JsonObject
 
 from .artifact import load_artifact
-from .encoding import EncodedRequest, KaiEncoder
+from .encoding import EncodedRequest, WyatEncoder
 
 Forward = Callable[[mx.array, mx.array, mx.array], mx.array]
 
@@ -85,14 +85,14 @@ def _weights(
     return weights
 
 
-class MLXKaiScorer:
+class MLXWyatScorer:
     """Immutable local weights; causal batched prefill and endpoint readout."""
 
     def __init__(
         self,
         backbone: Qwen3Model,
         head: MLXCandidateHead,
-        encoder: KaiEncoder,
+        encoder: WyatEncoder,
         *,
         model_id: str,
         device: mx.Device,
@@ -123,7 +123,7 @@ class MLXKaiScorer:
         token_cache_size: int = 0,
         device: str = "gpu",
         compile: bool = False,
-    ) -> MLXKaiScorer:
+    ) -> MLXWyatScorer:
         if device not in {"cpu", "gpu"}:
             raise ValueError("MLX device must be cpu or gpu")
         if device == "gpu" and not mx.metal.is_available():
@@ -131,7 +131,7 @@ class MLXKaiScorer:
         if type(compile) is not bool:
             raise ValueError("compile must be a boolean")
         artifact = load_artifact(path, max_length=max_length)
-        encoder = KaiEncoder.from_artifact(
+        encoder = WyatEncoder.from_artifact(
             artifact,
             max_length=max_length,
             token_cache_size=token_cache_size,

@@ -20,7 +20,7 @@ from transformers.models.qwen3.modeling_qwen3 import Qwen3MLP
 
 from benchmarks.analysis.torch import packing
 from benchmarks.analysis.torch.autotune import output_gate, retain_tensors
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 
 
 def mlp() -> Qwen3MLP:
@@ -166,7 +166,7 @@ def test_load_failure_restores_threads_and_retains_nonacceptance(
 
     monkeypatch.setattr(torch, "get_num_threads", lambda: state["threads"])
     monkeypatch.setattr(torch, "set_num_threads", set_threads)
-    monkeypatch.setattr(KaiScorer, "from_directory", fail_load)
+    monkeypatch.setattr(WyatScorer, "from_directory", fail_load)
     with pytest.raises(ValueError, match="failed artifact"):
         packing.study(
             tmp_path / "model", tmp_path / "result.json", batch_size=batch_size

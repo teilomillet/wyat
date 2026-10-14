@@ -106,7 +106,7 @@ file SHA-256 identities and the tested contract are recorded in the
 Twenty additional native-recipe checks use the actual peer role fixtures and
 evaluator. They cover text whitespace/Unicode, canonical object/list state,
 exact menu order, gold isolation, empty chunks and whole-chunk rejection of
-malformed roles. An actual `KaiEncoder` with a character-tokenizer fixture
+malformed roles. An actual `WyatEncoder` with a character-tokenizer fixture
 configured with `max_options=64` and `max_length=512` rejects 65 candidates
 and oversized context without loading weights. These checks establish the
 configured fixture's validation; they do not establish the released artifact's

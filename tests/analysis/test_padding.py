@@ -13,7 +13,7 @@ pytest.importorskip("mlx_lm")
 
 from benchmarks.analysis.mlx.padding import Microbatches  # noqa: E402
 from wyat import Candidate, Request  # noqa: E402
-from wyat.backends.kai.encoding import EncodedRequest  # noqa: E402
+from wyat.backends.wyat.encoding import EncodedRequest  # noqa: E402
 
 
 class Oracle:

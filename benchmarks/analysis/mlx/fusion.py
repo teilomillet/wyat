@@ -27,7 +27,7 @@ from mlx_lm.models.qwen3 import MLP, Attention, Qwen3Model
 from benchmarks.analysis.mlx.profile import ArrayMap, quality
 from benchmarks.analysis.reference import read_reference
 from wyat import Model, Request
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import BenchmarkEngine, BenchmarkProtocol, benchmark_pair
 from wyat.evaluation import EvaluationCase, case_from_dict
 from wyat.wire import decode_json
@@ -140,10 +140,10 @@ def packed_backbone(original: Qwen3Model, *, qkv: bool, gate_up: bool) -> Qwen3M
     return backbone
 
 
-def variant(scorer: MLXKaiScorer, *, qkv: bool, gate_up: bool) -> MLXKaiScorer:
+def variant(scorer: MLXWyatScorer, *, qkv: bool, gate_up: bool) -> MLXWyatScorer:
     with mx.stream(scorer.device):
         backbone = packed_backbone(scorer.backbone, qkv=qkv, gate_up=gate_up)
-    return MLXKaiScorer(
+    return MLXWyatScorer(
         backbone,
         scorer.head,
         scorer.encoder,
@@ -153,7 +153,7 @@ def variant(scorer: MLXKaiScorer, *, qkv: bool, gate_up: bool) -> MLXKaiScorer:
 
 
 def score(
-    scorer: MLXKaiScorer, requests: Sequence[Request], batch_size: int
+    scorer: MLXWyatScorer, requests: Sequence[Request], batch_size: int
 ) -> list[list[float]]:
     values: list[list[float]] = []
     for start in range(0, len(requests), batch_size):
@@ -185,7 +185,7 @@ def main() -> None:
         case_from_dict(decode_json(row)) for row in dataset.read_text().splitlines()
     )
     dataset_hash = hashlib.sha256(dataset.read_bytes()).hexdigest()
-    scorer = MLXKaiScorer.from_directory(
+    scorer = MLXWyatScorer.from_directory(
         root / ".models/Decision-2.0-Kai-0.6B",
         max_length=512,
         token_cache_size=0,
@@ -219,8 +219,8 @@ def main() -> None:
             str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in (
                 Path(__file__),
-                root / "wyat/backends/kai/mlx.py",
-                root / "wyat/backends/kai/encoding.py",
+                root / "wyat/backends/wyat/mlx.py",
+                root / "wyat/backends/wyat/encoding.py",
                 root / "wyat/benchmark.py",
                 root / "benchmarks/analysis/reference.py",
             )

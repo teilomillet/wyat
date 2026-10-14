@@ -21,9 +21,9 @@ from benchmarks.analysis.torch.prefix.latency.study import Comparator
 from benchmarks.analysis.torch.prefix.memory.study import evidence_path
 from benchmarks.analysis.torch.prefix.pairs import admit_history, digest
 from wyat import Request
-from wyat.backends.kai.artifact import KaiArtifact
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.artifact import WyatArtifact
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -71,8 +71,8 @@ def fake_study(monkeypatch: pytest.MonkeyPatch) -> None:
     def load(*args: object, **kwargs: object) -> FakeBase:
         return FakeBase()
 
-    def artifact(path: Path, max_length: int) -> KaiArtifact:
-        return KaiArtifact(path, {}, 8, 255, identifier)
+    def artifact(path: Path, max_length: int) -> WyatArtifact:
+        return WyatArtifact(path, {}, 8, 255, identifier)
 
     def reference(
         path: Path,
@@ -120,7 +120,7 @@ def fake_study(monkeypatch: pytest.MonkeyPatch) -> None:
             ),
         )
 
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     monkeypatch.setattr(runner, "load_artifact", artifact)
     monkeypatch.setattr(runner, "MemoryScorer", FakePrefix)
     monkeypatch.setattr(runner, "read_reference", reference)
@@ -279,14 +279,14 @@ def test_artifact_identity_blocks_model_allocation(
     fake_study: None,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def artifact(path: Path, max_length: int) -> KaiArtifact:
-        return KaiArtifact(path, {}, 8, 255, "changed-model")
+    def artifact(path: Path, max_length: int) -> WyatArtifact:
+        return WyatArtifact(path, {}, 8, 255, "changed-model")
 
     def load(*args: object, **kwargs: object) -> None:
         pytest.fail("Mismatched artifact must never allocate model")
 
     monkeypatch.setattr(runner, "load_artifact", artifact)
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     with pytest.raises(ValueError, match="before load"):
         runner.study(
             tmp_path / "model", tmp_path / "out.json", comparator="full", batch_size=1

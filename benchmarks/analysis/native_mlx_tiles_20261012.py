@@ -32,7 +32,7 @@ from benchmarks.analysis.native_mlx_benchmark_20261012 import (
     read,
     snapshot,
 )
-from wyat.backends.kai.metal import MetalProjection, _direct, _MetalLinear, _partitions
+from wyat.backends.wyat.metal import MetalProjection, _direct, _MetalLinear, _partitions
 from wyat.loading.mlx import load_native_mlx
 
 BASELINE = (16, 32, 2)

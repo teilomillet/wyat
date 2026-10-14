@@ -10,15 +10,15 @@ from transformers.cache_utils import DynamicCache
 from transformers.masking_utils import create_causal_mask
 from transformers.models.qwen3.modeling_qwen3 import Qwen3DecoderLayer
 
-from wyat.backends.kai.cpu.prefix import PrefixScorer
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.cpu.prefix import PrefixScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.core import Request
 
 from .block import selected_last_block
 
 
 def selected_hidden(
-    base: KaiScorer,
+    base: WyatScorer,
     ids: torch.Tensor,
     positions: torch.Tensor,
     cache: DynamicCache,

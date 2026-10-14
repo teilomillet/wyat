@@ -441,7 +441,7 @@ Production traffic, reserved confirmation, authentication/TLS and the eventual
 Wyat export contract also remain outside this evidence. Necessary decisions are
 in [open-question.md](../open-question.md).
 
-Kai code is separated into `backends/kai/artifact.py`, `encoding.py`, `torch.py`
+Kai code is separated into `backends/wyat/artifact.py`, `encoding.py`, `torch.py`
 and `mlx.py`; loading lives in `loading/local.py`. Experiment runners are grouped by device/task with short names;
 package initializers contain no inference logic. Historical receipt bytes stay
 unchanged. The original source-hashed pilot is archived as text when its

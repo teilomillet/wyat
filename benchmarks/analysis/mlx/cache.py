@@ -18,7 +18,7 @@ import mlx.core as mx
 from benchmarks.analysis.evidence import freeze_sources, process_diagnostic
 from benchmarks.analysis.reference import read_reference
 from wyat import Model
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -137,7 +137,7 @@ def study(model_path: Path, output: Path, *, batch_size: int = 8) -> dict[str, o
     sources = freeze_sources(
         {
             "runner": Path(__file__),
-            "backend": root / "wyat/backends/kai/mlx.py",
+            "backend": root / "wyat/backends/wyat/mlx.py",
             "benchmark": root / "wyat/benchmark.py",
             "reference": root / "benchmarks/analysis/reference.py",
             "evidence": root / "benchmarks/analysis/evidence.py",
@@ -205,7 +205,7 @@ def study(model_path: Path, output: Path, *, batch_size: int = 8) -> dict[str, o
     reports: dict[str, object] = {}
     passed_reports: list[bool] = []
     try:
-        scorer = MLXKaiScorer.from_directory(
+        scorer = MLXWyatScorer.from_directory(
             model_path, max_length=512, token_cache_size=0, device="gpu", compile=False
         )
         reference_path = root / "benchmarks/real/torch-fp32-reference77.json"

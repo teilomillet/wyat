@@ -18,17 +18,17 @@ from torch import nn
 from benchmarks.analysis.cuda import scorer as control
 from benchmarks.analysis.cuda import study as runner
 from benchmarks.analysis.cuda.manifest import MODEL_ID, digest
-from benchmarks.fixtures.kai import create_kai_bundle
+from benchmarks.fixtures.wyat import create_wyat_bundle
 from wyat import Candidate, Request
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle
 from wyat.core import decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow
 
 
 @pytest.fixture
-def base(tmp_path: Path) -> KaiScorer:
-    return KaiScorer.from_directory(create_kai_bundle(tmp_path / "kai"), max_length=512)
+def base(tmp_path: Path) -> WyatScorer:
+    return WyatScorer.from_directory(create_wyat_bundle(tmp_path / "wyat"), max_length=512)
 
 
 @settings(
@@ -38,7 +38,7 @@ def base(tmp_path: Path) -> KaiScorer:
 )
 @given(count=st.integers(2, 5), repeats=st.integers(1, 7))
 def test_control_matches_independent_original_and_disables_outer_autocast(
-    base: KaiScorer,
+    base: WyatScorer,
     count: int,
     repeats: int,
     monkeypatch: pytest.MonkeyPatch,
@@ -50,7 +50,7 @@ def test_control_matches_independent_original_and_disables_outer_autocast(
             tuple(Candidate(str(i), "read " * (i + 1)) for i in range(count)),
         ),
     )
-    expected = KaiScorer.score_many(base, requests)
+    expected = WyatScorer.score_many(base, requests)
 
     def forbidden(requests: object) -> object:
         raise AssertionError("Never call production CUDA-autocast score_many")
@@ -66,7 +66,7 @@ def test_control_matches_independent_original_and_disables_outer_autocast(
     assert actual.score_many(()) == []
 
 
-def test_control_rejects_non_fp32_parameters_and_buffers(base: KaiScorer) -> None:
+def test_control_rejects_non_fp32_parameters_and_buffers(base: WyatScorer) -> None:
     base.head.key.weight.data = base.head.key.weight.half()
     with pytest.raises(ValueError, match="non-FP32"):
         control.FP32Scorer(base)
@@ -305,7 +305,7 @@ def test_dtype_gate_rejects_missing_wrong_dtype_or_autocast(
 
 @pytest.mark.parametrize("failure", ["save", "restore", "source", "partial"])
 def test_late_failure_resets_flags_and_preserves_observed_rows(
-    base: KaiScorer,
+    base: WyatScorer,
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     failure: str,
@@ -363,7 +363,7 @@ def test_late_failure_resets_flags_and_preserves_observed_rows(
             raise RuntimeError("restore probe")
 
         monkeypatch.setattr(runner, "ieee_precision", restore_failure)
-    monkeypatch.setattr(KaiScorer, "from_directory", lambda *args, **kwargs: base)
+    monkeypatch.setattr(WyatScorer, "from_directory", lambda *args, **kwargs: base)
     monkeypatch.setattr(nn.Module, "to", lambda self, *args, **kwargs: self)
     for name in (
         "reset_peak_memory_stats",

@@ -1,7 +1,10 @@
+# SPDX-FileCopyrightText: 2026 Teïlo Millet - teilomillet
+# SPDX-License-Identifier: Apache-2.0
+
 """Pure values, encoding and readout for the training-native typed recipe.
 
-This module does not load a model. Its recipe is distinct from released Kai's
-Choice request/wire contract. Questions are independent causal rows sharing
+This module does not load a model. Its recipe is distinct from the single-choice
+request/wire contract. Questions are independent causal rows sharing
 weights, rather than jointly contextualized questions. Probabilities use stable
 stdlib softmax; FP32 reference comparisons require declared numerical tolerance.
 Use interpret for the recipe's logits-to-distribution transformation. Direct

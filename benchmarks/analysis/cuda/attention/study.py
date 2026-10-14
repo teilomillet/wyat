@@ -35,8 +35,8 @@ from benchmarks.analysis.cuda.study import (
 from benchmarks.analysis.evidence import freeze_sources
 from benchmarks.analysis.reference import read_reference
 from wyat import Model
-from wyat.backends.kai.artifact import load_artifact
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.artifact import load_artifact
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -180,7 +180,7 @@ def study(
         }
         payload["occupancy_before"] = occupancy()
         torch.set_num_threads(8)
-        base = KaiScorer.from_directory(
+        base = WyatScorer.from_directory(
             model, device="cpu", max_length=512, token_cache_size=0
         )
         reference = read_reference(

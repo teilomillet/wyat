@@ -42,10 +42,10 @@ from benchmarks.analysis.mlx.mixed.capture import (
     projection_quality,
 )
 from benchmarks.analysis.reference import read_reference
-from wyat.backends.kai.artifact import load_artifact
-from wyat.backends.kai.encoding import KaiEncoder
-from wyat.backends.kai.mlx import MLXKaiScorer
-from wyat.backends.kai.prefix import PrefixScorer
+from wyat.backends.wyat.artifact import load_artifact
+from wyat.backends.wyat.encoding import WyatEncoder
+from wyat.backends.wyat.mlx import MLXWyatScorer
+from wyat.backends.wyat.prefix import PrefixScorer
 from wyat.benchmark import BenchmarkCycle, QualityGate, compare_cycles
 from wyat.evaluation import EvaluationCase, _input_digest, case_from_dict, percentile
 from wyat.wire import decode_json
@@ -62,11 +62,11 @@ SHAPES = (
     ("full-b8", 8, 1536),
 )
 PRODUCTION = {
-    "wyat/backends/kai/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af17"
+    "wyat/backends/wyat/mlx.py": "2d56fa59c2fc0f04b6d9ba0fa210af17"
     "55ad8b265fead8b87a63505f140c8829",
-    "wyat/backends/kai/prefix.py": "3fa532729757cb69edc0e3f682c30feb"
+    "wyat/backends/wyat/prefix.py": "3fa532729757cb69edc0e3f682c30feb"
     "ff64717a6989149f0f3795dc7c170bed",
-    "wyat/backends/kai/readout.py": "736190858293cc89a4e08ee7e7670349"
+    "wyat/backends/wyat/readout.py": "736190858293cc89a4e08ee7e7670349"
     "86ec09872218a501ed03ca73dd5b6800",
 }
 
@@ -101,7 +101,7 @@ def admit(
     artifact = load_artifact(model, max_length=512)
     if artifact.model_id != MODEL_ID:
         raise ValueError("Frozen model identity changed")
-    encoder = KaiEncoder.from_artifact(artifact, max_length=512, token_cache_size=0)
+    encoder = WyatEncoder.from_artifact(artifact, max_length=512, token_cache_size=0)
 
     class ReferenceInput:
         model_id = artifact.model_id
@@ -153,7 +153,7 @@ def capture_all(
     dict[str, np.ndarray[tuple[int, int], np.dtype[np.float32]]], dict[str, object]
 ]:
     started = time.perf_counter_ns()
-    base = MLXKaiScorer.from_directory(
+    base = MLXWyatScorer.from_directory(
         model, max_length=512, token_cache_size=0, compile=False, device="gpu"
     )
     mx.synchronize(mx.gpu)

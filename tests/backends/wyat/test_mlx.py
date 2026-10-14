@@ -15,29 +15,29 @@ mx = pytest.importorskip("mlx.core")
 pytest.importorskip("mlx_lm")
 torch = pytest.importorskip("torch")
 
-from fixtures.kai import create_kai_bundle  # noqa: E402
+from fixtures.wyat import create_wyat_bundle  # noqa: E402
 
 from wyat import Candidate, Request  # noqa: E402
-from wyat.backends.kai.encoding import EncodedRequest  # noqa: E402
-from wyat.backends.kai.mlx import (  # noqa: E402
+from wyat.backends.wyat.encoding import EncodedRequest  # noqa: E402
+from wyat.backends.wyat.mlx import (  # noqa: E402
     MLXCandidateHead,
-    MLXKaiScorer,
+    MLXWyatScorer,
     _batch_groups,
 )
-from wyat.backends.kai.torch import CandidateHead, KaiScorer  # noqa: E402
+from wyat.backends.wyat.torch import CandidateHead, WyatScorer  # noqa: E402
 
 
 @pytest.fixture
 def bundle(tmp_path: Path) -> Path:
-    return create_kai_bundle(tmp_path / "kai")
+    return create_wyat_bundle(tmp_path / "wyat")
 
 
 @pytest.fixture(params=["cpu", "gpu"])
-def native(bundle: Path, request: pytest.FixtureRequest) -> MLXKaiScorer:
+def native(bundle: Path, request: pytest.FixtureRequest) -> MLXWyatScorer:
     device = str(request.param)
     if device == "gpu" and not mx.metal.is_available():
         pytest.skip("Metal GPU is unavailable")
-    return MLXKaiScorer.from_directory(bundle, max_length=512, device=device)
+    return MLXWyatScorer.from_directory(bundle, max_length=512, device=device)
 
 
 def request(texts: Sequence[str], context: str = "Bonjour") -> Request:
@@ -76,10 +76,10 @@ def test_fp32_head_matches_torch(rows: int, choices: int, seed: int) -> None:
 
 
 def test_local_bundle_matches_torch_tokenizer_and_logits(
-    native: MLXKaiScorer,
+    native: MLXWyatScorer,
     bundle: Path,
 ) -> None:
-    reference = KaiScorer.from_directory(bundle, max_length=512)
+    reference = WyatScorer.from_directory(bundle, max_length=512)
     values = [request(("yes", "no")), request(("世界", "é", "a"), "write " * 7)]
     assert native.model_id == reference.model_id
     assert [native.encode_request(value) for value in values] == [
@@ -132,12 +132,12 @@ def test_batch_groups_preserve_rows_and_halve_padding(lengths: list[int]) -> Non
 
 @pytest.mark.parametrize("compile_forward", [False, True])
 def test_length_split_preserves_request_and_candidate_order(
-    native: MLXKaiScorer,
+    native: MLXWyatScorer,
     bundle: Path,
     monkeypatch: pytest.MonkeyPatch,
     compile_forward: bool,
 ) -> None:
-    native = MLXKaiScorer(
+    native = MLXWyatScorer(
         native.backbone,
         native.head,
         native.encoder,
@@ -159,7 +159,7 @@ def test_length_split_preserves_request_and_candidate_order(
         return score(encoded)
 
     monkeypatch.setattr(native, "_score_encoded", observe)
-    reference = KaiScorer.from_directory(bundle, max_length=512)
+    reference = WyatScorer.from_directory(bundle, max_length=512)
     for batch in (values, values[::-1], values):
         batches.clear()
         actual = native.score_many(batch)
@@ -183,7 +183,7 @@ def test_length_split_preserves_request_and_candidate_order(
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 def test_causal_right_padding_preserves_single_request_scores(
-    native: MLXKaiScorer,
+    native: MLXWyatScorer,
     texts: list[str],
 ) -> None:
     values = [request(texts), request(("yes", "no"), "read " * 30)]
@@ -195,8 +195,8 @@ def test_causal_right_padding_preserves_single_request_scores(
 
 
 def test_compiled_forward_preserves_scores(bundle: Path) -> None:
-    eager = MLXKaiScorer.from_directory(bundle, max_length=512, device="cpu")
-    compiled = MLXKaiScorer.from_directory(
+    eager = MLXWyatScorer.from_directory(bundle, max_length=512, device="cpu")
+    compiled = MLXWyatScorer.from_directory(
         bundle, max_length=512, device="cpu", compile=True
     )
     for values in [
@@ -212,7 +212,7 @@ def test_compiled_forward_preserves_scores(bundle: Path) -> None:
 @pytest.mark.parametrize("device", ["cuda", "mps", "other"])
 def test_rejects_wrong_device(bundle: Path, device: str) -> None:
     with pytest.raises(ValueError, match="device"):
-        MLXKaiScorer.from_directory(bundle, max_length=512, device=device)
+        MLXWyatScorer.from_directory(bundle, max_length=512, device=device)
 
 
 def test_rejects_missing_weight(bundle: Path) -> None:
@@ -221,7 +221,7 @@ def test_rejects_missing_weight(bundle: Path) -> None:
     weights.pop("scalar.weight")
     mx.save_safetensors(str(path), weights)
     with pytest.raises(ValueError):
-        MLXKaiScorer.from_directory(bundle, max_length=512, device="cpu")
+        MLXWyatScorer.from_directory(bundle, max_length=512, device="cpu")
 
 
 @pytest.mark.parametrize(
@@ -234,14 +234,14 @@ def test_rejects_nonfinite_weight(bundle: Path, name: str) -> None:
     weights[key] = mx.full(weights[key].shape, float("nan"), dtype=mx.float32)
     mx.save_safetensors(str(path), weights)
     with pytest.raises(ValueError, match="Nonfinite"):
-        MLXKaiScorer.from_directory(bundle, max_length=512, device="cpu")
+        MLXWyatScorer.from_directory(bundle, max_length=512, device="cpu")
 
 
 def test_local_mlx_load_in_fresh_process(bundle: Path) -> None:
     code = (
-        "from wyat.backends.kai.mlx import MLXKaiScorer; "
+        "from wyat.backends.wyat.mlx import MLXWyatScorer; "
         "import sys; "
-        "MLXKaiScorer.from_directory(sys.argv[1], max_length=512, device='cpu')"
+        "MLXWyatScorer.from_directory(sys.argv[1], max_length=512, device='cpu')"
     )
     subprocess.run(
         [sys.executable, "-c", code, str(bundle)],
@@ -252,8 +252,8 @@ def test_local_mlx_load_in_fresh_process(bundle: Path) -> None:
     )
 
 
-def test_prefix_cache_preserves_scores_and_frozen_state(native: MLXKaiScorer) -> None:
-    from wyat.backends.kai.prefix import PrefixScorer
+def test_prefix_cache_preserves_scores_and_frozen_state(native: MLXWyatScorer) -> None:
+    from wyat.backends.wyat.prefix import PrefixScorer
 
     values = [request(("yes", "no")), request(("世界", "é", "a"), "Bonjour " * 7)]
     cached = PrefixScorer(native, native.encode_request(values[0]).ids[:3])

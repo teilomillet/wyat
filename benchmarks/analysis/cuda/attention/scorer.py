@@ -17,8 +17,8 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 from transformers.models.qwen3.modeling_qwen3 import Qwen3Model
 
 from benchmarks.analysis.cuda.scorer import FP32Scorer, require_fp32
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import CandidateHead, KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import CandidateHead, WyatScorer
 from wyat.core import Request
 
 
@@ -66,7 +66,7 @@ class MaskedBackbone(nn.Module):
 class ScorerView:
     """Only the fields consumed by the immutable FP32Scorer boundary."""
 
-    base: KaiScorer
+    base: WyatScorer
     backbone: MaskedBackbone
 
     @property
@@ -85,10 +85,10 @@ class ScorerView:
         return self.base.encode_request(request)
 
 
-def efficient_scorer(base: KaiScorer) -> FP32Scorer:
+def efficient_scorer(base: WyatScorer) -> FP32Scorer:
     require_fp32(base)
     view = ScorerView(base, MaskedBackbone(base.backbone))
-    # The frozen research API names KaiScorer nominally but consumes only this
+    # The frozen research API names WyatScorer nominally but consumes only this
     # typed view's encoder/device/pad/head/module-call contract. Do not change
     # its old source or misrepresent the adapter as a Qwen3Model subclass.
-    return FP32Scorer(cast(KaiScorer, view))
+    return FP32Scorer(cast(WyatScorer, view))

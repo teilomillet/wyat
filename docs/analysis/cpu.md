@@ -11,7 +11,7 @@ The current Torch Kai path loads local Safetensors into FP32 `Qwen3Model`, uses
 prefill and applies the FP32 candidate head after gathering endpoints. It pads
 to each batch's exact longest sequence, without a redundant padding mask.
 There is no vocabulary projection or generation loop to eliminate. See
-[the scorer](../../wyat/backends/kai/torch.py) and
+[the scorer](../../wyat/backends/wyat/torch.py) and
 [completed CPU experiments](../torch-inference.md).
 
 ## Observed build and prior measurements
@@ -448,7 +448,7 @@ are observations, not confidence bounds.
 
 The shared retained and one-use scoring paths differed only in their private
 cache factory/lifetime. The full comparator used the original unwrapped
-`KaiScorer`. Cold prefix construction stayed outside timing; fresh per-call
+`WyatScorer`. Cold prefix construction stayed outside timing; fresh per-call
 cache construction/copies, encoding, model, host values and decision processing
 stayed inside. No profiler, RSS sampler or tensor-storage observer ran.
 

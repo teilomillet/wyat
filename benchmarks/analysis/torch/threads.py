@@ -23,7 +23,7 @@ from typing import cast
 import torch
 
 from wyat import Model
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -57,9 +57,9 @@ def sweep(model_path: Path, output: Path, *, repeats: int = 6) -> dict[str, obje
             "reference": root / "benchmarks/analysis/reference.py",
             "scaling": root / "benchmarks/analysis/scaling.py",
             "evidence": root / "benchmarks/analysis/evidence.py",
-            "backend": root / "wyat/backends/kai/torch.py",
-            "encoding": root / "wyat/backends/kai/encoding.py",
-            "artifact": root / "wyat/backends/kai/artifact.py",
+            "backend": root / "wyat/backends/wyat/torch.py",
+            "encoding": root / "wyat/backends/wyat/encoding.py",
+            "artifact": root / "wyat/backends/wyat/artifact.py",
             "core": root / "wyat/core.py",
             "benchmark": root / "wyat/benchmark.py",
             "evaluation": root / "wyat/evaluation.py",
@@ -79,7 +79,7 @@ def sweep(model_path: Path, output: Path, *, repeats: int = 6) -> dict[str, obje
     interop_threads = torch.get_num_interop_threads()
     torch.set_num_threads(8)
     try:
-        scorer = KaiScorer.from_directory(
+        scorer = WyatScorer.from_directory(
             model_path,
             device="cpu",
             max_length=512,

@@ -89,7 +89,7 @@ works with the core alone. Installed wheels do not include the source checkout's
 ## Acquire and load a trained model
 
 Follow the [pinned acquisition and integrity guide](model-acquisition.md) to
-obtain the supported full Kai Choice artifact. Copy its standard-library
+obtain a supported Wyat model artifact. Copy its standard-library
 verifier from the public source example and retain the verified artifact path.
 The loader accepts a local artifact directory, not an arbitrary Hub model name.
 It downloads nothing and executes no custom model Python.
@@ -118,7 +118,7 @@ print(decision.to_dict())
 ```
 
 ```sh
-WYAT_MODEL=/absolute/path/to/kai uv run python decide.py
+WYAT_MODEL=/absolute/path/to/wyat-model uv run python decide.py
 ```
 
 With the `mlx` extra, change the load call to
@@ -127,11 +127,11 @@ GPU; `device="cpu"` selects MLX CPU explicitly. For the documented FP32 MLX
 configuration, set `MLX_ENABLE_TF32=0` before starting Python:
 
 ```sh
-MLX_ENABLE_TF32=0 WYAT_MODEL=/absolute/path/to/kai uv run python decide.py
+MLX_ENABLE_TF32=0 WYAT_MODEL=/absolute/path/to/wyat-model uv run python decide.py
 ```
 
 Keep the loaded model across requests. Call `model.decide_many((request,
-request))` for a batch. Kai requires Choice requests with two through the
+request))` for a batch. Wyat requires requests with two through the
 artifact's maximum number of candidates and rejects over-limit inputs without
 truncation. See the [API guide](api.md) and runtime guides for
 [PyTorch](torch-inference.md) and [MLX](mlx-inference.md).
@@ -139,7 +139,7 @@ truncation. See the [API guide](api.md) and runtime guides for
 For Windows PowerShell, set the path before running the same Python script:
 
 ```powershell
-$env:WYAT_MODEL = "C:/Models/kai"
+$env:WYAT_MODEL = "C:/Models/wyat-model"
 uv run python decide.py
 ```
 
@@ -149,7 +149,7 @@ Install the `server` extra with your chosen inference backend. The CLI loads
 one model and serves it on localhost:
 
 ```sh
-uv run wyat serve /absolute/path/to/kai --host 127.0.0.1 --port 8000
+uv run wyat serve /absolute/path/to/wyat-model --host 127.0.0.1 --port 8000
 ```
 
 Add `--backend mlx` for MLX. To embed serving in your application, copy this into
@@ -177,7 +177,7 @@ Change the load call to `wyat.load(os.environ["WYAT_MODEL"], backend="mlx")`
 for MLX. Start the factory with one worker:
 
 ```sh
-WYAT_MODEL=/absolute/path/to/kai uv run uvicorn app:app --factory --workers 1 --host 127.0.0.1 --port 8000
+WYAT_MODEL=/absolute/path/to/wyat-model uv run uvicorn app:app --factory --workers 1 --host 127.0.0.1 --port 8000
 ```
 
 Importing `app.py` loads no weights. The factory loads one model per worker;
@@ -185,12 +185,26 @@ additional workers each need their own model memory and admission gate.
 
 ```sh
 curl http://127.0.0.1:8000/health
+curl http://127.0.0.1:8000/readyz
 curl http://127.0.0.1:8000/v1/decide \
   -H 'Content-Type: application/json' \
+  -H 'X-Request-ID: startup-check-1' \
   --data '{"query":"Choose the requested action","context":"Cancel my booking","candidates":[{"id":"cancel","text":"Cancel the booking"},{"id":"create","text":"Create a booking"}]}'
 ```
 
-Each app admits one active inference; an overlapping request receives 503.
+`GET /health` is a cheap liveness check. `GET /readyz` reports the loaded
+artifact's identity (its `model_id` is a content digest for native artifacts) and
+the admission limits, so a load balancer or release check can confirm the exact
+model behind a deployment. Every response carries an `X-Request-ID`: a supplied
+value is echoed when it matches `[A-Za-z0-9._-]{1,64}` and the server generates
+one otherwise. When enabled, the server writes one access log line per request
+(method, path, status, request ID and latency, never request text) to the
+`wyat.server.access` logger.
+
+By default, `create_app(model)` admits one active inference and returns 503 for
+overlapping requests; pass `max_queue_size` and `queue_timeout` (enabled by
+default in `wyat serve`) to bound concurrent queueing and micro-batching. Pass
+`log_access=False` to silence the access log, or run `wyat serve --no-access-log`.
 Applications choose authentication and TLS at their deployment boundary.
 Relative probabilities do not certify correctness, and a selection performs no
 action. The [application workflows](agent-workflows.md) connect ID lookup,
@@ -205,7 +219,7 @@ install the checked candidate wheel:
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install '/absolute/path/to/wyat-0.0.9-py3-none-any.whl[inference]'
-python demo.py --model /absolute/path/to/kai
+python demo.py --model /absolute/path/to/wyat-model
 ```
 
 Copy `demo.py` from the [quickstart](quickstart.md) first. On PowerShell, activate

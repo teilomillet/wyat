@@ -12,7 +12,7 @@ from transformers.cache_utils import DynamicCache, DynamicLayer
 from wyat.core import Request
 
 from ..encoding import EncodedRequest
-from ..torch import KaiScorer
+from ..torch import WyatScorer
 
 type KVState = tuple[torch.Tensor, torch.Tensor]
 
@@ -102,9 +102,9 @@ class PrefixScorer:
     prefix reuse. A mixed or overlapping-readout batch falls back intact.
     """
 
-    def __init__(self, base: KaiScorer, prefix: tuple[int, ...]) -> None:
-        if not isinstance(base, KaiScorer):
-            raise TypeError("CPU prefix requires a KaiScorer base")
+    def __init__(self, base: WyatScorer, prefix: tuple[int, ...]) -> None:
+        if not isinstance(base, WyatScorer):
+            raise TypeError("CPU prefix requires a WyatScorer base")
         if type(prefix) is not tuple:
             raise TypeError("Prefix must be an exact immutable token tuple")
         self._require_no_autocast()
@@ -188,7 +188,7 @@ class PrefixScorer:
             raise ValueError("CPU prefix requires disabled CPU autocast")
 
     @staticmethod
-    def _require_no_hooks(base: KaiScorer) -> None:
+    def _require_no_hooks(base: WyatScorer) -> None:
         if any(
             module._forward_hooks or module._forward_pre_hooks
             for module in base.backbone.modules()

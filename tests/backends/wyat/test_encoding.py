@@ -15,8 +15,8 @@ from tokenizers.models import WordLevel
 from tokenizers.pre_tokenizers import ByteLevel, Whitespace
 from transformers.models.qwen2.tokenization_qwen2 import Qwen2Tokenizer
 
-from wyat.backends.kai.artifact import normalize_config
-from wyat.backends.kai.encoding import load_tokenizer
+from wyat.backends.wyat.artifact import normalize_config
+from wyat.backends.wyat.encoding import load_tokenizer
 from wyat.wire import JsonObject, JsonValue, read_object
 
 

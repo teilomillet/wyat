@@ -1,4 +1,4 @@
-"""The maintained tokenizer policy and exact segmented Kai request encoding."""
+"""The maintained tokenizer policy and exact segmented Wyat request encoding."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import NamedTuple, Protocol, cast
 from wyat.core import ModelInputError, Request
 from wyat.wire import read_object
 
-from .artifact import KaiArtifact, positive_integer
+from .artifact import WyatArtifact, positive_integer
 
 SUFFIX = (
     "\n\nSelect the single option best supported by the context and instructions."
@@ -57,7 +57,7 @@ def load_tokenizer(root: Path) -> TokenizerProtocol:
         raise ValueError(f"Cannot load local tokenizer: {exc}") from exc
 
 
-class KaiEncoder:
+class WyatEncoder:
     """Exact segmented tokens; cached values never contain contextual vectors."""
 
     def __init__(
@@ -84,8 +84,8 @@ class KaiEncoder:
 
     @classmethod
     def from_artifact(
-        cls, artifact: KaiArtifact, *, max_length: int, token_cache_size: int = 0
-    ) -> KaiEncoder:
+        cls, artifact: WyatArtifact, *, max_length: int, token_cache_size: int = 0
+    ) -> WyatEncoder:
         return cls(
             load_tokenizer(artifact.root),
             max_length=max_length,
@@ -109,11 +109,12 @@ class KaiEncoder:
     def encode_request(self, request: Request) -> EncodedRequest:
         if request.task != "choice":
             raise ModelInputError(
-                "Kai currently supports choice requests only", reason="unsupported-task"
+                "Wyat currently supports choice requests only",
+                reason="unsupported-task",
             )
         if not 2 <= len(request.candidates) <= self.max_options:
             raise ModelInputError(
-                f"Kai requires 2..{self.max_options} candidates",
+                f"Wyat requires 2..{self.max_options} candidates",
                 reason="candidate-count",
             )
         prefix = (

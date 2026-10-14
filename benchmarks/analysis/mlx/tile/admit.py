@@ -6,7 +6,7 @@ import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 
-from wyat.backends.kai.artifact import load_artifact
+from wyat.backends.wyat.artifact import load_artifact
 from wyat.wire import JsonObject, JsonValue, read_object
 
 ROOT = Path(__file__).resolve().parents[4]

@@ -14,7 +14,7 @@ import mlx.core as mx
 from mlx_lm.models.qwen3 import Qwen3Model
 
 from wyat import Model
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -45,7 +45,7 @@ assert isinstance(reference, dict)
 reference_rows = reference["rows"]
 assert isinstance(reference_rows, list)
 assert hashlib.sha256(dataset.read_bytes()).hexdigest() == reference["dataset_sha256"]
-scorer = MLXKaiScorer.from_directory(
+scorer = MLXWyatScorer.from_directory(
     root / ".models/Decision-2.0-Kai-0.6B",
     max_length=512,
     device="gpu",
@@ -72,7 +72,7 @@ with mx.stream(scorer.device):
     backbone.load_weights(list(converted.items()), strict=True)
     backbone.eval()
     mx.eval(converted)
-candidate = MLXKaiScorer(
+candidate = MLXWyatScorer(
     backbone,
     scorer.head,
     scorer.encoder,

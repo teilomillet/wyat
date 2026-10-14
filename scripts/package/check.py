@@ -21,13 +21,33 @@ from collections import Counter
 from dataclasses import dataclass
 from email.parser import BytesParser
 from pathlib import Path, PurePosixPath
-from typing import cast
+from typing import Any, cast
 
-from packaging.markers import Marker
-from packaging.requirements import Requirement
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from scripts.package.privacy import check_files, check_text
 
 ROOT = Path(__file__).resolve().parents[2]
 RequirementKey = tuple[str, frozenset[str], str, str | None, str]
+
+
+def read_configuration(root: Path) -> dict[str, Any]:
+    """Reject private contents before metadata parsing or name diagnostics."""
+    raw = (root / "pyproject.toml").read_bytes()
+    check_text("pyproject.toml", raw)
+    configuration = tomllib.loads(raw.decode("utf-8"))
+    pending: list[object] = [configuration]
+    while pending:
+        value = pending.pop()
+        if isinstance(value, dict):
+            pending.extend(value)
+            pending.extend(value.values())
+        elif isinstance(value, list):
+            pending.extend(value)
+        elif isinstance(value, str):
+            check_text("pyproject.toml", value.encode("utf-8"))
+    return configuration
 
 
 def text(value: object) -> str:
@@ -43,6 +63,9 @@ def strings(value: object) -> tuple[str, ...]:
 
 
 def requirement_key(value: str, extra: str | None = None) -> RequirementKey:
+    from packaging.markers import Marker
+    from packaging.requirements import Requirement
+
     requirement = Requirement(value)
     if extra is not None:
         prefix = (
@@ -70,7 +93,7 @@ class Project:
 
     @classmethod
     def read(cls, root: Path) -> Project:
-        configuration = tomllib.loads((root / "pyproject.toml").read_text("utf-8"))
+        configuration = read_configuration(root)
         project = cast(dict[str, object], configuration["project"])
         extras = project.get("optional-dependencies", {})
         if not isinstance(extras, dict):
@@ -251,11 +274,13 @@ def check_wheel(path: Path, root: Path, project: Project) -> dict[str, bytes]:
     if dict(entrypoints["console_scripts"]) != {"wyat": "wyat.cli:main"}:
         raise ValueError("Wheel command entry point differs")
     check_record(files, f"{info}/RECORD")
+    for name, raw in files.items():
+        check_text(name, raw)
     return files
 
 
 def required_sources(root: Path) -> set[str]:
-    configuration = tomllib.loads((root / "pyproject.toml").read_text("utf-8"))
+    configuration = read_configuration(root)
     try:
         selected = strings(
             configuration["tool"]["hatch"]["build"]["targets"]["sdist"]["only-include"]
@@ -268,6 +293,7 @@ def required_sources(root: Path) -> set[str]:
         raise ValueError("Source distribution requires a nonempty only-include list")
     names: set[str] = set()
     for selection in selected:
+        check_text("pyproject.toml", selection.encode("utf-8"))
         name = safe_name(selection)
         if any(character in name for character in "*?[]"):
             raise ValueError("Source selections must be literal files")
@@ -307,6 +333,8 @@ def check_source(path: Path, root: Path, project: Project) -> dict[str, bytes]:
             raise ValueError(f"Source distribution differs from the checkout: {name}")
     if "PKG-INFO" not in files:
         raise ValueError("Source distribution omits PKG-INFO")
+    for name, raw in files.items():
+        check_text(name, raw)
     return files
 
 
@@ -382,8 +410,7 @@ assert decision.ranking == ("b", "c", "a") and decision.selected == "b"
 assert model.decide_many((request, request)) == (decision, decision)
 assert not {"torch", "transformers", "mlx", "fastapi", "dmbench"} & sys.modules.keys()
 for private in (
-    "wyat.data", "wyat.bench", "wyat.tasks", "wyat.benchmark", "wyat.loading.native",
-    "wyat.interop",
+    "wyat.data", "wyat.bench", "wyat.benchmark", "wyat.interop",
 ):
     assert importlib.util.find_spec(private) is None, private
 from wyat.cli import main
@@ -447,6 +474,7 @@ def check(directory: Path, root: Path = ROOT, tag: str | None = None) -> None:
     project = Project.read(root)
     if tag is not None and tag != "v" + project.version:
         raise ValueError("Release tag must match the project version exactly")
+    check_files({name: root / name for name in required_sources(root)})
     wheel, source = distributions(directory)
     original = check_wheel(wheel, root, project)
     contents = check_source(source, root, project)

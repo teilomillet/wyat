@@ -20,8 +20,8 @@ from typing import NotRequired, TypedDict
 import torch
 import transformers
 
-from benchmarks.fixtures.kai import create_kai_bundle
-from wyat.backends.kai.torch import KaiScorer
+from benchmarks.fixtures.wyat import create_wyat_bundle
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.core import Candidate, Model, Request
 
 
@@ -84,9 +84,9 @@ def benchmark(
     torch.set_num_threads(1)
     with tempfile.TemporaryDirectory(prefix="wyat-benchmark-") as temporary:
         bundle = Path(temporary)
-        create_kai_bundle(bundle)
-        uncached = KaiScorer.from_directory(bundle, max_length=256, token_cache_size=0)
-        cached = KaiScorer.from_directory(bundle, max_length=256, token_cache_size=32)
+        create_wyat_bundle(bundle)
+        uncached = WyatScorer.from_directory(bundle, max_length=256, token_cache_size=0)
+        cached = WyatScorer.from_directory(bundle, max_length=256, token_cache_size=32)
         uncached_model = Model(uncached, model_id=uncached.model_id)
         cached_model = Model(cached, model_id=cached.model_id)
         requests = tuple(

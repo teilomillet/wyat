@@ -28,7 +28,7 @@ from transformers.integrations import sdpa_attention
 from transformers.models.qwen3 import modeling_qwen3
 
 from wyat import Model
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -66,9 +66,9 @@ def inspect(model_path: Path, output: Path) -> dict[str, object]:
             "runner": Path(__file__),
             "reference": ROOT / "benchmarks/analysis/reference.py",
             "evidence": ROOT / "benchmarks/analysis/evidence.py",
-            "backend": ROOT / "wyat/backends/kai/torch.py",
-            "encoding": ROOT / "wyat/backends/kai/encoding.py",
-            "artifact": ROOT / "wyat/backends/kai/artifact.py",
+            "backend": ROOT / "wyat/backends/wyat/torch.py",
+            "encoding": ROOT / "wyat/backends/wyat/encoding.py",
+            "artifact": ROOT / "wyat/backends/wyat/artifact.py",
             "core": ROOT / "wyat/core.py",
             "benchmark": ROOT / "wyat/benchmark.py",
             "sdpa_integration": Path(sdpa_attention.__file__),
@@ -90,7 +90,7 @@ def inspect(model_path: Path, output: Path) -> dict[str, object]:
     prior_threads = torch.get_num_threads()
     torch.set_num_threads(8)
     try:
-        scorer = KaiScorer.from_directory(
+        scorer = WyatScorer.from_directory(
             model_path, device="cpu", max_length=512, token_cache_size=0
         )
         saved = read_reference(

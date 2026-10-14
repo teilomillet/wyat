@@ -27,8 +27,8 @@ from benchmarks.analysis.cuda.latency import study
 from benchmarks.analysis.cuda.manifest import DATA, INPUT_SHA, MODEL_ID, ROOT, digest
 from benchmarks.analysis.evidence import FrozenSources
 from wyat import Model, Request
-from wyat.backends.kai.encoding import EncodedRequest, KaiEncoder
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest, WyatEncoder
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle, BenchmarkEngine
 from wyat.core import decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow, case_from_dict
@@ -566,8 +566,8 @@ def setup(
     def zero() -> int:
         return 0
 
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
-    monkeypatch.setattr(KaiEncoder, "from_artifact", encoder)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
+    monkeypatch.setattr(WyatEncoder, "from_artifact", encoder)
     monkeypatch.setattr(nn.Module, "to", no_device)
     monkeypatch.setattr(study, "require_fp32", noop)
     monkeypatch.setattr(study, "FP32Scorer", factory)

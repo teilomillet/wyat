@@ -44,7 +44,7 @@ def artifact(tmp_path: Path) -> Path:
         "head_dim": 4,
         "files_sha256": files,
         "provenance": {},
-        "production_kai_compatible": False,
+        "production_wyat_compatible": False,
         "resume_supported": False,
     }
     (root / native.MANIFEST).write_text(json.dumps(manifest))

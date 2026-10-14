@@ -66,7 +66,7 @@ def test_original_allocator_cap_restored_after_failure(
 
     monkeypatch.setattr(mx, "set_cache_limit", set_cap)
     monkeypatch.setattr(cache, "memory", memory)
-    monkeypatch.setattr(cache, "MLXKaiScorer", Scorer)
+    monkeypatch.setattr(cache, "MLXWyatScorer", Scorer)
     monkeypatch.setattr(cache, "read_reference", reference)
     monkeypatch.setattr(cache, "sample", sample)
     output = tmp_path / "failure.json"

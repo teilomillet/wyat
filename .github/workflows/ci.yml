@@ -67,6 +67,9 @@ jobs:
           python-version: ${{ matrix.python }}
           enable-cache: false
 
+      - name: Check public source contents before execution
+        run: uv run --no-project --no-sync --python "${{ matrix.python }}" python scripts/package/privacy.py --source
+
       - name: Install locked dependencies
         run: uv sync --locked --extra inference --extra server ${{ matrix.mlx && '--extra mlx' || '' }}
 
@@ -98,8 +101,21 @@ jobs:
           retention-days: 7
           compression-level: 0
 
-      - name: Retain test results, including skips
+      - name: Check test report contents before retaining them
+        id: report-privacy
         if: always()
+        run: |
+          uv run --no-sync python - <<'PY'
+          from pathlib import Path
+          from scripts.package.privacy import check_text
+          for name in ("tests.xml", "coverage.xml", "coverage.json"):
+              path = Path("artifacts") / name
+              if path.is_file():
+                  check_text(name, path.read_bytes())
+          PY
+
+      - name: Retain test results, including skips
+        if: always() && steps.report-privacy.outcome == 'success'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: test-results-${{ matrix.runner }}-${{ matrix.python }}

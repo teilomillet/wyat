@@ -12,6 +12,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from scripts.package.check import ROOT, required_sources
+from scripts.package.privacy import check_files, check_text
 
 
 def _reject_links(path: Path) -> None:
@@ -56,6 +57,10 @@ def export_source(destination: Path, root: Path = ROOT) -> Path:
     if destination.exists() or manifest.exists():
         raise FileExistsError("Export destination and checksum manifest must be new")
     contents = {name: (root / name).read_bytes() for name in sorted(names)}
+    check_files({name: root / name for name in names})
+    # Scan the snapshot that will actually be copied as well as its source paths.
+    for name, raw in contents.items():
+        check_text(name, raw)
     checksums = "".join(
         f"{hashlib.sha256(raw).hexdigest()}  {name}\n" for name, raw in contents.items()
     ).encode("utf-8")

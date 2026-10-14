@@ -9,6 +9,7 @@ from typing import Literal, cast
 import wyat
 
 MIN_SCORE_GAP = 1.0
+DEFAULT_TEMPERATURE = 1.0
 
 
 class PracticeScorer:
@@ -56,18 +57,53 @@ def choose_action(
     larger_model: wyat.Model,
     *,
     min_score_gap: float = MIN_SCORE_GAP,
+    min_probability_margin: float | None = None,
+    max_normalized_entropy: float | None = None,
 ) -> wyat.Decision:
     """Ask the larger model when the small model's top two scores are close."""
     if not math.isfinite(min_score_gap) or min_score_gap <= 0:
         raise ValueError("min_score_gap must be positive and finite")
+    if min_probability_margin is not None and (
+        not math.isfinite(min_probability_margin)
+        or min_probability_margin <= 0
+        or min_probability_margin > 1.0
+    ):
+        raise ValueError("min_probability_margin must be in (0, 1]")
+    if max_normalized_entropy is not None and (
+        not math.isfinite(max_normalized_entropy)
+        or max_normalized_entropy <= 0
+        or max_normalized_entropy > 1.0
+    ):
+        raise ValueError("max_normalized_entropy must be in (0, 1]")
     if len(request.candidates) < 2:
         raise ValueError("Score-gap routing needs at least two choices")
     small = small_model.decide(request)
-    best, second = sorted(small.scores, reverse=True)[:2]
-    gap = best - second
+    gap = small.score_gap
     print(f"Small Wyat picks: {small.selected}. Score gap: {gap:.2f}.")
     if gap < min_score_gap:
         print(f"Router: gap below {min_score_gap:.2f}; ask the larger model.")
+        decision = larger_model.decide(request)
+        print(f"Larger model picks: {decision.selected}.")
+        return decision
+    if (
+        min_probability_margin is not None
+        and small.probability_margin < min_probability_margin
+    ):
+        print(
+            f"Router: margin {small.probability_margin:.2f} below "
+            f"{min_probability_margin:.2f}; ask the larger model."
+        )
+        decision = larger_model.decide(request)
+        print(f"Larger model picks: {decision.selected}.")
+        return decision
+    if (
+        max_normalized_entropy is not None
+        and small.normalized_entropy > max_normalized_entropy
+    ):
+        print(
+            f"Router: normalized entropy {small.normalized_entropy:.2f} above "
+            f"{max_normalized_entropy:.2f}; ask the larger model."
+        )
         decision = larger_model.decide(request)
         print(f"Larger model picks: {decision.selected}.")
         return decision
@@ -137,6 +173,8 @@ def run_agent(
     larger_model: wyat.Model,
     *,
     min_score_gap: float = MIN_SCORE_GAP,
+    min_probability_margin: float | None = None,
+    max_normalized_entropy: float | None = None,
 ) -> str:
     agent = ToyAgent()
     actions = {
@@ -155,7 +193,12 @@ def run_agent(
         print("Agent offers: " + ", ".join(item.id for item in request.candidates))
 
         decision = choose_action(
-            request, small_model, larger_model, min_score_gap=min_score_gap
+            request,
+            small_model,
+            larger_model,
+            min_score_gap=min_score_gap,
+            min_probability_margin=min_probability_margin,
+            max_normalized_entropy=max_normalized_entropy,
         )
         action = actions[decision.selected]
         print(f"Final choice: {decision.selected}")
@@ -176,13 +219,31 @@ def main() -> None:
     source.add_argument(
         "--demo", action="store_true", help="Use the scripted practice chooser"
     )
-    source.add_argument("--model", type=Path, help="Use trained local Kai weights")
+    source.add_argument("--model", type=Path, help="Use trained local Wyat weights")
     parser.add_argument("--larger-model", type=Path, help="Local fallback Choice model")
     parser.add_argument(
         "--min-score-gap",
         type=float,
         default=MIN_SCORE_GAP,
         help="Ask the larger model below this score gap (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--min-probability-margin",
+        type=float,
+        default=None,
+        help="Ask the larger model below this top-2 probability margin in (0, 1]",
+    )
+    parser.add_argument(
+        "--max-normalized-entropy",
+        type=float,
+        default=None,
+        help="Ask the larger model above this normalized entropy in (0, 1]",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        default=DEFAULT_TEMPERATURE,
+        help="Softmax temperature for the small model (default: %(default)s)",
     )
     parser.add_argument("--backend", choices=("torch", "mlx"), default="torch")
     arguments = parser.parse_args()
@@ -191,7 +252,11 @@ def main() -> None:
             parser.error("Use --model with --larger-model, or --demo on its own")
         print("Practice mode: hand-written scores, no trained models.")
         print("Watch a close call go to the larger practice chooser.\n")
-        model = wyat.Model(PracticeScorer(), model_id="embedded-practice-small")
+        model = wyat.Model(
+            PracticeScorer(),
+            model_id="embedded-practice-small",
+            temperature=arguments.temperature,
+        )
         larger = wyat.Model(PracticeLargerScorer(), model_id="embedded-practice-larger")
     else:
         if arguments.larger_model is None:
@@ -199,13 +264,20 @@ def main() -> None:
         model = wyat.load(
             cast(Path, arguments.model),
             backend=cast(Literal["torch", "mlx"], arguments.backend),
+            temperature=arguments.temperature,
         )
         larger = wyat.load(
             cast(Path, arguments.larger_model),
             backend=cast(Literal["torch", "mlx"], arguments.backend),
         )
         print("Trained model mode: choices can differ from the practice script.\n")
-    run_agent(model, larger, min_score_gap=arguments.min_score_gap)
+    run_agent(
+        model,
+        larger,
+        min_score_gap=arguments.min_score_gap,
+        min_probability_margin=arguments.min_probability_margin,
+        max_normalized_entropy=arguments.max_normalized_entropy,
+    )
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ denominator.
 
 ## Observed local execution policy
 
-[`torch.py`](../../wyat/backends/kai/torch.py) loads the backbone into FP32,
+[`torch.py`](../../wyat/backends/wyat/torch.py) loads the backbone into FP32,
 validates its weights, and accepts CPU or CUDA devices. CUDA requires reported
 BF16 support. Before moving to CUDA, only Linear weights/biases whose BF16
 round-trip is exact are stored in BF16. Every CUDA `score_many` call then

@@ -13,11 +13,12 @@ from pathlib import Path
 from typing import Any
 
 from wyat import tasks
+from wyat.input_rendering import validate_input_rendering_policy
 
 
 def _head_source_sha256() -> str:
     """Hash the exact class source without importing the optional Torch runtime."""
-    path = Path(__file__).parents[1] / "backends/kai/torch.py"
+    path = Path(__file__).parents[1] / "backends/wyat/torch.py"
     source = path.read_text(encoding="utf-8")
     classes = [
         node
@@ -72,6 +73,18 @@ def artifact_contract() -> dict[str, object]:
     }
 
 
+def model_identity(files: dict[str, str], policy: object = None) -> str:
+    """Bind opt-in rendering to model identity, retaining legacy byte identity."""
+    selected = validate_input_rendering_policy(policy)
+    payload = (
+        files
+        if selected is None
+        else {"files_sha256": files, "input_rendering": selected}
+    )
+    identity = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+    return "native-" + identity
+
+
 def _positive_integer(value: object, name: str) -> int:
     if type(value) is not int or value <= 0:
         raise ValueError(f"{name} must be a positive integer")
@@ -87,7 +100,7 @@ def validate_artifact(directory: str | Path) -> dict[str, Any]:
     if not isinstance(manifest, dict) or manifest.get("format") != FORMAT:
         raise ValueError("unsupported native artifact format")
     if (
-        manifest.get("production_kai_compatible") is not False
+        manifest.get("production_wyat_compatible", False) is not False
         or manifest.get("resume_supported") is not False
     ):
         raise ValueError(
@@ -124,8 +137,9 @@ def validate_artifact(directory: str | Path) -> dict[str, Any]:
     }
     if not isinstance(files, dict) or not required <= files.keys():
         raise ValueError("native artifact lacks required file identities")
-    identity = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
-    if manifest["model_id"] != "native-" + identity:
+    if "input_rendering" in manifest and manifest["input_rendering"] is None:
+        raise ValueError("input rendering policy must be omitted for legacy artifacts")
+    if manifest["model_id"] != model_identity(files, manifest.get("input_rendering")):
         raise ValueError("native model identity differs from artifact files")
     permitted = required | set(TOKENIZER_FILES)
     if not set(files) <= permitted:

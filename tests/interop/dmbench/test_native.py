@@ -11,7 +11,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from wyat.backends.kai.encoding import KaiEncoder
+from wyat.backends.wyat.encoding import WyatEncoder
 from wyat.core import Model, Request
 from wyat.interop.dmbench import DMBenchRecipe, as_dmbench, as_dmbench_batch
 
@@ -277,7 +277,7 @@ class CharacterTokenizer:
 class EncoderScorer(RecordingScorer):
     def __init__(self) -> None:
         super().__init__()
-        self.encoder = KaiEncoder(CharacterTokenizer(), max_length=512, max_options=64)
+        self.encoder = WyatEncoder(CharacterTokenizer(), max_length=512, max_options=64)
 
     def score_many(self, requests: Sequence[Request]) -> tuple[tuple[float, ...], ...]:
         for request in requests:

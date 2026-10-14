@@ -18,11 +18,11 @@ from benchmarks.analysis.mlx.fusion import (  # noqa: E402
     PackedAttention,
     packed_backbone,
 )
-from wyat.backends.kai.mlx import MLXCandidateHead  # noqa: E402
+from wyat.backends.wyat.mlx import MLXCandidateHead  # noqa: E402
 
 
 def backbone() -> Qwen3Model:
-    # The real checkpoint also has Q=2*hidden and K/V=hidden. Existing Kai
+    # The real checkpoint also has Q=2*hidden and K/V=hidden. Existing Wyat
     # fixtures exercise different head geometry, so that fixture is insufficient.
     return Qwen3Model(ModelArgs("qwen3", 16, 2, 32, 2, 1e-6, 64, 1, 256, 1e6, 16, True))
 

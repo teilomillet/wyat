@@ -8,7 +8,9 @@ from typing import TYPE_CHECKING, Literal, cast
 from wyat.core import Candidate, Decision, Model, Request
 
 if TYPE_CHECKING:
-    from dmbench.api import Prediction as DMBenchPrediction
+    from dmbench.api import (  # type: ignore[import-not-found]
+        Prediction as DMBenchPrediction,
+    )
     from dmbench.api import Request as DMBenchRequest
 
 type DMBenchRecipe = Literal["dmbench-verbatim-choice-v1", "dmbench-native-choice-v1"]
@@ -38,7 +40,9 @@ def _request(public: DMBenchRequest, recipe: DMBenchRecipe) -> Request:
     if recipe == "dmbench-native-choice-v1":
         if public.task != "jevbench/choice":
             raise ValueError("Wyat's native recipe requires jevbench/choice")
-        from dmbench.adapters.native import native_request
+        from dmbench.adapters.native import (  # type: ignore[import-not-found]
+            native_request,
+        )
         from dmbench.api import canonical_json
 
         state, question, _ = native_request(public)
@@ -71,14 +75,17 @@ def as_dmbench_batch(
     from dmbench.api import Prediction
 
     def prediction(public: DMBenchRequest, decision: Decision) -> DMBenchPrediction:
-        return Prediction(
-            answer=decision.selected,
-            probabilities=dict(
-                zip(
-                    (choice.id for choice in public.choices),
-                    decision.probabilities,
-                    strict=True,
-                )
+        return cast(
+            DMBenchPrediction,
+            Prediction(
+                answer=decision.selected,
+                probabilities=dict(
+                    zip(
+                        (choice.id for choice in public.choices),
+                        decision.probabilities,
+                        strict=True,
+                    )
+                ),
             ),
         )
 

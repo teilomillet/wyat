@@ -121,7 +121,7 @@ def fixture() -> dict[str, Any]:
 
 def freeze(args: argparse.Namespace) -> None:
     from wyat import tasks
-    from wyat.backends.kai.encoding import load_tokenizer
+    from wyat.backends.wyat.encoding import load_tokenizer
 
     tokenizer = load_tokenizer(args.artifact)
     manifest = read(args.artifact / "native_manifest.json")
@@ -279,8 +279,8 @@ def metadata() -> dict[str, Any]:
         "wyat.loading.native",
         "wyat.loading.native_artifact",
         "wyat.loading.mlx",
-        "wyat.backends.kai.mlx",
-        "wyat.backends.kai.metal",
+        "wyat.backends.wyat.mlx",
+        "wyat.backends.wyat.metal",
         "mlx_lm.models.qwen3",
         "mlx_lm.models.base",
     ):

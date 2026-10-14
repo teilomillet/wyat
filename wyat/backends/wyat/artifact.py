@@ -1,4 +1,4 @@
-"""Validate local Kai configuration, storage and content identity before loading."""
+"""Validate local Wyat configuration, storage and content identity before loading."""
 
 from __future__ import annotations
 
@@ -24,18 +24,18 @@ def positive_integer(value: object, name: str) -> int:
 
 def normalize_config(raw: JsonObject) -> JsonObject:
     if raw.get("model_type") != "qwen3":
-        raise ValueError("Kai backend requires a Qwen3 text backbone")
+        raise ValueError("Wyat backend requires a Qwen3 text backbone")
     if raw.get("hidden_act", "silu") != "silu":
-        raise ValueError("Kai requires the SiLU backbone activation")
+        raise ValueError("Wyat requires the SiLU backbone activation")
     config = dict(raw)
     layers = config.get("layer_types")
     if layers is not None and (
         not isinstance(layers, list)
         or any(layer != "full_attention" for layer in layers)
     ):
-        raise ValueError("Kai requires full causal attention in every layer")
+        raise ValueError("Wyat requires full causal attention in every layer")
     if config.get("use_sliding_window", False):
-        raise ValueError("Kai does not support sliding-window attention")
+        raise ValueError("Wyat does not support sliding-window attention")
     rotary = config.pop("rope_parameters", None)
     if rotary is not None:
         if (
@@ -49,7 +49,7 @@ def normalize_config(raw: JsonObject) -> JsonObject:
             raise ValueError("Unsupported or contradictory rotary configuration")
         config["rope_theta"] = rotary["rope_theta"]
     elif config.get("rope_scaling") is not None:
-        raise ValueError("Kai requires the unscaled default rotary recipe")
+        raise ValueError("Wyat requires the unscaled default rotary recipe")
     theta = config.get("rope_theta", 10000.0)
     if (
         isinstance(theta, bool)
@@ -146,11 +146,11 @@ def _identity(root: Path, declared: dict[str, str] | None) -> str:
                     f"Checkpoint file differs from declared digest: {name}"
                 )
         digest.update(name.encode("utf-8") + b"\0" + file_digest.digest())
-    return "kai:" + digest.hexdigest()
+    return "wyat:" + digest.hexdigest()
 
 
 @dataclass(frozen=True, slots=True)
-class KaiArtifact:
+class WyatArtifact:
     root: Path
     config: JsonObject
     head_dim: int
@@ -158,7 +158,7 @@ class KaiArtifact:
     model_id: str
 
 
-def load_artifact(path: str | Path, max_length: int) -> KaiArtifact:
+def load_artifact(path: str | Path, max_length: int) -> WyatArtifact:
     root = Path(path).resolve(strict=True)
     max_length = positive_integer(max_length, "max_length")
     metadata = read_object(root / "decision_config.json")
@@ -173,12 +173,12 @@ def load_artifact(path: str | Path, max_length: int) -> KaiArtifact:
         or metadata.get("backbone_model_type", "qwen3") != "qwen3"
     ):
         raise ValueError(
-            "Unsupported Kai checkpoint architecture, prompt, head or format"
+            "Unsupported Wyat checkpoint architecture, prompt, head or format"
         )
     head_dim = positive_integer(metadata.get("head_dim"), "head_dim")
     max_options = positive_integer(metadata.get("max_options"), "max_options")
     if not 2 <= max_options <= 255:
-        raise ValueError("Kai max_options must be within 2..255")
+        raise ValueError("Wyat max_options must be within 2..255")
     config = normalize_config(read_object(root / "backbone/config.json"))
     cap = positive_integer(
         config.get("max_position_embeddings"), "max_position_embeddings"
@@ -192,7 +192,7 @@ def load_artifact(path: str | Path, max_length: int) -> KaiArtifact:
             or manifest.get("storage") is not None
             or manifest.get("calibration") is not None
         ):
-            raise ValueError("Unsupported Kai package profile, storage or calibration")
+            raise ValueError("Unsupported Wyat package profile, storage or calibration")
         cap = min(
             cap, positive_integer(manifest.get("max_input_tokens"), "max_input_tokens")
         )
@@ -208,5 +208,5 @@ def load_artifact(path: str | Path, max_length: int) -> KaiArtifact:
             raise ValueError(f"Unsupported backbone tensor dtype: {name}")
     for name, spec in tensor_specs(root / "decision_head.safetensors").items():
         if spec.dtype != "F32":
-            raise ValueError(f"Kai head tensor must use float32: {name}")
-    return KaiArtifact(root, config, head_dim, max_options, _identity(root, declared))
+            raise ValueError(f"Wyat head tensor must use float32: {name}")
+    return WyatArtifact(root, config, head_dim, max_options, _identity(root, declared))

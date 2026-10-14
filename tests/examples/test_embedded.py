@@ -154,3 +154,61 @@ def test_invalid_threshold_does_not_call_either_model(threshold: float) -> None:
     with pytest.raises(ValueError, match="positive and finite"):
         choose_action(ToyAgent().request(), model, model, min_score_gap=threshold)
     assert scorer.calls == 0
+
+
+@pytest.mark.parametrize("threshold", [0.0, -0.1, 1.01, float("nan"), float("inf")])
+def test_invalid_margin_or_entropy_threshold_does_not_call_model(
+    threshold: float,
+) -> None:
+    scorer = FixedScores((2.0, 0.0))
+    model = wyat.Model(scorer, "unused")
+    with pytest.raises(ValueError, match="must be in"):
+        choose_action(
+            ToyAgent().request(),
+            model,
+            model,
+            min_probability_margin=threshold,
+        )
+    with pytest.raises(ValueError, match="must be in"):
+        choose_action(
+            ToyAgent().request(),
+            model,
+            model,
+            max_normalized_entropy=threshold,
+        )
+    assert scorer.calls == 0
+
+
+def test_probability_margin_and_entropy_gates_route_when_enabled(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    # Score gap is 1.1 >= 1.0, but under temperature=1.084 the top-2 margin is ~0.467
+    # and normalized entropy is ~0.836 (0.84).
+    small = FixedScores((1.1, 0.0))
+    larger = FixedScores((0.0, 2.0))
+    req = ToyAgent().request()
+    small_model = wyat.Model(small, "small", temperature=1.084)
+    larger_model = wyat.Model(larger, "larger")
+
+    by_margin = choose_action(
+        req,
+        small_model,
+        larger_model,
+        min_score_gap=1.0,
+        min_probability_margin=0.73,
+    )
+    assert by_margin.model_id == "larger"
+    assert by_margin.selected == "ask"
+
+    by_entropy = choose_action(
+        req,
+        small_model,
+        larger_model,
+        min_score_gap=1.0,
+        max_normalized_entropy=0.45,
+    )
+    assert by_entropy.model_id == "larger"
+    assert by_entropy.selected == "ask"
+    output = capsys.readouterr().out
+    assert "margin 0.47 below 0.73; ask the larger model." in output
+    assert "normalized entropy 0.84 above 0.45; ask the larger model." in output

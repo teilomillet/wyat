@@ -15,7 +15,7 @@ from pathlib import Path
 import torch
 
 from benchmarks.real.torch.causal.screen import ROOT, Arguments, score
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkEngine,
     BenchmarkProtocol,
@@ -29,7 +29,7 @@ from wyat.wire import decode_json
 
 @dataclass(frozen=True, slots=True)
 class Arm:
-    scorer: KaiScorer
+    scorer: WyatScorer
     legacy: bool
 
     def score_many(self, requests: Sequence[Request]) -> list[list[float]]:
@@ -50,7 +50,7 @@ def main() -> None:
     cases = tuple(
         case_from_dict(decode_json(line)) for line in path.read_text().splitlines()
     )
-    scorer = KaiScorer.from_directory(
+    scorer = WyatScorer.from_directory(
         ROOT / args.model, max_length=2048, token_cache_size=256
     )
     baseline = Model(Arm(scorer, True), model_id=scorer.model_id)

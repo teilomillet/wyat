@@ -7,6 +7,7 @@ import hashlib
 import io
 import subprocess
 import textwrap
+import tomllib
 import urllib.error
 import urllib.request
 from collections.abc import Iterator
@@ -288,3 +289,30 @@ def test_publication_policy_is_disabled_and_reuses_gated_ci_artifact() -> None:
         "skip-existing": False,
         "attestations": True,
     }
+
+
+def test_ci_checks_contents_before_tests_and_retaining_reports() -> None:
+    configuration = tomllib.loads((ROOT / "pyproject.toml").read_text("utf-8"))
+    assert configuration["tool"]["coverage"]["run"]["relative_files"] is True
+    value = mapping(
+        yaml.safe_load((ROOT / ".github/workflows/ci.yml").read_text("utf-8"))
+    )
+    checks = mapping(mapping(value["jobs"])["checks"])
+    entries = checks["steps"]
+    assert isinstance(entries, list)
+    by_name = {
+        str(mapping(entry)["name"]): mapping(entry)
+        for entry in cast(list[object], entries)
+    }
+    names = list(by_name)
+    scan = "Check public source contents before execution"
+    tests = "Check types, style, and regressions"
+    assert names.index(scan) < names.index(tests)
+    assert names.index(scan) < names.index("Install locked dependencies")
+    assert "scripts/package/privacy.py --source" in str(by_name[scan]["run"])
+    assert "--no-project --no-sync --python" in str(by_name[scan]["run"])
+    reports = by_name["Check test report contents before retaining them"]
+    assert reports["id"] == "report-privacy" and reports["if"] == "always()"
+    assert "check_text(name, path.read_bytes())" in str(reports["run"])
+    retained = by_name["Retain test results, including skips"]
+    assert retained["if"] == "always() && steps.report-privacy.outcome == 'success'"

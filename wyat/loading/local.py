@@ -30,51 +30,91 @@ def load(
     *,
     backend: Literal["torch", "mlx"] = "torch",
     device: str | None = None,
-    max_length: int = 2048,
+    max_length: int | None = None,
     token_cache_size: int = 0,
+    prefix_cache_size: int = 16,
     attention: str = "sdpa",
     compile: bool = False,
+    temperature: float = 1.0,
 ) -> Model:
-    """Load local Kai weights. Select the runtime explicitly; never download code.
+    """Load local Wyat or native weights; select the runtime explicitly.
 
     Torch defaults to CPU; MLX defaults to Apple GPU. Compilation is an opt-in
     MLX experiment and must pass the caller's quality and performance gates.
     """
+    if type(prefix_cache_size) is not int or prefix_cache_size < 0:
+        raise ValueError("prefix_cache_size must be a nonnegative integer")
+    is_native = (Path(path) / "native_manifest.json").is_file()
+    wyat_max_length = 2048 if max_length is None else max_length
     scorer: Scorer
     if backend == "torch":
         if compile:
             raise ValueError("compile is supported only by the MLX backend")
-        try:
-            from wyat.backends.kai.torch import KaiScorer
-        except ModuleNotFoundError as exc:
-            _raise_missing_runtime(exc, "torch")
-            raise
+        if is_native:
+            if attention != "sdpa":
+                raise ValueError("native PyTorch inference requires sdpa attention")
+            try:
+                from wyat.loading.native import load_native
+            except ModuleNotFoundError as exc:
+                _raise_missing_runtime(exc, "torch")
+                raise
 
-        torch_scorer = KaiScorer.from_directory(
-            path,
-            device="cpu" if device is None else device,
-            max_length=max_length,
-            token_cache_size=token_cache_size,
-            attention=attention,
-        )
-        scorer, model_id = torch_scorer, torch_scorer.model_id
+            native_torch = load_native(
+                path,
+                device="cpu" if device is None else device,
+                max_length=max_length,
+                prefix_cache_size=prefix_cache_size,
+            )
+            scorer, model_id = native_torch, native_torch.model_id
+        else:
+            try:
+                from wyat.backends.wyat.torch import WyatScorer
+            except ModuleNotFoundError as exc:
+                _raise_missing_runtime(exc, "torch")
+                raise
+
+            torch_scorer = WyatScorer.from_directory(
+                path,
+                device="cpu" if device is None else device,
+                max_length=wyat_max_length,
+                token_cache_size=token_cache_size,
+                attention=attention,
+            )
+            scorer, model_id = torch_scorer, torch_scorer.model_id
     elif backend == "mlx":
         if attention != "sdpa":
             raise ValueError("MLX uses its native attention implementation")
-        try:
-            from wyat.backends.kai.mlx import MLXKaiScorer
-        except ModuleNotFoundError as exc:
-            _raise_missing_runtime(exc, "mlx")
-            raise
+        if is_native:
+            if compile:
+                raise ValueError("native MLX inference does not support compile")
+            try:
+                from wyat.loading.mlx import load_native_mlx
+            except ModuleNotFoundError as exc:
+                _raise_missing_runtime(exc, "mlx")
+                raise
 
-        mlx_scorer = MLXKaiScorer.from_directory(
-            path,
-            device="gpu" if device is None else device,
-            max_length=max_length,
-            token_cache_size=token_cache_size,
-            compile=compile,
-        )
-        scorer, model_id = mlx_scorer, mlx_scorer.model_id
+            native_mlx = load_native_mlx(
+                path,
+                device="gpu" if device is None else device,
+                max_length=max_length,
+                prefix_cache_size=prefix_cache_size,
+            )
+            scorer, model_id = native_mlx, native_mlx.model_id
+        else:
+            try:
+                from wyat.backends.wyat.mlx import MLXWyatScorer
+            except ModuleNotFoundError as exc:
+                _raise_missing_runtime(exc, "mlx")
+                raise
+
+            mlx_scorer = MLXWyatScorer.from_directory(
+                path,
+                device="gpu" if device is None else device,
+                max_length=wyat_max_length,
+                token_cache_size=token_cache_size,
+                compile=compile,
+            )
+            scorer, model_id = mlx_scorer, mlx_scorer.model_id
     else:
         raise ValueError(f"unsupported backend: {backend}")
-    return Model(scorer, model_id)
+    return Model(scorer, model_id, temperature=temperature)

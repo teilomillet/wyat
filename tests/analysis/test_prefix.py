@@ -16,8 +16,8 @@ import mlx.core as mx
 from mlx_lm.models.qwen3 import ModelArgs, Qwen3Model
 
 from benchmarks.analysis.mlx.prefix import PrefixScorer
-from wyat.backends.kai.encoding import KaiEncoder
-from wyat.backends.kai.mlx import MLXCandidateHead, MLXKaiScorer
+from wyat.backends.wyat.encoding import WyatEncoder
+from wyat.backends.wyat.mlx import MLXCandidateHead, MLXWyatScorer
 from wyat.core import Candidate, Request
 
 
@@ -40,7 +40,7 @@ def request(choices: Sequence[str], *, context: str = "shared public state") -> 
 
 
 @pytest.fixture
-def base() -> MLXKaiScorer:
+def base() -> MLXWyatScorer:
     args = ModelArgs(
         model_type="qwen3",
         hidden_size=8,
@@ -61,10 +61,10 @@ def base() -> MLXKaiScorer:
         head = MLXCandidateHead(8, 4)
         backbone.eval()
         head.eval()
-    return MLXKaiScorer(
+    return MLXWyatScorer(
         backbone,
         head,
-        KaiEncoder(CharacterTokenizer(), max_length=512, max_options=8),
+        WyatEncoder(CharacterTokenizer(), max_length=512, max_options=8),
         model_id="owned-tiny-asymmetric-prefix-fixture",
         device=mx.Device(mx.cpu),
     )
@@ -72,7 +72,7 @@ def base() -> MLXKaiScorer:
 
 @pytest.mark.parametrize("prefix_length", [1, 25])
 def test_causal_suffix_matches_full_scalar_batch_and_interleaved_calls(
-    base: MLXKaiScorer, prefix_length: int
+    base: MLXWyatScorer, prefix_length: int
 ) -> None:
     values = [request(("yes", "no")), request(("a", "b", "c"))]
     prefix = base.encode_request(values[0]).ids[:prefix_length]
@@ -99,7 +99,7 @@ def test_causal_suffix_matches_full_scalar_batch_and_interleaved_calls(
 
 
 def test_suffix_beyond_cache_growth_step_preserves_frozen_state(
-    base: MLXKaiScorer,
+    base: MLXWyatScorer,
 ) -> None:
     value = request(("long candidate " * 8, "short"))
     encoded = base.encode_request(value)
@@ -114,7 +114,7 @@ def test_suffix_beyond_cache_growth_step_preserves_frozen_state(
         )
 
 
-def test_mixed_prefix_batch_falls_back_intact(base: MLXKaiScorer) -> None:
+def test_mixed_prefix_batch_falls_back_intact(base: MLXWyatScorer) -> None:
     admitted = request(("a", "b"))
     mismatched = request(("a", "b"), context="different public state")
     cached = PrefixScorer(base, base.encode_request(admitted).ids[:25])
@@ -141,7 +141,7 @@ def test_mixed_prefix_batch_falls_back_intact(base: MLXKaiScorer) -> None:
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 def test_generated_causal_batches_preserve_readouts(
-    base: MLXKaiScorer, menus: list[list[str]]
+    base: MLXWyatScorer, menus: list[list[str]]
 ) -> None:
     values = [request(menu) for menu in menus]
     cached = PrefixScorer(base, base.encode_request(values[0]).ids[:25])
@@ -151,7 +151,7 @@ def test_generated_causal_batches_preserve_readouts(
         assert row == pytest.approx(control, abs=2e-6, rel=1e-5)
 
 
-def test_prefix_overlapping_candidate_readout_falls_back(base: MLXKaiScorer) -> None:
+def test_prefix_overlapping_candidate_readout_falls_back(base: MLXWyatScorer) -> None:
     value = request(("a", "b"))
     encoded = base.encode_request(value)
     prefix_length = encoded.candidate_positions[0] + 1
@@ -162,7 +162,7 @@ def test_prefix_overlapping_candidate_readout_falls_back(base: MLXKaiScorer) -> 
 
 @pytest.mark.parametrize("prefix", [(), (-1,), (128,), (True,)])
 def test_invalid_prefix_ids_rejected(
-    base: MLXKaiScorer, prefix: tuple[int, ...]
+    base: MLXWyatScorer, prefix: tuple[int, ...]
 ) -> None:
     with pytest.raises(ValueError, match="Prefix"):
         PrefixScorer(base, prefix)

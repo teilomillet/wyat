@@ -18,7 +18,7 @@ from benchmarks.analysis.evidence import freeze_sources, process_diagnostic
 from benchmarks.analysis.reference import read_reference
 from benchmarks.analysis.torch.threads import DATASET_SHA256
 from wyat import Model
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -164,9 +164,9 @@ def study(model: Path, output: Path, *, batch_size: int) -> bool:
                 "benchmark": ROOT / "wyat/benchmark.py",
                 "core": ROOT / "wyat/core.py",
                 "evaluation": ROOT / "wyat/evaluation.py",
-                "artifact": ROOT / "wyat/backends/kai/artifact.py",
-                "encoding": ROOT / "wyat/backends/kai/encoding.py",
-                "backend": ROOT / "wyat/backends/kai/torch.py",
+                "artifact": ROOT / "wyat/backends/wyat/artifact.py",
+                "encoding": ROOT / "wyat/backends/wyat/encoding.py",
+                "backend": ROOT / "wyat/backends/wyat/torch.py",
                 "qwen3": Path(modeling_qwen3.__file__),
                 "cache": Path(cache_utils.__file__),
                 "mask": Path(masking_utils.__file__),
@@ -203,7 +203,7 @@ def study(model: Path, output: Path, *, batch_size: int) -> bool:
         torch.set_num_threads(8)
         payload["phase"] = "loading"
         write()
-        base = KaiScorer.from_directory(
+        base = WyatScorer.from_directory(
             model, device="cpu", max_length=512, token_cache_size=0
         )
         if base.model_id != history["model_id"]:

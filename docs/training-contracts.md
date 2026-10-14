@@ -128,3 +128,123 @@ French results and reserved-confirmation exposure retain their original
 protocols. See `/Users/teilomillet/Code/clm-lab/docs/evaluation-contract.md`.
 No training, source modification or reserved-data access was performed by this
 inspection.
+
+## Native typed task conformance
+
+The research-native adapter format is separate from the released Kai bundle.
+`wyat.tasks` is the canonical pure parser, segmented encoder and typed interpreter
+for `wyat-native-typed-segmented-independent-questions-v1`. See
+[task meanings](decision-tasks.md) for the exact public record, Choice/Score/Noul
+readouts, FP32 conversion and tolerance. `wyat.load()` remains the Kai Choice
+loader; do not change `production_kai_compatible: false` on native exports.
+
+The intended launch binds `artifacts/typed-task-conformance-20261008/CONTRACT.json`
+and `REFERENCE-FIXTURES.json` prospectively alongside immutable native/loss
+sources, initializer/tokenizer identities, task exposure and resource policy.
+Labels and review/supervision metadata stay outside model-facing records.
+Synthetic serializer/readout fixtures establish mechanics, not learned quality.
+The launcher must verify actual exported-adapter execution through its accepted
+loader, including the declared dtype and numerical tolerances; that physical
+check is not supplied by the pure module. Typed benchmarks consume the same
+interpretation owner and report task-specific metrics and failure coverage.
+Historical recipes and their existing receipts remain immutable.
+
+## Strict backward reproducibility for new native training
+
+### Context for v6 and future native training
+
+As requested on 12 October 2026, new native training uses a 32,768-token complete
+question limit and a 32,768-token padded microbatch budget. The canonical policy
+is `scripts.training_optimization.context`; both the decision training preparer
+and optimization training worker consume it. Logical question batches and
+microbatch-one optimization remain unchanged. Inputs are never truncated to fit.
+
+The prospective initializer is
+`artifacts/training-context-32768-20261012/initializer`. Create it with
+`python -m scripts.training_optimization.context`: the builder authenticates and
+copies the old initializer, changes only the new manifest context declaration,
+and records lineage and unchanged file hashes. It preserves the original package.
+New token censuses use this initializer by default; new preparation rejects an
+8k census. Bind the new initializer, census, readiness and source identities into
+fresh reviewed freezes. Adapter exports inherit both limits and restore them on
+reload. Existing checkpoints, historical sources/freezes and the running v5.2
+evaluation retain their original limits.
+
+32k is an admitted input ceiling, not padding every input to 32k, a change to the
+token exposure budget, or evidence of long-context quality. Existing compute,
+memory and ownership limits remain enforced. Profile and smoke the actual new
+data before training; exercise a full-length input with measured memory and
+finite forward/backward behavior before claiming full-length training support.
+Do not silently fall back to 8k after an out-of-memory failure. Long-context
+quality requires separate measured evaluation.
+
+For v6 and future cached-source reconsideration, use
+`python -m scripts.french_data.training_data_selection --output <fresh-directory>`.
+This uses the same context policy and tokenizer package, including full retained
+MultiEURLEX TRAIN documents by default, rather than restricting discovery to the
+old token-valid bank. The pinned constructor preserves source/ancestry exclusions,
+duplicate checks and qualification holds. Each run reports the 8k/32k length
+bands and public-input differences against the existing v6 candidate. Those
+differences are candidate coverage, not semantic novelty or training admission.
+Use fresh candidate, census, rights/quality and custody evidence before merging
+newly recovered examples. Historical exclusions are preserved as evidence;
+only the length condition is reconsidered. No periodic collection or training
+is implicitly launched by this command.
+
+New freezes produced by `scripts.french_data.decision_training_prepare`, including
+future combined-v6 and successor datasets, require strict deterministic Torch
+algorithms (`warn_only=False`). The supervisor sets
+`CUBLAS_WORKSPACE_CONFIG=:4096:8` in the worker environment before Torch/CUDA
+initialization. The worker applies the policy before model loading or CUDA work
+and records the observed settings in its receipt. Missing or weakened policies
+fail validation. Unsupported deterministic operations fail execution rather than
+silently falling back. The existing explicit attention backend remains pinned;
+CUDA preparation continues to select Flash SDPA.
+
+This carries forward the successful backward reproducibility fix from
+`artifacts/physicslm-retention-deterministic-20261012`. It does not enable retention
+loss by default: that comparison failed the retained quality gates. Exact replay
+was established for that pinned environment; each new runtime/model still needs
+fresh profile, smoke and reproducibility evidence. Seeds, resource budgets,
+exclusive GPU ownership, data admission, independent freeze review and retention
+quality gates remain required. Historical freezes and receipts remain immutable;
+new launcher source pins and reviews must be generated for future runs. The
+separate optimization launcher's explicit deterministic math-attention policy
+retains its own contract.
+
+### Opt-in padded-token microbatches
+
+CUDA qualification on 2026-10-14 rejected packed BF16 execution: all five
+synthetic native cases failed the unchanged optimizer-update parity gates.
+Separating question backwards did not repair that difference. The opt-in CUDA
+path therefore validates the requested padded groups, then executes singleton
+forward/backward pairs. Its `microbatch_execution` receipt records the requested
+and executed sizes and `cuda-singleton-parity-fallback` policy. Native GPU checks
+establish fallback parity only; they do not qualify accelerated CUDA packing.
+CPU packing and the omitted-field singleton default retain their existing paths.
+
+For a new single-view native run, add `max_microbatch_padded_tokens = 4096`
+under `[optimizer]`. Keep `microbatch_questions = 1`; it selects the historical
+singleton policy when the token field is omitted. No existing run definition
+opts in automatically. Baseline and online permutation modes are supported;
+paired modes are rejected because their view accounting is not a native forward
+shape.
+
+The candidate groups consecutive questions without changing their order. A
+multi-question group must satisfy `count * longest_encoded_length <= 4096`.
+Longer questions run as complete singletons, subject to the native model's hard
+`max_length` and `max_batch_tokens` limits. This is padded batching, with no
+sequence concatenation or truncation. Input validation precedes gradient reset.
+
+Losses retain the whole logical batch's weight denominator. Gradient clipping,
+AdamW, scheduler exposure, and moment policy still advance once per logical
+update, including partial batches. Batched floating-point operations can differ
+from singleton operations; numerical parity must be measured, not assumed.
+New source manifests and prospective run freezes are required. Historical
+freezes and receipts are not rewritten to authorize the candidate.
+
+Use `benchmarks/analysis/token_microbatch.py --help` for bounded native timing,
+parity, and memory checks. Synthetic shape results do not establish performance
+on the allocation distribution. Default promotion requires target CUDA BF16 /
+Flash measurements, acceptable loss/gradient/parameter/optimizer-state drift,
+and repeated updates within the run's peak allocated and reserved memory cap.

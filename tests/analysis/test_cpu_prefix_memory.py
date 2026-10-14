@@ -31,17 +31,17 @@ from benchmarks.analysis.torch.prefix.pairs import (
 from benchmarks.analysis.torch.prefix.pairs import (
     digest as source_digest,
 )
-from benchmarks.fixtures.kai import create_kai_bundle
+from benchmarks.fixtures.wyat import create_wyat_bundle
 from wyat import Candidate, Request
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.wire import read_object
 
 
 @pytest.fixture
-def base(tmp_path: Path) -> KaiScorer:
-    original = KaiScorer.from_directory(
-        create_kai_bundle(tmp_path / "kai"), max_length=512
+def base(tmp_path: Path) -> WyatScorer:
+    original = WyatScorer.from_directory(
+        create_wyat_bundle(tmp_path / "wyat"), max_length=512
     )
     config = copy.deepcopy(original.backbone.config)
     config.num_hidden_layers = 2
@@ -50,7 +50,7 @@ def base(tmp_path: Path) -> KaiScorer:
         torch.manual_seed(19)
         backbone = Qwen3Model(config)
     cast(nn.Module, backbone).eval()
-    return KaiScorer(
+    return WyatScorer(
         backbone,
         original.head,
         original.tokenizer,
@@ -77,7 +77,7 @@ def request(query: str = "read?", count: int = 2) -> Request:
 )
 @given(repeats=st.integers(1, 6), count=st.integers(2, 4))
 def test_both_common_paths_match_independent_full_and_original_stock(
-    base: KaiScorer,
+    base: WyatScorer,
     repeats: int,
     count: int,
 ) -> None:
@@ -127,7 +127,7 @@ def test_storage_inventory_counts_backing_allocation_once() -> None:
 
 
 def test_one_use_counts_returned_storage_after_reset_and_lowers_selected_pool(
-    base: KaiScorer,
+    base: WyatScorer,
 ) -> None:
     requests = (request("read " * 10), request("write " * 20))
     prefix = base.encode_request(requests[0]).ids[:2]
@@ -148,7 +148,7 @@ def test_one_use_counts_returned_storage_after_reset_and_lowers_selected_pool(
 @pytest.mark.parametrize("arm", ["retained", "one-use"])
 @pytest.mark.parametrize("kind", ["mismatch", "candidate", "query", "empty"])
 def test_whole_batch_fallback_keeps_original_admission(
-    base: KaiScorer,
+    base: WyatScorer,
     monkeypatch: pytest.MonkeyPatch,
     arm: Arm,
     kind: str,
@@ -183,7 +183,7 @@ def test_whole_batch_fallback_keeps_original_admission(
 
 
 @pytest.mark.parametrize("arm", ["retained", "one-use"])
-def test_original_input_errors_and_fresh_owner_scope(base: KaiScorer, arm: Arm) -> None:
+def test_original_input_errors_and_fresh_owner_scope(base: WyatScorer, arm: Arm) -> None:
     scorer = MemoryScorer(base, base.encode_request(request()).ids[:2], arm)
     with pytest.raises(ValueError, match="exceeds"):
         scorer.score_many((request(), request("read " * 600)))
@@ -398,7 +398,7 @@ def fake_study(monkeypatch: pytest.MonkeyPatch) -> None:
     def load(*args: object, **kwargs: object) -> FakeBase:
         return FakeBase()
 
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     monkeypatch.setattr(runner, "MemoryScorer", FakeMemory)
     monkeypatch.setattr(runner, "MemorySampler", FakeSampler)
     monkeypatch.setattr(runner, "read_reference", reference)

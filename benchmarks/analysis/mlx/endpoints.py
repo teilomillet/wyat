@@ -28,9 +28,9 @@ from benchmarks.analysis.evidence import freeze_sources, process_diagnostic
 from benchmarks.analysis.mlx.profile import ArrayMap, quality
 from benchmarks.analysis.reference import read_reference
 from wyat import Model, Request
-from wyat.backends.kai.mlx import MLXKaiScorer
-from wyat.backends.kai.readout import RotaryMap as RotaryMap
-from wyat.backends.kai.readout import endpoint_last_block
+from wyat.backends.wyat.mlx import MLXWyatScorer
+from wyat.backends.wyat.readout import RotaryMap as RotaryMap
+from wyat.backends.wyat.readout import endpoint_last_block
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -61,7 +61,7 @@ def endpoint_hidden(
     return normalize(hidden)
 
 
-class EndpointOnly(MLXKaiScorer):
+class EndpointOnly(MLXWyatScorer):
     def _logits(
         self, ids: mx.array, endpoints: mx.array, query_positions: mx.array
     ) -> mx.array:
@@ -71,7 +71,7 @@ class EndpointOnly(MLXKaiScorer):
 
 
 def score(
-    scorer: MLXKaiScorer, requests: Sequence[Request], batch_size: int
+    scorer: MLXWyatScorer, requests: Sequence[Request], batch_size: int
 ) -> list[list[float]]:
     values: list[list[float]] = []
     for start in range(0, len(requests), batch_size):
@@ -181,9 +181,9 @@ def study(output: Path, *, batch_size: int = 8) -> dict[str, object]:
                     "benchmarks/analysis/mlx/profile.py",
                     "benchmarks/analysis/reference.py",
                     "benchmarks/analysis/evidence.py",
-                    "wyat/backends/kai/mlx.py",
-                    "wyat/backends/kai/readout.py",
-                    "wyat/backends/kai/encoding.py",
+                    "wyat/backends/wyat/mlx.py",
+                    "wyat/backends/wyat/readout.py",
+                    "wyat/backends/wyat/encoding.py",
                     "wyat/benchmark.py",
                 )
             }
@@ -211,7 +211,7 @@ def study(output: Path, *, batch_size: int = 8) -> dict[str, object]:
         output.write_text(json.dumps(payload, indent=2) + "\n")
         cache_cap = 512 * 1024**2
         with bounded_cache(cache_cap) as previous_cap:
-            baseline = MLXKaiScorer.from_directory(
+            baseline = MLXWyatScorer.from_directory(
                 root / ".models/Decision-2.0-Kai-0.6B",
                 max_length=512,
                 token_cache_size=0,

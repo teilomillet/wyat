@@ -11,11 +11,12 @@ from pathlib import Path
 
 import pytest
 
+from wyat.input_rendering import input_rendering_policy
 from wyat.loading import native_artifact as artifact
 
 
 def test_head_identity_matches_historical_inspect_contract() -> None:
-    torch_runtime = pytest.importorskip("wyat.backends.kai.torch")
+    torch_runtime = pytest.importorskip("wyat.backends.wyat.torch")
     expected = hashlib.sha256(
         inspect.getsource(torch_runtime.CandidateHead).encode("utf-8")
     ).hexdigest()
@@ -62,7 +63,7 @@ def directory(tmp_path: Path) -> Path:
         "format": artifact.FORMAT,
         "model_id": "native-" + identity,
         "provenance": {},
-        "production_kai_compatible": False,
+        "production_wyat_compatible": False,
         "resume_supported": False,
         "contract": artifact.artifact_contract(),
         "adapter": {
@@ -82,6 +83,40 @@ def directory(tmp_path: Path) -> Path:
 
 def test_valid_inventory_is_accepted(directory: Path) -> None:
     assert artifact.validate_artifact(directory)["format"] == artifact.FORMAT
+
+
+def test_rendering_is_authenticated_and_changes_model_identity(directory: Path) -> None:
+    path = directory / artifact.MANIFEST
+    manifest = json.loads(path.read_text())
+    legacy_id = manifest["model_id"]
+    assert artifact.model_identity(manifest["files_sha256"]) == legacy_id
+    selected = input_rendering_policy("api-bank-schema-next-v1")
+    manifest["input_rendering"] = selected
+    with pytest.raises(ValueError, match="model identity"):
+        path.write_text(json.dumps(manifest))
+        artifact.validate_artifact(directory)
+    manifest["model_id"] = artifact.model_identity(manifest["files_sha256"], selected)
+    assert manifest["model_id"] != legacy_id
+    path.write_text(json.dumps(manifest))
+    assert artifact.validate_artifact(directory)["input_rendering"] == selected
+
+
+@pytest.mark.parametrize(
+    "policy",
+    [
+        None,
+        {},
+        {"mode": "unknown", "source_sha256": "0" * 64},
+        {"mode": "api-bank-schema-next-v1", "source_sha256": "0" * 64},
+    ],
+)
+def test_explicit_invalid_rendering_policy_is_rejected(directory: Path, policy) -> None:
+    path = directory / artifact.MANIFEST
+    manifest = json.loads(path.read_text())
+    manifest["input_rendering"] = policy
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="input rendering"):
+        artifact.validate_artifact(directory)
 
 
 @pytest.mark.parametrize("change", ["extra", "hash", "contract", "symlink"])

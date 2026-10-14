@@ -8,17 +8,17 @@ Default loading and CLI behavior retain full prefill. The shared tensor core
 preserves the ordinary forward arguments and CUDA precision policy.
 
 The programmatic entry point is
-`wyat.backends.kai.cpu.prefix.PrefixScorer`; install the `inference` extra for
+`wyat.backends.wyat.cpu.prefix.PrefixScorer`; install the `inference` extra for
 CPU use and the `server` extra when serving it. It implements the existing
 scorer contract:
 
 ```python
 from wyat import Candidate, Model, Request
-from wyat.backends.kai.cpu.prefix import PrefixScorer
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.cpu.prefix import PrefixScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.server import create_app
 
-base = KaiScorer.from_directory("/models/kai", device="cpu")
+base = WyatScorer.from_directory("/models/kai", device="cpu")
 example = Request(
     context="Classify customer banking support requests into the supplied intents.",
     query="I have a missing refund",

@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Protocol, cast
 
-from wyat.backends.kai.encoding import EncodedRequest
+from wyat.backends.wyat.encoding import EncodedRequest
 from wyat.benchmark import BenchmarkCycle
 from wyat.core import Request, decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow

@@ -106,7 +106,7 @@ def head_only(args: argparse.Namespace, result: dict[str, Any]) -> None:
     import torch
     from safetensors.torch import load_file
 
-    from wyat.backends.kai.torch import CandidateHead
+    from wyat.backends.wyat.torch import CandidateHead
 
     pinned_runtime(args)
     torch.set_num_threads(args.threads)

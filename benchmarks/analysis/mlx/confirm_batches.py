@@ -12,7 +12,7 @@ from benchmarks.analysis.evidence import freeze_sources, process_diagnostic
 from benchmarks.analysis.mlx.cache import DATASET_SHA256, memory, paired_orders, swap
 from benchmarks.analysis.reference import read_reference
 from wyat import Model
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -56,7 +56,7 @@ def confirm(model_path: Path, output: Path) -> dict[str, object]:
             "cache_telemetry": root / "benchmarks/analysis/mlx/cache.py",
             "evidence": root / "benchmarks/analysis/evidence.py",
             "reference": root / "benchmarks/analysis/reference.py",
-            "backend": root / "wyat/backends/kai/mlx.py",
+            "backend": root / "wyat/backends/wyat/mlx.py",
             "benchmark": root / "wyat/benchmark.py",
         },
         output,
@@ -70,7 +70,7 @@ def confirm(model_path: Path, output: Path) -> dict[str, object]:
     )
     if len(cases) != 77:
         raise ValueError("Confirmation requires every frozen development case")
-    scorer = MLXKaiScorer.from_directory(
+    scorer = MLXWyatScorer.from_directory(
         model_path, max_length=512, token_cache_size=0, device="gpu", compile=False
     )
     reference_path = root / "benchmarks/real/torch-fp32-reference77.json"

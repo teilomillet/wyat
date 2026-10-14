@@ -15,7 +15,7 @@ import mlx.core as mx  # noqa: E402
 from mlx_lm.models.qwen3 import ModelArgs, Qwen3Model  # noqa: E402
 
 from wyat import tasks  # noqa: E402
-from wyat.backends.kai.mlx import MLXCandidateHead  # noqa: E402
+from wyat.backends.wyat.mlx import MLXCandidateHead  # noqa: E402
 from wyat.loading import mlx as native  # noqa: E402
 
 

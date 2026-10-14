@@ -23,7 +23,7 @@ from benchmarks.analysis.reference import read_reference
 from benchmarks.analysis.torch.prefix.pairs import admit_history, digest
 from benchmarks.analysis.torch.threads import DATASET_SHA256
 from wyat import Model, Request
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -168,9 +168,9 @@ def source_paths(root: Path = ROOT) -> dict[str, Path]:
         "benchmark": root / "wyat/benchmark.py",
         "core": root / "wyat/core.py",
         "evaluation": root / "wyat/evaluation.py",
-        "backend": root / "wyat/backends/kai/torch.py",
-        "encoding": root / "wyat/backends/kai/encoding.py",
-        "artifact": root / "wyat/backends/kai/artifact.py",
+        "backend": root / "wyat/backends/wyat/torch.py",
+        "encoding": root / "wyat/backends/wyat/encoding.py",
+        "artifact": root / "wyat/backends/wyat/artifact.py",
         "qwen3": Path(modeling_qwen3.__file__),
         "maintained_cache": Path(cache_utils.__file__),
         "maintained_mask": Path(masking_utils.__file__),
@@ -306,7 +306,7 @@ def study(model: Path, output: Path, *, arm: Arm, repeat: int) -> bool:
         torch.set_num_threads(8)
         payload.update(phase="loading", before_load=asdict(memory_snapshot()))
         write()
-        base = KaiScorer.from_directory(
+        base = WyatScorer.from_directory(
             model, device="cpu", max_length=512, token_cache_size=0
         )
         if base.model_id != history["model_id"]:

@@ -555,3 +555,348 @@ def test_batch_actual_cardinality_must_match_reported_length(count: int) -> None
 
     with pytest.raises(ModelOutputError, match="request count"):
         Model(Backend(), "fixture").decide(request(1))
+
+
+def test_temperature_scaling_sharpens_and_softens_probabilities() -> None:
+    req = request(2)
+    scores = (2.0, 0.0)
+    # T = 1.0
+    dec_1 = decision_from_logits(req, scores, "fixture", temperature=1.0)
+    assert dec_1.scores == scores
+    assert dec_1.ranking == ("0", "1")
+    p0_1, p1_1 = dec_1.probabilities
+    assert p0_1 > p1_1
+
+    # T = 2.0 (higher entropy / softer)
+    dec_2 = decision_from_logits(req, scores, "fixture", temperature=2.0)
+    assert dec_2.scores == scores
+    assert dec_2.ranking == ("0", "1")
+    p0_2, p1_2 = dec_2.probabilities
+    assert p0_1 > p0_2 > 0.5
+
+    # T = 0.5 (lower entropy / sharper)
+    dec_half = decision_from_logits(req, scores, "fixture", temperature=0.5)
+    assert dec_half.scores == scores
+    assert dec_half.ranking == ("0", "1")
+    p0_half, p1_half = dec_half.probabilities
+    assert p0_half > p0_1
+
+
+@pytest.mark.parametrize(
+    "invalid_temp",
+    [0.0, -1.0, -0.01, float("nan"), float("inf"), -float("inf"), "1.0", True, False],
+)
+def test_temperature_validation_rejects_invalid_values(invalid_temp: object) -> None:
+    req = request(2)
+    scores = (1.0, 2.0)
+    error_msg = "temperature must be a positive finite number"
+    with pytest.raises(ValueError, match=error_msg):
+        decision_from_logits(
+            req, scores, "fixture", temperature=cast(float, invalid_temp)
+        )
+
+    with pytest.raises(ValueError, match=error_msg):
+        Model(FixedScorer(scores), "fixture", temperature=cast(float, invalid_temp))
+
+    model = Model(FixedScorer(scores), "fixture")
+    with pytest.raises(ValueError, match=error_msg):
+        model.decide(req, temperature=cast(float, invalid_temp))
+
+    with pytest.raises(ValueError, match=error_msg):
+        model.decide_many((req,), temperature=cast(float, invalid_temp))
+
+
+def test_temperature_none_rejected_in_constructor_and_logits() -> None:
+    req = request(2)
+    scores = (1.0, 2.0)
+    error_msg = "temperature must be a positive finite number"
+    with pytest.raises(ValueError, match=error_msg):
+        decision_from_logits(req, scores, "fixture", temperature=cast(float, None))
+
+    with pytest.raises(ValueError, match=error_msg):
+        Model(FixedScorer(scores), "fixture", temperature=cast(float, None))
+
+    model = Model(FixedScorer(scores), "fixture")
+    # None is the default sentinel meaning "use model.temperature"
+    dec = model.decide(req, temperature=None)
+    assert dec.scores == scores
+    batch = model.decide_many((req,), temperature=None)
+    assert batch[0].scores == scores
+
+
+def test_model_temperature_default_and_override() -> None:
+    scorer = FixedScorer([2.0, 0.0])
+    model = Model(scorer, "fixture", temperature=2.0)
+    assert model.temperature == 2.0
+
+    # Uses model.temperature = 2.0
+    dec = model.decide(request(2))
+    p0_t2 = math.exp(1.0) / (math.exp(1.0) + math.exp(0.0))
+    assert dec.probabilities[0] == pytest.approx(p0_t2)
+
+    # Per-call override temperature = 1.0
+    dec_t1 = model.decide(request(2), temperature=1.0)
+    p0_t1 = math.exp(2.0) / (math.exp(2.0) + math.exp(0.0))
+    assert dec_t1.probabilities[0] == pytest.approx(p0_t1)
+
+    # decide_many override
+    batch_dec = model.decide_many((request(2),), temperature=0.5)
+    p0_thalf = math.exp(4.0) / (math.exp(4.0) + math.exp(0.0))
+    assert batch_dec[0].probabilities[0] == pytest.approx(p0_thalf)
+
+
+def test_candidate_from_schema_renders_canonical_sorted_json() -> None:
+    schema_a: dict[str, object] = {
+        "name": "GetWeather",
+        "description": "Fetch weather for Genève",
+        "input_parameters": {
+            "city": {"type": "str", "required": True},
+            "days": {"type": "int", "default": 3, "scale": 1.5, "extra": None},
+        },
+        "tags": ["weather", "forecast"],
+    }
+    schema_b: dict[str, object] = {
+        "tags": ("weather", "forecast"),
+        "input_parameters": {
+            "days": {"extra": None, "scale": 1.5, "default": 3, "type": "int"},
+            "city": {"required": True, "type": "str"},
+        },
+        "description": "Fetch weather for Genève",
+        "name": "GetWeather",
+    }
+    cand_a = Candidate.from_schema("GetWeather", schema_a)
+    cand_b = Candidate.from_schema("GetWeather", schema_b)
+    assert cand_a == cand_b
+    assert cand_a.id == "GetWeather"
+    assert cand_a.text == (
+        '{"description":"Fetch weather for Genève",'
+        '"input_parameters":{"city":{"required":true,"type":"str"},'
+        '"days":{"default":3,"extra":null,"scale":1.5,"type":"int"}},'
+        '"name":"GetWeather","tags":["weather","forecast"]}'
+    )
+
+
+@pytest.mark.parametrize(
+    "bad_schema,match",
+    [
+        ({}, "nonempty mapping"),
+        ([], "nonempty mapping"),
+        ("not-a-dict", "nonempty mapping"),
+        ({"  ": "blank root key"}, "nonempty text"),
+        ({1: "non-string key"}, "candidate schema key"),
+        ({"key": "\ud800"}, "valid Unicode"),
+        ({"key": float("nan")}, "finite JSON values"),
+        ({"key": float("inf")}, "finite JSON values"),
+        ({"key": b"bytes"}, "finite JSON values"),
+        ({"key": {1, 2}}, "finite JSON values"),
+    ],
+)
+def test_candidate_from_schema_rejects_invalid_schemas(
+    bad_schema: object, match: str
+) -> None:
+    with pytest.raises(ValueError, match=match):
+        Candidate.from_schema("tool", cast(dict[str, object], bad_schema))
+
+
+def test_candidate_from_schema_rejects_cyclic_references() -> None:
+    cyclic_dict: dict[str, object] = {"name": "Loop"}
+    cyclic_dict["self"] = cyclic_dict
+    with pytest.raises(ValueError, match="cyclic"):
+        Candidate.from_schema("tool", cyclic_dict)
+
+    cyclic_list: list[object] = []
+    cyclic_list.append(cyclic_list)
+    with pytest.raises(ValueError, match="cyclic"):
+        Candidate.from_schema("tool", {"items": cyclic_list})
+
+
+def test_decision_abstention_and_uncertainty_properties() -> None:
+    req = request(3)
+    # Uniform scores -> zero gap/margin, maximum normalized entropy = 1.0
+    uniform = decision_from_logits(req, (1.0, 1.0, 1.0), "fixture")
+    assert uniform.score_gap == pytest.approx(0.0)
+    assert uniform.probability_margin == pytest.approx(0.0)
+    assert uniform.entropy == pytest.approx(math.log(3.0))
+    assert uniform.normalized_entropy == pytest.approx(1.0)
+
+    # Distinct scores under calibrated temperature
+    peaked = decision_from_logits(req, (3.0, 1.0, 0.0), "fixture", temperature=1.084)
+    assert peaked.score_gap == pytest.approx(2.0)
+    p0, p1, p2 = peaked.probabilities
+    assert peaked.probability_margin == pytest.approx(p0 - p1)
+    expected_entropy = -(p0 * math.log(p0) + p1 * math.log(p1) + p2 * math.log(p2))
+    assert peaked.entropy == pytest.approx(expected_entropy)
+    assert peaked.normalized_entropy == pytest.approx(expected_entropy / math.log(3.0))
+
+    # Single-candidate edge case
+    single = decision_from_logits(request(1), (2.5,), "fixture")
+    assert single.entropy == pytest.approx(0.0)
+    for prop in ("score_gap", "probability_margin", "normalized_entropy"):
+        with pytest.raises(ValueError, match="at least two candidates"):
+            getattr(single, prop)
+
+    # Invalid manual probability distributions rejected
+    for bad_probs in ((0.2, 0.2), (-0.1, 1.1), (1.2, -0.2)):
+        bad_dec = Decision("fixture", (1.0, 0.0), bad_probs, ("a", "b"))
+        for prop in ("probability_margin", "entropy", "normalized_entropy"):
+            with pytest.raises(ValueError, match="valid probability distribution"):
+                getattr(bad_dec, prop)
+
+
+def test_request_noul_score_and_choice_factories() -> None:
+    choice_req = Request.choice(
+        "Route request",
+        {"weather": "Get weather", "calendar": "Check calendar"},
+        context="User wants forecast",
+    )
+    assert choice_req.task == "choice"
+    assert choice_req.context == "User wants forecast"
+    assert choice_req.candidates == (
+        Candidate("weather", "Get weather"),
+        Candidate("calendar", "Check calendar"),
+    )
+
+    noul_default = Request.noul("Are all required parameters present?", context="City?")
+    assert noul_default.task == "noul"
+    assert noul_default.context == "City?"
+    assert noul_default.candidates == (
+        Candidate("false", "False."),
+        Candidate("true", "True."),
+    )
+    assert Request("Are all required parameters present?", task="noul") == Request.noul(
+        "Are all required parameters present?"
+    )
+
+    noul_custom = Request.noul(
+        "Abstain?",
+        false_text="Proceed with tool call.",
+        true_text="Abstain and ask clarifying question.",
+    )
+    assert noul_custom.candidates == (
+        Candidate("false", "Proceed with tool call."),
+        Candidate("true", "Abstain and ask clarifying question."),
+    )
+
+    score_req = Request.score(
+        "Rate tool safety",
+        ("Unsafe", "Needs review", "Safe"),
+        context="Read-only lookup",
+    )
+    assert score_req.task == "score"
+    assert score_req.context == "Read-only lookup"
+    assert score_req.candidates == (
+        Candidate("0", "Unsafe"),
+        Candidate("1", "Needs review"),
+        Candidate("2", "Safe"),
+    )
+
+    with pytest.raises(ValueError, match="at least two"):
+        Request.score("Rate", ("Only one",))
+
+
+def test_request_from_dict_supports_noul_default_and_score_rubric() -> None:
+    noul_req = request_from_dict(
+        {
+            "query": "Missing required argument?",
+            "task": "noul",
+            "context": "Book flight",
+        }
+    )
+    assert noul_req == Request.noul("Missing required argument?", context="Book flight")
+
+    score_req = request_from_dict(
+        {
+            "query": "Rate relevance",
+            "task": "score",
+            "candidates": ["Irrelevant", "Partial", "Exact"],
+        }
+    )
+    assert score_req == Request.score(
+        "Rate relevance", ("Irrelevant", "Partial", "Exact")
+    )
+
+    with pytest.raises(ValueError, match="request requires query and candidates"):
+        request_from_dict({"query": "Pick one", "task": "choice"})
+
+
+def test_decision_probability_true_and_expected_ordinal_value() -> None:
+    noul_req = Request.noul("Abstain?")
+    noul_dec = decision_from_logits(noul_req, (0.0, 2.0), "fixture")
+    expected_p_true = math.exp(2.0) / (math.exp(0.0) + math.exp(2.0))
+    assert noul_dec.probability_true == pytest.approx(expected_p_true)
+
+    with pytest.raises(ValueError, match="binary 'false' and 'true'"):
+        _ = decision_from_logits(request(2), (0.0, 1.0), "fixture").probability_true
+
+    score_req = Request.score("Quality", ("Low", "Medium", "High"))
+    score_dec = decision_from_logits(score_req, (0.0, 1.0, 2.0), "fixture")
+    p0, p1, p2 = score_dec.probabilities
+    assert score_dec.expected_ordinal_value == pytest.approx(0 * p0 + 1 * p1 + 2 * p2)
+
+    with pytest.raises(ValueError, match="at least two candidates"):
+        _ = decision_from_logits(
+            Request("Single", (Candidate("0", "Only"),)), (1.0,), "fixture"
+        ).expected_ordinal_value
+
+    with pytest.raises(ValueError, match="sequential '0'..'K-1'"):
+        _ = noul_dec.expected_ordinal_value
+
+
+def test_model_predict_and_logits_across_generic_and_native_scorers() -> None:
+    import wyat
+
+    record = {
+        "state": {"user": "Book a flight tomorrow"},
+        "questions": {
+            "route": {
+                "type": "choice",
+                "instructions": "Select tool",
+                "criteria": {"search": "Search flights", "cancel": "Cancel booking"},
+            },
+            "doubt": {
+                "type": "noul",
+                "instructions": "Is destination missing?",
+            },
+            "confidence": {
+                "type": "score",
+                "instructions": "Rate request completeness",
+                "criteria": ["Incomplete", "Partial", "Complete"],
+            },
+        },
+    }
+
+    class GenericMultiScorer:
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            out: list[tuple[float, ...]] = []
+            for req in requests:
+                if req.task == "choice":
+                    out.append((2.5, 0.5))
+                elif req.task == "noul":
+                    out.append((-1.0, 1.5))
+                else:
+                    out.append((1.0, 0.5, -0.5))
+            return out
+
+    generic_model = Model(GenericMultiScorer(), "generic-fixture")
+    raw_logits = generic_model.logits(record)
+    assert len(raw_logits) == 3
+    answers = generic_model.predict(record)
+    assert set(answers) == {"route", "doubt", "confidence"}
+    route_ans = answers["route"]
+    assert isinstance(route_ans, wyat.ChoiceAnswer)
+    assert route_ans.choice == "search"
+    doubt_ans = answers["doubt"]
+    assert isinstance(doubt_ans, wyat.NoulAnswer)
+    assert doubt_ans.option_ids == ("false", "true")
+    assert doubt_ans.probability_true > 0.5
+    conf_ans = answers["confidence"]
+    assert isinstance(conf_ans, wyat.ScoreAnswer)
+    assert 0.0 <= conf_ans.expected_ordinal_value <= 2.0
+
+    # Temperature override on Model.predict scales probabilities
+    cooled = generic_model.predict(record, temperature=0.5)
+    warmed = generic_model.predict(record, temperature=2.0)
+    assert isinstance(cooled["doubt"], wyat.NoulAnswer)
+    assert isinstance(warmed["doubt"], wyat.NoulAnswer)
+    assert cooled["doubt"].probability_true > doubt_ans.probability_true
+    assert warmed["doubt"].probability_true < doubt_ans.probability_true

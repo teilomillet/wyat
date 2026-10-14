@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import cast
 
 from wyat import Model
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import BenchmarkEngine, BenchmarkProtocol, benchmark_pair
 from wyat.core import decision_from_logits
 from wyat.evaluation import case_from_dict
@@ -30,7 +30,7 @@ reference_rows = reference["rows"]
 assert isinstance(reference_rows, list)
 assert hashlib.sha256(dataset.read_bytes()).hexdigest() == reference["dataset_sha256"]
 start = time.perf_counter()
-scorer = MLXKaiScorer.from_directory(
+scorer = MLXWyatScorer.from_directory(
     root / ".models/Decision-2.0-Kai-0.6B",
     max_length=512,
     device="gpu",
@@ -129,7 +129,7 @@ print(
     json.dumps({key: value for key, value in parity.items() if key != "rows"}),
     flush=True,
 )
-compiled = MLXKaiScorer(
+compiled = MLXWyatScorer(
     scorer.backbone,
     scorer.head,
     scorer.encoder,

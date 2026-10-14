@@ -27,7 +27,7 @@ SELECTION = (
 
 def freeze(args: argparse.Namespace) -> dict[str, Any]:
     from wyat import tasks
-    from wyat.backends.kai.encoding import load_tokenizer
+    from wyat.backends.wyat.encoding import load_tokenizer
 
     original = bench.read(args.original)
     bench.check_frozen(original)

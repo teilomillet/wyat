@@ -19,11 +19,11 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 from benchmarks.analysis.torch.prefix.production import study as original
 from benchmarks.analysis.torch.readout import confirm, scorer
 from benchmarks.analysis.torch.readout import study as assay
-from benchmarks.fixtures.kai import create_kai_bundle
+from benchmarks.fixtures.wyat import create_wyat_bundle
 from wyat import Candidate, Request
-from wyat.backends.kai.cpu.prefix import PrefixScorer
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.cpu.prefix import PrefixScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle, BenchmarkEngine, _run
 from wyat.core import decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow
@@ -31,8 +31,8 @@ from wyat.wire import read_object
 
 
 @pytest.fixture
-def base(tmp_path: Path) -> KaiScorer:
-    return KaiScorer.from_directory(create_kai_bundle(tmp_path / "kai"), max_length=512)
+def base(tmp_path: Path) -> WyatScorer:
+    return WyatScorer.from_directory(create_wyat_bundle(tmp_path / "wyat"), max_length=512)
 
 
 @settings(
@@ -42,7 +42,7 @@ def base(tmp_path: Path) -> KaiScorer:
 )
 @given(batch=st.integers(1, 3), length=st.integers(2, 9), count=st.integers(1, 5))
 def test_stock_early_blocks_offset_and_ordered_duplicate_readouts(
-    base: KaiScorer,
+    base: WyatScorer,
     batch: int,
     length: int,
     count: int,
@@ -67,7 +67,7 @@ def test_stock_early_blocks_offset_and_ordered_duplicate_readouts(
 
 
 def test_public_ragged_readouts_and_independent_snapshot_owners(
-    base: KaiScorer,
+    base: WyatScorer,
 ) -> None:
     requests = tuple(
         Request(
@@ -96,7 +96,7 @@ def test_public_ragged_readouts_and_independent_snapshot_owners(
 
 
 def test_full_batch_fallback_encodes_once_and_keeps_original_rows(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     resource = scorer.SelectedScorer(base, (1, 2))
     encoded = (
@@ -291,7 +291,7 @@ def fake(
         retain(assay._run(engine, cases))
         return events(engine.name == "selected")
 
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     monkeypatch.setattr(assay, "PrefixScorer", FakePrefix)
     monkeypatch.setattr(assay, "SelectedScorer", FakePrefix)
     monkeypatch.setattr(assay, "read_reference", reference)
@@ -574,6 +574,6 @@ def test_source_inventory_covers_current_runtime_and_experiment() -> None:
         "benchmarks/analysis/torch/readout/scorer.py",
         "benchmarks/analysis/torch/readout/study.py",
         "wyat/server.py",
-        "wyat/backends/kai/cpu/prefix.py",
+        "wyat/backends/wyat/cpu/prefix.py",
         "tests/analysis/cpu/readout/test_screen.py",
     } <= paths.keys()

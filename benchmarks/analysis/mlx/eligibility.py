@@ -17,7 +17,7 @@ from typing import Literal
 import numpy as np
 
 from benchmarks.analysis.evidence import freeze_sources
-from wyat.backends.kai.artifact import load_artifact, positive_integer
+from wyat.backends.wyat.artifact import load_artifact, positive_integer
 from wyat.wire import decode_json
 
 type Role = Literal["gate_proj", "up_proj", "down_proj"]
@@ -218,7 +218,7 @@ def study(model: Path, output: Path) -> int:
     frozen = freeze_sources(
         {
             "runner": Path(__file__),
-            "artifact": root / "wyat/backends/kai/artifact.py",
+            "artifact": root / "wyat/backends/wyat/artifact.py",
             "wire": root / "wyat/wire.py",
             "numpy": Path(np.__file__),
             "tests": root / "tests/analysis/test_mlx_eligibility.py",

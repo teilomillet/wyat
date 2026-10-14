@@ -14,14 +14,14 @@ import mlx.core as mx
 
 from benchmarks.analysis.mlx.profile import quality
 from wyat import Model, Request
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import BenchmarkEngine, BenchmarkProtocol, benchmark_pair
 from wyat.evaluation import case_from_dict
 from wyat.wire import decode_json
 
 
-class ExactWidth(MLXKaiScorer):
+class ExactWidth(MLXWyatScorer):
     """Experimental packing change; causal positions and forward stay identical."""
 
     def score_many(self, requests: Sequence[Request]) -> list[list[float]]:
@@ -121,7 +121,7 @@ def main() -> None:
     assert dataset_hash == reference["dataset_sha256"]
     reference_rows = reference["rows"]
     assert isinstance(reference_rows, list)
-    scorer = MLXKaiScorer.from_directory(
+    scorer = MLXWyatScorer.from_directory(
         root / ".models/Decision-2.0-Kai-0.6B",
         max_length=512,
         token_cache_size=0,
@@ -196,7 +196,7 @@ def main() -> None:
         "model_id": scorer.model_id,
         "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "backend_sha256": hashlib.sha256(
-            (root / "wyat/backends/kai/mlx.py").read_bytes()
+            (root / "wyat/backends/wyat/mlx.py").read_bytes()
         ).hexdigest(),
         "reference_sha256": hashlib.sha256(
             (root / "benchmarks/real/torch-fp32-reference77.json").read_bytes()

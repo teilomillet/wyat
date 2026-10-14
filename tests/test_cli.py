@@ -3,6 +3,8 @@ from __future__ import annotations
 import importlib
 import io
 import json
+import math
+import selectors
 import subprocess
 import sys
 from collections.abc import Iterator, Sequence
@@ -13,7 +15,7 @@ from types import ModuleType
 import pytest
 
 from wyat import cli
-from wyat.core import Model, Request
+from wyat.core import Decision, Model, Request
 
 
 @pytest.mark.parametrize(
@@ -223,6 +225,120 @@ def test_decide_streams_jsonl_with_explicit_batches(
     ]
 
 
+@pytest.mark.parametrize("batch_size,count", [(1, 0), (1, 3), (2, 4), (2, 3)])
+def test_decide_only_calls_nonempty_batches_and_flushes_each_once(
+    monkeypatch: pytest.MonkeyPatch, batch_size: int, count: int
+) -> None:
+    install_model(monkeypatch)
+    calls: list[int] = []
+    decide_many = Model.decide_many
+
+    def observe(
+        model: Model, requests: Sequence[Request], *, temperature: float | None = None
+    ) -> tuple[Decision, ...]:
+        calls.append(len(requests))
+        return decide_many(model, requests, temperature=temperature)
+
+    class Output(io.StringIO):
+        def __init__(self) -> None:
+            super().__init__()
+            self.flushed_rows: list[int] = []
+
+        def flush(self) -> None:
+            self.flushed_rows.append(len(self.getvalue().splitlines()))
+            super().flush()
+
+    output = Output()
+    monkeypatch.setattr(Model, "decide_many", observe)
+    monkeypatch.setattr(sys, "stdin", io.StringIO((json.dumps(BODY) + "\n") * count))
+    monkeypatch.setattr(sys, "stdout", output)
+    args = ["decide", "local-fixture"]
+    if batch_size != 1:
+        args.extend(["--batch-size", str(batch_size)])
+    assert cli.main(args) == 0
+    expected_sizes = [batch_size] * (count // batch_size)
+    if count % batch_size:
+        expected_sizes.append(count % batch_size)
+    assert calls == expected_sizes
+    assert output.flushed_rows == [
+        sum(expected_sizes[: i + 1]) for i in range(len(calls))
+    ]
+    assert len(output.getvalue().splitlines()) == count
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX subprocess pipe readiness")
+@pytest.mark.parametrize("batch_size", [1, 2])
+def test_decide_delivers_completed_batches_through_pipe_before_eof(
+    batch_size: int,
+) -> None:
+    source = """
+import sys
+from wyat import cli
+from wyat.core import Model
+class Scorer:
+    def score_many(self, requests):
+        return [(1.0, 2.0) for _ in requests]
+cli.load = lambda *args, **kwargs: Model(Scorer(), 'fixture')
+raise SystemExit(cli.main(['decide', 'fixture', '--batch-size', sys.argv[1]]))
+"""
+    root = Path(__file__).resolve().parents[1]
+    # -E ignores PYTHONUNBUFFERED: the child must exercise buffered pipe output.
+    child = subprocess.Popen(
+        [sys.executable, "-E", "-S", "-c", source, str(batch_size)],
+        cwd=root,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    assert (
+        child.stdin is not None
+        and child.stdout is not None
+        and child.stderr is not None
+    )
+    try:
+        with selectors.DefaultSelector() as selector:
+            selector.register(child.stdout, selectors.EVENT_READ)
+            for _ in range(2):
+                child.stdin.write((json.dumps(BODY) + "\n").encode() * batch_size)
+                child.stdin.flush()
+                assert selector.select(timeout=5), (
+                    "completed batch was buffered until EOF"
+                )
+                for _ in range(batch_size):
+                    assert json.loads(child.stdout.readline())["selected"] == "b"
+                assert child.poll() is None
+        child.stdin.close()
+        assert child.wait(timeout=5) == 0
+        assert child.stdout.read() == b""
+        assert child.stderr.read() == b""
+    finally:
+        if child.poll() is None:
+            child.kill()
+        child.wait(timeout=5)
+        child.stdin.close()
+        child.stdout.close()
+        child.stderr.close()
+
+
+def test_broken_pipe_during_batch_flush_is_quiet_success(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    scorer = install_model(monkeypatch)
+
+    class ClosedPipe(io.StringIO):
+        def flush(self) -> None:
+            raise BrokenPipeError("downstream closed pipe")
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO((json.dumps(BODY) + "\n") * 2))
+    with monkeypatch.context() as patch:
+        output = ClosedPipe()
+        patch.setattr(sys, "stdout", output)
+        assert cli.main(["decide", "local-fixture"]) == 0
+        assert len(output.getvalue().splitlines()) == 1
+    assert len(scorer.calls) == 1
+    assert capsys.readouterr().err == ""
+
+
 @pytest.mark.parametrize(
     "line", ["{", '{"query":NaN}', '{"query":1e999}', '{"query":"a","query":"b"}']
 )
@@ -422,3 +538,103 @@ def test_help_preserves_already_read_strict_utf8_stdin(
             cli.main(["--help"])
         assert error.value.code == 0
         assert stdin.read() == "lready read"
+
+
+@pytest.mark.parametrize(
+    "invalid", ["0", "-1.5", "-0.01", "nan", "inf", "-inf", "not-a-number"]
+)
+def test_cli_rejects_invalid_temperature(
+    capsys: pytest.CaptureFixture[str], invalid: str
+) -> None:
+    with pytest.raises(SystemExit) as error:
+        cli.main(["decide", "fixture", "--temperature", invalid])
+    assert error.value.code == 2
+    output = capsys.readouterr()
+    assert "--temperature" in output.err
+
+
+def test_cli_decide_passes_temperature(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    class FixedScorer:
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            return [(2.0, 0.0) for _ in requests]
+
+    recorded_temp: list[float] = []
+
+    def mock_load(path: str, **kwargs: object) -> Model:
+        temp = float(kwargs.get("temperature", 1.0))  # type: ignore[arg-type]
+        recorded_temp.append(temp)
+        return Model(FixedScorer(), "fixture", temperature=temp)
+
+    monkeypatch.setattr(cli, "load", mock_load)
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(BODY) + "\n"))
+
+    result = cli.main(["decide", "local-path", "--temperature", "2.0"])
+    assert result == 0
+    assert recorded_temp == [2.0]
+    out = capsys.readouterr().out
+    decision = json.loads(out)
+    expected_p0 = math.exp(1.0) / (math.exp(1.0) + math.exp(0.0))
+    assert decision["probabilities"][0] == pytest.approx(expected_p0)
+
+
+def test_cli_forwards_prefix_cache_size_and_serve_queue_options(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    load_kwargs: list[dict[str, object]] = []
+    app_kwargs: list[dict[str, object]] = []
+
+    def mock_load(path: str, **kwargs: object) -> Model:
+        load_kwargs.append(dict(kwargs))
+        return Model(Scorer(), "fixture")
+
+    monkeypatch.setattr(cli, "load", mock_load)
+
+    server_mod = ModuleType("wyat.server")
+
+    def fake_create_app(model: Model, **kwargs: object) -> object:
+        app_kwargs.append(dict(kwargs))
+        return "fake-app"
+
+    monkeypatch.setattr(server_mod, "create_app", fake_create_app, raising=False)
+    monkeypatch.setitem(sys.modules, "wyat.server", server_mod)
+
+    uvicorn_mod = ModuleType("uvicorn")
+    monkeypatch.setattr(uvicorn_mod, "run", lambda app, **kwargs: None, raising=False)
+    monkeypatch.setitem(sys.modules, "uvicorn", uvicorn_mod)
+
+    assert (
+        cli.main(
+            [
+                "serve",
+                "local-path",
+                "--prefix-cache-size",
+                "24",
+                "--max-queue-size",
+                "12",
+                "--queue-timeout",
+                "15.5",
+            ]
+        )
+        == 0
+    )
+    assert load_kwargs[0]["prefix_cache_size"] == 24
+    assert app_kwargs[0] == {
+        "max_body_bytes": 1_048_576,
+        "max_queue_size": 12,
+        "queue_timeout": 15.5,
+        "log_access": True,
+    }
+
+    assert cli.main(["serve", "local-path", "--no-access-log"]) == 0
+    assert app_kwargs[1]["log_access"] is False
+
+    for bad_args in (
+        ["decide", "local", "--prefix-cache-size", "-1"],
+        ["serve", "local", "--max-queue-size", "-1"],
+        ["serve", "local", "--queue-timeout", "0"],
+    ):
+        with pytest.raises(SystemExit) as error:
+            cli.main(bad_args)
+        assert error.value.code == 2

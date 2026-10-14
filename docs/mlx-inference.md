@@ -1,7 +1,7 @@
 # Native MLX inference
 
 Wyat uses [MLX-LM's Qwen3 backbone](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py)
-for Apple Silicon. The runtime reads a local Wyat or Kai choice checkpoint directly;
+for Apple Silicon. The runtime reads a local Wyat checkpoint directly;
 there is no model conversion, downloaded Python execution, vocabulary projection,
 generation loop, or persistent KV cache in the default scorer.
 
@@ -29,7 +29,7 @@ stays FP32, including its exact GELU and LayerNorm with
 epsilon `1e-5`. No quantization or reduced-precision approximation is enabled.
 
 With MLX 0.32.3 and the `applegpu_g16s` architecture, eager GPU inference uses
-Metal TensorOps for the supported Kai projection shapes. Eligible bias-free
+Metal TensorOps for the supported Wyat projection shapes. Eligible bias-free
 layers use exact BF16 checkpoint values in independent inference storage; an
 FP32 checkpoint weight is compressed only when every bit survives the conversion.
 Activations, accumulation and outputs remain FP32. Split reductions preserve MLX's partition
@@ -66,10 +66,10 @@ the prefix's K/V state and computes the final block only at decision readouts:
 
 ```python
 from wyat import Model
-from wyat.backends.kai.mlx import MLXKaiScorer
-from wyat.backends.kai.prefix import PrefixScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
+from wyat.backends.wyat.prefix import PrefixScorer
 
-base = MLXKaiScorer.from_directory("/path/to/kai", device="gpu", compile=False)
+base = MLXWyatScorer.from_directory("/path/to/wyat-model", device="gpu", compile=False)
 # Choose a length shared by your encoded requests, before all candidate readouts.
 # request is the representative Request above; 3 is an example, not a speed policy.
 prefix = base.encode_request(request).ids[:3]

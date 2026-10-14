@@ -19,16 +19,16 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from benchmarks.analysis.torch.prefix.cache import PrefixScorer
 from benchmarks.analysis.torch.prefix.study import study
-from benchmarks.fixtures.kai import create_kai_bundle
+from benchmarks.fixtures.wyat import create_wyat_bundle
 from wyat import Candidate, Request
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.wire import read_object
 
 
 @pytest.fixture
-def base(tmp_path: Path) -> KaiScorer:
-    return KaiScorer.from_directory(create_kai_bundle(tmp_path / "kai"), max_length=512)
+def base(tmp_path: Path) -> WyatScorer:
+    return WyatScorer.from_directory(create_wyat_bundle(tmp_path / "wyat"), max_length=512)
 
 
 def request(query: str = "read?", count: int = 2) -> Request:
@@ -39,7 +39,7 @@ def request(query: str = "read?", count: int = 2) -> Request:
     )
 
 
-def hidden(base: KaiScorer, ids: torch.Tensor, candidate: PrefixScorer) -> torch.Tensor:
+def hidden(base: WyatScorer, ids: torch.Tensor, candidate: PrefixScorer) -> torch.Tensor:
     with torch.inference_mode():
         output = cast(
             BaseModelOutputWithPast,
@@ -64,7 +64,7 @@ def hidden(base: KaiScorer, ids: torch.Tensor, candidate: PrefixScorer) -> torch
     batch=st.integers(1, 3),
 )
 def test_cached_suffix_matches_independent_full_model_and_future_causality(
-    base: KaiScorer, prefix_length: int, suffix_length: int, batch: int
+    base: WyatScorer, prefix_length: int, suffix_length: int, batch: int
 ) -> None:
     vocab = base.backbone.config.vocab_size
     prefix = tuple((index * 3 + 1) % vocab for index in range(prefix_length))
@@ -87,7 +87,7 @@ def test_cached_suffix_matches_independent_full_model_and_future_causality(
 
 
 def test_fresh_owners_and_interleaved_calls_preserve_exact_prefix(
-    base: KaiScorer,
+    base: WyatScorer,
 ) -> None:
     candidate = PrefixScorer(base, (1, 2, 3))
     snapshots = tuple((key.clone(), value.clone()) for key, value in candidate._states)
@@ -113,7 +113,7 @@ def test_fresh_owners_and_interleaved_calls_preserve_exact_prefix(
     assert first.get_seq_length() == second.get_seq_length() == 3
 
 
-def test_multiple_layers_reuse_state_without_baseline_changes(base: KaiScorer) -> None:
+def test_multiple_layers_reuse_state_without_baseline_changes(base: WyatScorer) -> None:
     config = copy.deepcopy(base.backbone.config)
     config.num_hidden_layers = 2
     config.layer_types = ["full_attention", "full_attention"]
@@ -121,7 +121,7 @@ def test_multiple_layers_reuse_state_without_baseline_changes(base: KaiScorer) -
         torch.manual_seed(19)
         backbone = Qwen3Model(config)
     cast(nn.Module, backbone).eval()
-    scorer = KaiScorer(
+    scorer = WyatScorer(
         backbone,
         base.head,
         base.tokenizer,
@@ -145,7 +145,7 @@ def test_multiple_layers_reuse_state_without_baseline_changes(base: KaiScorer) -
     )
 
 
-def test_maintained_mask_is_exact_absolute_offset_oracle(base: KaiScorer) -> None:
+def test_maintained_mask_is_exact_absolute_offset_oracle(base: WyatScorer) -> None:
     candidate = PrefixScorer(base, (1, 2, 3, 4, 5))
     cache = candidate.fork(2)
     with torch.inference_mode():
@@ -163,7 +163,7 @@ def test_maintained_mask_is_exact_absolute_offset_oracle(base: KaiScorer) -> Non
     assert mask[0, 0, 0, :6].all().item() and not mask[0, 0, 0, 6:].any().item()
 
 
-def test_ragged_scorer_parity_order_and_baseline_ownership(base: KaiScorer) -> None:
+def test_ragged_scorer_parity_order_and_baseline_ownership(base: WyatScorer) -> None:
     requests = (request(), request("write? " * 4, 3))
     prefix = base.encode_request(requests[0]).ids[:2]
     candidate = PrefixScorer(base, prefix)
@@ -185,7 +185,7 @@ def test_ragged_scorer_parity_order_and_baseline_ownership(base: KaiScorer) -> N
 
 @pytest.mark.parametrize("overlap", ["mismatch", "candidate", "query", "empty"])
 def test_one_nonadmitted_row_falls_back_whole_batch(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, overlap: str
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, overlap: str
 ) -> None:
     requests = (request(), request("write?"))
     row = base.encode_request(requests[0])
@@ -216,7 +216,7 @@ def test_one_nonadmitted_row_falls_back_whole_batch(
     assert calls == [requests]
 
 
-def test_original_admission_is_not_bypassed_by_prefix(base: KaiScorer) -> None:
+def test_original_admission_is_not_bypassed_by_prefix(base: WyatScorer) -> None:
     candidate = PrefixScorer(base, base.encode_request(request()).ids[:2])
     with pytest.raises(ValueError, match="exceeds"):
         candidate.score_many((request(), request("read " * 600)))
@@ -227,12 +227,12 @@ def test_original_admission_is_not_bypassed_by_prefix(base: KaiScorer) -> None:
 @pytest.mark.parametrize(
     "prefix", [[], (), (True,), (-1,), (10**8,), (1.0,), (1,) * 512]
 )
-def test_invalid_tuple_prefix_rejected(base: KaiScorer, prefix: object) -> None:
+def test_invalid_tuple_prefix_rejected(base: WyatScorer, prefix: object) -> None:
     with pytest.raises((TypeError, ValueError), match="Prefix"):
         PrefixScorer(base, cast(tuple[int, ...], prefix))
 
 
-def test_nondefault_rope_rejected_before_prefill(base: KaiScorer) -> None:
+def test_nondefault_rope_rejected_before_prefill(base: WyatScorer) -> None:
     base.backbone.config.rope_parameters = {
         "rope_type": "dynamic",
         "factor": 2.0,
@@ -244,7 +244,7 @@ def test_nondefault_rope_rejected_before_prefill(base: KaiScorer) -> None:
 
 @pytest.mark.parametrize("condition", ["train", "half", "eager"])
 def test_invalid_runtime_rejected_before_prefill(
-    base: KaiScorer, condition: str
+    base: WyatScorer, condition: str
 ) -> None:
     if condition == "train":
         cast(nn.Module, base.backbone).train()
@@ -266,7 +266,7 @@ def test_native_flags_failure_retained_before_model_load(
     def forbidden_load(*args: object, **kwargs: object) -> None:
         raise AssertionError("No model load before native flags")
 
-    monkeypatch.setattr(KaiScorer, "from_directory", forbidden_load)
+    monkeypatch.setattr(WyatScorer, "from_directory", forbidden_load)
     prior = torch.get_num_threads()
     output = tmp_path / "screen.json"
     with pytest.raises(ValueError, match="native HF"):
@@ -289,7 +289,7 @@ def test_loading_failure_retains_flags_and_restores_threads(
     def failed_load(*args: object, **kwargs: object) -> None:
         raise ValueError("deliberate artifact failure")
 
-    monkeypatch.setattr(KaiScorer, "from_directory", failed_load)
+    monkeypatch.setattr(WyatScorer, "from_directory", failed_load)
     prior = torch.get_num_threads()
     output = tmp_path / "screen.json"
     with pytest.raises(ValueError, match="deliberate artifact failure"):

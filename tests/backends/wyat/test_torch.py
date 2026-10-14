@@ -10,24 +10,24 @@ from pathlib import Path
 
 import pytest
 import torch
-from fixtures.kai import create_kai_bundle
+from fixtures.wyat import create_wyat_bundle
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from safetensors.torch import load_file, save_file
 from torch.nn import functional as F
 
 from wyat import Candidate, Request
-from wyat.backends.kai.torch import CandidateHead, KaiScorer, _config
+from wyat.backends.wyat.torch import CandidateHead, WyatScorer, _config
 
 
 @pytest.fixture
 def bundle(tmp_path: Path) -> Path:
-    return create_kai_bundle(tmp_path / "kai")
+    return create_wyat_bundle(tmp_path / "wyat")
 
 
 @pytest.fixture
-def scorer(bundle: Path) -> KaiScorer:
-    return KaiScorer.from_directory(bundle, max_length=512, token_cache_size=256)
+def scorer(bundle: Path) -> WyatScorer:
+    return WyatScorer.from_directory(bundle, max_length=512, token_cache_size=256)
 
 
 def request(
@@ -46,7 +46,7 @@ def request(
 
 
 def reference_encoding(
-    scorer: KaiScorer, value: Request
+    scorer: WyatScorer, value: Request
 ) -> tuple[tuple[int, ...], tuple[int, ...], int]:
     prefix = (
         "Context:\n"
@@ -127,7 +127,7 @@ def test_head_matches_independent_formula(rows: int, choices: int, seed: int) ->
 
 
 def test_load_and_score_matches_independent_encoding_and_head(
-    scorer: KaiScorer,
+    scorer: WyatScorer,
 ) -> None:
     values = [request(), request(query="世界?", choices=("write", "read", "é"))]
     encoded = [reference_encoding(scorer, value) for value in values]
@@ -163,8 +163,8 @@ def test_load_and_score_matches_independent_encoding_and_head(
 
 
 def test_token_cache_preserves_order_unicode_and_bounds(bundle: Path) -> None:
-    cached = KaiScorer.from_directory(bundle, max_length=512, token_cache_size=2)
-    uncached = KaiScorer.from_directory(bundle, max_length=512, token_cache_size=0)
+    cached = WyatScorer.from_directory(bundle, max_length=512, token_cache_size=2)
+    uncached = WyatScorer.from_directory(bundle, max_length=512, token_cache_size=0)
     for texts in [("é", "世界", "<option>"), ("<option>", "世界", "é"), ("a", "b")]:
         value = request(choices=texts)
         assert cached.encode_request(value) == reference_encoding(cached, value)
@@ -173,7 +173,7 @@ def test_token_cache_preserves_order_unicode_and_bounds(bundle: Path) -> None:
         assert cached._option_tokens.cache_info().currsize <= 2
 
 
-def test_cache_does_not_hide_changed_prefix(scorer: KaiScorer) -> None:
+def test_cache_does_not_hide_changed_prefix(scorer: WyatScorer) -> None:
     first = scorer.encode_request(request(context="read"))
     second = scorer.encode_request(request(context="write"))
     assert first.ids != second.ids
@@ -181,7 +181,7 @@ def test_cache_does_not_hide_changed_prefix(scorer: KaiScorer) -> None:
 
 
 def test_token_cache_is_opt_in(bundle: Path) -> None:
-    scorer = KaiScorer.from_directory(bundle, max_length=512)
+    scorer = WyatScorer.from_directory(bundle, max_length=512)
     scorer.encode_request(request())
     scorer.encode_request(request())
     assert scorer._option_tokens.cache_info().maxsize == 0
@@ -207,7 +207,7 @@ def test_rejects_unsupported_checkpoint_contract(
     metadata[field] = value
     path.write_text(json.dumps(metadata))
     with pytest.raises(ValueError):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 def test_rejects_missing_backbone_weight(bundle: Path) -> None:
@@ -216,7 +216,7 @@ def test_rejects_missing_backbone_weight(bundle: Path) -> None:
     state.pop(next(iter(state)))
     save_file(state, path)
     with pytest.raises(ValueError, match="Backbone weights"):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 @pytest.mark.parametrize(
@@ -228,17 +228,17 @@ def test_truncated_safetensors_body_uses_public_load_error(
     path = bundle / name
     # Keep the valid header so the tensor loader, not header validation, fails.
     path.write_bytes(path.read_bytes()[:-1])
-    with pytest.raises(ValueError, match="Malformed Kai .* Safetensors weights"):
-        KaiScorer.from_directory(bundle, max_length=512)
+    with pytest.raises(ValueError, match="Malformed Wyat .* Safetensors weights"):
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 def test_model_identity_changes_with_weights(bundle: Path) -> None:
-    first = KaiScorer.from_directory(bundle, max_length=512).model_id
+    first = WyatScorer.from_directory(bundle, max_length=512).model_id
     path = bundle / "decision_head.safetensors"
     state = load_file(path)
     state["scalar.weight"] += 0.01
     save_file(state, path)
-    second = KaiScorer.from_directory(bundle, max_length=512).model_id
+    second = WyatScorer.from_directory(bundle, max_length=512).model_id
     assert first != second
 
 
@@ -252,7 +252,7 @@ def test_rejects_head_dtype_and_nonfinite(bundle: Path, kind: str) -> None:
         state["scalar.weight"] = state["scalar.weight"].to(getattr(torch, kind))
     save_file(state, path)
     with pytest.raises(ValueError, match="float32|Nonfinite"):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 @pytest.mark.parametrize("kind", ["int64", "nan"])
@@ -266,24 +266,24 @@ def test_rejects_backbone_dtype_and_nonfinite(bundle: Path, kind: str) -> None:
         state[name] = state[name].to(torch.int64)
     save_file(state, path)
     with pytest.raises(ValueError, match="dtype|Nonfinite"):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 def test_rejects_ambiguous_metadata(bundle: Path) -> None:
     path = bundle / "decision_config.json"
     path.write_text('{"head_dim":8,"head_dim":9}')
     with pytest.raises(ValueError, match="duplicate"):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 def test_manifest_changes_model_identity_and_cap(bundle: Path) -> None:
-    before = KaiScorer.from_directory(bundle, max_length=512).model_id
+    before = WyatScorer.from_directory(bundle, max_length=512).model_id
     path = bundle / "MODEL_MANIFEST.json"
     path.write_text(json.dumps({"profile": "qwen-full", "max_input_tokens": 256}))
-    after = KaiScorer.from_directory(bundle, max_length=256).model_id
+    after = WyatScorer.from_directory(bundle, max_length=256).model_id
     assert before != after
     with pytest.raises(ValueError, match="checkpoint limit"):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 def test_declared_manifest_digest_detects_weight_drift(bundle: Path) -> None:
@@ -295,12 +295,12 @@ def test_declared_manifest_digest_detects_weight_drift(bundle: Path) -> None:
         "files_sha256": {"decision_head.safetensors": digest},
     }
     (bundle / "MODEL_MANIFEST.json").write_text(json.dumps(manifest))
-    KaiScorer.from_directory(bundle, max_length=512)
+    WyatScorer.from_directory(bundle, max_length=512)
     state = load_file(path)
     state["scalar.weight"] += 0.01
     save_file(state, path)
     with pytest.raises(ValueError, match="declared digest"):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
 @pytest.mark.parametrize(
@@ -322,12 +322,12 @@ def test_declared_manifest_hash_table_rejects_malformed_digest(
     }
     (bundle / "MODEL_MANIFEST.json").write_text(json.dumps(manifest))
     with pytest.raises(ValueError, match="64-hex"):
-        KaiScorer.from_directory(bundle, max_length=512)
+        WyatScorer.from_directory(bundle, max_length=512)
 
 
-def test_no_truncation_or_nonchoice(scorer: KaiScorer, bundle: Path) -> None:
+def test_no_truncation_or_nonchoice(scorer: WyatScorer, bundle: Path) -> None:
     with pytest.raises(ValueError, match="checkpoint limit"):
-        KaiScorer.from_directory(bundle, max_length=513)
+        WyatScorer.from_directory(bundle, max_length=513)
     with pytest.raises(ValueError, match="exceeds max_length"):
         scorer.encode_request(request(query="read " * 512))
     value = Request(
@@ -352,7 +352,7 @@ def test_no_truncation_or_nonchoice(scorer: KaiScorer, bundle: Path) -> None:
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 def test_segmented_token_contract_property(
-    scorer: KaiScorer, descriptions: list[str]
+    scorer: WyatScorer, descriptions: list[str]
 ) -> None:
     # The fixture has immutable weights; cache content cannot change token IDs.
     value = request(choices=descriptions)
@@ -375,8 +375,8 @@ def test_release_rotary_config_preserves_theta() -> None:
 
 
 def test_eager_and_sdpa_same_fixture_decisions(bundle: Path) -> None:
-    sdpa = KaiScorer.from_directory(bundle, max_length=512, attention="sdpa")
-    eager = KaiScorer.from_directory(bundle, max_length=512, attention="eager")
+    sdpa = WyatScorer.from_directory(bundle, max_length=512, attention="sdpa")
+    eager = WyatScorer.from_directory(bundle, max_length=512, attention="eager")
     values = [request(), request(query="write?", choices=("a", "b", "c"))]
     actual = torch.tensor(sdpa.score_many(values)[0])
     expected = torch.tensor(eager.score_many(values)[0])
@@ -394,7 +394,7 @@ def test_eager_and_sdpa_same_fixture_decisions(bundle: Path) -> None:
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 def test_causal_right_padding_cannot_change_selected_endpoints(
-    scorer: KaiScorer, context_lengths: list[int], padding_id: int
+    scorer: WyatScorer, context_lengths: list[int], padding_id: int
 ) -> None:
     """Independent challenge: arbitrary future pads cannot reach valid endpoints."""
     values = [
@@ -428,7 +428,7 @@ def test_causal_right_padding_cannot_change_selected_endpoints(
         )
 
 
-def test_exact_candidate_ties_survive_ragged_batching(scorer: KaiScorer) -> None:
+def test_exact_candidate_ties_survive_ragged_batching(scorer: WyatScorer) -> None:
     with torch.no_grad():
         scorer.head.key.weight.zero_()
         scorer.head.scalar.weight.zero_()

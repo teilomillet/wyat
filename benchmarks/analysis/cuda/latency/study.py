@@ -46,9 +46,9 @@ from benchmarks.analysis.cuda.study import (
 from benchmarks.analysis.evidence import freeze_sources
 from benchmarks.analysis.reference import read_reference
 from wyat import Model
-from wyat.backends.kai.artifact import load_artifact
-from wyat.backends.kai.encoding import EncodedRequest, KaiEncoder
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.artifact import load_artifact
+from wyat.backends.wyat.encoding import EncodedRequest, WyatEncoder
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -104,7 +104,7 @@ class ReferenceInput:
     """Validate the exact tokenizer contract before loading checkpoint tensors."""
 
     model_id: str
-    encoder: KaiEncoder
+    encoder: WyatEncoder
 
     def encode_request(self, request: Request) -> EncodedRequest:
         return self.encoder.encode_request(request)
@@ -591,7 +591,7 @@ def study(
         write()
         inputs = ReferenceInput(
             artifact.model_id,
-            KaiEncoder.from_artifact(artifact, max_length=512, token_cache_size=0),
+            WyatEncoder.from_artifact(artifact, max_length=512, token_cache_size=0),
         )
         reference = read_reference(
             ROOT / REFERENCE, cases, inputs, dataset_sha256=DATA_SHA
@@ -622,7 +622,7 @@ def study(
         payload["occupancy_before_load"] = occupancy()
         write()
         torch.set_num_threads(8)
-        base = KaiScorer.from_directory(
+        base = WyatScorer.from_directory(
             model, device="cpu", max_length=512, token_cache_size=0
         )
         read_reference(ROOT / REFERENCE, cases, base, dataset_sha256=DATA_SHA)

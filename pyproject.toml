@@ -66,51 +66,64 @@ only-include = [
     "scripts/package/check.py",
     "scripts/package/export.py",
     "scripts/package/hatch.py",
+    "scripts/package/privacy.py",
     "tests/backends/cpu/test_reuse.py",
-    "tests/backends/kai/test_encoding.py",
-    "tests/backends/kai/test_metal.py",
-    "tests/backends/kai/test_mlx.py",
-    "tests/backends/kai/test_torch.py",
+    "tests/backends/wyat/test_encoding.py",
+    "tests/backends/wyat/test_metal.py",
+    "tests/backends/wyat/test_mlx.py",
+    "tests/backends/wyat/test_torch.py",
     "tests/examples/test_model_verification.py",
     "tests/examples/test_embedded.py",
     "tests/examples/test_usage.py",
     "tests/fixtures/__init__.py",
-    "tests/fixtures/kai.py",
+    "tests/fixtures/wyat.py",
     "tests/infrastructure/test_checks.py",
     "tests/infrastructure/test_export.py",
     "tests/infrastructure/test_hatch.py",
     "tests/infrastructure/test_package.py",
     "tests/infrastructure/test_public_boundary.py",
+    "tests/infrastructure/test_privacy.py",
     "tests/infrastructure/test_release.py",
     "tests/server/test_admission.py",
+    "tests/server/test_batching.py",
+    "tests/server/test_queue.py",
     "tests/test_cli.py",
     "tests/test_core.py",
     "tests/test_evaluation.py",
     "tests/test_installation_recovery.py",
     "tests/test_loading.py",
+    "tests/test_native_mlx.py",
+    "tests/test_native_mlx_resources.py",
+    "tests/test_native_mlx_rope.py",
     "tests/test_recovery.py",
     "tests/test_server.py",
+    "tests/test_tasks.py",
     "uv.lock",
     "wyat/__init__.py",
     "wyat/__main__.py",
     "wyat/backends/__init__.py",
-    "wyat/backends/kai/__init__.py",
-    "wyat/backends/kai/artifact.py",
-    "wyat/backends/kai/cpu/__init__.py",
-    "wyat/backends/kai/cpu/prefix.py",
-    "wyat/backends/kai/encoding.py",
-    "wyat/backends/kai/metal.py",
-    "wyat/backends/kai/mlx.py",
-    "wyat/backends/kai/prefix.py",
-    "wyat/backends/kai/readout.py",
-    "wyat/backends/kai/torch.py",
+    "wyat/backends/wyat/__init__.py",
+    "wyat/backends/wyat/artifact.py",
+    "wyat/backends/wyat/cpu/__init__.py",
+    "wyat/backends/wyat/cpu/prefix.py",
+    "wyat/backends/wyat/encoding.py",
+    "wyat/backends/wyat/metal.py",
+    "wyat/backends/wyat/mlx.py",
+    "wyat/backends/wyat/prefix.py",
+    "wyat/backends/wyat/readout.py",
+    "wyat/backends/wyat/torch.py",
     "wyat/cli.py",
     "wyat/core.py",
     "wyat/evaluation.py",
+    "wyat/input_rendering.py",
     "wyat/loading/__init__.py",
     "wyat/loading/local.py",
+    "wyat/loading/mlx.py",
+    "wyat/loading/native.py",
+    "wyat/loading/native_artifact.py",
     "wyat/py.typed",
     "wyat/server.py",
+    "wyat/tasks.py",
     "wyat/wire.py",
 ]
 
@@ -145,7 +158,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["tests"]
+pythonpath = [".", "tests"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -153,8 +166,13 @@ strict = true
 mypy_path = ["tests"]
 files = ["wyat"]
 
+[[tool.mypy.overrides]]
+module = "wyat.input_rendering"
+disable_error_code = ["no-any-return", "operator"]
+
 [tool.coverage.run]
 branch = true
+relative_files = true
 source = ["wyat"]
 data_file = "artifacts/.coverage"
 

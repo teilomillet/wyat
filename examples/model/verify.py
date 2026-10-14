@@ -1,22 +1,20 @@
-"""Verify the pinned full Kai download without loading weights or model code."""
+"""Verify the pinned full Wyat download without loading weights or model code."""
 
 import argparse
 import hashlib
 import json
 from pathlib import Path
 
-REPOSITORY = "vllm-sr/Decision-2.0-Kai-0.6B"
-REVISION = "cd49ea3813fd8ba0928a9a23ef6c9a0f2f0cd764"
-MANIFEST_SHA256 = "ca7bf2cff1494a5bfc51f4271f52557da0f3ce3b6f0f6e7a2b4118cb4965e92e"
+REPOSITORY = "teilomillet/wyat-v0.2a"
+REVISION = "0a7b39ccd5521e010c18bae6696bc3776b216767"
+MANIFEST_SHA256 = "3db77b2bafdaf536a1398327df08a9b79321e67e3c5526f7f44fbd4a96fd0ffa"
 FILES = (
-    "LICENSE",
-    "config.json",
-    "decision_config.json",
-    "decision_head.safetensors",
-    "tokenizer.json",
-    "tokenizer_config.json",
     "backbone/config.json",
     "backbone/model.safetensors",
+    "decision_head.safetensors",
+    "native-adapters.safetensors",
+    "tokenizer.json",
+    "tokenizer_config.json",
 )
 
 
@@ -27,15 +25,15 @@ def file_sha256(path: Path) -> str:
 
 def verify(directory: Path) -> dict[str, object]:
     root = directory.resolve(strict=True)
-    manifest_path = root / "MODEL_MANIFEST.json"
+    manifest_path = root / "native_manifest.json"
     if file_sha256(manifest_path) != MANIFEST_SHA256:
-        raise ValueError("manifest differs from the pinned Kai release")
+        raise ValueError("manifest differs from the pinned Wyat release")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     verified: dict[str, str] = {}
     for name in FILES:
         digest = file_sha256(root / name)
         if digest != manifest["files_sha256"][name]:
-            raise ValueError(f"file differs from the pinned Kai release: {name}")
+            raise ValueError(f"file differs from the pinned Wyat release: {name}")
         verified[name] = digest
     # These optional files affect tokenizer/loading behavior but are absent from
     # this pinned download. Do not silently accept an older mixed artifact.

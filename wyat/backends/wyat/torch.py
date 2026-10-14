@@ -1,4 +1,4 @@
-"""PyTorch CPU/CUDA inference for the released candidate-aware Kai contract.
+"""PyTorch CPU/CUDA inference for the released candidate-aware Wyat contract.
 
 Adapted from Decision 2.0 at cd49ea3813fd8ba0928a9a23ef6c9a0f2f0cd764.
 Artifact validation and segmented input belong to artifact and encoding. This
@@ -29,7 +29,7 @@ from .artifact import ARCHITECTURE as ARCHITECTURE
 from .artifact import PROMPT_VERSION as PROMPT_VERSION
 from .artifact import load_artifact, normalize_config, positive_integer
 from .encoding import EncodedRequest as EncodedRequest
-from .encoding import KaiEncoder, TokenizerProtocol, load_tokenizer
+from .encoding import TokenizerProtocol, WyatEncoder, load_tokenizer
 
 
 def _config(raw: JsonObject) -> Qwen3Config:
@@ -75,7 +75,7 @@ def _finite_tensor(value: torch.Tensor, name: str) -> None:
             raise ValueError(f"Nonfinite checkpoint tensor: {name}")
 
 
-class KaiScorer(KaiEncoder):
+class WyatScorer(WyatEncoder):
     """Immutable CPU/CUDA weights with the shared entry-bounded input encoder."""
 
     def __init__(
@@ -110,12 +110,12 @@ class KaiScorer(KaiEncoder):
         max_length: int = 2048,
         token_cache_size: int = 0,
         attention: str = "sdpa",
-    ) -> KaiScorer:
+    ) -> WyatScorer:
         if attention not in {"sdpa", "eager"}:
             raise ValueError("attention must be sdpa or eager")
         target = torch.device(device)
         if target.type not in {"cpu", "cuda"}:
-            raise ValueError("Kai currently supports cpu and cuda devices")
+            raise ValueError("Wyat currently supports cpu and cuda devices")
         if target.type == "cuda" and (
             not torch.cuda.is_available() or not torch.cuda.is_bf16_supported()
         ):
@@ -138,7 +138,7 @@ class KaiScorer(KaiEncoder):
                 ),
             )
         except SafetensorError as error:
-            raise ValueError("Malformed Kai backbone Safetensors weights") from error
+            raise ValueError("Malformed Wyat backbone Safetensors weights") from error
         if any(
             loading.get(key)
             for key in (
@@ -162,7 +162,7 @@ class KaiScorer(KaiEncoder):
         try:
             head_state = load_file(artifact.root / "decision_head.safetensors")
         except SafetensorError as error:
-            raise ValueError("Malformed Kai head Safetensors weights") from error
+            raise ValueError("Malformed Wyat head Safetensors weights") from error
         for name, tensor in head_state.items():
             _finite_tensor(tensor, name)
         head.load_state_dict(head_state, strict=True)
@@ -255,7 +255,7 @@ class KaiScorer(KaiEncoder):
                 )
             hidden = output.last_hidden_state
             if hidden is None:
-                raise ValueError("Kai backbone did not return hidden states")
+                raise ValueError("Wyat backbone did not return hidden states")
             logits = cast(
                 torch.Tensor,
                 self.head(

@@ -24,9 +24,10 @@ def test_public_inventory_excludes_research_and_execution_state() -> None:
     runtime = runtime_files(ROOT)
     assert "wyat/cli.py" in runtime
     assert "wyat/evaluation.py" in runtime
+    assert "wyat/tasks.py" in runtime
+    assert "wyat/loading/native.py" in runtime
     assert not any(
-        name.startswith(("wyat/bench/", "wyat/data/"))
-        or name in {"wyat/benchmark.py", "wyat/loading/native.py", "wyat/tasks.py"}
+        name.startswith(("wyat/bench/", "wyat/data/")) or name in {"wyat/benchmark.py"}
         for name in runtime
     )
 

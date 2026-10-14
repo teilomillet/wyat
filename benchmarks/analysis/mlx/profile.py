@@ -18,8 +18,8 @@ import mlx.core as mx
 
 from benchmarks.analysis.reference import read_reference
 from benchmarks.analysis.scaling import amdahl_ceiling
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import BenchmarkCycle, DriftReport, QualityGate, compare_cycles
 from wyat.core import decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow, case_from_dict
@@ -109,7 +109,7 @@ def pack(encoded: tuple[EncodedRequest, ...], pad_id: int) -> PackedBatch:
 
 
 def diagnostic_batch(
-    scorer: MLXKaiScorer,
+    scorer: MLXWyatScorer,
     cases: Sequence[EvaluationCase],
     repeat: int,
     batch: int,
@@ -211,7 +211,7 @@ def quality(
 
 
 def operand_bounds(
-    scorer: MLXKaiScorer, batches: list[dict[str, object]]
+    scorer: MLXWyatScorer, batches: list[dict[str, object]]
 ) -> dict[str, object]:
     args = scorer.backbone.args
     hidden, intermediate = args.hidden_size, args.intermediate_size
@@ -312,7 +312,7 @@ def main() -> None:
         case_from_dict(decode_json(line)) for line in dataset.read_text().splitlines()
     )
     dataset_hash = hashlib.sha256(dataset.read_bytes()).hexdigest()
-    scorer = MLXKaiScorer.from_directory(
+    scorer = MLXWyatScorer.from_directory(
         root / ".models/Decision-2.0-Kai-0.6B", max_length=512, token_cache_size=0
     )
     frozen = read_reference(
@@ -504,8 +504,8 @@ def main() -> None:
             str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest()
             for path in (
                 Path(__file__),
-                root / "wyat/backends/kai/mlx.py",
-                root / "wyat/backends/kai/encoding.py",
+                root / "wyat/backends/wyat/mlx.py",
+                root / "wyat/backends/wyat/encoding.py",
                 root / "wyat/benchmark.py",
                 root / "benchmarks/analysis/reference.py",
             )

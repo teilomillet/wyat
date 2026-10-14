@@ -1,16 +1,23 @@
 """Build the runtime wheel from the reviewed public source inventory."""
 
-import tomllib
+import sys
 from pathlib import Path, PurePosixPath
 
 from hatchling.builders.config import BuilderConfig
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 
+# Hatchling loads this file under its configured path, whose dotted filename
+# gives it a nonempty __package__ even outside an importable source checkout.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from scripts.package.check import read_configuration
+from scripts.package.privacy import check_files, check_text
+
 
 class CustomBuildHook(BuildHookInterface[BuilderConfig]):
     def initialize(self, version: str, build_data: dict[str, object]) -> None:
         root = Path(self.root)
-        configuration = tomllib.loads((root / "pyproject.toml").read_text("utf-8"))
+        configuration = read_configuration(root)
         selected = configuration["tool"]["hatch"]["build"]["targets"]["sdist"][
             "only-include"
         ]
@@ -21,6 +28,7 @@ class CustomBuildHook(BuildHookInterface[BuilderConfig]):
         for name in selected:
             if not isinstance(name, str):
                 raise ValueError("Public source entries must be literal file names")
+            check_text("pyproject.toml", name.encode("utf-8"))
             parts = PurePosixPath(name).parts
             if (
                 not parts
@@ -41,5 +49,6 @@ class CustomBuildHook(BuildHookInterface[BuilderConfig]):
                 runtime[str(source)] = name
         if not runtime:
             raise ValueError("Public source inventory omits the runtime")
+        check_files({name: root / name for name in seen})
         if self.target_name == "wheel" and version != "editable":
             build_data["force_include"] = runtime

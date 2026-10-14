@@ -24,8 +24,8 @@ from benchmarks.analysis.torch.prefix.memory.study import (
 from benchmarks.analysis.torch.prefix.pairs import admit_history, digest
 from benchmarks.analysis.torch.threads import DATASET_SHA256
 from wyat import Model
-from wyat.backends.kai.artifact import load_artifact
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.artifact import load_artifact
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkEngine,
     BenchmarkProtocol,
@@ -247,7 +247,7 @@ def study(
         torch.set_num_threads(8)
         payload["phase"] = "loading"
         write()
-        base = KaiScorer.from_directory(
+        base = WyatScorer.from_directory(
             model, device="cpu", max_length=512, token_cache_size=0
         )
         if base.model_id != admission["model_id"]:

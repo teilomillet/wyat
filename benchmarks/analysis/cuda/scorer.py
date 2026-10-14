@@ -11,7 +11,7 @@ from torch import nn
 from torch.nn.attention import SDPBackend, sdpa_kernel
 from transformers.modeling_outputs import BaseModelOutputWithPast
 
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.core import Request
 
 
@@ -37,7 +37,7 @@ def ieee_precision() -> Iterator[None]:
         global_owner.fp32_precision = old_global
 
 
-def require_fp32(scorer: KaiScorer) -> None:
+def require_fp32(scorer: WyatScorer) -> None:
     for owner in (cast(nn.Module, scorer.backbone), scorer.head):
         for name, value in (*owner.named_parameters(), *owner.named_buffers()):
             if value.is_floating_point() and value.dtype != torch.float32:
@@ -47,7 +47,7 @@ def require_fp32(scorer: KaiScorer) -> None:
 class FP32Scorer:
     """Same encoder/head and endpoint contract; no nested BF16-enabled scorer."""
 
-    def __init__(self, base: KaiScorer) -> None:
+    def __init__(self, base: WyatScorer) -> None:
         require_fp32(base)
         self.base = base
 

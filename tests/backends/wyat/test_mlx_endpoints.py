@@ -23,7 +23,7 @@ from benchmarks.analysis.mlx.endpoints import (  # noqa: E402
     bounded_cache,
     endpoint_hidden,
 )
-from wyat.backends.kai.mlx import MLXCandidateHead  # noqa: E402
+from wyat.backends.wyat.mlx import MLXCandidateHead  # noqa: E402
 from wyat.wire import read_object  # noqa: E402
 
 
@@ -211,7 +211,7 @@ def test_model_load_failure_preserves_incomplete_receipt(
         def from_directory(cls, *args: object, **kwargs: object) -> FailedLoad:
             raise RuntimeError("model load failed")
 
-    monkeypatch.setattr(endpoints, "MLXKaiScorer", FailedLoad)
+    monkeypatch.setattr(endpoints, "MLXWyatScorer", FailedLoad)
     monkeypatch.setattr(mx, "set_cache_limit", set_limit)
     monkeypatch.setattr(mx, "clear_cache", clear)
     monkeypatch.setattr(mx, "synchronize", clear)

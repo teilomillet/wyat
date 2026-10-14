@@ -15,7 +15,7 @@ from mlx.nn.layers.base import Module  # noqa: E402
 from mlx.nn.layers.linear import Linear  # noqa: E402
 from mlx_lm.models.qwen3 import Qwen3Model  # noqa: E402
 
-from wyat.backends.kai import metal  # noqa: E402
+from wyat.backends.wyat import metal  # noqa: E402
 
 
 def test_storage_preserves_zero_sign_and_subnormal_words() -> None:

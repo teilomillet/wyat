@@ -92,7 +92,8 @@ for this story; neither is a trained model.
 Think of two answers in a race. If one is far ahead, keep it. If they are almost
 next to each other, ask the bigger model for another decision.
 
-The router subtracts the second-best score from the best score:
+The router checks `small.score_gap`, which subtracts the second-best score from
+the best score:
 
 ```text
 Clear choice: best = 2.0, second = 0.0 → gap = 2.0 → use the small model
@@ -102,11 +103,27 @@ Tie:         best = 0.0, second = 0.0 → gap = 0.0 → ask the larger model
 
 The demo's default cutoff is **1.0**: a smaller gap sends the same request and
 choices to the larger model. Only the final decision is acted on. Change the
-cutoff with `--min-score-gap 0.5`, for example.
+cutoff with `--min-score-gap 0.5`, for example, or pass optional
+`--min-probability-margin` and `--max-normalized-entropy` gates when you have
+calibrated a specific model on held-out requests.
 
-A score gap is a routing signal, not a percentage chance of being right. The
-cutoff of 1.0 is an example policy; choose a cutoff for real use by checking
-your model on relevant requests. A large gap can still accompany a wrong answer.
+### Fit temperature and routing thresholds per model on held-out data
+
+A score gap, probability margin, or entropy cutoff is a routing signal, not a
+model-independent guarantee of correctness:
+
+- **Temperature belongs to a specific trained model**: Use `report.calibrate()`
+  in [wyat.evaluation](api.md) on held-out calibration cases for the exact model
+  you deploy, and evaluate fallback coverage and accuracy on separate test cases.
+  Do not reuse a temperature or threshold fit on an earlier checkpoint or
+  in-sample validation set.
+- **Fallback rate is a product decision**: Escalating 10%, 40%, or 60% of
+  decisions to a larger model or human reviewer depends on your latency, cost,
+  and false-positive budget. Choose `--min-score-gap`,
+  `--min-probability-margin`, or `--max-normalized-entropy` (`decision.score_gap`,
+  `decision.probability_margin`, and `decision.normalized_entropy`) by measuring
+  that trade-off on requests representative of your application. A large gap can
+  still accompany a wrong answer.
 
 ## The three lines that connect them
 
@@ -139,18 +156,18 @@ after the agent has looked at the code.
 
 ## Use a trained chooser
 
-Install the inference runtime, then [obtain and verify local Kai weights](model-acquisition.md):
+Install the inference runtime, then [obtain and verify local Wyat weights](model-acquisition.md):
 
 ```sh
 uv add /absolute/path/to/wyat-0.0.9-py3-none-any.whl --extra inference
-uv run python agent_demo.py --model /path/to/small-kai --larger-model /path/to/larger-kai
+uv run python agent_demo.py --model /path/to/small-wyat --larger-model /path/to/larger-wyat
 ```
 
 After a matching PyPI release, use `uv add wyat --extra inference`. For Apple
 Silicon, use the `mlx` extra and add `--backend mlx` to the run command.
 
 Supply both local models; the example requires a fallback rather than silently
-disabling it. Both must work with Wyat's supported local Kai Choice loader.
+disabling it. Both must work with Wyat's supported local model loader.
 An arbitrary chat-model directory cannot be passed to that loader. Another model
 runtime can be connected in Python through a custom [scorer](api.md).
 

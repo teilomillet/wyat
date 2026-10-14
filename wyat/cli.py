@@ -5,9 +5,10 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import math
 import sys
 from collections.abc import Iterator, Sequence
-from typing import Literal
+from typing import Literal, cast
 
 from . import load
 from .core import Decision, Model, Request, request_from_dict
@@ -22,14 +23,19 @@ class Arguments(argparse.Namespace):
     device: str | None
     max_length: int
     token_cache_size: int
+    prefix_cache_size: int
     attention: str
     compile: bool
+    temperature: float
     torch_threads: int | None
     mlx_cache_limit_mib: int | None
     batch_size: int
     host: str
     port: int
     max_body_bytes: int
+    max_queue_size: int
+    queue_timeout: float
+    log_access: bool
 
 
 def _rows() -> Iterator[tuple[int, JsonValue]]:
@@ -73,9 +79,27 @@ def main(argv: list[str] | None = None) -> int:
             or stream.errors != "strict"
         ):
             stream.reconfigure(encoding="utf-8", errors="strict")
+    import importlib.util
+
+    if argv is None:
+        argv = sys.argv[1:]
+    if (
+        argv
+        and argv[0] in ("bench", "data")
+        and importlib.util.find_spec(f"wyat.{argv[0]}.cli") is not None
+    ):
+        import importlib
+
+        cli_module = importlib.import_module(f"wyat.{argv[0]}.cli")
+        return cast(int, cli_module.main(argv[1:]))
     parser = argparse.ArgumentParser(
         prog="wyat",
         description="Load, evaluate and serve local decision models.",
+        epilog=(
+            "Use 'wyat bench --help' for benchmark and evaluation commands."
+            if importlib.util.find_spec("wyat.bench") is not None
+            else None
+        ),
     )
     subcommands = parser.add_subparsers(dest="command", required=True)
     descriptions = {
@@ -90,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
             description=description,
             formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         )
-        command.add_argument("model", help="local Kai artifact directory")
+        command.add_argument("model", help="local native Wyat artifact directory")
         command.add_argument(
             "--backend", choices=("torch", "mlx"), default="torch", help="runtime"
         )
@@ -106,6 +130,12 @@ def main(argv: list[str] | None = None) -> int:
             type=int,
             default=0,
             help="tokenized option cache entries; 0 disables caching",
+        )
+        command.add_argument(
+            "--prefix-cache-size",
+            type=int,
+            default=16,
+            help="native prefix KV cache entries; 0 disables caching",
         )
         command.add_argument(
             "--attention",
@@ -129,6 +159,12 @@ def main(argv: list[str] | None = None) -> int:
                 "omitted leaves runtime unchanged"
             ),
         )
+        command.add_argument(
+            "--temperature",
+            type=float,
+            default=1.0,
+            help="softmax temperature scaling (> 0)",
+        )
         if name == "decide":
             command.add_argument(
                 "--batch-size", type=int, default=1, help="requests per batch"
@@ -144,8 +180,34 @@ def main(argv: list[str] | None = None) -> int:
                 default=1_048_576,
                 help="maximum HTTP request body bytes",
             )
+            command.add_argument(
+                "--max-queue-size",
+                type=int,
+                default=16,
+                help="maximum queued requests when busy; 0 rejects immediately",
+            )
+            command.add_argument(
+                "--queue-timeout",
+                type=float,
+                default=30.0,
+                help="maximum seconds a queued request waits before 503 (> 0)",
+            )
+            command.add_argument(
+                "--access-log",
+                dest="log_access",
+                action=argparse.BooleanOptionalAction,
+                default=True,
+                help=(
+                    "emit one structured access log line per request with "
+                    "X-Request-ID and latency; never logs request text"
+                ),
+            )
     args = Arguments()
     parser.parse_args(argv, namespace=args)
+    if args.temperature <= 0 or not math.isfinite(args.temperature):
+        parser.error("--temperature must be a positive finite number")
+    if args.prefix_cache_size < 0:
+        parser.error("--prefix-cache-size must be nonnegative")
     if args.command == "decide" and args.batch_size <= 0:
         parser.error("--batch-size must be positive")
     if args.torch_threads is not None and args.torch_threads <= 0:
@@ -159,6 +221,10 @@ def main(argv: list[str] | None = None) -> int:
             parser.error("--port must be between 1 and 65535")
         if args.max_body_bytes <= 0:
             parser.error("--max-body-bytes must be positive")
+        if args.max_queue_size < 0:
+            parser.error("--max-queue-size must be nonnegative")
+        if args.queue_timeout <= 0 or not math.isfinite(args.queue_timeout):
+            parser.error("--queue-timeout must be a positive finite number")
     try:
         if args.torch_threads is not None:
             if args.backend != "torch":
@@ -183,14 +249,20 @@ def main(argv: list[str] | None = None) -> int:
             if not mx.metal.is_available():
                 raise ValueError("--mlx-cache-limit-mib requires available Apple Metal")
             mx.set_cache_limit(args.mlx_cache_limit_mib * (1 << 20))
+        load_kwargs: dict[str, object] = {
+            "backend": args.backend,
+            "device": args.device,
+            "max_length": args.max_length,
+            "token_cache_size": args.token_cache_size,
+            "attention": args.attention,
+            "compile": args.compile,
+            "temperature": args.temperature,
+        }
+        if args.prefix_cache_size != 16:
+            load_kwargs["prefix_cache_size"] = args.prefix_cache_size
         model = load(
             args.model,
-            backend=args.backend,
-            device=args.device,
-            max_length=args.max_length,
-            token_cache_size=args.token_cache_size,
-            attention=args.attention,
-            compile=args.compile,
+            **load_kwargs,  # type: ignore[arg-type]
         )
         if args.command == "decide":
             pending: list[tuple[int, Request]] = []
@@ -202,9 +274,12 @@ def main(argv: list[str] | None = None) -> int:
                 if len(pending) == args.batch_size:
                     for result in _decide_batch(model, pending):
                         _write(result.to_dict())
+                    sys.stdout.flush()
                     pending.clear()
-            for result in _decide_batch(model, pending):
-                _write(result.to_dict())
+            if pending:
+                for result in _decide_batch(model, pending):
+                    _write(result.to_dict())
+                sys.stdout.flush()
         elif args.command == "evaluate":
             from .evaluation import case_from_dict, evaluate
 
@@ -223,7 +298,13 @@ def main(argv: list[str] | None = None) -> int:
             from .server import create_app
 
             uvicorn.run(
-                create_app(model, max_body_bytes=args.max_body_bytes),
+                create_app(
+                    model,
+                    max_body_bytes=args.max_body_bytes,
+                    max_queue_size=args.max_queue_size,
+                    queue_timeout=args.queue_timeout,
+                    log_access=args.log_access,
+                ),
                 host=args.host,
                 port=args.port,
             )

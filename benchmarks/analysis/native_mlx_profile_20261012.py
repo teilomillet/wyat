@@ -355,8 +355,8 @@ def main() -> None:
                 Path(inspect.getfile(qwen3)),
                 Path(inspect.getfile(prepare)),
                 Path(inspect.getfile(type(model))),
-                Path(__file__).resolve().parents[2] / "wyat/backends/kai/metal.py",
-                Path(__file__).resolve().parents[2] / "wyat/backends/kai/mlx.py",
+                Path(__file__).resolve().parents[2] / "wyat/backends/wyat/metal.py",
+                Path(__file__).resolve().parents[2] / "wyat/backends/wyat/mlx.py",
                 args.frozen.resolve(),
                 (args.artifact / "native_manifest.json").resolve(),
             ]

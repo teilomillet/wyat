@@ -27,7 +27,7 @@ from transformers.models.qwen3 import modeling_qwen3
 from benchmarks.analysis.evidence import freeze_sources
 from benchmarks.analysis.reference import read_reference
 from wyat import Model
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -84,7 +84,7 @@ def probe(model_path: Path, output: Path) -> bool:
             "launcher": Path(__file__).with_name("process.py"),
             "reference": root / "benchmarks/analysis/reference.py",
             "benchmark": root / "wyat/benchmark.py",
-            "backend": root / "wyat/backends/kai/torch.py",
+            "backend": root / "wyat/backends/wyat/torch.py",
             "qwen3": Path(modeling_qwen3.__file__),
             "inductor_conditions": torch_root / "_inductor/utils.py",
             "cpp_gemm": torch_root / "_inductor/codegen/cpp_gemm_template.py",
@@ -157,7 +157,7 @@ def probe(model_path: Path, output: Path) -> bool:
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(8)
     try:
-        scorer = KaiScorer.from_directory(
+        scorer = WyatScorer.from_directory(
             model_path, max_length=512, token_cache_size=0
         )
         saved = read_reference(

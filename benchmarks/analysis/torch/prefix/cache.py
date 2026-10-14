@@ -10,8 +10,8 @@ from transformers import Qwen3Config
 from transformers.cache_utils import DynamicCache, DynamicLayer
 from transformers.modeling_outputs import BaseModelOutputWithPast
 
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.core import Request
 
 type KVState = tuple[torch.Tensor, torch.Tensor]
@@ -39,9 +39,9 @@ class PrefixScorer:
     Mismatched/overlapping batches fall back intact, including admission checks.
     """
 
-    def __init__(self, base: KaiScorer, prefix: tuple[int, ...]) -> None:
-        if not isinstance(base, KaiScorer):
-            raise TypeError("CPU prefix requires a KaiScorer base")
+    def __init__(self, base: WyatScorer, prefix: tuple[int, ...]) -> None:
+        if not isinstance(base, WyatScorer):
+            raise TypeError("CPU prefix requires a WyatScorer base")
         if type(prefix) is not tuple:
             raise TypeError("Prefix must be an exact immutable token tuple")
         config = base.backbone.config

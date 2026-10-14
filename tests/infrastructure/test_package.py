@@ -6,6 +6,8 @@ import base64
 import hashlib
 import io
 import stat
+import subprocess
+import sys
 import tarfile
 import zipfile
 from pathlib import Path
@@ -332,3 +334,91 @@ def test_release_tag_fails_before_artifact_execution(
 ) -> None:
     with pytest.raises(ValueError, match="match the project version exactly"):
         check.check(tmp_path / "absent", root, tag="v9.0.0")
+
+
+def test_archive_metadata_is_scanned_independently_of_source(
+    root: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    private_path = ("/" + "Users/" + "private/research/train.jsonl").encode()
+    poisoned = METADATA + private_path + b"\n"
+    monkeypatch.setitem(globals(), "METADATA", poisoned)
+    wheel = tmp_path / "wyat-0.0.1-py3-none-any.whl"
+    make_wheel(wheel, root)
+    with pytest.raises(ValueError):
+        check.check_wheel(wheel, root, PROJECT)
+    source = tmp_path / "source.tar.gz"
+    members = tuple(
+        ("wyat-0.0.1/" + name, (root / name).read_bytes(), tarfile.REGTYPE)
+        for name in sorted(check.required_sources(root))
+    ) + (("wyat-0.0.1/PKG-INFO", poisoned, tarfile.REGTYPE),)
+    archive(source, members)
+    with pytest.raises(ValueError):
+        check.check_source(source, root, PROJECT)
+
+
+@pytest.mark.parametrize("escaped", [False, True])
+def test_source_inventory_diagnostics_do_not_echo_secret_file_names(
+    root: Path, escaped: bool
+) -> None:
+    secret = "hf_" + "A" * 32
+    selected = (r"\u0068f_" + "A" * 32 if escaped else secret) + ".py"
+    (root / "pyproject.toml").write_text(
+        '[tool.hatch.build.targets.sdist]\nonly-include=["' + selected + '"]\n'
+    )
+    for operation in (check.required_sources, check.Project.read):
+        with pytest.raises(ValueError) as rejected:
+            operation(root)
+        assert secret not in str(rejected.value)
+        assert "privacy check failed" in str(rejected.value)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-S",
+            str(check.ROOT / "scripts/package/privacy.py"),
+            "--source",
+            str(root),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert secret not in result.stdout + result.stderr
+    assert "privacy check failed" in result.stderr
+
+
+def test_source_preflight_runs_without_installed_dependencies(root: Path) -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-I",
+            "-S",
+            str(check.ROOT / "scripts/package/privacy.py"),
+            "--source",
+            str(root),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "Public source content checks passed" in result.stdout
+
+
+def test_preflight_preserves_legal_unrelated_toml_values(root: Path) -> None:
+    project = root / "pyproject.toml"
+    project.write_text(
+        project.read_text()
+        + "\n[tool.unrelated]\ncreated=2026-10-12T12:00:00Z\nvalue=nan\nlimit=inf\n"
+    )
+    assert check.Project.read(root) == PROJECT
+    assert "README.md" in check.required_sources(root)
+
+
+def test_decoded_toml_metadata_paths_are_scanned(root: Path) -> None:
+    project = root / "pyproject.toml"
+    encoded = '"C:\\\\Users\\\\' + r"\u0070rivate" + '\\\\research\\\\train.jsonl"'
+    project.write_text(project.read_text() + "\n[tool.unrelated]\nnote=" + encoded)
+    with pytest.raises(ValueError, match="private filesystem path"):
+        check.Project.read(root)

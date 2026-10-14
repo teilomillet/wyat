@@ -54,8 +54,8 @@ def source_paths() -> dict[str, Path]:
         "benchmarks/analysis/torch/prefix/production/study.py",
         "wyat/evaluation.py",
         "wyat/wire.py",
-        "wyat/backends/kai/encoding.py",
-        "wyat/backends/kai/torch.py",
+        "wyat/backends/wyat/encoding.py",
+        "wyat/backends/wyat/torch.py",
     ):
         paths[name] = ROOT / name
     paths["maintained_qwen3"] = Path(modeling_qwen3.__file__)

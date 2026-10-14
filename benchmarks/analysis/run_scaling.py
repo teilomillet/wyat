@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import cast
 
 from wyat import Model
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -95,7 +95,7 @@ def sweep(model_path: Path, output: Path, *, repeats: int = 6) -> dict[str, obje
     if len(cases) != 77:
         raise ValueError("Scaling experiment requires the complete 77-case cohort")
     output.parent.mkdir(parents=True, exist_ok=True)
-    scorer = MLXKaiScorer.from_directory(
+    scorer = MLXWyatScorer.from_directory(
         model_path, max_length=512, token_cache_size=0, device="gpu", compile=False
     )
     reference = read_reference(
@@ -220,7 +220,7 @@ def sweep(model_path: Path, output: Path, *, repeats: int = 6) -> dict[str, obje
             "runner": digest(Path(__file__)),
             "scaling": digest(root / "benchmarks/analysis/scaling.py"),
             "reference": digest(root / "benchmarks/analysis/reference.py"),
-            "mlx_backend": digest(root / "wyat/backends/kai/mlx.py"),
+            "mlx_backend": digest(root / "wyat/backends/wyat/mlx.py"),
         },
         "limits": [
             "Batch size is not processor count; coefficients do not identify "

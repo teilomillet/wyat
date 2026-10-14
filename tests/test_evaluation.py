@@ -1,13 +1,304 @@
 from __future__ import annotations
 
+import math
 from collections.abc import Sequence
 from dataclasses import replace
-from typing import cast
+from typing import Literal, cast
 
 import pytest
 
-from wyat.core import Candidate, Model, Request
-from wyat.evaluation import EvaluationCase, case_from_dict, evaluate
+from wyat.core import Candidate, Decision, Model, Request
+from wyat.evaluation import (
+    EvaluationCase,
+    EvaluationReport,
+    EvaluationRow,
+    case_from_dict,
+    evaluate,
+    fit_temperature,
+    percentile,
+)
+
+
+def _reference_metrics(rows: tuple[EvaluationRow, ...]) -> dict[str, float | None]:
+    """Pre-optimization dictionary-based metrics, including summation order."""
+    confidences: list[float] = []
+    briers: list[float] = []
+    losses: list[float] = []
+    bins: dict[int, list[tuple[float, float]]] = {}
+    for row in rows:
+        if row.status != "ok" or row.prediction is None:
+            continue
+        probs = row.prediction.probabilities_by_id
+        conf = probs[row.prediction.selected]
+        confidences.append(conf)
+        expected = set(row.expected)
+        briers.append(
+            math.fsum(
+                (p - (1.0 if cid in expected else 0.0)) ** 2 for cid, p in probs.items()
+            )
+        )
+        mass = math.fsum(p for cid, p in probs.items() if cid in expected)
+        losses.append(-math.log(max(min(mass, 1.0), 1e-15)))
+        bins.setdefault(min(int(conf * 10), 9), []).append(
+            (conf, 1.0 if row.correct else 0.0)
+        )
+    n = len(confidences)
+    ece = 0.0
+    for items in bins.values():
+        size = len(items)
+        confidence = math.fsum(c for c, _ in items) / size
+        accuracy = math.fsum(a for _, a in items) / size
+        ece += (size / n) * abs(confidence - accuracy)
+    return {
+        "mean_confidence": math.fsum(confidences) / n if n else None,
+        "brier_score": math.fsum(briers) / n if n else None,
+        "log_loss": math.fsum(losses) / n if n else None,
+        "expected_calibration_error": ece if n else None,
+    }
+
+
+@pytest.mark.parametrize("seed", range(12))
+def test_report_metrics_match_dictionary_reference_exactly(seed: int) -> None:
+    import random
+
+    rng = random.Random(seed)
+    rows: list[EvaluationRow] = []
+    for index in range(80):
+        width = rng.choice([1, 2, 3, 14, 77])
+        ids = tuple(f"é-日本-{i}" for i in range(width))
+        scores = tuple(rng.choice([-1000.0, -1.0, 0.0, 1.0, 1000.0]) for _ in ids)
+        order = sorted(range(width), key=scores.__getitem__, reverse=True)
+        # Include nonmonotonic probabilities, zeros, and ties: legacy direct
+        # Decisions are not restricted to softmax distributions.
+        probabilities = tuple(rng.choice([0.0, 0.1, 0.2, 0.5, 1.0]) for _ in ids)
+        prediction = Decision(
+            "fixture", scores, probabilities, tuple(ids[i] for i in order)
+        )
+        expected = tuple(rng.sample(ids, rng.randint(1, width)))
+        status = "error" if index % 9 == 0 else "ok"
+        rows.append(
+            EvaluationRow(
+                str(index),
+                expected,
+                status,
+                None if index % 13 == 0 else prediction,
+                status == "ok" and prediction.selected in expected,
+                rng.random() * 100,
+                "failure" if status == "error" else None,
+            )
+        )
+    report = EvaluationReport("fixture", tuple(rows), "digest")
+    serialized = report.to_dict()
+    for name, expected_metric in _reference_metrics(report.rows).items():
+        assert getattr(report, name) == expected_metric
+        assert serialized[name] == expected_metric
+        if expected_metric is not None:
+            assert getattr(report, name).hex() == expected_metric.hex()
+            assert cast(float, serialized[name]).hex() == expected_metric.hex()
+    for name in ("total", "successful", "failed", "correct", "accuracy", "coverage"):
+        assert serialized[name] == getattr(report, name)
+    latencies = [row.latency_ms for row in rows]
+    assert serialized["latency_p50_ms"] == percentile(latencies, 0.50)
+    assert serialized["latency_p95_ms"] == percentile(latencies, 0.95)
+    assert serialized["rows"] == [row.to_dict() for row in rows]
+
+
+@pytest.mark.parametrize(
+    "prediction",
+    [
+        Decision("fixture", (), (), ()),
+        Decision("fixture", (0.0, float("nan")), (0.5, 0.5), ("a", "b")),
+        Decision("fixture", (0.0, 1.0), (0.5,), ("a", "b")),
+        Decision("fixture", (0.0, 1.0), (0.5, float("inf")), ("a", "b")),
+        Decision("fixture", (0.0, 1.0), (0.5, 0.5), ("a", "a")),
+        Decision("fixture", (0.0, 1.0), (0.5, 0.5), ("a", "\ud800")),
+        Decision("fixture", (0.0, 1.0), (0.5, 0.5), ("a",)),
+    ],
+)
+def test_optimized_metrics_still_reject_malformed_decisions(
+    prediction: Decision,
+) -> None:
+    report = EvaluationReport(
+        "fixture",
+        (EvaluationRow("row", ("a",), "ok", prediction, False, 1.0, None),),
+        "digest",
+    )
+    with pytest.raises(ValueError):
+        _ = prediction.probabilities_by_id
+    for metric in (
+        "mean_confidence",
+        "brier_score",
+        "log_loss",
+        "expected_calibration_error",
+    ):
+        with pytest.raises(ValueError):
+            getattr(report, metric)
+    with pytest.raises(ValueError):
+        report.to_dict()
+
+
+@pytest.mark.parametrize("latency", [-1.0, float("nan"), float("inf")])
+def test_serialization_rejects_invalid_latencies(latency: float) -> None:
+    report = EvaluationReport(
+        "fixture",
+        (EvaluationRow("row", ("a",), "error", None, False, latency, "failure"),),
+        "digest",
+    )
+    with pytest.raises(ValueError, match="latencies must be finite and nonnegative"):
+        report.to_dict()
+
+
+def test_empty_report_serialization_preserves_division_error() -> None:
+    with pytest.raises(ZeroDivisionError):
+        EvaluationReport("fixture", (), "digest").to_dict()
+
+
+def _reference_temperature(
+    rows: tuple[EvaluationRow, ...],
+    metric: str,
+    bounds: tuple[float, float],
+    iterations: int,
+) -> float:
+    """Original fitting objective and golden-section search as a parity oracle."""
+    data = []
+    for row in rows:
+        if row.status == "ok" and row.prediction is not None:
+            pred = row.prediction
+            expected = set(row.expected)
+            data.append(
+                (
+                    pred.scores,
+                    tuple(cid in expected for cid in pred.candidate_ids),
+                    max(pred.scores),
+                )
+            )
+
+    def loss(temp: float) -> float:
+        total = 0.0
+        for scores, targets, peak in data:
+            weights = [math.exp((s - peak) / temp) for s in scores]
+            denominator = math.fsum(weights)
+            if metric == "log_loss":
+                mass = (
+                    math.fsum(w for w, hit in zip(weights, targets, strict=True) if hit)
+                    / denominator
+                )
+                total -= math.log(max(min(mass, 1.0), 1e-15))
+            else:
+                probs = [w / denominator for w in weights]
+                total += math.fsum(
+                    (p - (1.0 if hit else 0.0)) ** 2
+                    for p, hit in zip(probs, targets, strict=True)
+                )
+        return total / len(data)
+
+    ratio = (math.sqrt(5.0) - 1.0) / 2.0
+    lower, upper = math.log(bounds[0]), math.log(bounds[1])
+    left = upper - ratio * (upper - lower)
+    right = lower + ratio * (upper - lower)
+    left_loss, right_loss = loss(math.exp(left)), loss(math.exp(right))
+    for _ in range(iterations):
+        if left_loss < right_loss:
+            upper, right, right_loss = right, left, left_loss
+            left = upper - ratio * (upper - lower)
+            left_loss = loss(math.exp(left))
+        else:
+            lower, left, left_loss = left, right, right_loss
+            right = lower + ratio * (upper - lower)
+            right_loss = loss(math.exp(right))
+    return math.exp((lower + upper) / 2.0)
+
+
+@pytest.mark.parametrize("metric", ["log_loss", "brier_score"])
+@pytest.mark.parametrize("iterations", [1, 7, 50])
+@pytest.mark.parametrize("seed", range(8))
+def test_temperature_fit_matches_original_search_exactly(
+    metric: Literal["log_loss", "brier_score"], iterations: int, seed: int
+) -> None:
+    import random
+
+    rng = random.Random(seed)
+    rows = []
+    for index in range(12):
+        width = rng.choice([1, 2, 14])
+        ids = tuple(f"é-{i}" for i in range(width))
+        scores = tuple(
+            rng.choice([-1e308, -1000.0, 0.0, 0.0, 1.0, 1000.0, 1e308])
+            if seed % 2
+            else rng.uniform(-10, 10)
+            for _ in ids
+        )
+        order = sorted(range(width), key=scores.__getitem__, reverse=True)
+        prediction = Decision(
+            "fixture",
+            scores,
+            tuple(1.0 / width for _ in ids),
+            tuple(ids[i] for i in order),
+        )
+        expected = tuple(rng.sample(ids, rng.randint(0, width)))
+        rows.append(
+            EvaluationRow(
+                str(index),
+                expected,
+                "error" if index % 7 == 0 else "ok",
+                None if index % 11 == 0 else prediction,
+                prediction.selected in expected,
+                1.0,
+                None,
+            )
+        )
+    report = EvaluationReport("fixture", tuple(rows), "digest")
+    bounds = (0.01, 10.0) if seed % 3 else (0.4, 0.400001)
+    expected_temperature = _reference_temperature(
+        report.rows, metric, bounds, iterations
+    )
+    actual = fit_temperature(
+        report, metric=metric, bounds=bounds, max_iterations=iterations
+    )
+    assert actual.hex() == expected_temperature.hex()
+    calibrated_temperature, calibrated = report.calibrate(
+        metric=metric, bounds=bounds, max_iterations=iterations
+    )
+    assert calibrated_temperature.hex() == expected_temperature.hex()
+    assert calibrated.to_dict() == report.rescale(expected_temperature).to_dict()
+
+
+@pytest.mark.parametrize("metric", ["log_loss", "brier_score"])
+@pytest.mark.parametrize("bounds", [(5e-324, 5e-323), (1e307, 1e308)])
+def test_temperature_fit_preserves_extreme_finite_bounds(
+    metric: Literal["log_loss", "brier_score"], bounds: tuple[float, float]
+) -> None:
+    prediction = Decision("fixture", (5e-324, 0.0), (0.5, 0.5), ("a", "b"))
+    rows = (EvaluationRow("row", ("b",), "ok", prediction, False, 1.0, None),)
+    assert fit_temperature(rows, metric=metric, bounds=bounds).hex() == (
+        _reference_temperature(rows, metric, bounds, 50).hex()
+    )
+
+
+def test_fitting_preserves_score_only_validation() -> None:
+    prediction = Decision("fixture", (0.0, 1.0), (float("nan"),), ("b", "a"))
+    rows = (EvaluationRow("row", ("a",), "ok", prediction, True, 1.0, None),)
+    assert (
+        fit_temperature(rows).hex()
+        == _reference_temperature(rows, "log_loss", (0.01, 10.0), 50).hex()
+    )
+
+
+@pytest.mark.parametrize(
+    "prediction",
+    [
+        Decision("fixture", (), (), ()),
+        Decision("fixture", (0.0, float("nan")), (0.5, 0.5), ("a", "b")),
+        Decision("fixture", (0.0, 1.0), (0.5, 0.5), ("a", "a")),
+        Decision("fixture", (0.0, 1.0), (0.5, 0.5), ("a", "\ud800")),
+    ],
+)
+def test_temperature_fitting_rejects_malformed_scores_and_ranking(
+    prediction: Decision,
+) -> None:
+    rows = (EvaluationRow("row", ("a",), "ok", prediction, False, 1.0, None),)
+    with pytest.raises(ValueError):
+        fit_temperature(rows)
 
 
 def request(query: str = "question") -> Request:
@@ -229,3 +520,203 @@ def test_report_binds_model_identity_separately_from_input_digest() -> None:
     assert first["model_id"] == "model:first"
     assert second["model_id"] == "model:second"
     assert first["input_sha256"] == second["input_sha256"]
+
+
+def test_calibration_metrics_calculation() -> None:
+    class FixedScorer:
+        def __init__(self, logits_seq: Sequence[tuple[float, float]]) -> None:
+            self._logits = list(logits_seq)
+            self._idx = 0
+
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            res = [self._logits[self._idx + i] for i in range(len(requests))]
+            self._idx += len(requests)
+            return res
+
+    # math.exp(2.0) / (math.exp(2.0) + math.exp(0.0)) ≈ 0.8808
+    # math.exp(0.0) / (math.exp(2.0) + math.exp(0.0)) ≈ 0.1192
+    p_high = 7.38905609893065 / 8.38905609893065
+    p_low = 1.0 - p_high
+
+    # Case 1: logits (2.0, 0.0) -> selects 'a' with p_high ≈ 0.8808 (correct).
+    # Case 2: logits (0.0, 2.0) -> selects 'b' with p_high ≈ 0.8808 (wrong).
+    scorer = FixedScorer([(2.0, 0.0), (0.0, 2.0)])
+    cases = [
+        EvaluationCase("c1", request(), ("a",)),
+        EvaluationCase("c2", request(), ("a",)),
+    ]
+    report = evaluate(Model(scorer, model_id="fixed"), cases)
+    report_dict = report.to_dict()
+
+    assert report.total == 2
+    assert report.correct == 1
+    assert report.accuracy == 0.5
+    assert report.mean_confidence == pytest.approx(p_high)
+
+    # Brier score:
+    # row 1 (target 'a'): (p_high - 1)^2 + (p_low - 0)^2 = 2 * (p_low^2)
+    # row 2 (target 'a'): (p_low - 1)^2 + (p_high - 0)^2 = 2 * (p_high^2)
+    expected_brier = (2 * (p_low**2) + 2 * (p_high**2)) / 2
+    assert report.brier_score == pytest.approx(expected_brier)
+
+    # Log loss: row 1: -ln(p_high), row 2: -ln(p_low)
+    expected_log_loss = (-math.log(p_high) - math.log(p_low)) / 2
+    assert report.log_loss == pytest.approx(expected_log_loss)
+
+    # ECE: both predictions fall into bin 8 (p_high ≈ 0.88, 0.88 * 10 = 8.8 -> bin 8)
+    # bin_conf = p_high, bin_acc = 0.5 (1 out of 2 is correct), ECE = |p_high - 0.5|
+    assert report.expected_calibration_error == pytest.approx(abs(p_high - 0.5))
+
+    assert report_dict["mean_confidence"] == report.mean_confidence
+    assert report_dict["brier_score"] == report.brier_score
+    assert report_dict["log_loss"] == report.log_loss
+    assert report_dict["expected_calibration_error"] == (
+        report.expected_calibration_error
+    )
+
+
+def test_calibration_metrics_none_when_all_fail() -> None:
+    scorer = Scorer()
+    cases = [EvaluationCase("c1", request("failure"), ("a",))]
+    report = evaluate(Model(scorer, model_id="failing"), cases)
+    assert report.total == 1
+    assert report.failed == 1
+    assert report.successful == 0
+    assert report.mean_confidence is None
+    assert report.brier_score is None
+    assert report.log_loss is None
+    assert report.expected_calibration_error is None
+    assert report.to_dict()["mean_confidence"] is None
+
+
+def test_evaluate_with_explicit_temperature() -> None:
+    class FixedScorer:
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            return [(2.0, 0.0) for _ in requests]
+
+    cases = [EvaluationCase("c1", request(), ("a",))]
+    model = Model(FixedScorer(), model_id="fixture")
+    report = evaluate(model, cases, temperature=2.0)
+    p0 = report.rows[0].prediction.probabilities[0]  # type: ignore[union-attr]
+    expected_p0 = math.exp(1.0) / (math.exp(1.0) + math.exp(0.0))
+    assert p0 == pytest.approx(expected_p0)
+
+
+def test_evaluation_report_rescale() -> None:
+    class FixedScorer:
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            return [(2.0, 0.0) for _ in requests]
+
+    cases = [EvaluationCase("c1", request(), ("a",))]
+    report = evaluate(Model(FixedScorer(), model_id="fixture"), cases)
+    rescaled = report.rescale(0.5)
+
+    assert rescaled.total == report.total
+    assert rescaled.correct == report.correct
+    assert rescaled.accuracy == report.accuracy
+    pred_0 = rescaled.rows[0].prediction
+    assert pred_0 is not None
+    assert pred_0.scores == report.rows[0].prediction.scores  # type: ignore[union-attr]
+
+    # At T=0.5, exp(4.0) / (exp(4.0) + 1)
+    p0_half = math.exp(4.0) / (math.exp(4.0) + math.exp(0.0))
+    assert pred_0.probabilities[0] == pytest.approx(p0_half)
+
+    with pytest.raises(
+        ValueError, match="temperature must be a positive finite number"
+    ):
+        report.rescale(-1.0)
+
+
+def test_fit_temperature_calibrates_overconfident_and_underconfident_models() -> None:
+    # 1. Overconfident model: logits (5.0, 0.0) -> p_a ≈ 0.993
+    # In reality, 'a' is only correct in 60 out of 100 cases.
+    class OverconfidentScorer:
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            return [(5.0, 0.0) for _ in requests]
+
+    over_cases = [
+        EvaluationCase(f"case_{i}", request(), ("a",) if i < 60 else ("b",))
+        for i in range(100)
+    ]
+    report_over = evaluate(Model(OverconfidentScorer(), model_id="over"), over_cases)
+    assert report_over.mean_confidence is not None
+    assert report_over.mean_confidence > 0.99
+    assert report_over.accuracy == 0.60
+    assert report_over.expected_calibration_error is not None
+    assert report_over.expected_calibration_error > 0.35
+
+    opt_t, calibrated_over = report_over.calibrate()
+    assert opt_t > 1.0  # Temperature must increase to soften overconfidence
+    assert calibrated_over.log_loss is not None and report_over.log_loss is not None
+    assert calibrated_over.log_loss < report_over.log_loss
+    assert (
+        calibrated_over.expected_calibration_error is not None
+        and report_over.expected_calibration_error is not None
+    )
+    assert (
+        calibrated_over.expected_calibration_error
+        < report_over.expected_calibration_error
+    )
+
+    # 2. Underconfident model: logits (0.05, 0.0) -> p_a ≈ 0.512
+    # In reality, 'a' is correct in 95 out of 100 cases.
+    class UnderconfidentScorer:
+        def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+            return [(0.05, 0.0) for _ in requests]
+
+    under_cases = [
+        EvaluationCase(f"case_{i}", request(), ("a",) if i < 95 else ("b",))
+        for i in range(100)
+    ]
+    report_under = evaluate(
+        Model(UnderconfidentScorer(), model_id="under"), under_cases
+    )
+    assert report_under.mean_confidence is not None
+    assert report_under.mean_confidence < 0.55
+    assert report_under.accuracy == 0.95
+
+    opt_t_under, calibrated_under = report_under.calibrate()
+    assert opt_t_under < 1.0  # Temperature must decrease to sharpen probabilities
+    assert calibrated_under.log_loss is not None and report_under.log_loss is not None
+    assert calibrated_under.log_loss < report_under.log_loss
+
+    # Calibration with Brier score
+    opt_t_brier = fit_temperature(report_over.rows, metric="brier_score")
+    assert opt_t_brier > 1.0
+    rescaled_brier = report_over.rescale(opt_t_brier)
+    assert rescaled_brier.brier_score is not None
+    assert report_over.brier_score is not None
+    assert rescaled_brier.brier_score < report_over.brier_score
+
+
+def test_fit_temperature_validation_and_failures() -> None:
+    cases = [EvaluationCase("c1", request("failure"), ("a",))]
+    report_failed = evaluate(Model(Scorer(), model_id="failing"), cases)
+
+    with pytest.raises(ValueError, match="at least one successful prediction"):
+        fit_temperature(report_failed)
+
+    with pytest.raises(ValueError, match="at least one successful prediction"):
+        fit_temperature([])
+
+    with pytest.raises(ValueError, match="evaluation must be an EvaluationReport"):
+        fit_temperature(cast(EvaluationReport, "not-a-report"))
+
+    valid_report = evaluate(
+        Model(Scorer(), model_id="fixture"), [EvaluationCase("c1", request(), ("a",))]
+    )
+
+    with pytest.raises(ValueError, match="metric must be either"):
+        fit_temperature(
+            valid_report, metric=cast(Literal["log_loss"], "invalid_metric")
+        )
+
+    with pytest.raises(ValueError, match="bounds must be a tuple"):
+        fit_temperature(valid_report, bounds=(10.0, 1.0))
+
+    with pytest.raises(ValueError, match="bounds must be a tuple"):
+        fit_temperature(valid_report, bounds=(-1.0, 2.0))
+
+    with pytest.raises(ValueError, match="max_iterations must be a positive integer"):
+        fit_temperature(valid_report, max_iterations=0)

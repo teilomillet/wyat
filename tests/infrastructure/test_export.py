@@ -146,3 +146,13 @@ def test_source_mutation_rejects_export(source: Path, tmp_path: Path) -> None:
     (source / "README.md").write_bytes(b"Changed\n")
     with pytest.raises(ValueError, match="changed while copying"):
         export.verify_export(destination, contents, source)
+
+
+def test_export_content_failure_creates_no_output(source: Path, tmp_path: Path) -> None:
+    private_path = "/" + "Users/" + "private/research/train.jsonl"
+    (source / "README.md").write_text(private_path)
+    destination = tmp_path / "export"
+    with pytest.raises(ValueError):
+        export.export_source(destination, source)
+    assert not destination.exists()
+    assert not destination.with_name("export.SHA256SUMS").exists()

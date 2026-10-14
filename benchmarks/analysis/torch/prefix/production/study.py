@@ -35,8 +35,8 @@ from benchmarks.analysis.evidence import (
 )
 from benchmarks.analysis.reference import read_reference
 from wyat import Model
-from wyat.backends.kai.cpu.prefix import PrefixScorer
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.cpu.prefix import PrefixScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -415,7 +415,7 @@ def study(model: Path, output: Path, batch_size: int, *, screen: bool = False) -
         )
         if len(cases) != 77 or _input_digest(cases) != INPUT_SHA:
             raise ValueError("All original ordered77 requests required")
-        base = KaiScorer.from_directory(
+        base = WyatScorer.from_directory(
             model, device="cpu", max_length=512, token_cache_size=0
         )
         if base.model_id != MODEL_ID:

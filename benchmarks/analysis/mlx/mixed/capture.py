@@ -18,8 +18,8 @@ from wyat.evaluation import EvaluationCase
 if TYPE_CHECKING:
     import mlx.core as mx
 
-    from wyat.backends.kai.mlx import MLXKaiScorer
-    from wyat.backends.kai.prefix import PrefixScorer
+    from wyat.backends.wyat.mlx import MLXWyatScorer
+    from wyat.backends.wyat.prefix import PrefixScorer
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,8 +88,8 @@ def detached_float32(
 
 
 def capture_input(
-    base: MLXKaiScorer,
-    scorer: MLXKaiScorer | PrefixScorer,
+    base: MLXWyatScorer,
+    scorer: MLXWyatScorer | PrefixScorer,
     cases: tuple[EvaluationCase, ...],
     *,
     batch_size: int,

@@ -24,10 +24,10 @@ from benchmarks.analysis.cuda.attention import scorer, study, trace
 from benchmarks.analysis.cuda.manifest import DATA, MODEL_ID, ROOT, digest
 from benchmarks.analysis.cuda.scorer import FP32Scorer
 from benchmarks.analysis.evidence import FrozenSources
-from benchmarks.fixtures.kai import create_kai_bundle
+from benchmarks.fixtures.wyat import create_wyat_bundle
 from wyat import Candidate, Request
-from wyat.backends.kai.encoding import EncodedRequest
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle, BenchmarkEngine
 from wyat.core import decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow, case_from_dict
@@ -35,8 +35,8 @@ from wyat.wire import decode_json
 
 
 @pytest.fixture
-def base(tmp_path: Path) -> KaiScorer:
-    return KaiScorer.from_directory(create_kai_bundle(tmp_path / "kai"), max_length=512)
+def base(tmp_path: Path) -> WyatScorer:
+    return WyatScorer.from_directory(create_wyat_bundle(tmp_path / "wyat"), max_length=512)
 
 
 @contextmanager
@@ -53,7 +53,7 @@ def cpu_math(backend: SDPBackend) -> Iterator[None]:
 )
 @given(repeats=st.integers(1, 6), count=st.integers(2, 5))
 def test_mask_adapter_preserves_full_model_head_and_owner(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch, repeats: int, count: int
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch, repeats: int, count: int
 ) -> None:
     # Source-behavior oracle: Mac availability predicates otherwise select GQA
     # unlike the frozen Linux CUDA host. This does not establish CUDA eligibility.
@@ -93,7 +93,7 @@ def test_mask_adapter_preserves_full_model_head_and_owner(
 
 
 def test_future_token_cannot_change_earlier_readout(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(sdpa_attention, "_is_torch_mps_available", False)
     monkeypatch.setattr(sdpa_attention, "_is_torch_xpu_available", False)
@@ -110,7 +110,7 @@ def test_future_token_cannot_change_earlier_readout(
 
 
 def test_fresh_exact_mask_and_nested_backend_restoration(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     masks: list[torch.Tensor] = []
     contexts: list[SDPBackend] = []
@@ -147,7 +147,7 @@ def test_fresh_exact_mask_and_nested_backend_restoration(
 
 
 def test_backend_restores_on_backbone_error(
-    base: KaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: WyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     adapter = scorer.MaskedBackbone(base.backbone)
     before = tuple(id(parameter) for parameter in base.backbone.parameters())
@@ -182,7 +182,7 @@ def test_backend_restores_on_backbone_error(
     ],
 )
 def test_adapter_rejects_out_of_contract_inputs(
-    base: KaiScorer, ids: torch.Tensor, cache: bool
+    base: WyatScorer, ids: torch.Tensor, cache: bool
 ) -> None:
     with pytest.raises(ValueError):
         scorer.MaskedBackbone(base.backbone)(input_ids=ids, use_cache=cache)
@@ -650,7 +650,7 @@ def setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Setup:
     def factory(base: object) -> FakeScorer:
         return FakeScorer()
 
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     monkeypatch.setattr(study, "require_fp32", noop)
     monkeypatch.setattr(study, "FP32Scorer", factory)
     monkeypatch.setattr(study, "efficient_scorer", factory)

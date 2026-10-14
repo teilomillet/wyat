@@ -34,7 +34,7 @@ def worker(args: Arguments) -> None:
     import torch
     from transformers import Qwen3Model
 
-    from wyat.backends.kai.torch import KaiScorer
+    from wyat.backends.wyat.torch import WyatScorer
     from wyat.benchmark import (
         BenchmarkEngine,
         BenchmarkProtocol,
@@ -59,9 +59,9 @@ def worker(args: Arguments) -> None:
     cases = tuple(
         case_from_dict(decode_json(line)) for line in path.read_text().splitlines()
     )[:16]
-    scorer = KaiScorer.from_directory(args.model, max_length=2048, token_cache_size=256)
+    scorer = WyatScorer.from_directory(args.model, max_length=2048, token_cache_size=256)
     compiled = cast(Qwen3Model, torch.compile(scorer.backbone, backend="inductor"))
-    candidate = KaiScorer(
+    candidate = WyatScorer(
         compiled,
         scorer.head,
         scorer.tokenizer,

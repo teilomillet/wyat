@@ -22,8 +22,8 @@ from benchmarks.analysis.evidence import freeze_sources, process_diagnostic
 from benchmarks.analysis.reference import read_reference
 from benchmarks.analysis.torch.prefix.production import study as original
 from wyat import Model
-from wyat.backends.kai.cpu.prefix import PrefixScorer
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.cpu.prefix import PrefixScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle, BenchmarkEngine, QualityGate, compare_cycles
 from wyat.benchmark import _run as _run
 from wyat.evaluation import EvaluationCase, _input_digest, case_from_dict
@@ -344,7 +344,7 @@ def study(model: Path, output: Path) -> bool:
         )
         if len(all_cases) != 77 or _input_digest(all_cases) != original.INPUT_SHA:
             raise ValueError("All original ordered77 requests required")
-        base = KaiScorer.from_directory(
+        base = WyatScorer.from_directory(
             model, device="cpu", max_length=512, token_cache_size=0
         )
         if base.model_id != original.MODEL_ID:

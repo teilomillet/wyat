@@ -13,7 +13,7 @@ from transformers.modeling_outputs import BaseModelOutputWithPast
 
 from benchmarks.analysis.torch.prefix.cache import PrefixScorer
 from benchmarks.analysis.torch.prefix.lifetime import OneUseCache
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.core import Request
 
 type Arm = Literal["retained", "one-use"]
@@ -128,7 +128,7 @@ class MemoryScorer(PrefixScorer):
     Weights/config/device/encoder stay fixed and eval for this resource lifetime.
     """
 
-    def __init__(self, base: KaiScorer, prefix: tuple[int, ...], arm: Arm) -> None:
+    def __init__(self, base: WyatScorer, prefix: tuple[int, ...], arm: Arm) -> None:
         if arm not in ("retained", "one-use"):
             raise ValueError("Cache arm must be retained or one-use")
         super().__init__(base, prefix)

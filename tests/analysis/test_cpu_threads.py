@@ -14,7 +14,7 @@ pytest.importorskip("torch")
 import torch
 
 from benchmarks.analysis.torch import threads
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 
 
 def test_load_failure_restores_intraop_setting(
@@ -36,7 +36,7 @@ def test_load_failure_restores_intraop_setting(
 
     monkeypatch.setattr(torch, "get_num_threads", lambda: state["threads"])
     monkeypatch.setattr(torch, "set_num_threads", set_threads)
-    monkeypatch.setattr(KaiScorer, "from_directory", fail_load)
+    monkeypatch.setattr(WyatScorer, "from_directory", fail_load)
     with pytest.raises(ValueError, match="failed artifact"):
         threads.sweep(tmp_path / "model", tmp_path / "result.json")
     assert state["threads"] == 3

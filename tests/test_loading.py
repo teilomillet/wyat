@@ -26,7 +26,7 @@ def fail_backend_import(
         fromlist: Sequence[str] = (),
         level: int = 0,
     ) -> ModuleType:
-        if name == f"wyat.backends.kai.{backend}":
+        if name == f"wyat.backends.wyat.{backend}":
             raise error
         return original_import(name, globals, locals, fromlist, level)
 
@@ -51,8 +51,8 @@ def loaded(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, object]]:
             return [(1.0, 2.0) for _ in requests]
 
     for module_name, scorer_name in (
-        ("wyat.backends.kai.torch", "KaiScorer"),
-        ("wyat.backends.kai.mlx", "MLXKaiScorer"),
+        ("wyat.backends.wyat.torch", "WyatScorer"),
+        ("wyat.backends.wyat.mlx", "MLXWyatScorer"),
     ):
         module = ModuleType(module_name)
         setattr(module, scorer_name, LocalScorer)
@@ -147,3 +147,77 @@ def test_runtime_abi_import_error_is_not_rewritten(
     with pytest.raises(ImportError) as error:
         wyat.load("local", backend=backend)
     assert error.value is original
+
+
+def test_load_sets_model_temperature(loaded: list[dict[str, object]]) -> None:
+    model_default = wyat.load("local")
+    assert model_default.temperature == 1.0
+
+    model_custom = wyat.load("local", temperature=1.75)
+    assert model_custom.temperature == 1.75
+
+    with pytest.raises(
+        ValueError, match="temperature must be a positive finite number"
+    ):
+        wyat.load("local", temperature=-0.5)
+
+
+def test_load_autodetects_native_artifact_for_torch_and_mlx(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    native_dir = tmp_path / "native-bundle"
+    native_dir.mkdir()
+    (native_dir / "native_manifest.json").write_text("{}")
+    calls: list[dict[str, object]] = []
+
+    class FakeNativeScorer:
+        model_id = "native-fixture"
+
+        def score_many(
+            self, requests: Sequence[wyat.Request]
+        ) -> Sequence[Sequence[float]]:
+            return [(1.0, 2.0) for _ in requests]
+
+    def fake_load_native(path: str | Path, **kwargs: object) -> FakeNativeScorer:
+        calls.append({"loader": "torch", "path": path, **kwargs})
+        return FakeNativeScorer()
+
+    def fake_load_native_mlx(path: str | Path, **kwargs: object) -> FakeNativeScorer:
+        calls.append({"loader": "mlx", "path": path, **kwargs})
+        return FakeNativeScorer()
+
+    native_mod = ModuleType("wyat.loading.native")
+    monkeypatch.setattr(native_mod, "load_native", fake_load_native, raising=False)
+    mlx_mod = ModuleType("wyat.loading.mlx")
+    monkeypatch.setattr(mlx_mod, "load_native_mlx", fake_load_native_mlx, raising=False)
+    monkeypatch.setitem(sys.modules, "wyat.loading.native", native_mod)
+    monkeypatch.setitem(sys.modules, "wyat.loading.mlx", mlx_mod)
+
+    model_torch = wyat.load(native_dir, prefix_cache_size=32, max_length=256)
+    assert model_torch.model_id == "native-fixture"
+    assert calls[0] == {
+        "loader": "torch",
+        "path": native_dir,
+        "device": "cpu",
+        "max_length": 256,
+        "prefix_cache_size": 32,
+    }
+
+    model_mlx = wyat.load(
+        native_dir, backend="mlx", device="cpu", prefix_cache_size=4, max_length=128
+    )
+    assert model_mlx.model_id == "native-fixture"
+    assert calls[1] == {
+        "loader": "mlx",
+        "path": native_dir,
+        "device": "cpu",
+        "max_length": 128,
+        "prefix_cache_size": 4,
+    }
+
+    with pytest.raises(ValueError, match="sdpa attention"):
+        wyat.load(native_dir, backend="torch", attention="eager")
+
+    for bad_size in (-1, True, "16"):
+        with pytest.raises(ValueError, match="prefix_cache_size"):
+            wyat.load(native_dir, prefix_cache_size=bad_size)  # type: ignore[arg-type]

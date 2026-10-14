@@ -22,7 +22,7 @@ def artifact(tmp_path: Path) -> tuple[Path, dict[str, Any]]:
         path.write_bytes(payload)
         hashes[name] = hashlib.sha256(payload).hexdigest()
     payload = json.dumps({"files_sha256": hashes}).encode()
-    (tmp_path / "MODEL_MANIFEST.json").write_bytes(payload)
+    (tmp_path / "native_manifest.json").write_bytes(payload)
     # A tiny synthetic artifact exercises the same integrity boundaries without
     # downloading weights. The production pin is checked separately against Hub.
     values["verify"].__globals__["MANIFEST_SHA256"] = hashlib.sha256(
@@ -45,7 +45,7 @@ def test_manifest_is_checked_before_trusting_its_payload_hashes(
     artifact: tuple[Path, dict[str, Any]],
 ) -> None:
     root, values = artifact
-    (root / "MODEL_MANIFEST.json").write_text("{}")
+    (root / "native_manifest.json").write_text("{}")
     with pytest.raises(ValueError, match="manifest differs"):
         values["verify"](root)
 

@@ -14,7 +14,7 @@ import pytest
 mx = pytest.importorskip("mlx.core")
 pytest.importorskip("mlx_lm")
 torch = pytest.importorskip("torch")
-from fixtures.kai import create_kai_bundle  # noqa: E402
+from fixtures.wyat import create_wyat_bundle  # noqa: E402
 from safetensors.torch import load_file, save_file  # noqa: E402
 
 from wyat import tasks  # noqa: E402
@@ -42,7 +42,7 @@ def _refresh_manifest(root: Path, **changes: object) -> None:
 
 
 def _create_native_bundle(root: Path, *, bf16: bool = False) -> Path:
-    create_kai_bundle(root)
+    create_wyat_bundle(root)
     (root / "decision_config.json").unlink()
     if bf16:
         path = root / "backbone/model.safetensors"
@@ -81,7 +81,7 @@ def _create_native_bundle(root: Path, *, bf16: bool = False) -> Path:
         "head_dim": 8,
         "files_sha256": files,
         "provenance": {"fixture": "seeded-mechanics-only"},
-        "production_kai_compatible": False,
+        "production_wyat_compatible": False,
         "resume_supported": False,
     }
     (root / MANIFEST).write_text(json.dumps(manifest))
@@ -271,3 +271,121 @@ def test_native_changed_weight_identity_is_not_bypassed(bundle: Path) -> None:
     path.write_bytes(path.read_bytes() + b"changed")
     with pytest.raises(ValueError, match="identity differs"):
         load_native_mlx(bundle, device="cpu", metal=False)
+
+
+def test_native_prefix_kv_cache_parity_hits_and_lru_eviction(bundle: Path) -> None:
+    torch_uncached = load_native(bundle, prefix_cache_size=0)
+    torch_cached = load_native(bundle, prefix_cache_size=2)
+    mlx_uncached = load_native_mlx(
+        bundle, device="cpu", metal=False, prefix_cache_size=0
+    )
+    mlx_cached = load_native_mlx(bundle, device="cpu", metal=False, prefix_cache_size=2)
+
+    record_a = _record()
+    record_b = copy.deepcopy(record_a)
+    record_b["questions"] = {
+        "followup": {
+            "type": "noul",
+            "instructions": "read?",
+            "criteria": {"false": "no", "true": "yes"},
+        }
+    }
+
+    # Uncached vs cached multi-question record parity
+    for uncached, cached in (
+        (torch_uncached, torch_cached),
+        (mlx_uncached, mlx_cached),
+    ):
+        logits_u = uncached.logits(record_a)
+        logits_c = cached.logits(record_a)
+        for row_u, row_c in zip(logits_u, logits_c, strict=True):
+            assert row_c == pytest.approx(row_u, abs=2e-5, rel=2e-5)
+        assert uncached.prefix_cache_currsize == 0
+        assert uncached.prefix_cache_hits == 0
+        assert uncached.prefix_cache_misses == 0
+        assert cached.prefix_cache_currsize == 1
+        assert cached.prefix_cache_misses == 1
+        assert cached.prefix_cache_hits == 0
+
+        # Follow-up question sharing the same state reuses cached state prefix
+        follow_u = uncached.logits(record_b)
+        follow_c = cached.logits(record_b)
+        assert follow_c[0] == pytest.approx(follow_u[0], abs=2e-5, rel=2e-5)
+        assert cached.prefix_cache_hits == 1
+
+        # Repeating the exact same single-question record hits the longer prefix
+        repeat_c = cached.logits(record_b)
+        assert repeat_c[0] == pytest.approx(follow_u[0], abs=2e-5, rel=2e-5)
+        assert cached.prefix_cache_hits == 2
+
+        # LRU eviction with prefix_cache_size=2
+        for idx in range(3):
+            distinct = {
+                "state": f"distinct state {idx}",
+                "questions": {
+                    "q": {
+                        "type": "choice",
+                        "instructions": f"pick {idx}",
+                        "criteria": {"a": "first", "b": "second"},
+                    }
+                },
+            }
+            assert cached.logits(distinct)[0] == pytest.approx(
+                uncached.logits(distinct)[0], abs=2e-5, rel=2e-5
+            )
+            assert cached.prefix_cache_currsize <= 2
+
+        cached.clear_prefix_cache()
+        assert cached.prefix_cache_currsize == 0
+        assert cached.prefix_cache_hits == 0
+        assert cached.prefix_cache_misses == 0
+
+
+def test_wyat_load_native_decide_and_predict_across_choice_noul_and_score(
+    bundle: Path,
+) -> None:
+    import wyat
+
+    model_torch = wyat.load(bundle, backend="torch", prefix_cache_size=8)
+    model_mlx = wyat.load(bundle, backend="mlx", device="cpu", prefix_cache_size=8)
+
+    requests = (
+        wyat.Request.choice(
+            "read?",
+            {"a": "yes", "b": "no"},
+            context="Bonjour 世界 é",
+        ),
+        wyat.Request.noul(
+            "missing parameter?",
+            context="Bonjour 世界 é",
+        ),
+        wyat.Request.score(
+            "rate completeness",
+            ("no", "read", "yes"),
+            context="Bonjour 世界 é",
+        ),
+    )
+
+    decisions_torch = model_torch.decide_many(requests)
+    decisions_mlx = model_mlx.decide_many(requests)
+    assert len(decisions_torch) == 3
+    for dec_t, dec_m in zip(decisions_torch, decisions_mlx, strict=True):
+        assert dec_t.selected == dec_m.selected
+        assert dec_t.scores == pytest.approx(dec_m.scores, abs=2e-5, rel=2e-5)
+        assert dec_t.probabilities == pytest.approx(
+            dec_m.probabilities, abs=2e-5, rel=2e-5
+        )
+    assert 0.0 <= decisions_torch[1].probability_true <= 1.0
+    assert 0.0 <= decisions_torch[2].expected_ordinal_value <= 2.0
+
+    # Multi-question PublicRecord via Model.predict and Model.logits
+    record = _record()
+    answers_t = model_torch.predict(record)
+    answers_m = model_mlx.predict(record)
+    assert set(answers_t) == {"choice", "score", "binary"}
+    for key in answers_t:
+        assert answers_t[key].probabilities == pytest.approx(
+            answers_m[key].probabilities, abs=2e-5, rel=2e-5
+        )
+    cooled_t = model_torch.predict(record, temperature=0.5)
+    assert set(cooled_t) == {"choice", "score", "binary"}

@@ -1,14 +1,17 @@
 # Decision task meanings
 
-Wyat's local Kai adapter supports **Choice**. A Choice returns an application
-ID, raw candidate logits and relative probabilities. For a team-facing
-walkthrough, see [Explaining decisions](explaining-decisions.md).
+Wyat supports three structured decision tasks: **Choice**, **Score**, and
+**Noul**. The single-choice candidate-head loader supports **Choice**, while the native
+full-task loader (`wyat-native-full-v1`) supports **Choice**, **Score**, and
+**Noul** across `model.decide(request)` and `model.predict(record)`. For a
+team-facing walkthrough, see [Explaining decisions](explaining-decisions.md).
 
-The supported path is `wyat.load(path)` followed by `model.decide(request)`.
-[Obtain the supported artifact](model-acquisition.md) and follow the
+The supported path is `wyat.load(path)` followed by `model.decide(request)` (or
+`model.predict(record)` for multi-question records).
+[Obtain a supported artifact](model-acquisition.md) and follow the
 [Python API guide](api.md). The package contains no model weights.
 
-## Released Kai loader capabilities
+## Task capabilities
 
 | Application need | Current operation | Meaning |
 | --- | --- | --- |
@@ -16,31 +19,32 @@ The supported path is `wyat.load(path)` followed by `model.decide(request)`.
 | Inspect a candidate's raw score | `decision.scores_by_id[id]` | Finite raw logit; its absolute magnitude is not a rating or confidence. |
 | Inspect relative alternatives | `decision.probabilities_by_id[id]` | Softmax weight among supplied candidates; not calibrated correctness. |
 | Rank supplied choices | `decision.ranking` | IDs in descending raw score order; exact ties preserve input order. |
-| Rate against an ordered rubric | Native Score is not yet admitted | Needs a Score input recipe, rubric interpretation, and model-bound postprocessing. |
-| Estimate yes/no probability | Native Noul is not yet admitted | Needs its trained binary task recipe and an explicit true-probability interpretation. |
+| Rate against an ordered rubric | `Request.score(...)` / `decision.expected_ordinal_value` | Supported on `wyat-native-full-v1` artifacts (`0..N-1` rubric levels) and `wyat.tasks.interpret`. |
+| Estimate yes/no probability | `Request.noul(...)` / `decision.probability_true` | Supported on `wyat-native-full-v1` artifacts (`true`/`false` options) and `wyat.tasks.interpret`. |
 
-The generic custom `Scorer` may accept its own task strings, but `Model` still
-interprets its output as candidate logits and a Choice distribution. It does
-not supply a native Score or Noul interpretation by relabeling that result.
-The current Kai encoder rejects non-Choice tasks rather than guessing.
+The single-choice candidate-head encoder supports `task="choice"` and rejects non-Choice
+tasks rather than guessing. Native full-task (`wyat-native-full-v1`) artifacts
+render each task (`choice`, `score`, `noul`) with its trained task framing.
 
 An application can include a review/abstain action in its supplied menu or apply
-its own explicit policy. The library does not silently impose a confidence
-threshold, invent another outcome, or hide an operational failure as abstention.
+its own explicit policy using `decision.score_gap`,
+`decision.probability_margin`, or `decision.normalized_entropy`. The library
+does not silently impose a confidence threshold, invent another outcome, or hide
+an operational failure as abstention.
 
 ## Distinguish selection, ratings and yes/no probabilities
 
 Choice selects among supplied candidates. Its raw `scores` are logits, not
-rubric ratings. Naming two options `true` and `false` still produces a Choice
-distribution; it does not enable another trained task.
+rubric ratings. Naming two Choice options `true` and `false` still produces a
+Choice distribution; use `Request.noul(...)` (`task="noul"`) with a model that
+supports Noul when a binary true/false task is intended.
 
-An ordinal Score task would require an ordered rubric and its own model-bound
-interpretation. A probability-weighted expected index can fall between rubric
-levels and differs from selecting the most likely level. A Noul task would
-return the weight assigned to `true`; an application would own any Boolean
-threshold. Neither task is exposed by the supported local Kai loader.
+An ordinal Score task (`Request.score(...)`, `task="score"`) uses an ordered
+rubric (`"0"`, `"1"`, ..., `"N-1"`) and exposes `decision.expected_ordinal_value`
+(the probability-weighted expected index, which can fall between rubric levels
+and differs from selecting the single most likely level). A Noul task
+(`Request.noul(...)`, `task="noul"`) exposes `decision.probability_true` (the
+weight assigned to `"true"`); the application owns any Boolean threshold.
 
-Changing `Request.task`, renaming logits or averaging arbitrary Choice
-probabilities cannot establish those additional capabilities. Evaluate the
-supported model on relevant labeled cases and retain operational failures
-separately from semantic outcomes.
+Evaluate the supported model on relevant labeled cases and retain operational
+failures separately from semantic outcomes.

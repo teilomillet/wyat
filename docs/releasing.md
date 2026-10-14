@@ -4,6 +4,12 @@ Release preparation covers two public surfaces: the pip distributions and the
 source code. Both must contain only explicitly approved files. The mixed
 maintainer workspace and its Git history remain private.
 
+For model releases, every bundled code file must also carry the attribution
+`Teïlo Millet - teilomillet` and its appropriate SPDX license header. Add headers
+before generating source-bound manifests and checksums, retain third-party
+notices, and reject missing headers before upload. This applies to every future
+model release, including its examples and bundled runtime source.
+
 Version **0.0.9 is the candidate version**. The existing PyPI `0.0.1` release
 contains a different implementation and must not be reused. No candidate is
 published merely by building, exporting or checking it.
@@ -33,6 +39,16 @@ Inspect the source inventory and the content of every selected file. An
 allowlisted filename does not establish that its contents are suitable for the
 public audience. Review documentation links, examples, local paths, attribution,
 model licenses and workflow destinations as well as Python code.
+
+The exporter, build hook and archive checker run the same content privacy policy
+on the selected bytes. Known credential formats and private filesystem paths
+are rejected with redacted errors. CI checks source before tests and checks
+test/coverage reports before retaining them; coverage paths are relative.
+These checks complement independent review and cannot recognize all private
+natural-language content. Preserve private originals and transformation evidence
+in access-controlled storage outside this repository before removing them from
+a release surface. Bind the archive and cleaned release through hashes and a
+private change receipt; do not publish internal archive paths.
 
 ## Check and build from the exported source
 

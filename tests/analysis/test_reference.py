@@ -11,7 +11,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from benchmarks.analysis.reference import balanced_orders, read_reference
-from wyat.backends.kai.encoding import EncodedRequest
+from wyat.backends.wyat.encoding import EncodedRequest
 from wyat.core import Candidate, Request
 from wyat.evaluation import EvaluationCase
 

@@ -31,7 +31,7 @@ from benchmarks.analysis.mlx.endpoints import (
     paired_with_telemetry,
 )
 from benchmarks.analysis.reference import read_reference
-from wyat.backends.kai.mlx import MLXKaiScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -83,9 +83,9 @@ def study(
                 "reference": "benchmarks/analysis/reference.py",
                 "cache": "benchmarks/analysis/mlx/cache.py",
                 "evidence": "benchmarks/analysis/evidence.py",
-                "mlx_backend": "wyat/backends/kai/mlx.py",
-                "artifact": "wyat/backends/kai/artifact.py",
-                "encoding": "wyat/backends/kai/encoding.py",
+                "mlx_backend": "wyat/backends/wyat/mlx.py",
+                "artifact": "wyat/backends/wyat/artifact.py",
+                "encoding": "wyat/backends/wyat/encoding.py",
                 "core": "wyat/core.py",
                 "benchmark": "wyat/benchmark.py",
                 "evaluation": "wyat/evaluation.py",
@@ -126,7 +126,7 @@ def study(
             )
         arm_results: dict[str, dict[str, object]] = {}
         with bounded_cache(512 << 20) as previous:
-            base = MLXKaiScorer.from_directory(
+            base = MLXWyatScorer.from_directory(
                 root / ".models/Decision-2.0-Kai-0.6B",
                 max_length=512,
                 token_cache_size=0,
@@ -172,7 +172,7 @@ def study(
                 started = time.perf_counter_ns()
                 with mx.stream(base.device):
                     backbone = candidate_backbone(base.backbone, name)
-                    candidate = MLXKaiScorer(
+                    candidate = MLXWyatScorer(
                         backbone,
                         base.head,
                         base.encoder,

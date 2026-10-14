@@ -39,8 +39,9 @@ These probabilities describe the supplied menu. They are not calibrated
 probabilities that the selected action is correct. Changing the question,
 evidence, option descriptions or menu can change the distribution.
 
-Raw candidate scores are not rubric ratings. The supported local Kai loader
-accepts Choice; [task meanings](decision-tasks.md) explain the distinction from
+Raw candidate scores are not rubric ratings. Single-choice candidate-head
+artifacts accept Choice, while native full-task artifacts support Choice, Score,
+and Noul; [task meanings](decision-tasks.md) explain the distinction from
 ordinal ratings and yes/no probability tasks.
 
 Write instructions, evidence and descriptions in your team's language. Keep

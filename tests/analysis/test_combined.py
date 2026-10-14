@@ -17,13 +17,13 @@ import mlx.core as mx
 from mlx_lm.models.qwen3 import ModelArgs, Qwen3Model
 
 from benchmarks.analysis.mlx import combined
-from wyat.backends.kai import prefix as production_prefix
-from wyat.backends.kai.encoding import KaiEncoder
-from wyat.backends.kai.mlx import MLXCandidateHead, MLXKaiScorer
-from wyat.backends.kai.prefix import PrefixCache, PrefixScorer
-from wyat.backends.kai.prefix import PrefixScorer as PrefixEndpointScorer
-from wyat.backends.kai.readout import RotaryMap
-from wyat.backends.kai.readout import cached_endpoint_hidden as combined_hidden
+from wyat.backends.wyat import prefix as production_prefix
+from wyat.backends.wyat.encoding import WyatEncoder
+from wyat.backends.wyat.mlx import MLXCandidateHead, MLXWyatScorer
+from wyat.backends.wyat.prefix import PrefixCache, PrefixScorer
+from wyat.backends.wyat.prefix import PrefixScorer as PrefixEndpointScorer
+from wyat.backends.wyat.readout import RotaryMap
+from wyat.backends.wyat.readout import cached_endpoint_hidden as combined_hidden
 from wyat.core import Candidate, Model, Request
 from wyat.wire import decode_json
 
@@ -47,7 +47,7 @@ def request(choices: Sequence[str], *, context: str = "shared public state") -> 
 
 
 @pytest.fixture
-def base() -> MLXKaiScorer:
+def base() -> MLXWyatScorer:
     with mx.stream(mx.cpu):
         mx.random.seed(43)
         backbone = Qwen3Model(
@@ -56,10 +56,10 @@ def base() -> MLXKaiScorer:
         head = MLXCandidateHead(16, 8)
         backbone.eval()
         head.eval()
-    return MLXKaiScorer(
+    return MLXWyatScorer(
         backbone,
         head,
-        KaiEncoder(CharacterTokenizer(), max_length=512, max_options=8),
+        WyatEncoder(CharacterTokenizer(), max_length=512, max_options=8),
         model_id="owned-tiny-asymmetric-combined-fixture",
         device=mx.Device(mx.cpu),
     )
@@ -67,7 +67,7 @@ def base() -> MLXKaiScorer:
 
 @pytest.mark.parametrize("prefix_length", [1, 25])
 def test_repeated_interleaved_scalar_batches_preserve_immutable_prefix(
-    base: MLXKaiScorer, prefix_length: int
+    base: MLXWyatScorer, prefix_length: int
 ) -> None:
     values = [request(("yes", "no")), request(("a", "longer b", "c"))]
     scorer = PrefixEndpointScorer(
@@ -105,7 +105,7 @@ def test_repeated_interleaved_scalar_batches_preserve_immutable_prefix(
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 def test_generated_candidate_counts_lengths_padding_and_caller_order(
-    base: MLXKaiScorer, menus: list[list[str]]
+    base: MLXWyatScorer, menus: list[list[str]]
 ) -> None:
     values = [request(menu) for menu in menus]
     scorer = PrefixEndpointScorer(base, base.encode_request(values[0]).ids[:25])
@@ -126,7 +126,7 @@ def test_generated_candidate_counts_lengths_padding_and_caller_order(
     suppress_health_check=[HealthCheck.function_scoped_fixture],
 )
 def test_absolute_cached_readouts_match_full_model_with_duplicate_positions(
-    base: MLXKaiScorer, positions: list[int], prefix_length: int
+    base: MLXWyatScorer, positions: list[int], prefix_length: int
 ) -> None:
     with mx.stream(mx.cpu):
         ids = mx.array([list(range(18)), list(range(18))], dtype=mx.int32)
@@ -144,7 +144,7 @@ def test_absolute_cached_readouts_match_full_model_with_duplicate_positions(
 
 @pytest.mark.parametrize("overlap", [False, True])
 def test_mixed_mismatched_or_overlapping_batch_falls_back_intact(
-    base: MLXKaiScorer, monkeypatch: pytest.MonkeyPatch, overlap: bool
+    base: MLXWyatScorer, monkeypatch: pytest.MonkeyPatch, overlap: bool
 ) -> None:
     value = request(("a", "b"))
     encoded = base.encode_request(value)
@@ -168,7 +168,7 @@ def test_mixed_mismatched_or_overlapping_batch_falls_back_intact(
     assert scorer.score_many(values) == base.score_many(values)
 
 
-def test_cache_growth_does_not_mutate_original_prefix(base: MLXKaiScorer) -> None:
+def test_cache_growth_does_not_mutate_original_prefix(base: MLXWyatScorer) -> None:
     value = request(("long candidate " * 8, "short"))
     scorer = PrefixEndpointScorer(base, base.encode_request(value).ids[:25])
     assert len(base.encode_request(value).ids) - 25 > 256
@@ -179,14 +179,14 @@ def test_cache_growth_does_not_mutate_original_prefix(base: MLXKaiScorer) -> Non
         assert all(k.shape[2] == v.shape[2] == 25 for k, v in scorer._states)
 
 
-def test_invalid_candidate_count_preserves_encoder_contract(base: MLXKaiScorer) -> None:
+def test_invalid_candidate_count_preserves_encoder_contract(base: MLXWyatScorer) -> None:
     valid = request(("a", "b"))
     scorer = PrefixEndpointScorer(base, base.encode_request(valid).ids[:25])
-    with pytest.raises(ValueError, match="Kai requires"):
+    with pytest.raises(ValueError, match="Wyat requires"):
         scorer.score_many([request(("a",))])
 
 
-def test_original_prefix_rope_offset_negative_control(base: MLXKaiScorer) -> None:
+def test_original_prefix_rope_offset_negative_control(base: MLXWyatScorer) -> None:
     with mx.stream(mx.cpu):
         rotary = cast(RotaryMap, base.backbone.layers[-1].self_attn.rope)
         mx.random.seed(47)
@@ -239,7 +239,7 @@ def test_absolute_cached_mask_independent_uniform_gqa_oracle() -> None:
         assert float(cast(float, mx.max(mx.abs(relative - expected)).item())) > 2
 
 
-def test_misaligned_cache_owners_rejected(base: MLXKaiScorer) -> None:
+def test_misaligned_cache_owners_rejected(base: MLXWyatScorer) -> None:
     scorer = PrefixEndpointScorer(base, (0, 1, 2))
     with mx.stream(mx.cpu):
         ids, positions = mx.array([[3, 4]]), mx.array([[1]])
@@ -301,7 +301,7 @@ def test_cli_uses_declared_strategy_and_rejects_failed_or_partial_receipt(
     ],
 )
 def test_production_prefix_boundary_rejected_before_cache_construction(
-    base: MLXKaiScorer,
+    base: MLXWyatScorer,
     monkeypatch: pytest.MonkeyPatch,
     prefix: object,
     error_type: type[Exception],
@@ -315,13 +315,13 @@ def test_production_prefix_boundary_rejected_before_cache_construction(
 
 
 def test_scaled_rope_and_compiled_base_rejected_before_cache_construction(
-    base: MLXKaiScorer, monkeypatch: pytest.MonkeyPatch
+    base: MLXWyatScorer, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     def forbidden() -> PrefixCache:
         raise AssertionError("Unsupported base must fail before eager work")
 
     monkeypatch.setattr(production_prefix, "new_cache", forbidden)
-    compiled = MLXKaiScorer(
+    compiled = MLXWyatScorer(
         base.backbone,
         base.head,
         base.encoder,
@@ -339,7 +339,7 @@ def test_scaled_rope_and_compiled_base_rejected_before_cache_construction(
         PrefixScorer(base, (0, 1))
 
 
-def test_exact_prefix_identity_is_read_only(base: MLXKaiScorer) -> None:
+def test_exact_prefix_identity_is_read_only(base: MLXWyatScorer) -> None:
     scorer = PrefixScorer(base, (0, 1))
     with pytest.raises(AttributeError):
         setattr(scorer, "prefix", (2, 3))  # noqa: B010 - exercise a read-only boundary.
@@ -347,13 +347,13 @@ def test_exact_prefix_identity_is_read_only(base: MLXKaiScorer) -> None:
 
 
 def test_wrong_base_type_rejected() -> None:
-    with pytest.raises(TypeError, match="native MLXKaiScorer"):
-        PrefixScorer(cast(MLXKaiScorer, object()), (0, 1))
+    with pytest.raises(TypeError, match="native MLXWyatScorer"):
+        PrefixScorer(cast(MLXWyatScorer, object()), (0, 1))
 
 
-def test_constructor_rejects_non_boolean_compile(base: MLXKaiScorer) -> None:
+def test_constructor_rejects_non_boolean_compile(base: MLXWyatScorer) -> None:
     with pytest.raises(ValueError, match="boolean"):
-        MLXKaiScorer(
+        MLXWyatScorer(
             base.backbone,
             base.head,
             base.encoder,
@@ -364,7 +364,7 @@ def test_constructor_rejects_non_boolean_compile(base: MLXKaiScorer) -> None:
 
 
 def test_production_prefix_supports_model_and_server_contracts(
-    base: MLXKaiScorer,
+    base: MLXWyatScorer,
 ) -> None:
     from fastapi.testclient import TestClient
 

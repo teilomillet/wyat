@@ -30,8 +30,8 @@ from benchmarks.analysis.mlx.bfloat.products import (
     exact_bfloat_linear,
     product,
 )
-from wyat.backends.kai.encoding import KaiEncoder
-from wyat.backends.kai.mlx import MLXCandidateHead, MLXKaiScorer
+from wyat.backends.wyat.encoding import WyatEncoder
+from wyat.backends.wyat.mlx import MLXCandidateHead, MLXWyatScorer
 from wyat.core import Candidate, Request
 
 
@@ -280,10 +280,10 @@ def test_full_readout_mixed_lengths_counts_and_scalar_batch(
     with mx.stream(mx.cpu):
         head = MLXCandidateHead(16, 8)
         head.eval()
-        scorer = MLXKaiScorer(
+        scorer = MLXWyatScorer(
             candidate_backbone(backbone, arm),
             head,
-            KaiEncoder(CharacterTokenizer(), max_length=512, max_options=8),
+            WyatEncoder(CharacterTokenizer(), max_length=512, max_options=8),
             model_id="tiny-bfloat-asymmetric",
             device=mx.Device(mx.cpu),
         )

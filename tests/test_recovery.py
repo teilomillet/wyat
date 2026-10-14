@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from wyat import Candidate, Model, ModelInputError, ModelOutputError, Request, cli
-from wyat.backends.kai.encoding import KaiEncoder
+from wyat.backends.wyat.encoding import WyatEncoder
 from wyat.server import create_app
 
 
@@ -23,7 +23,7 @@ class CharacterTokenizer:
 
 class EncodingScorer:
     def __init__(self) -> None:
-        self.encoder = KaiEncoder(CharacterTokenizer(), max_length=256, max_options=3)
+        self.encoder = WyatEncoder(CharacterTokenizer(), max_length=256, max_options=3)
 
     def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
         for request in requests:

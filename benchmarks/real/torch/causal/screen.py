@@ -18,7 +18,7 @@ from typing import cast
 import torch
 from transformers.modeling_outputs import BaseModelOutputWithPast
 
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.core import Request
 from wyat.evaluation import case_from_dict
 from wyat.wire import decode_json
@@ -32,7 +32,7 @@ class Arguments(argparse.Namespace):
 
 
 def score(
-    scorer: KaiScorer, requests: Sequence[Request], *, legacy: bool
+    scorer: WyatScorer, requests: Sequence[Request], *, legacy: bool
 ) -> list[list[float]]:
     if scorer.device.type != "cpu":
         raise ValueError("This frozen reference supports CPU only")
@@ -77,7 +77,7 @@ def score(
 
 
 def run(
-    scorer: KaiScorer, requests: Sequence[Request], batch_size: int, *, legacy: bool
+    scorer: WyatScorer, requests: Sequence[Request], batch_size: int, *, legacy: bool
 ) -> list[list[float]]:
     return [
         row
@@ -102,7 +102,7 @@ def main() -> None:
         case_from_dict(decode_json(line)) for line in data_path.read_text().splitlines()
     ][:16]
     requests = [case.request for case in cases]
-    scorer = KaiScorer.from_directory(model_path, max_length=2048, token_cache_size=256)
+    scorer = WyatScorer.from_directory(model_path, max_length=2048, token_cache_size=256)
     report: dict[str, object] = {
         "schema_version": 1,
         "model_id": scorer.model_id,

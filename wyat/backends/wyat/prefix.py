@@ -1,4 +1,4 @@
-"""Opt-in eager immutable prefix reuse for the MLX Kai scorer."""
+"""Opt-in eager immutable prefix reuse for the MLX Wyat scorer."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from mlx_lm.models.cache import ConcatenateKVCache
 from wyat.core import Request
 
 from .encoding import EncodedRequest
-from .mlx import MLXKaiScorer, _pack
+from .mlx import MLXWyatScorer, _pack
 from .readout import EndpointCache, cached_endpoint_hidden
 
 type KVState = tuple[mx.array, mx.array]
@@ -41,9 +41,9 @@ class PrefixScorer:
     The admitted path is eager; the final block visits only actual readouts.
     """
 
-    def __init__(self, base: MLXKaiScorer, prefix: tuple[int, ...]) -> None:
-        if not isinstance(base, MLXKaiScorer):
-            raise TypeError("Prefix requires a native MLXKaiScorer base")
+    def __init__(self, base: MLXWyatScorer, prefix: tuple[int, ...]) -> None:
+        if not isinstance(base, MLXWyatScorer):
+            raise TypeError("Prefix requires a native MLXWyatScorer base")
         if type(prefix) is not tuple:
             raise TypeError("Prefix must be an exact immutable token tuple")
         if base.compiled:

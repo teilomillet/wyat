@@ -21,7 +21,7 @@ from transformers.models.qwen3.modeling_qwen3 import Qwen3MLP
 from benchmarks.analysis.evidence import freeze_sources, process_diagnostic
 from benchmarks.analysis.reference import read_reference
 from wyat import Model
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkCycle,
     BenchmarkEngine,
@@ -99,8 +99,8 @@ def packed_backbone(original: Qwen3Model) -> Qwen3Model:
     return candidate
 
 
-def variant(scorer: KaiScorer) -> KaiScorer:
-    return KaiScorer(
+def variant(scorer: WyatScorer) -> WyatScorer:
+    return WyatScorer(
         packed_backbone(scorer.backbone),
         scorer.head,
         scorer.tokenizer,
@@ -124,9 +124,9 @@ def study(model_path: Path, output: Path, *, batch_size: int = 8) -> bool:
             "launcher": Path(__file__).with_name("process.py"),
             "reference": root / "benchmarks/analysis/reference.py",
             "benchmark": root / "wyat/benchmark.py",
-            "backend": root / "wyat/backends/kai/torch.py",
-            "encoding": root / "wyat/backends/kai/encoding.py",
-            "artifact": root / "wyat/backends/kai/artifact.py",
+            "backend": root / "wyat/backends/wyat/torch.py",
+            "encoding": root / "wyat/backends/wyat/encoding.py",
+            "artifact": root / "wyat/backends/wyat/artifact.py",
             "qwen3": Path(modeling_qwen3.__file__),
         },
         output,
@@ -175,7 +175,7 @@ def study(model_path: Path, output: Path, *, batch_size: int = 8) -> bool:
     previous_threads = torch.get_num_threads()
     torch.set_num_threads(8)
     try:
-        scorer = KaiScorer.from_directory(
+        scorer = WyatScorer.from_directory(
             model_path, max_length=512, token_cache_size=0
         )
         reference = read_reference(

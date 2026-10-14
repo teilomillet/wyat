@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import cast
 
 from benchmarks.analysis.mlx.prefix import Arguments, study
-from wyat.backends.kai.prefix import PrefixScorer as PrefixEndpointScorer
+from wyat.backends.wyat.prefix import PrefixScorer as PrefixEndpointScorer
 
 
 def main() -> None:

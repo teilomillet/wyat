@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import math
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -19,6 +20,52 @@ def _text(value: object, name: str, *, nonempty: bool = False) -> str:
     return value
 
 
+def _canonical_schema(schema: object) -> str:
+    if not isinstance(schema, Mapping) or not schema:
+        raise ValueError("candidate schema must be a nonempty mapping")
+    ancestors: set[int] = set()
+
+    def normalize(item: object, *, root: bool = False) -> object:
+        if item is None or isinstance(item, bool):
+            return item
+        if isinstance(item, int):
+            return int(item)
+        if isinstance(item, str):
+            return _text(item, "candidate schema text")
+        if isinstance(item, Real):
+            number = float(item)
+            if not math.isfinite(number):
+                raise ValueError("candidate schema must contain finite JSON values")
+            return number
+        if id(item) in ancestors:
+            raise ValueError("candidate schema must not contain cyclic references")
+        if isinstance(item, Mapping):
+            ancestors.add(id(item))
+            try:
+                return {
+                    _text(key, "candidate schema key", nonempty=root): normalize(child)
+                    for key, child in item.items()
+                }
+            finally:
+                ancestors.remove(id(item))
+        if isinstance(item, Sequence) and not isinstance(item, (bytes, bytearray)):
+            ancestors.add(id(item))
+            try:
+                return [normalize(child) for child in item]
+            finally:
+                ancestors.remove(id(item))
+        raise ValueError("candidate schema must contain finite JSON values")
+
+    normalized = normalize(schema, root=True)
+    return json.dumps(
+        normalized,
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class Candidate:
     """An application-owned candidate ID and the description the model reads."""
@@ -29,6 +76,17 @@ class Candidate:
     def __post_init__(self) -> None:
         _text(self.id, "candidate.id", nonempty=True)
         _text(self.text, "candidate.text", nonempty=True)
+
+    @classmethod
+    def from_schema(cls, id: str, schema: Mapping[str, object]) -> Candidate:
+        """Bind a structured tool or action schema directly to its candidate line."""
+        return cls(id=id, text=_canonical_schema(schema))
+
+
+_NOUL_CANDIDATES: tuple[Candidate, ...] = (
+    Candidate("false", "False."),
+    Candidate("true", "True."),
+)
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -50,7 +108,7 @@ class Request:
     def __init__(
         self,
         query: str,
-        candidates: Sequence[Candidate],
+        candidates: Sequence[Candidate] = (),
         context: str = "",
         task: str = "choice",
     ) -> None:
@@ -58,8 +116,11 @@ class Request:
             candidates, Sequence
         ):
             raise ValueError("candidates must be a nonempty ordered sequence")
+        resolved = tuple(candidates)
+        if not resolved and task == "noul":
+            resolved = _NOUL_CANDIDATES
         object.__setattr__(self, "query", query)
-        object.__setattr__(self, "candidates", tuple(candidates))
+        object.__setattr__(self, "candidates", resolved)
         object.__setattr__(self, "context", context)
         object.__setattr__(self, "task", task)
         self.__post_init__()
@@ -75,6 +136,71 @@ class Request:
         ids = [candidate.id for candidate in self.candidates]
         if len(set(ids)) != len(ids):
             raise ValueError("candidate IDs must be unique")
+
+    @classmethod
+    def choice(
+        cls,
+        query: str,
+        candidates: Sequence[Candidate] | Mapping[str, str],
+        *,
+        context: str = "",
+    ) -> Request:
+        """Construct a categorical choice request from Candidates or a mapping."""
+        if isinstance(candidates, Mapping):
+            resolved = tuple(
+                Candidate(cand_id, text) for cand_id, text in candidates.items()
+            )
+            return cls(query, resolved, context=context, task="choice")
+        return cls(query, candidates, context=context, task="choice")
+
+    @classmethod
+    def noul(
+        cls,
+        query: str,
+        *,
+        context: str = "",
+        candidates: Sequence[Candidate] | None = None,
+        false_text: str = "False.",
+        true_text: str = "True.",
+    ) -> Request:
+        """Construct a binary evidence / abstention (noul) request."""
+        if candidates is not None:
+            return cls(query, candidates, context=context, task="noul")
+        if false_text == "False." and true_text == "True.":
+            return cls(query, _NOUL_CANDIDATES, context=context, task="noul")
+        return cls(
+            query,
+            (Candidate("false", false_text), Candidate("true", true_text)),
+            context=context,
+            task="noul",
+        )
+
+    @classmethod
+    def score(
+        cls,
+        query: str,
+        rubric: Sequence[Candidate | str],
+        *,
+        context: str = "",
+    ) -> Request:
+        """Construct an ordinal rubric score request from descriptions or Candidates."""
+        if (
+            isinstance(rubric, (str, bytes, bytearray, Mapping))
+            or not isinstance(rubric, Sequence)
+            or len(rubric) < 2
+        ):
+            raise ValueError("score rubric must contain at least two ordered levels")
+        resolved: list[Candidate] = []
+        for index, item in enumerate(rubric):
+            if isinstance(item, Candidate):
+                resolved.append(item)
+            elif isinstance(item, str):
+                resolved.append(Candidate(str(index), item))
+            else:
+                raise ValueError(
+                    "score rubric must contain Candidate or text descriptions"
+                )
+        return cls(query, tuple(resolved), context=context, task="score")
 
 
 class Scorer(Protocol):
@@ -143,6 +269,18 @@ class Decision:
     @property
     def candidate_ids(self) -> tuple[str, ...]:
         """Candidate IDs in original score order for a coherent result."""
+        self._validate_ranking()
+        # Invert the stable score ranking to preserve the four-field dataclass
+        # and wire format, including coherent legacy four-argument results.
+        order = sorted(
+            range(len(self.scores)), key=self.scores.__getitem__, reverse=True
+        )
+        ids = [""] * len(order)
+        for index, candidate_id in zip(order, self.ranking, strict=True):
+            ids[index] = candidate_id
+        return tuple(ids)
+
+    def _validate_ranking(self) -> None:
         self._validate_numbers(self.scores, "scores")
         if not isinstance(self.ranking, Sequence) or isinstance(
             self.ranking, (str, bytes, bytearray)
@@ -154,15 +292,6 @@ class Decision:
             _text(candidate_id, "decision candidate ID", nonempty=True)
         if len(set(self.ranking)) != len(self.ranking):
             raise ValueError("decision candidate IDs must be unique")
-        # Invert the stable score ranking to preserve the four-field dataclass
-        # and wire format, including coherent legacy four-argument results.
-        order = sorted(
-            range(len(self.scores)), key=self.scores.__getitem__, reverse=True
-        )
-        ids = [""] * len(order)
-        for index, candidate_id in zip(order, self.ranking, strict=True):
-            ids[index] = candidate_id
-        return tuple(ids)
 
     @property
     def scores_by_id(self) -> dict[str, float]:
@@ -173,12 +302,93 @@ class Decision:
     def probabilities_by_id(self) -> dict[str, float]:
         """A detached probability dictionary in original candidate order."""
         ids = self.candidate_ids
+        self._validate_probabilities()
+        return dict(zip(ids, self.probabilities, strict=True))
+
+    def _validate_probabilities(self) -> None:
         self._validate_numbers(self.probabilities, "probabilities")
-        if len(self.probabilities) != len(ids):
+        if len(self.probabilities) != len(self.scores):
             raise ValueError(
                 "decision probabilities and scores must have equal lengths"
             )
-        return dict(zip(ids, self.probabilities, strict=True))
+
+    @property
+    def score_gap(self) -> float:
+        """Difference between the highest and second-highest raw candidate scores."""
+        self._validate_numbers(self.scores, "scores")
+        if len(self.scores) < 2:
+            raise ValueError("decision.score_gap requires at least two candidates")
+        best, second = sorted((float(v) for v in self.scores), reverse=True)[:2]
+        return best - second
+
+    @property
+    def probability_margin(self) -> float:
+        """Difference between the highest and second-highest probabilities."""
+        probs = self._validated_distribution()
+        if len(probs) < 2:
+            raise ValueError(
+                "decision.probability_margin requires at least two candidates"
+            )
+        best, second = sorted(probs, reverse=True)[:2]
+        return best - second
+
+    @property
+    def entropy(self) -> float:
+        """Shannon entropy in nats over the candidate probability distribution."""
+        probs = self._validated_distribution()
+        return -math.fsum(p * math.log(p) for p in probs if p > 0.0)
+
+    @property
+    def normalized_entropy(self) -> float:
+        """Shannon entropy normalized by ln(K) into [0, 1] for K >= 2 candidates."""
+        probs = self._validated_distribution()
+        if len(probs) < 2:
+            raise ValueError(
+                "decision.normalized_entropy requires at least two candidates"
+            )
+        return self.entropy / math.log(len(probs))
+
+    @property
+    def probability_true(self) -> float:
+        """Probability of 'true' for a binary noul decision."""
+        self._validated_distribution()
+        by_id = self.probabilities_by_id
+        if set(by_id) != {"false", "true"} or len(by_id) != 2:
+            raise ValueError(
+                "decision.probability_true requires binary "
+                "'false' and 'true' candidates"
+            )
+        return by_id["true"]
+
+    @property
+    def expected_ordinal_value(self) -> float:
+        """Probability-weighted expected ordinal index (0..K-1) for a score decision."""
+        self._validated_distribution()
+        by_id = self.probabilities_by_id
+        if len(by_id) < 2:
+            raise ValueError(
+                "decision.expected_ordinal_value requires at least two candidates"
+            )
+        expected_ids = tuple(str(index) for index in range(len(by_id)))
+        if tuple(by_id) != expected_ids:
+            raise ValueError(
+                "decision.expected_ordinal_value requires sequential "
+                "'0'..'K-1' candidate IDs"
+            )
+        return math.fsum(
+            index * probability for index, probability in enumerate(by_id.values())
+        )
+
+    def _validated_distribution(self) -> tuple[float, ...]:
+        self._validate_numbers(self.probabilities, "probabilities")
+        probs = tuple(float(v) for v in self.probabilities)
+        if any(v < 0.0 or v > 1.0 for v in probs) or not math.isclose(
+            math.fsum(probs), 1.0, rel_tol=1e-5, abs_tol=1e-5
+        ):
+            raise ValueError(
+                "decision.probabilities must form a valid probability distribution"
+            )
+        return probs
 
     @staticmethod
     def _validate_numbers(values: Sequence[float], name: str) -> None:
@@ -210,10 +420,26 @@ class Decision:
         }
 
 
+def _validate_temperature(temperature: object) -> float:
+    if (
+        isinstance(temperature, bool)
+        or not isinstance(temperature, Real)
+        or not math.isfinite(temperature)
+        or temperature <= 0
+    ):
+        raise ValueError("temperature must be a positive finite number")
+    return float(temperature)
+
+
 def decision_from_logits(
-    request: Request, logits: Sequence[float], model_id: str
+    request: Request,
+    logits: Sequence[float],
+    model_id: str,
+    *,
+    temperature: float = 1.0,
 ) -> Decision:
     """Pure interpretation; softmax values are relative, uncalibrated likelihoods."""
+    temp = _validate_temperature(temperature)
     try:
         candidate_count = len(logits)
         values = iter(logits)
@@ -235,7 +461,7 @@ def decision_from_logits(
     if not all(math.isfinite(value) for value in scores):
         raise ModelOutputError("scorer logits must be finite")
     peak = max(scores)
-    weights = tuple(math.exp(value - peak) for value in scores)
+    weights = tuple(math.exp((value - peak) / temp) for value in scores)
     total = math.fsum(weights)
     probabilities = tuple(weight / total for weight in weights)
     # Python's stable sort preserves caller order for exact ties.
@@ -251,24 +477,38 @@ def decision_from_logits(
 class Model:
     """A loaded logit scorer. Loading and inference are separate lifetimes."""
 
-    def __init__(self, scorer: Scorer, model_id: str) -> None:
+    def __init__(
+        self, scorer: Scorer, model_id: str, *, temperature: float = 1.0
+    ) -> None:
         _text(model_id, "model_id", nonempty=True)
         self._scorer = scorer
         self._model_id = model_id
+        self._temperature = _validate_temperature(temperature)
 
     @property
     def model_id(self) -> str:
         return self._model_id
 
-    def decide(self, request: Request) -> Decision:
-        """Score one validated input using this already-loaded model."""
-        return self.decide_many((request,))[0]
+    @property
+    def temperature(self) -> float:
+        return self._temperature
 
-    def decide_many(self, requests: Sequence[Request]) -> tuple[Decision, ...]:
+    def decide(self, request: Request, *, temperature: float | None = None) -> Decision:
+        """Score one validated input using this already-loaded model."""
+        return self.decide_many((request,), temperature=temperature)[0]
+
+    def decide_many(
+        self, requests: Sequence[Request], *, temperature: float | None = None
+    ) -> tuple[Decision, ...]:
         """Score one batch; results follow request order. Empty batches do no work."""
         batch = tuple(requests)
         if not all(isinstance(request, Request) for request in batch):
             raise ValueError("batch must contain Request values")
+        eff_temp = (
+            self._temperature
+            if temperature is None
+            else _validate_temperature(temperature)
+        )
         if not batch:
             return ()
         logits = self._scorer.score_many(batch)
@@ -289,12 +529,92 @@ class Model:
                 raise ModelOutputError(
                     "scorer returned a different request count"
                 ) from error
-            decisions.append(decision_from_logits(request, scores, self.model_id))
+            decisions.append(
+                decision_from_logits(
+                    request, scores, self.model_id, temperature=eff_temp
+                )
+            )
         try:
             next(rows)
         except StopIteration:
             return tuple(decisions)
         raise ModelOutputError("scorer returned a different request count")
+
+    def logits(self, record: object) -> list[list[float]]:
+        """Return one ordered FP32 logit vector per question in a PublicRecord."""
+        from . import tasks
+
+        scorer_logits = getattr(self._scorer, "logits", None)
+        if callable(scorer_logits):
+            return cast(list[list[float]], scorer_logits(record))
+        state, questions = tasks.public_questions(record)
+        requests = tuple(
+            Request(
+                question.instructions,
+                tuple(Candidate(opt_id, desc) for opt_id, desc in question.options),
+                context=state,
+                task=question.type,
+            )
+            for question in questions
+        )
+        decisions = self.decide_many(requests, temperature=1.0)
+        return [
+            list(tasks._logits(decision.scores, len(question.options)))
+            for question, decision in zip(questions, decisions, strict=True)
+        ]
+
+    def predict(
+        self, record: object, *, temperature: float | None = None
+    ) -> dict[str, tasks.ChoiceAnswer | tasks.ScoreAnswer | tasks.NoulAnswer]:
+        """Score a PublicRecord and return typed answers keyed by question ID."""
+        from . import tasks
+
+        eff_temp = (
+            self._temperature
+            if temperature is None
+            else _validate_temperature(temperature)
+        )
+        scorer_predict = getattr(self._scorer, "predict", None)
+        if eff_temp == 1.0 and callable(scorer_predict):
+            return cast(
+                dict[str, tasks.ChoiceAnswer | tasks.ScoreAnswer | tasks.NoulAnswer],
+                scorer_predict(record),
+            )
+        encode_record = getattr(self._scorer, "encode_record", None)
+        scorer_logits = getattr(self._scorer, "_logits", None)
+        if callable(encode_record) and callable(scorer_logits):
+            encoded = cast(tuple[tasks.EncodedQuestion, ...], encode_record(record))
+            questions = tuple(row.question for row in encoded)
+            raw_rows = cast(list[list[float]], scorer_logits(encoded))
+        else:
+            _, questions = tasks.public_questions(record)
+            raw_rows = self.logits(record)
+        answers: dict[
+            str, tasks.ChoiceAnswer | tasks.ScoreAnswer | tasks.NoulAnswer
+        ] = {}
+        for question, row_logits in zip(questions, raw_rows, strict=True):
+            if eff_temp == 1.0:
+                answers[question.id] = tasks.interpret(question, row_logits)
+                continue
+            option_ids = tuple(key for key, _ in question.options)
+            values = tasks._logits(row_logits, len(option_ids))
+            peak = max(values)
+            weights = tuple(math.exp((value - peak) / eff_temp) for value in values)
+            total = math.fsum(weights)
+            probabilities = tuple(weight / total for weight in weights)
+            if question.type == "choice":
+                answers[question.id] = tasks.ChoiceAnswer(
+                    question.id, option_ids, values, probabilities
+                )
+            elif question.type == "score":
+                answers[question.id] = tasks.ScoreAnswer(
+                    question.id, option_ids, values, probabilities
+                )
+            else:
+                answers[question.id] = tasks.NoulAnswer(
+                    question.id, option_ids, values, probabilities
+                )
+        return answers
 
 
 def request_from_dict(value: object) -> Request:
@@ -303,13 +623,28 @@ def request_from_dict(value: object) -> Request:
     value = cast(Mapping[str, object], value)
     if set(value) - {"query", "candidates", "context", "task"}:
         raise ValueError("unknown request fields")
-    if "query" not in value or "candidates" not in value:
+    if "query" not in value:
+        raise ValueError("request requires query and candidates")
+    task = _text(value.get("task", "choice"), "task", nonempty=True)
+    if "candidates" not in value:
+        if task == "noul":
+            return Request(
+                _text(value["query"], "query", nonempty=True),
+                _NOUL_CANDIDATES,
+                _text(value.get("context", ""), "context"),
+                task,
+            )
         raise ValueError("request requires query and candidates")
     items = value["candidates"]
     if not isinstance(items, list):
         raise ValueError("candidates must be an array")
     candidates: list[Candidate] = []
-    for item in items:
+    for index, item in enumerate(items):
+        if task == "score" and isinstance(item, str):
+            candidates.append(
+                Candidate(str(index), _text(item, "candidate.text", nonempty=True))
+            )
+            continue
         if not isinstance(item, Mapping) or set(item) != {"id", "text"}:
             raise ValueError("candidate requires exactly id and text")
         item = cast(Mapping[str, object], item)
@@ -323,5 +658,8 @@ def request_from_dict(value: object) -> Request:
         _text(value["query"], "query", nonempty=True),
         tuple(candidates),
         _text(value.get("context", ""), "context"),
-        _text(value.get("task", "choice"), "task", nonempty=True),
+        task,
     )
+
+
+from . import tasks  # noqa: E402, F401

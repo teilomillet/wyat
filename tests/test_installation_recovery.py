@@ -73,7 +73,7 @@ def _fail_backend_import(
         fromlist: Sequence[str] = (),
         level: int = 0,
     ) -> ModuleType:
-        if name == f"wyat.backends.kai.{backend}":
+        if name == f"wyat.backends.wyat.{backend}":
             raise error
         return original_import(name, globals, locals, fromlist, level)
 

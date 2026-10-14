@@ -13,7 +13,7 @@ from typing import Literal, cast
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from fixtures.kai import create_kai_bundle
+from fixtures.wyat import create_wyat_bundle
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
@@ -43,7 +43,7 @@ def test_import_does_not_load_weights(
 def test_cpu_model_and_server_examples(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    bundle = create_kai_bundle(tmp_path / "kai")
+    bundle = create_wyat_bundle(tmp_path / "wyat")
     # This rotary-position fixture needs a cap that admits the public load default.
     config_path = bundle / "backbone" / "config.json"
     config = read_object(config_path)

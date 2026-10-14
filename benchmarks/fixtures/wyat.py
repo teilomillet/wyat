@@ -12,10 +12,10 @@ from tokenizers.models import WordLevel
 from tokenizers.pre_tokenizers import Whitespace
 from transformers import PreTrainedTokenizerFast, Qwen3Config, Qwen3Model
 
-from wyat.backends.kai.torch import ARCHITECTURE, PROMPT_VERSION, CandidateHead
+from wyat.backends.wyat.torch import ARCHITECTURE, PROMPT_VERSION, CandidateHead
 
 
-def create_kai_bundle(path: Path, seed: int = 7) -> Path:
+def create_wyat_bundle(path: Path, seed: int = 7) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     tokens = [
         "[UNK]",

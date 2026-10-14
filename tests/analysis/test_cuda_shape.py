@@ -27,8 +27,8 @@ from benchmarks.analysis.cuda.shape import run as parent
 from benchmarks.analysis.cuda.shape import study
 from benchmarks.analysis.evidence import FrozenSources, SourceFile
 from wyat import Request
-from wyat.backends.kai.encoding import EncodedRequest, KaiEncoder
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.encoding import EncodedRequest, WyatEncoder
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import BenchmarkCycle, BenchmarkEngine
 from wyat.core import Scorer, decision_from_logits
 from wyat.evaluation import EvaluationCase, EvaluationRow, case_from_dict
@@ -510,8 +510,8 @@ def setup(
     def dispatch(*args: object, **kwargs: object) -> bool:
         return True
 
-    monkeypatch.setattr(KaiEncoder, "from_artifact", encoder)
-    monkeypatch.setattr(KaiScorer, "from_directory", load)
+    monkeypatch.setattr(WyatEncoder, "from_artifact", encoder)
+    monkeypatch.setattr(WyatScorer, "from_directory", load)
     monkeypatch.setattr(nn.Module, "to", move)
     monkeypatch.setattr(study, "require_fp32", noop)
     monkeypatch.setattr(study, "FP32Scorer", factory)
@@ -907,7 +907,7 @@ def test_stdlib_parent_forwards_exact_owned180_cap_and_timeout(
             (
                 "import sys; import benchmarks.analysis.cuda.shape.run; "
                 "assert not any(x in sys.modules for x in "
-                "('torch','transformers','wyat.backends.kai.torch'))"
+                "('torch','transformers','wyat.backends.wyat.torch'))"
             ),
         ],
         cwd=ROOT,

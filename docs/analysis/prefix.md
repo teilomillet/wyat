@@ -5,16 +5,19 @@ model. Matching requests reuse its fixed K/V state and evaluate the final
 Transformer block only at the candidate/query readouts. It implements the normal
 Wyat scorer contract, so `Model` and `create_app` need no separate integration.
 Existing loading and CLI defaults retain full prefill.
+The [12 October 2026 optimization receipt](macos-20261012.md) records the newer
+concatenating per-call cache and final-source comparisons against this earlier
+stepped-cache implementation; the historical measurements below remain intact.
 The full server example requires the `mlx` and `server` extras; from this
 checkout, install them with `uv pip install -e '.[mlx,server]'`.
 
 ```python
 from wyat import Candidate, Model, Request
-from wyat.backends.kai.mlx import MLXKaiScorer
-from wyat.backends.kai.prefix import PrefixScorer
+from wyat.backends.wyat.mlx import MLXWyatScorer
+from wyat.backends.wyat.prefix import PrefixScorer
 from wyat.server import create_app
 
-base = MLXKaiScorer.from_directory("/models/kai", device="gpu", compile=False)
+base = MLXWyatScorer.from_directory("/models/kai", device="gpu", compile=False)
 example = Request(
     context="Classify customer banking support requests into the supplied intents.",
     query="I have a missing refund",

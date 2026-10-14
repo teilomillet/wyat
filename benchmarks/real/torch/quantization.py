@@ -16,7 +16,7 @@ from torch import nn
 from torch.ao.quantization import quantize_dynamic
 from transformers import Qwen3Model
 
-from wyat.backends.kai.torch import KaiScorer
+from wyat.backends.wyat.torch import WyatScorer
 from wyat.benchmark import (
     BenchmarkEngine,
     BenchmarkProtocol,
@@ -47,7 +47,7 @@ def main() -> None:
     # This executable owns the process-wide resource and kernel settings.
     torch.set_num_threads(8)
     torch.backends.quantized.engine = "qnnpack"
-    baseline = KaiScorer.from_directory(
+    baseline = WyatScorer.from_directory(
         args.model, max_length=2048, token_cache_size=256
     )
     quantized = cast(
@@ -57,7 +57,7 @@ def main() -> None:
             baseline.backbone, {nn.Linear}, dtype=torch.qint8, inplace=False
         ),
     )
-    candidate = KaiScorer(
+    candidate = WyatScorer(
         quantized,
         baseline.head,
         baseline.tokenizer,
