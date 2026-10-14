@@ -12,6 +12,7 @@
 
 Wyat chooses between options your application defines. You provide a message
 and a set of candidates. A small local model returns the ID of one of them.
+It is built to perform well in French while staying strong in English.
 Nothing leaves your machine, and nothing runs until you act on the result.
 
 ## Try it
