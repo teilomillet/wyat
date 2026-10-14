@@ -1,0 +1,249 @@
+# SPDX-FileCopyrightText: 2026 Teïlo Millet - teilomillet
+# SPDX-License-Identifier: Apache-2.0
+
+[project]
+name = "wyat"
+version = "0.1.0"
+description = "Local decision-model inference, evaluation, and serving"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Teïlo Millet" }]
+keywords = ["decision model", "classification", "routing", "llm", "local inference", "french"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Natural Language :: French",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://wyat.io"
+Documentation = "https://wyat.io/docs/"
+Repository = "https://github.com/teilomillet/wyat"
+Issues = "https://github.com/teilomillet/wyat/issues"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true
+dev-mode-dirs = ["."]
+
+[tool.hatch.build.hooks.custom]
+path = "scripts/package/hatch.py"
+
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.sdist]
+# Canonical reviewed public source inventory. New files require explicit admission.
+only-include = [
+    ".editorconfig",
+    ".github/dependabot.yml",
+    ".github/PULL_REQUEST_TEMPLATE.md",
+    ".github/workflows/ci.yml",
+    ".github/workflows/release.yml",
+    ".gitignore",
+    ".python-version",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "llms.txt",
+    "docs/README.md",
+    "docs/agent-workflows.md",
+    "docs/api.md",
+    "docs/decision-tasks.md",
+    "docs/embedded.md",
+    "docs/ergonomics.md",
+    "docs/explaining-decisions.md",
+    "docs/install.md",
+    "docs/mlx-inference.md",
+    "docs/model-acquisition.md",
+    "docs/quickstart.md",
+    "docs/releasing.md",
+    "docs/torch-inference.md",
+    "examples/embedded/main.py",
+    "examples/evaluation/main.py",
+    "examples/model/verify.py",
+    "examples/quickstart/main.py",
+    "examples/scorer/main.py",
+    "examples/server/main.py",
+    "examples/use_cases/README.md",
+    "examples/use_cases/common.py",
+    "examples/use_cases/01_support_routing.py",
+    "examples/use_cases/02_agent_next_step.py",
+    "examples/use_cases/03_ticket_urgency.py",
+    "examples/use_cases/04_answer_check.py",
+    "examples/use_cases/05_rerank.py",
+    "examples/use_cases/06_best_reply.py",
+    "examples/use_cases/07_contract_review.py",
+    "examples/use_cases/08_email_triage.py",
+    "examples/use_cases/09_review_insights.py",
+    "examples/use_cases/expert/README.md",
+    "examples/use_cases/expert/common.py",
+    "examples/use_cases/expert/01_support_triage.py",
+    "examples/use_cases/expert/02_hierarchical_routing.py",
+    "examples/use_cases/expert/03_rag_gates.py",
+    "examples/use_cases/expert/04_agent_loop.py",
+    "examples/use_cases/expert/05_calibrate_threshold.py",
+    "examples/use_cases/expert/06_order_robustness.py",
+    "examples/use_cases/expert/07_llm_judge.py",
+    "examples/use_cases/expert/08_document_check.py",
+    "examples/use_cases/expert/09_batch_throughput.py",
+    "examples/use_cases/integrations/README.md",
+    "examples/use_cases/integrations/common.py",
+    "examples/use_cases/integrations/01_langchain_router.py",
+    "examples/use_cases/integrations/02_langchain_rerank.py",
+    "examples/use_cases/integrations/03_langgraph_workflow.py",
+    "examples/use_cases/integrations/04_llamaindex_rerank.py",
+    "examples/use_cases/integrations/05_bm25_rag.py",
+    "examples/use_cases/integrations/06_mcp_server.py",
+    "examples/use_cases/integrations/07_pandas_labels.py",
+    "examples/use_cases/integrations/08_pydantic_schema.py",
+    "examples/workflows/human_review.py",
+    "examples/workflows/routing.py",
+    "pyproject.toml",
+    "scripts/checks/main.py",
+    "scripts/package/check.py",
+    "scripts/package/export.py",
+    "scripts/package/hatch.py",
+    "scripts/package/privacy.py",
+    "tests/backends/cpu/test_reuse.py",
+    "tests/backends/wyat/test_encoding.py",
+    "tests/backends/wyat/test_metal.py",
+    "tests/backends/wyat/test_mlx.py",
+    "tests/backends/wyat/test_torch.py",
+    "tests/examples/test_model_verification.py",
+    "tests/examples/test_embedded.py",
+    "tests/examples/test_integrations.py",
+    "tests/examples/test_use_cases.py",
+    "tests/examples/test_workflows.py",
+    "tests/examples/test_usage.py",
+    "tests/fixtures/__init__.py",
+    "tests/fixtures/wyat.py",
+    "tests/infrastructure/test_checks.py",
+    "tests/infrastructure/test_export.py",
+    "tests/infrastructure/test_hatch.py",
+    "tests/infrastructure/test_package.py",
+    "tests/infrastructure/test_public_boundary.py",
+    "tests/infrastructure/test_privacy.py",
+    "tests/infrastructure/test_release.py",
+    "tests/server/test_admission.py",
+    "tests/server/test_batching.py",
+    "tests/server/test_queue.py",
+    "tests/test_cli.py",
+    "tests/test_core.py",
+    "tests/test_download.py",
+    "tests/test_evaluation.py",
+    "tests/test_installation_recovery.py",
+    "tests/test_loading.py",
+    "tests/test_native_mlx.py",
+    "tests/test_native_mlx_resources.py",
+    "tests/test_native_mlx_rope.py",
+    "tests/test_recovery.py",
+    "tests/test_server.py",
+    "tests/test_tasks.py",
+    "uv.lock",
+    "wyat/__init__.py",
+    "wyat/__main__.py",
+    "wyat/backends/__init__.py",
+    "wyat/backends/wyat/__init__.py",
+    "wyat/backends/wyat/artifact.py",
+    "wyat/backends/wyat/cpu/__init__.py",
+    "wyat/backends/wyat/cpu/prefix.py",
+    "wyat/backends/wyat/encoding.py",
+    "wyat/backends/wyat/metal.py",
+    "wyat/backends/wyat/mlx.py",
+    "wyat/backends/wyat/prefix.py",
+    "wyat/backends/wyat/readout.py",
+    "wyat/backends/wyat/torch.py",
+    "wyat/cli.py",
+    "wyat/core.py",
+    "wyat/download.py",
+    "wyat/evaluation.py",
+    "wyat/input_rendering.py",
+    "wyat/loading/__init__.py",
+    "wyat/loading/local.py",
+    "wyat/loading/mlx.py",
+    "wyat/loading/native.py",
+    "wyat/loading/native_artifact.py",
+    "wyat/py.typed",
+    "wyat/server.py",
+    "wyat/tasks.py",
+    "wyat/wire.py",
+]
+
+[project.optional-dependencies]
+inference = ["torch>=2.5,<3", "transformers>=5.17,<6", "safetensors>=0.5,<1"]
+server = ["fastapi>=0.115,<1", "pydantic>=2,<3", "uvicorn>=0.34,<1"]
+mlx = ["mlx>=0.30,<0.33; sys_platform == 'darwin' and platform_machine == 'arm64'", "mlx-lm>=0.30,<0.32; sys_platform == 'darwin' and platform_machine == 'arm64'"]
+
+[project.scripts]
+wyat = "wyat.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<10",
+    "hypothesis>=6,<7",
+    "httpx>=0.28,<1",
+    "jsonschema>=4,<5",
+    "ruff>=0.13,<1",
+    "mypy>=1.15,<2",
+    "pytest-cov>=7,<8",
+    "twine>=7,<8",
+    "hatchling>=1.27,<2",
+    "pyyaml>=6,<7",
+    "ordeal>=0.3.43",
+]
+# Libraries the integration examples plug into; CI installs them so those
+# examples are type-checked and tested instead of skipped.
+examples = [
+    "langchain-core>=1.6,<2",
+    "langgraph>=1.2,<2",
+    "llama-index-core>=0.14,<0.15",
+    "rank-bm25>=0.2,<0.3",
+    "mcp>=2.3,<3",
+    "pandas>=3,<4",
+    "pandas-stubs>=3,<4",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = ["tests"]
+files = ["wyat"]
+
+[[tool.mypy.overrides]]
+module = "wyat.input_rendering"
+disable_error_code = ["no-any-return", "operator"]
+
+[tool.coverage.run]
+branch = true
+relative_files = true
+source = ["wyat"]
+data_file = "artifacts/.coverage"
+
+[tool.coverage.report]
+show_missing = true
+precision = 2
