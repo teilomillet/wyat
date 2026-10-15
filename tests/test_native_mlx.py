@@ -17,16 +17,14 @@ import pytest
 mx = pytest.importorskip("mlx.core")
 pytest.importorskip("mlx_lm")
 torch = pytest.importorskip("torch")
-from fixtures.wyat import create_wyat_bundle  # noqa: E402
+from fixtures.wyat import create_native_bundle  # noqa: E402
 from safetensors.torch import load_file, save_file  # noqa: E402
 
 from wyat import tasks  # noqa: E402
 from wyat.loading.mlx import NativeMLXScorer, load_native_mlx  # noqa: E402
 from wyat.loading.native import (  # noqa: E402
-    FORMAT,
     MANIFEST,
     NativeModel,
-    artifact_contract,
     file_sha256,
     load_native,
 )
@@ -46,56 +44,18 @@ def _refresh_manifest(root: Path, **changes: object) -> None:
     path.write_text(json.dumps(manifest))
 
 
-def _create_native_bundle(root: Path, *, bf16: bool = False) -> Path:
-    create_wyat_bundle(root)
-    (root / "decision_config.json").unlink()
-    if bf16:
-        path = root / "backbone/model.safetensors"
-        state = load_file(str(path))
-        state = {
-            name: value.bfloat16() if name.endswith("_proj.weight") else value
-            for name, value in state.items()
-        }
-        save_file(state, path)
-    with torch.random.fork_rng():
-        torch.manual_seed(91)
-        adapters = {
-            f"layers.0.self_attn.{projection}.{factor}": torch.randn(shape) * 0.06
-            for projection, output in (("q_proj", 16), ("v_proj", 8))
-            for factor, shape in (("down", (16, 16)), ("up", (output, 16)))
-        }
-    save_file(adapters, root / "native-adapters.safetensors")
-    files = {
-        path.relative_to(root).as_posix(): file_sha256(path)
-        for path in root.rglob("*")
-        if path.is_file()
-    }
-    manifest = {
-        "format": FORMAT,
-        "model_id": "native-"
-        + hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest(),
-        "contract": artifact_contract(),
-        "adapter": {
-            "rank": 16,
-            "alpha": 32,
-            "targets": ["q_proj", "v_proj"],
-            "merged": False,
-        },
-        "max_length": 512,
-        "max_batch_tokens": 2048,
-        "head_dim": 8,
-        "files_sha256": files,
-        "provenance": {"fixture": "seeded-mechanics-only"},
-        "production_wyat_compatible": False,
-        "resume_supported": False,
-    }
-    (root / MANIFEST).write_text(json.dumps(manifest))
-    return root
-
-
-@pytest.fixture(params=[False, True], ids=["fp32", "mixed-bf16"])
+@pytest.fixture(
+    params=[
+        (False, "all-linear"),
+        (True, "all-linear"),
+        (False, "legacy-qv"),
+        (True, "legacy-qv"),
+    ],
+    ids=["fp32-all-linear", "bf16-all-linear", "fp32-legacy-qv", "bf16-legacy-qv"],
+)
 def bundle(tmp_path: Path, request: pytest.FixtureRequest) -> Path:
-    return _create_native_bundle(tmp_path / "native", bf16=bool(request.param))
+    bf16, adapter = request.param
+    return create_native_bundle(tmp_path / "native", bf16=bf16, adapter=adapter)
 
 
 @pytest.fixture(params=["cpu", "gpu"])

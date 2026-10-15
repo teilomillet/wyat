@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 import torch
-from safetensors.torch import save_file
+from safetensors.torch import load_file, save_file
 from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
 from tokenizers.pre_tokenizers import Whitespace
@@ -103,3 +103,71 @@ def create_wyat_bundle(path: Path, seed: int = 7) -> Path:
     }
     (path / "decision_config.json").write_text(json.dumps(metadata), encoding="utf-8")
     return path
+
+
+def create_native_bundle(
+    root: Path, *, bf16: bool = False, adapter: str = "all-linear"
+) -> Path:
+    """A seeded native artifact with all-linear or released q/v-only adapters."""
+    from wyat.loading.native_artifact import (
+        ADAPTER,
+        ADAPTER_TARGETS,
+        FORMAT,
+        MANIFEST,
+        artifact_contract,
+        file_sha256,
+        model_identity,
+    )
+
+    create_wyat_bundle(root)
+    (root / "decision_config.json").unlink()
+    path = root / "backbone/model.safetensors"
+    base = load_file(str(path))
+    if bf16:
+        base = {
+            name: value.bfloat16() if name.endswith("_proj.weight") else value
+            for name, value in base.items()
+        }
+        save_file(base, path)
+    targets: tuple[tuple[str, str], ...]
+    if adapter == "all-linear":
+        targets, declared = ADAPTER_TARGETS, ADAPTER
+    elif adapter == "legacy-qv":
+        targets = (("self_attn", "q_proj"), ("self_attn", "v_proj"))
+        declared = {
+            "rank": 16,
+            "alpha": 32,
+            "targets": ["q_proj", "v_proj"],
+            "merged": False,
+        }
+    else:
+        raise ValueError(f"unknown fixture adapter form: {adapter}")
+    with torch.random.fork_rng():
+        torch.manual_seed(91)
+        adapters = {}
+        for owner, name in targets:
+            output_size, input_size = base[f"layers.0.{owner}.{name}.weight"].shape
+            prefix = f"layers.0.{owner}.{name}"
+            adapters[prefix + ".down"] = torch.randn(16, input_size) * 0.06
+            adapters[prefix + ".up"] = torch.randn(output_size, 16) * 0.06
+    save_file(adapters, root / "native-adapters.safetensors")
+    files = {
+        item.relative_to(root).as_posix(): file_sha256(item)
+        for item in root.rglob("*")
+        if item.is_file()
+    }
+    manifest = {
+        "format": FORMAT,
+        "model_id": model_identity(files),
+        "contract": artifact_contract(),
+        "adapter": declared,
+        "max_length": 512,
+        "max_batch_tokens": 2048,
+        "head_dim": 8,
+        "files_sha256": files,
+        "provenance": {"fixture": "seeded-mechanics-only"},
+        "production_wyat_compatible": False,
+        "resume_supported": False,
+    }
+    (root / MANIFEST).write_text(json.dumps(manifest))
+    return root

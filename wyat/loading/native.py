@@ -46,6 +46,7 @@ from .native_artifact import (
 )
 from .native_artifact import (
     _positive_integer,
+    adapter_targets,
     budget_groups,
 )
 from .native_artifact import (
@@ -562,9 +563,11 @@ def load_native(
     if target.type == "cpu":
         base = {name: value.float() for name, value in base.items()}
     backbone.load_state_dict(base, strict=True, assign=True)
+    targets = adapter_targets(manifest)
     for layer in backbone.layers:
-        for name in ("q_proj", "v_proj"):
-            setattr(layer.self_attn, name, _Adapter(getattr(layer.self_attn, name)))
+        for owner_name, name in targets:
+            owner = getattr(layer, owner_name)
+            setattr(owner, name, _Adapter(getattr(owner, name)))
     state = load_file(str(root / "native-adapters.safetensors"))
     _finite_state(state)
     adapters = {

@@ -39,6 +39,35 @@ _V1_SOURCE_HASHES = {
     ),
 }
 
+# Adapter policy for new native models: rank-16 LoRA on every linear projection
+# of every block. Attention-only LoRA underperforms full fine-tuning; adapting
+# every weight matrix, the MLP especially, closes the gap (Thinking Machines,
+# "LoRA Without Regret", 2025). Training and export must write ADAPTER; a test
+# checks that ADAPTER_TARGETS names every linear module of a Qwen3 block.
+ADAPTER_TARGETS: tuple[tuple[str, str], ...] = (
+    ("self_attn", "q_proj"),
+    ("self_attn", "k_proj"),
+    ("self_attn", "v_proj"),
+    ("self_attn", "o_proj"),
+    ("mlp", "gate_proj"),
+    ("mlp", "up_proj"),
+    ("mlp", "down_proj"),
+)
+ADAPTER = {
+    "rank": 16,
+    "alpha": 32,
+    "targets": [f"{owner}.{name}" for owner, name in ADAPTER_TARGETS],
+    "merged": False,
+}
+# Released models (v7, wyat-1-600m) adapt q/v only. They still load; no new
+# model may be trained or exported with this form.
+_LEGACY_QV_ADAPTER = {
+    "rank": 16,
+    "alpha": 32,
+    "targets": ["q_proj", "v_proj"],
+    "merged": False,
+}
+
 FORMAT = "wyat-native-full-v1"
 MANIFEST = "native_manifest.json"
 TOKENIZER_FILES = (
@@ -96,6 +125,16 @@ def model_identity(files: dict[str, str], policy: object = None) -> str:
     return "native-" + identity
 
 
+def adapter_targets(manifest: dict[str, Any]) -> tuple[tuple[str, str], ...]:
+    """Return the (block module, projection) pairs a manifest's adapters wrap."""
+    adapter = manifest.get("adapter")
+    if adapter == ADAPTER:
+        return ADAPTER_TARGETS
+    if adapter == _LEGACY_QV_ADAPTER:
+        return (("self_attn", "q_proj"), ("self_attn", "v_proj"))
+    raise ValueError("unsupported native adapter contract")
+
+
 def _positive_integer(value: object, name: str) -> int:
     if type(value) is not int or value <= 0:
         raise ValueError(f"{name} must be a positive integer")
@@ -149,13 +188,7 @@ def validate_artifact(directory: str | Path) -> dict[str, Any]:
         raise ValueError("native artifact provenance must be an object")
     if not _accepts_contract(manifest.get("contract")):
         raise ValueError("native artifact task/predictor contract differs")
-    if manifest.get("adapter") != {
-        "rank": 16,
-        "alpha": 32,
-        "targets": ["q_proj", "v_proj"],
-        "merged": False,
-    }:
-        raise ValueError("unsupported native adapter contract")
+    adapter_targets(manifest)
     maximum = _positive_integer(manifest.get("max_length"), "max_length")
     budget = _positive_integer(manifest.get("max_batch_tokens"), "max_batch_tokens")
     if budget < maximum:

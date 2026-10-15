@@ -31,7 +31,7 @@ from wyat.core import ModelInputError, Request
 from wyat.input_rendering import render_record, validate_input_rendering_policy
 from wyat.wire import JsonObject, read_object
 
-from .native_artifact import budget_groups, validate_artifact
+from .native_artifact import adapter_targets, budget_groups, validate_artifact
 
 type _MLXKVPair = tuple[mx.array, mx.array]
 
@@ -220,13 +220,17 @@ def _config(root: Path) -> JsonObject:
     return config
 
 
-def _install_adapters(backbone: Qwen3Model, state: dict[str, mx.array]) -> None:
+def _install_adapters(
+    backbone: Qwen3Model,
+    state: dict[str, mx.array],
+    targets: tuple[tuple[str, str], ...],
+) -> None:
     expected: dict[str, tuple[int, int]] = {}
     for index, layer in enumerate(backbone.layers):
-        for name in ("q_proj", "v_proj"):
-            base = getattr(layer.self_attn, name)
+        for owner, name in targets:
+            base = getattr(getattr(layer, owner), name)
             output_size, input_size = base.weight.shape
-            prefix = f"layers.{index}.self_attn.{name}"
+            prefix = f"layers.{index}.{owner}.{name}"
             expected[prefix + ".down"] = (16, input_size)
             expected[prefix + ".up"] = (output_size, 16)
     if set(state) != set(expected):
@@ -235,13 +239,14 @@ def _install_adapters(backbone: Qwen3Model, state: dict[str, mx.array]) -> None:
         if state[name].dtype != mx.float32 or state[name].shape != shape:
             raise ValueError("invalid native adapter tensor: " + name)
     for index, layer in enumerate(backbone.layers):
-        for name in ("q_proj", "v_proj"):
-            prefix = f"layers.{index}.self_attn.{name}"
+        for owner, name in targets:
+            module = getattr(layer, owner)
+            prefix = f"layers.{index}.{owner}.{name}"
             setattr(
-                layer.self_attn,
+                module,
                 name,
                 _Adapter(
-                    getattr(layer.self_attn, name),
+                    getattr(module, name),
                     state[prefix + ".down"],
                     state[prefix + ".up"],
                 ),
@@ -713,10 +718,10 @@ def load_native_mlx(
             enabled = optimize_projections(
                 backbone, device=target, compiled=False, operation=operation
             )
-        # Install only base projections, then wrap q/v; adapter matrices can
-        # never enter the shape-qualified base-projection optimization.
+        # Install only base projections, then wrap the adapted projections;
+        # adapter matrices never enter the shape-qualified optimization.
         adapters = _weights(root / "native-adapters.safetensors", head=True)
-        _install_adapters(backbone, adapters)
+        _install_adapters(backbone, adapters, adapter_targets(manifest))
         head_state = _weights(root / "decision_head.safetensors", head=True)
         head.load_weights(list(head_state.items()), strict=True)
         # Share positional constants without changing any trained tensor. This

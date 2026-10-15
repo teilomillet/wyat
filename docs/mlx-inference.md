@@ -41,7 +41,9 @@ returning, so wall-clock timings include device execution.
 
 The published `teilomillet/wyat-1-600m` is a native (`wyat-native-full-v1`)
 artifact. Its FP32 LoRA adapters on `q_proj` and `v_proj` load unmerged from
-`native-adapters.safetensors`.
+`native-adapters.safetensors`. Newer native artifacts adapt every linear
+projection of each block (`q`, `k`, `v`, `o`, `gate`, `up`, `down`); both forms
+load, on MLX and Torch.
 
 - **Prefix cache.** A small least-recently-used cache keeps the K/V state of
   the token prefix before the candidates; later requests that begin with the
