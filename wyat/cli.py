@@ -32,6 +32,7 @@ class Arguments(argparse.Namespace):
     prefix_cache_size: int
     attention: str
     compile: bool
+    responsive: bool
     temperature: float
     torch_threads: int | None
     mlx_cache_limit_mib: int | None
@@ -166,6 +167,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         command.add_argument(
             "--compile", action="store_true", help="opt-in MLX compile"
+        )
+        command.add_argument(
+            "--responsive",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            help=(
+                "native MLX GPU: pause 1 ms after every fourth layer so other "
+                "applications can submit GPU work; --no-responsive removes the pauses"
+            ),
         )
         command.add_argument(
             "--torch-threads",
@@ -313,6 +323,8 @@ def main(argv: list[str] | None = None) -> int:
         }
         if args.prefix_cache_size != 16:
             load_kwargs["prefix_cache_size"] = args.prefix_cache_size
+        if not args.responsive:
+            load_kwargs["responsive"] = False
         model = load(
             args.model,
             **load_kwargs,  # type: ignore[arg-type]

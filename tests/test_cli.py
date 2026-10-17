@@ -637,6 +637,7 @@ def test_cli_forwards_prefix_cache_size_and_serve_queue_options(
         == 0
     )
     assert load_kwargs[0]["prefix_cache_size"] == 24
+    assert "responsive" not in load_kwargs[0]
     assert app_kwargs[0] == {
         "max_body_bytes": 1_048_576,
         "max_queue_size": 12,
@@ -648,6 +649,10 @@ def test_cli_forwards_prefix_cache_size_and_serve_queue_options(
     assert access_logger.level == logging.INFO
     assert not access_logger.propagate
     assert all(kwargs["access_log"] is False for kwargs in run_kwargs)
+
+    load_kwargs.clear()
+    assert cli.main(["serve", "local-path", "--backend", "mlx", "--no-responsive"]) == 0
+    assert load_kwargs[0]["responsive"] is False
 
     for bad_args in (
         ["decide", "local", "--prefix-cache-size", "-1"],

@@ -97,6 +97,18 @@ def test_unsupported_attention_fails_before_load(
 
 
 @pytest.mark.parametrize("backend", ["torch", "mlx"])
+def test_unpaced_inference_fails_before_load_without_native_mlx(
+    backend: Literal["torch", "mlx"], loaded: list[dict[str, object]]
+) -> None:
+    with pytest.raises(ValueError, match="only to native MLX"):
+        wyat.load("local", backend=backend, responsive=False)
+    for bad in (0, 1, "false", None):
+        with pytest.raises(ValueError, match="responsive must be a boolean"):
+            wyat.load("local", backend=backend, responsive=bad)  # type: ignore[arg-type]
+    assert loaded == []
+
+
+@pytest.mark.parametrize("backend", ["torch", "mlx"])
 def test_missing_primary_runtime_explains_optional_extra(
     monkeypatch: pytest.MonkeyPatch, backend: Literal["torch", "mlx"]
 ) -> None:
@@ -215,8 +227,15 @@ def test_load_autodetects_native_artifact_for_torch_and_mlx(
         "path": native_dir,
         "device": "cpu",
         "max_length": 128,
+        "responsive": True,
         "prefix_cache_size": 4,
     }
+
+    wyat.load(native_dir, backend="mlx", responsive=False)
+    assert calls[2]["responsive"] is False
+    with pytest.raises(ValueError, match="only to native MLX"):
+        wyat.load(native_dir, backend="torch", responsive=False)
+    assert len(calls) == 3
 
     with pytest.raises(ValueError, match="sdpa attention"):
         wyat.load(native_dir, backend="torch", attention="eager")

@@ -58,6 +58,7 @@ def load(
     prefix_cache_size: int = 16,
     attention: str = "sdpa",
     compile: bool = False,
+    responsive: bool = True,
     temperature: float = 1.0,
 ) -> Model:
     """Load a local model directory, or the pinned release by its Hub name.
@@ -66,12 +67,19 @@ def load(
     into the Wyat cache on first use, then loads the cached copy; a local
     directory with that relative path takes precedence. Torch defaults to CPU;
     MLX defaults to Apple GPU. Compilation is an opt-in MLX experiment and must
-    pass the caller's quality and performance gates.
+    pass the caller's quality and performance gates. Native MLX GPU inference
+    pauses 1 ms after every fourth backbone layer so other applications can
+    submit GPU work; ``responsive=False`` removes those pauses and is rejected
+    by engines that do not pace.
     """
     if type(prefix_cache_size) is not int or prefix_cache_size < 0:
         raise ValueError("prefix_cache_size must be a nonnegative integer")
+    if type(responsive) is not bool:
+        raise ValueError("responsive must be a boolean")
     path = _local_directory(path)
     is_native = (Path(path) / "native_manifest.json").is_file()
+    if not responsive and not (backend == "mlx" and is_native):
+        raise ValueError("responsive=False applies only to native MLX inference")
     wyat_max_length = 2048 if max_length is None else max_length
     scorer: Scorer
     if backend == "torch":
@@ -124,6 +132,7 @@ def load(
                 path,
                 device="gpu" if device is None else device,
                 max_length=max_length,
+                responsive=responsive,
                 prefix_cache_size=prefix_cache_size,
             )
             scorer, model_id = native_mlx, native_mlx.model_id

@@ -54,7 +54,9 @@ load, on MLX and Torch.
   (`reason="input-length"`) rather than split or truncated.
 - **GPU sharing.** On the GPU, inference pauses for 1 ms after every fourth
   backbone layer so other applications can submit GPU work. Include this in
-  latency measurements.
+  latency measurements. `load(..., responsive=False)` or the CLI's
+  `--no-responsive` removes the pauses; the unpaced latency gain and its
+  effect on other applications are unmeasured.
 - **Compilation.** Native artifacts reject `compile=True`.
 
 ## Candidate-head artifacts
