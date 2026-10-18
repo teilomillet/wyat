@@ -299,6 +299,37 @@ def test_overlong_records_raise_model_input_error(artifact: Path) -> None:
         scorer.logits({"state": "x", "questions": {}})
 
 
+def test_a_refused_request_costs_no_forward_pass(
+    artifact: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scorer = ForkScorer.from_directory(artifact)
+    passes: list[object] = []
+    score = scorer.question_logits
+
+    def counted(row: Any) -> list[float]:
+        passes.append(row)
+        return score(row)
+
+    monkeypatch.setattr(scorer, "question_logits", counted)
+    options = {"a": "short", "b": "x"}
+    fits = [wyat.Request.choice("Which?", options, context=t) for t in ("u", "v")]
+    long = "y" * (scorer.max_length * 40)
+    refused = wyat.Request.choice("Which?", options, context=long)
+    with pytest.raises(wyat.ModelInputError) as raised:
+        scorer.score_many([*fits, refused])
+    assert raised.value.reason == "input-length"
+    assert passes == []
+
+    model = wyat.Model(scorer, model_id="fork-test")
+    results = model.decide_many([*fits, refused], errors="return")
+    assert [type(result) for result in results] == [
+        wyat.Decision,
+        wyat.Decision,
+        wyat.ModelInputError,
+    ]
+    assert len(passes) == len(fits)
+
+
 def test_missing_adapter_tensor_is_a_value_error(tmp_path: Path) -> None:
     from safetensors.torch import load_file, save_file
 

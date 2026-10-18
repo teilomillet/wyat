@@ -22,10 +22,18 @@ class DemoScorer:
 def load_model(description: str | None) -> wyat.Model:
     parser = argparse.ArgumentParser(description=description)
     source = parser.add_mutually_exclusive_group(required=True)
-    source.add_argument("--model", type=Path, help="Local Wyat model directory")
+    source.add_argument(
+        "--model",
+        type=Path,
+        help="Model name (teilomillet/wyat-1-800m) or local model directory",
+    )
     source.add_argument("--demo", action="store_true", help="Run without weights")
+    parser.add_argument(
+        "--device",
+        help="Torch device, for example mps on Apple Silicon (default: cpu)",
+    )
     arguments = parser.parse_args()
     if arguments.demo:
         print("Demo mode: equal scores, no trained model.\n")
         return wyat.Model(DemoScorer(), model_id="demo")
-    return wyat.load(arguments.model)
+    return wyat.load(arguments.model, device=arguments.device)

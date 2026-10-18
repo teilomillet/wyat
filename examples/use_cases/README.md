@@ -12,7 +12,7 @@ uv run python examples/use_cases/01_support_routing.py --model teilomillet/wyat-
 read the code and see the API work, but the answers mean nothing. Use
 `--model teilomillet/wyat-1-800m` to download and verify the pinned release on
 first use, then reuse the verified cache. A local model directory also works.
-The 800M artifact uses PyTorch, including on Apple Silicon.
+On Apple Silicon, add `--device mps`: CPU is several times slower there.
 
 ## The idea
 
@@ -27,8 +27,8 @@ situation + your options  ->  model scores them  ->  your code acts
 
 | Type | Question it answers | You read | Use it for |
 | --- | --- | --- | --- |
-| **Choice** | Which of these options? | `decision.selected`, `decision.ranking` | routing, next action, best draft |
-| **Noul** | Yes or no, how likely? | `decision.probability_true` | checks, flags, guardrails |
+| **Choice** | Which of these options? | `decision.selected`, `decision.ranking` | routing, next action, tool choice |
+| **Noul** | Yes or no, how likely? | `decision.probability_true` | checks, flags, guardrails, draft checks |
 | **Score** | Where on this ordered scale? | `decision.expected_ordinal_value` | urgency, relevance, risk |
 
 ```python
@@ -46,18 +46,23 @@ wyat.Request.score("How urgent?", ["Can wait.", "Today.", "Now."], context=msg)
 | 03 | [Sort tickets by urgency](03_ticket_urgency.py) | Score |
 | 04 | [Check an answer against its source](04_answer_check.py) | Noul |
 | 05 | [Rerank search results](05_rerank.py) | Score |
-| 06 | [Pick the best reply draft](06_best_reply.py) | Choice |
+| 06 | [Pick a reply draft that does its job](06_best_reply.py) | Noul per draft |
 | 07 | [Many questions on one contract](07_contract_review.py) | Choice + Noul + Score |
 | 08 | [Email triage from yes/no signals](08_email_triage.py) | Noul + your rule |
 | 09 | [Reviews to a table](09_review_insights.py) | Choice per aspect |
 
 ## Using it well
 
-- **Own the options.** Write short, distinct descriptions. Add a "none of
-  these" or "ask a human" option instead of forcing a guess (01, 02).
+- **Own the options.** Write short, distinct descriptions that name the
+  option and use the customer's words. Add a "none of these" or "ask a
+  human" option instead of forcing a guess (01, 02).
+- **Ask concrete questions.** "Does this reply say when the parcel arrives?"
+  works better than "Which reply is best?" (06).
 - **Batch.** `model.decide_many([...])` scores many requests in one call (03, 05).
+  With wyat-1 800M they are scored one after another: it is a convenience,
+  not a speedup.
 - **Ask many questions at once.** `model.predict({"state": ..., "questions": ...})`
-  shares one document across all questions, and can mix types (07, 08).
+  takes one document and many questions, and can mix types (07, 08).
   `model.predict_many([...])` does that for many documents in one call (09).
 - **Probabilities compare options; they are not guarantees.** Pick thresholds
   from your own labelled examples (04, 08).

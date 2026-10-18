@@ -34,8 +34,8 @@ In a wyat checkout, `uv sync --group examples` installs all of them. A plain
 example whose library is missing or too old stops and says what to install.
 
 The first 800M load downloads and verifies the pinned release, then reuses the
-verified cache. A local model directory also works. Use the PyTorch inference
-extra for that artifact.
+verified cache. A local model directory also works. On Apple Silicon, add
+`--device mps`: CPU is several times slower there.
 
 `--demo` uses a word-overlap stand-in instead of a model (not a model; it
 only makes the numbers move). The fake LLMs in 01 and 02 stand in for any

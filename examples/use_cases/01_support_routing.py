@@ -4,7 +4,9 @@
 """Choice: route a customer message to a support queue.
 
 You own the menu. Add an explicit "none of these" option so the model is
-never forced to guess a queue that does not fit.
+never forced to guess a queue that does not fit. Name each queue and list the
+words customers use for it: wyat-1 800M sent "charged twice" to "other" when
+billing read only "Payments, invoices, refunds."
 """
 
 from common import load_model
@@ -12,9 +14,9 @@ from common import load_model
 import wyat
 
 QUEUES = {
-    "billing": "Payments, invoices, refunds.",
-    "technical": "Login problems, bugs, errors in the app.",
-    "delivery": "Shipping, tracking, missing parcels.",
+    "billing": "Billing: charges, payments, invoices, refunds.",
+    "technical": "Technical: login problems, bugs, errors in the app.",
+    "delivery": "Delivery: shipping, tracking, missing parcels.",
     "other": "None of the above: send to a human.",
 }
 

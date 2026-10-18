@@ -3,8 +3,9 @@
 
 """Several questions about one document in a single call.
 
-``model.predict`` takes one state and many questions, of any task type.
-The document is shared, so this is cheaper than one request per question.
+``model.predict`` takes one state and many questions, of any task type, and
+returns one typed answer per question. wyat-1 800M still reads the document
+once per question, so this keeps the code short; it is not a speedup.
 """
 
 from common import load_model

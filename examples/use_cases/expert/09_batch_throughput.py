@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Teïlo Millet - teilomillet
 # SPDX-License-Identifier: Apache-2.0
 
-"""Process a large backlog efficiently: dedupe, batch, isolate failures.
+"""Process a large backlog: dedupe, chunk, isolate failures.
 
 Three habits for bulk jobs (tagging a ticket archive, labelling a catalog):
 1. Load the model once and reuse it.
@@ -10,6 +10,10 @@ Three habits for bulk jobs (tagging a ticket archive, labelling a catalog):
    model refuses (too long, for example) gets its ``ModelInputError`` in its
    slot, so one bad input cannot sink the job, and it is recorded rather than
    silently dropped. Backend failures still raise: retry those at job level.
+
+wyat-1 800M checks every input of a chunk before scoring any, so a refusal
+costs no model work. It then scores the requests one after another: time
+grows with the number of unique inputs, and deduping is where the saving is.
 """
 
 import time

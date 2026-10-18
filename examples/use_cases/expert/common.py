@@ -61,12 +61,20 @@ class OverlapScorer:
 def load_model(description: str | None) -> wyat.Model:
     parser = argparse.ArgumentParser(description=description)
     source = parser.add_mutually_exclusive_group(required=True)
-    source.add_argument("--model", type=Path, help="Local Wyat model directory")
+    source.add_argument(
+        "--model",
+        type=Path,
+        help="Model name (teilomillet/wyat-1-800m) or local model directory",
+    )
     source.add_argument(
         "--demo", action="store_true", help="Word-overlap stand-in, no model"
+    )
+    parser.add_argument(
+        "--device",
+        help="Torch device, for example mps on Apple Silicon (default: cpu)",
     )
     arguments = parser.parse_args()
     if arguments.demo:
         print("Demo mode: word-overlap stand-in, not a model.\n")
         return wyat.Model(OverlapScorer(), model_id="demo-overlap")
-    return wyat.load(arguments.model)
+    return wyat.load(arguments.model, device=arguments.device)

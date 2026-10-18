@@ -3,11 +3,15 @@
 
 """Check that a decision does not depend on the order of the options.
 
-A decision model can lean toward options listed first or last. For decisions
-that matter, ask again with the options rotated so each option appears once in
-every position (one batched call), average the probabilities by option ID, and
-treat a changing winner as "unsure".
+Many scorers, LLM judges in particular, lean toward options listed first or
+last. For decisions that matter, ask again with the options rotated so each
+option appears once in every position (one batched call), average the
+probabilities by option ID, and treat a changing winner as "unsure".
 IDs make this safe: the answer is the same option whatever its position.
+
+wyat-1 800M reads the options in a fixed sorted order and scores each one
+separately, so its probabilities do not change with order and this check
+reports "stable". Keep the check when you swap in another scorer.
 """
 
 from collections import Counter

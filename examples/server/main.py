@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 def app() -> FastAPI:
     path = os.environ.get("WYAT_MODEL")
     if not path or not path.strip():
-        raise ValueError("Set WYAT_MODEL to a supported local model directory")
+        raise ValueError("Set WYAT_MODEL to a model name or a local model directory")
     backend = os.environ.get("WYAT_BACKEND", "torch")
     if backend not in {"torch", "mlx"}:
         raise ValueError("WYAT_BACKEND must be torch or mlx")
