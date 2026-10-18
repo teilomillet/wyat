@@ -5,8 +5,9 @@ public source repository `teilomillet/wyat`. Both must contain only explicitly
 approved files. Ignored files in the maintainer workspace (research, data,
 models, receipts) remain private and are never committed or exported.
 
-Version **0.1.1** includes the option-fork loader and pinned download for the
-800M artifact. Version **0.1.0** introduced this API. The old PyPI `0.0.1`
+Version **0.1.2** adds MLX inference for the 800M artifact, quieter PyTorch
+loading and updated examples. Version **0.1.1** introduced the option-fork
+loader and pinned 800M download. Version **0.1.0** introduced this API. The old PyPI `0.0.1`
 release contains a different implementation; never reuse or overwrite a
 published version. Nothing is published merely by building, exporting or
 checking it.
@@ -99,7 +100,8 @@ Exercise `wyat.load()` from an empty cache as well as a verified cache. The
 manifest must match `contract()` in
 [`wyat/loading/fork_artifact.py`](../wyat/loading/fork_artifact.py), and the
 downloader must preserve its eight payload files, including `vocab.json` and
-`merges.txt`. The 800M artifact has no MLX runtime.
+`merges.txt`. Also check the MLX runtime on Apple Silicon; it loads the same
+800M artifact without conversion.
 
 The 600M compatibility artifact keeps a separate native descriptor and the
 [standalone 600M verifier](../examples/model/verify.py). Keep their immutable
