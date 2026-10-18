@@ -349,3 +349,32 @@ def test_tokenizer_keeps_combining_marks_with_their_letters(artifact: Path) -> N
     pieces = scorer.tokenizer.backend_tokenizer.pre_tokenizer.pre_tokenize_str("नमस्ते")
     assert type(scorer.tokenizer).__name__ == "Qwen3_5Tokenizer"
     assert len(pieces) == 1
+
+
+def test_base_loading_drops_only_the_transformers_load_report() -> None:
+    import logging
+
+    from transformers.utils import logging as transformers_logging
+
+    from wyat.loading.fork import _quiet_base_loading
+
+    messages: list[str] = []
+
+    class Collect(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            messages.append(record.getMessage())
+
+    logger = logging.getLogger("transformers.modeling_utils")
+    handler = Collect()
+    logger.addHandler(handler)
+    enabled = transformers_logging.is_progress_bar_enabled()
+    try:
+        with _quiet_base_loading():
+            assert not transformers_logging.is_progress_bar_enabled()
+            logger.warning("Qwen3_5TextModel LOAD REPORT from: base")
+            logger.warning("another warning")
+        logger.warning("later LOAD REPORT")
+    finally:
+        logger.removeHandler(handler)
+    assert messages == ["another warning", "later LOAD REPORT"]
+    assert transformers_logging.is_progress_bar_enabled() == enabled

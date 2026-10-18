@@ -23,8 +23,9 @@ and measure on their own hardware.
 from __future__ import annotations
 
 import json
-from collections.abc import Sequence
-from contextlib import AbstractContextManager, nullcontext
+import logging
+from collections.abc import Iterator, Sequence
+from contextlib import AbstractContextManager, contextmanager, nullcontext
 from pathlib import Path
 from typing import Any, cast
 
@@ -35,6 +36,7 @@ from torch.nn import functional as F
 from transformers import AutoConfig, Qwen3_5Tokenizer
 from transformers.cache_utils import DynamicCache, DynamicLayer, LinearAttentionLayer
 from transformers.models.qwen3_5.modeling_qwen3_5 import Qwen3_5TextModel
+from transformers.utils import logging as transformers_logging
 
 from wyat import tasks
 from wyat.core import ModelInputError, Request
@@ -47,6 +49,33 @@ from wyat.loading.fork_artifact import (
     encode_record,
 )
 from wyat.loading.native import _request_record
+
+
+class _DropLoadReport(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "LOAD REPORT" not in record.getMessage()
+
+
+@contextmanager
+def _quiet_base_loading() -> Iterator[None]:
+    """Silence Transformers' load report and progress bar for the base weights.
+
+    The report lists the checkpoint's vision and multi-token-prediction weights
+    as unexpected; ``from_directory`` checks the same key sets itself and
+    refuses every other missing, mismatched or unexpected weight. Other
+    Transformers messages, and settings outside this load, are unchanged.
+    """
+    report = logging.getLogger("transformers.modeling_utils")
+    drop = _DropLoadReport()
+    progress = transformers_logging.is_progress_bar_enabled()
+    report.addFilter(drop)
+    transformers_logging.disable_progress_bar()  # type: ignore[no-untyped-call]
+    try:
+        yield
+    finally:
+        report.removeFilter(drop)
+        if progress:
+            transformers_logging.enable_progress_bar()  # type: ignore[no-untyped-call]
 
 
 class _ForkAdapter(nn.Module):
@@ -120,19 +149,20 @@ class ForkScorer:
             raise ValueError("fork backbone configuration differs from manifest")
         if manifest["max_length"] > text.max_position_embeddings:
             raise ValueError("fork max_length exceeds the backbone context")
-        backbone, loading = cast(
-            tuple[Qwen3_5TextModel, dict[str, Any]],
-            Qwen3_5TextModel.from_pretrained(
-                root / "base",
-                config=text,
-                dtype=torch.float32,
-                local_files_only=True,
-                trust_remote_code=False,
-                use_safetensors=True,
-                attn_implementation="sdpa",
-                output_loading_info=True,
-            ),
-        )
+        with _quiet_base_loading():
+            backbone, loading = cast(
+                tuple[Qwen3_5TextModel, dict[str, Any]],
+                Qwen3_5TextModel.from_pretrained(
+                    root / "base",
+                    config=text,
+                    dtype=torch.float32,
+                    local_files_only=True,
+                    trust_remote_code=False,
+                    use_safetensors=True,
+                    attn_implementation="sdpa",
+                    output_loading_info=True,
+                ),
+            )
         if loading.get("missing_keys") or loading.get("mismatched_keys"):
             raise ValueError("fork base text weights incomplete")
         stray = [
