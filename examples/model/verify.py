@@ -32,6 +32,13 @@ def verify(directory: Path) -> dict[str, object]:
         raise ValueError("no model release is pinned in this verifier yet")
     root = directory.resolve(strict=True)
     manifest_path = root / "native_manifest.json"
+    if not manifest_path.is_file():
+        if (root / "fork_manifest.json").is_file():
+            raise ValueError(
+                "this verifier checks only the 600M release; "
+                "for wyat-1 800M run `wyat download`, which verifies every file"
+            )
+        raise ValueError("no native_manifest.json: not the pinned 600M release")
     if file_sha256(manifest_path) != MANIFEST_SHA256:
         raise ValueError("manifest differs from the pinned Wyat release")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -66,7 +73,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
     args = parser.parse_args()
-    print(json.dumps(verify(args.directory), indent=2))
+    try:
+        report = verify(args.directory)
+    except (OSError, ValueError) as error:
+        parser.exit(1, f"error: {error}\n")
+    print(json.dumps(report, indent=2))
 
 
 if __name__ == "__main__":

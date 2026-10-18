@@ -41,6 +41,9 @@ def main() -> None:
         default="torch",
         help="Runtime for --model",
     )
+    parser.add_argument(
+        "--device", help="Device: cpu, mps or cuda for torch; gpu or cpu for mlx"
+    )
     arguments = parser.parse_args()
 
     # Only model construction changes between demo mode and trained inference.
@@ -51,6 +54,7 @@ def main() -> None:
         model = wyat.load(
             cast(Path, arguments.model),
             backend=cast(Literal["torch", "mlx"], arguments.backend),
+            device=arguments.device,
         )
 
     request = wyat.Request(

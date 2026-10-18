@@ -7,8 +7,10 @@
    against the question (Score). Only passages that at least partly answer
    it enter the LLM prompt, within a character budget. No such passage means
    the system says it does not know instead of letting the LLM improvise.
-2. After generation, a second Noul checks the answer against the kept
-   passages. Unsupported answers are not shown.
+2. After generation, a Noul checks every sentence of the answer against the
+   kept passages. An answer with any unsupported sentence is not shown.
+   Check sentence by sentence: on the whole answer, wyat-1 800M passed an
+   added claim ("Shipping is always free.") next to a supported one.
 """
 
 from common import load_model
@@ -64,17 +66,25 @@ def select_context(model: wyat.Model, question: str) -> list[str]:
 
 
 def grounded(model: wyat.Model, kept: list[str], answer: str) -> float:
-    request = wyat.Request.noul(
-        "Is every claim in the answer stated in the passages?",
-        context={"passages": [DOCUMENTS[d] for d in kept], "answer": answer},
+    """The lowest support probability over the answer's sentences."""
+    passages = [DOCUMENTS[d] for d in kept]
+    sentences = [s.strip() for s in answer.split(". ") if s.strip()]
+    checks = model.decide_many(
+        [
+            wyat.Request.noul(
+                "Is this claim stated in the passages?",
+                context={"passages": passages, "claim": sentence},
+            )
+            for sentence in sentences
+        ]
     )
-    return model.decide(request).probability_true
+    return min(check.probability_true for check in checks)
 
 
 def fake_llm(question: str, kept: list[str]) -> str:
-    """Stands in for your LLM call. It invents a claim when asked about costs."""
+    """Stands in for your LLM call. It invents a claim when asked about delivery."""
     answer = " ".join(DOCUMENTS[d] for d in kept)
-    if "cost" in question:
+    if "delivery" in question:
         answer += " Shipping is always free."
     return answer
 
@@ -82,7 +92,7 @@ def fake_llm(question: str, kept: list[str]) -> str:
 model = load_model(__doc__)
 for question in [
     "How long does shipping take within the EU?",
-    "How long does shipping take and what does it cost?",
+    "How long does delivery take within the EU?",
     "Can I return items without a receipt?",
     "Do you sell gift cards?",
 ]:

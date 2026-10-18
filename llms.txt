@@ -154,7 +154,7 @@ The server also provides `GET /health` for liveness, `GET /readyz` (whose `model
 
 ## Examples
 
-- [Use cases](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/use_cases/README.md): nine one-screen scripts: support routing, an agent's next step, urgency, answer checking, reranking, best reply, contract review, email triage, reviews into a table
+- [Use cases](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/use_cases/README.md): nine one-screen scripts: support routing, an agent's next step, urgency, answer checking, reranking, reply-draft checks, contract review, email triage, reviews into a table
 - [Expert use cases](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/use_cases/expert/README.md): triage with abstention, hierarchical routing, RAG gates, a guarded agent loop, threshold calibration, option-order checks, LLM judging, bulk jobs
 - [Integrations](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/use_cases/integrations/README.md): LangChain, LangGraph, LlamaIndex, BM25 RAG, an MCP server, pandas, Pydantic, with no adapter package needed
 - [Quickstart script](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/quickstart/main.py): the `--demo` and `--model` entry point

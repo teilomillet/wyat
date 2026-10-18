@@ -222,8 +222,16 @@ def main() -> None:
     source.add_argument(
         "--demo", action="store_true", help="Use the scripted practice chooser"
     )
-    source.add_argument("--model", type=Path, help="Use trained local Wyat weights")
-    parser.add_argument("--larger-model", type=Path, help="Local fallback Choice model")
+    source.add_argument(
+        "--model",
+        type=Path,
+        help="teilomillet/wyat-1-800m, or a local model directory",
+    )
+    parser.add_argument(
+        "--larger-model",
+        type=Path,
+        help="Fallback Choice model for close calls (default: --model itself)",
+    )
     parser.add_argument(
         "--min-score-gap",
         type=float,
@@ -249,6 +257,9 @@ def main() -> None:
         help="Softmax temperature for the small model (default: %(default)s)",
     )
     parser.add_argument("--backend", choices=("torch", "mlx"), default="torch")
+    parser.add_argument(
+        "--device", help="Device: cpu, mps or cuda for torch; gpu or cpu for mlx"
+    )
     arguments = parser.parse_args()
     if arguments.demo:
         if arguments.larger_model is not None:
@@ -262,17 +273,24 @@ def main() -> None:
         )
         larger = wyat.Model(PracticeLargerScorer(), model_id="embedded-practice-larger")
     else:
-        if arguments.larger_model is None:
-            parser.error("--model requires --larger-model for uncertain choices")
+        backend = cast(Literal["torch", "mlx"], arguments.backend)
         model = wyat.load(
             cast(Path, arguments.model),
-            backend=cast(Literal["torch", "mlx"], arguments.backend),
+            backend=backend,
+            device=arguments.device,
             temperature=arguments.temperature,
         )
-        larger = wyat.load(
-            cast(Path, arguments.larger_model),
-            backend=cast(Literal["torch", "mlx"], arguments.backend),
-        )
+        if arguments.larger_model is None:
+            # Only one public model exists: close calls go back to it, and the
+            # router still shows where a larger model would be asked.
+            larger = model
+            print("No --larger-model: close calls go back to --model.")
+        else:
+            larger = wyat.load(
+                cast(Path, arguments.larger_model),
+                backend=backend,
+                device=arguments.device,
+            )
         print("Trained model mode: choices can differ from the practice script.\n")
     run_agent(
         model,

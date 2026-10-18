@@ -56,10 +56,13 @@ def test_cpu_model_and_server_examples(
     original_load = wyat.load
 
     def recorded_load(
-        path: str | Path, *, backend: Literal["torch", "mlx"]
+        path: str | Path,
+        *,
+        backend: Literal["torch", "mlx"],
+        device: str | None = None,
     ) -> wyat.Model:
         calls.append((path, backend))
-        return original_load(path, backend=backend)
+        return original_load(path, backend=backend, device=device)
 
     monkeypatch.setattr(wyat, "load", recorded_load)
     request = wyat.Request(

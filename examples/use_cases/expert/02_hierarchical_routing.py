@@ -7,7 +7,8 @@ Real support catalogs have 50 to 200 intents. Two stages keep each menu short
 and the descriptions distinct: first the domain, then the intent inside it.
 Each stage has its own fallback, so the system says "I'm not sure which
 billing intent" instead of guessing a wrong one. The second stage for every
-message runs as one batch.
+message runs as one batch. Give the catch-all a description too: with a bare
+"None of these domains.", wyat-1 800M sent "a statement for my landlord" there.
 """
 
 from common import load_model
@@ -35,8 +36,10 @@ TAXONOMY = {
 DOMAINS = {
     "cards": "Debit or credit cards: loss, payments, delivery, PIN.",
     "transfers": "Transfers: sending or receiving money between accounts.",
-    "account": "The account itself: opening, closing, verification, statements.",
-    "other": "None of these domains.",
+    "account": (
+        "Account: opening, closing, identity checks, statements, proof of balance."
+    ),
+    "other": "Other: not about the three domains above.",
 }
 MIN_MARGIN = 0.10
 

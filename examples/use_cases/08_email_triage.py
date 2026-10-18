@@ -4,7 +4,9 @@
 """Noul signals plus your own rule: explainable email triage.
 
 Ask small yes/no questions, then combine them in code you can read and
-audit. The model measures; your rule decides.
+audit. The model measures; your rule decides. Each question names what to
+look for: "Does the sender imitate a known brand's domain?" gave 0.10 for
+paypa1-support.com on wyat-1 800M.
 """
 
 from common import load_model
@@ -20,7 +22,9 @@ email = {
 }
 signals = {
     "urgency": "Does the email pressure the reader to act fast?",
-    "lookalike_sender": "Does the sender imitate a known brand's domain?",
+    "lookalike_sender": (
+        "Does the sender's address use a fake lookalike of a real company's domain?"
+    ),
     "asks_for_login": "Does the email ask the reader to log in or click a link?",
 }
 answers: wyat.Answers = model.predict(

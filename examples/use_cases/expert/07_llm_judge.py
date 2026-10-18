@@ -8,6 +8,11 @@ Use a decision model as a cheap, fast judge for prompts or model versions:
 2. Compare two answers head to head. Ask twice with A and B swapped, so a
    preference for "the first one" cancels out. Only a consistent preference
    counts as a win; otherwise it is a tie.
+
+On wyat-1 800M the rubric scores separate the two prompts clearly, while the
+head-to-head comparison is close to chance and ends in a tie. Rely on the
+per-criterion scores; the swapped A/B is how you find out whether a pairwise
+preference means anything.
 """
 
 from common import load_model

@@ -5,6 +5,8 @@
 
 A fast search returns candidates; the model grades each one against the
 query. Works for product search, documents before RAG, or help articles.
+Say what each grade means: with bare labels such as "Related", wyat-1 800M
+ranked a phone case above a USB-C cable for a charger query.
 """
 
 from common import load_model
@@ -12,10 +14,10 @@ from common import load_model
 import wyat
 
 RELEVANCE = [
-    "Unrelated to the query.",
-    "Related, but not what was asked.",
-    "A good substitute.",
-    "Exactly what was asked.",
+    "Unrelated: a different kind of product.",
+    "Accessory: used with what was asked, but not it.",
+    "Substitute: the same kind of product, different specs.",
+    "Exact match: the product and specs asked for.",
 ]
 
 model = load_model(__doc__)

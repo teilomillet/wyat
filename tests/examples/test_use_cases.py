@@ -30,7 +30,7 @@ EXPERT_SHOWS = {
     "01_support_triage.py": ["T-1: route", "T-3: human"],
     "02_hierarchical_routing.py": ["-> card_lost", "-> human"],
     "03_rag_gates.py": ["context: ['returns']", "I don't know"],
-    "04_agent_loop.py": ["refused (already done)"],
+    "04_agent_loop.py": ["waiting for human approval"],
     "05_calibrate_threshold.py": ["policy:"],
     "06_order_robustness.py": ["stable ->"],
     "07_llm_judge.py": ["A/B:"],
@@ -69,7 +69,7 @@ def test_use_case_runs_in_demo_mode(
 
 
 # Clear cases each example must get right on wyat-1 800M. Borderline cases the
-# examples discuss (05 rerank, 08 lookalike sender, 09 sentiment) are omitted.
+# examples discuss (05 rerank order, 09 one-word cues) are omitted.
 MODEL_SHOWS = {
     "01_support_routing.py": [
         "'I was charged twice for my order.' -> billing",
@@ -79,6 +79,8 @@ MODEL_SHOWS = {
     "02_agent_next_step.py": ["-> call_tool", "-> ask_user", "-> decline"],
     "04_answer_check.py": ["-> show:", "-> send for review:"],
     "06_best_reply.py": ["Send draft: a"],
+    "08_email_triage.py": ["Action: quarantine"],
+    "09_review_insights.py": ["| positive | negative | not_mentioned"],
     "07_contract_review.py": [
         "share_with_employees: yes",
         "share_with_partners: not_mentioned",
@@ -88,8 +90,13 @@ MODEL_SHOWS = {
         "T-2: route queue=account",
         "T-3: human",
     ],
-    "expert/02_hierarchical_routing.py": ["-> card_lost", "-> transfer_pending"],
-    "expert/03_rag_gates.py": ["context: ['shipping']", "-> show"],
+    "expert/02_hierarchical_routing.py": [
+        "-> card_lost",
+        "-> transfer_pending",
+        "-> account_statement",
+    ],
+    "expert/03_rag_gates.py": ["grounded p=0.99 -> show", "-> hold for review"],
+    "expert/04_agent_loop.py": ["step 3: finish -> stop"],
     "expert/05_calibrate_threshold.py": ["policy:"],
     "expert/06_order_robustness.py": ["stable -> approve"],
     "expert/08_document_check.py": ["id_card: accept", "missing postal address"],

@@ -5,6 +5,10 @@
 
 One question per aspect you care about, all on the same review.
 ``predict_many`` scores every review in one call.
+
+wyat-1 800M reads clear statements well ("the waiter ignored us" is negative
+service) but misses one-word cues: here it reads "Cheap" as not mentioning
+the price. Check a sample of rows before trusting the table.
 """
 
 from common import load_model
@@ -12,9 +16,9 @@ from common import load_model
 import wyat
 
 SENTIMENT = {
-    "positive": "Positive.",
-    "negative": "Negative.",
-    "not_mentioned": "Not mentioned.",
+    "positive": "Positive: the review praises it.",
+    "negative": "Negative: the review complains about it.",
+    "not_mentioned": "Not mentioned: the review says nothing about it.",
 }
 ASPECTS = ["food", "service", "price"]
 

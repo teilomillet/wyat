@@ -89,3 +89,9 @@ def test_unpinned_verifier_refuses(tmp_path: Path) -> None:
     values["verify"].__globals__["MANIFEST_SHA256"] = ""
     with pytest.raises(ValueError, match="no model release is pinned"):
         values["verify"](tmp_path)
+
+
+def test_an_800m_directory_points_to_wyat_download(tmp_path: Path) -> None:
+    (tmp_path / "fork_manifest.json").write_text("{}")
+    with pytest.raises(ValueError, match="wyat download"):
+        runpy.run_path(str(VERIFIER))["verify"](tmp_path)

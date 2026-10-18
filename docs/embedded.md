@@ -154,7 +154,7 @@ Install the inference runtime, then [obtain and verify local wyat weights](model
 
 ```sh
 uv add wyat --extra inference
-uv run python agent_demo.py --model teilomillet/wyat-1-800m --larger-model /path/to/larger-model
+uv run python agent_demo.py --model teilomillet/wyat-1-800m
 ```
 
 The example uses PyTorch CPU unless you pass `--backend mlx`, which is several
@@ -162,9 +162,10 @@ times faster on Apple Silicon (`uv add wyat --extra mlx`). The first load
 downloads and verifies its pinned release; later loads use the verified cache.
 A local model directory also works.
 
-Supply both models; the example requires a fallback rather than silently
-disabling it. Both must work with `wyat.load`. The larger fallback is a model
-directory you provide.
+Only one public model exists, so `--larger-model` defaults to `--model`: close
+calls go back to the same model, and the run prints that it does. Pass
+`--larger-model /path/to/larger-model` to escalate to another model directory
+that works with `wyat.load`.
 An arbitrary chat-model directory cannot be passed to that loader. Another model
 runtime can be connected in Python through a custom [scorer](api.md).
 
