@@ -1,0 +1,538 @@
+{
+  "scope": "original illustrative workflow fixtures; not an official benchmark",
+  "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+  "runtime_arguments": [
+    "--model",
+    "<verified local public-release model directory>",
+    "--device",
+    "cpu"
+  ],
+  "python": "3.12.11",
+  "quality_valid": true,
+  "passed": 7,
+  "expected_examples": 10,
+  "outcomes": [
+    {
+      "example": "01_group_statement",
+      "field": "draft_id",
+      "expected": "night_access",
+      "source_sha256": "48245f50a69d2fee85e0d6a4a2a0ba77a8d47439a5eba1de027f243e49e2c4b8",
+      "result": {
+        "draft_id": "night_access",
+        "draft": "Fermer le quartier aux voitures de 23 h à 6 h, en maintenant le passage des vélos et des secours.",
+        "next_step": "collect_group_votes",
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "night_access",
+          "ranking": [
+            "night_access",
+            "unchanged",
+            "ban_all"
+          ],
+          "scores": [
+            -3.3651583194732666,
+            2.845095634460449,
+            -3.2953696250915527
+          ],
+          "probabilities": [
+            0.002000400311684843,
+            0.995854607285086,
+            0.002144992403229098
+          ]
+        }
+      },
+      "passed": true,
+      "error": null,
+      "seconds": 4.776985624999725
+    },
+    {
+      "example": "02_phishing_triage",
+      "field": "queue",
+      "expected": "suspected_phishing",
+      "source_sha256": "015ecbba32fc363b2c14c0d90cedf487aee1cd0fee14bf5e2cbae8ea5a124faa",
+      "result": {
+        "queue": "suspected_phishing",
+        "probability_phishing": 0.8831145214740785,
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "true",
+          "ranking": [
+            "true",
+            "false"
+          ],
+          "scores": [
+            -2.606184244155884,
+            -0.5839239954948425
+          ],
+          "probabilities": [
+            0.11688547852592139,
+            0.8831145214740785
+          ]
+        }
+      },
+      "passed": true,
+      "error": null,
+      "seconds": 4.618560708000132
+    },
+    {
+      "example": "03_review_tags",
+      "field": "tags",
+      "expected": {
+        "food_positive": true,
+        "service_negative": true,
+        "service_positive": false,
+        "ambience_negative": false
+      },
+      "source_sha256": "e9a653035310694e8d694ae4f0a07ee632a9dc25dc7797c7fd2ffe1235de703c",
+      "result": {
+        "review_id": "review-001",
+        "tags": {
+          "food_positive": true,
+          "service_negative": true,
+          "service_positive": false,
+          "ambience_negative": true
+        },
+        "probabilities": {
+          "food_positive": 0.9498859465041185,
+          "service_negative": 0.9444005874348589,
+          "service_positive": 0.22446503036196544,
+          "ambience_negative": 0.5789276674078396
+        },
+        "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6"
+      },
+      "passed": false,
+      "error": null,
+      "seconds": 17.844127041999855
+    },
+    {
+      "example": "04_product_relevance",
+      "field": "section",
+      "expected": "accessories",
+      "source_sha256": "40c30cb64c6b76b9e4c184252331045dbed4e2d843ab903ccc7800a9c6ea216f",
+      "result": {
+        "product_id": "battery-002",
+        "relation": "complement",
+        "section": "accessories",
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "complement",
+          "ranking": [
+            "complement",
+            "exact",
+            "substitute",
+            "irrelevant"
+          ],
+          "scores": [
+            -2.797956943511963,
+            -3.5193095207214355,
+            -2.456918716430664,
+            -3.762040615081787
+          ],
+          "probabilities": [
+            0.30545228052262635,
+            0.14847862195287448,
+            0.4295902263083641,
+            0.11647887121613515
+          ]
+        }
+      },
+      "passed": true,
+      "error": null,
+      "seconds": 4.6459558749998
+    },
+    {
+      "example": "05_code_output_review",
+      "field": "suggested_output",
+      "expected": "ba:fed:hg",
+      "source_sha256": "ebb1bbd7e02f3d3b0edbea132c90f05a27a8a6ed556dfdbb4f88b07e750f5a65",
+      "result": {
+        "expression": "f(\"ab-c-def--gh\")",
+        "suggested_output": "hg:fed:ba",
+        "next_step": "verify_in_existing_test_runner",
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "reverse_order",
+          "ranking": [
+            "reverse_order",
+            "filtered",
+            "unreversed",
+            "keep_single"
+          ],
+          "scores": [
+            -3.3631882667541504,
+            -2.52756404876709,
+            -3.164113998413086,
+            0.33086779713630676
+          ],
+          "probabilities": [
+            0.02235429784358251,
+            0.05155467102044888,
+            0.02727833693069575,
+            0.8988126942052729
+          ]
+        }
+      },
+      "passed": false,
+      "error": null,
+      "seconds": 4.356110749999971
+    },
+    {
+      "example": "06_chess_move",
+      "field": "move",
+      "expected": "h5f7",
+      "source_sha256": "82cc4138b770d82ce59df1f75a161fdbc165bae25bee626e567480a9a71efd79",
+      "result": {
+        "move": "c4d3",
+        "notation": "Bd3",
+        "next_fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/4P3/3B4/PPPP1PPP/RNB1K1NR b KQkq - 5 4",
+        "checkmate": false,
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "c4d3",
+          "ranking": [
+            "c4d3",
+            "d2d3",
+            "c4b3",
+            "b2b3",
+            "d2d4",
+            "b1c3",
+            "b1a3",
+            "c4e2",
+            "b2b4",
+            "h2h3",
+            "c2c3",
+            "c4d5",
+            "h2h4",
+            "h5g4",
+            "a2a3",
+            "a2a4",
+            "g2g3",
+            "h5h7",
+            "f2f3",
+            "h5e2",
+            "h5d1",
+            "e1d1",
+            "e1e2",
+            "c4f1",
+            "c4f7",
+            "g2g4",
+            "h5f7",
+            "h5h4",
+            "h5h3",
+            "c4b5",
+            "f2f4",
+            "c4e6",
+            "e1f1",
+            "g1h3",
+            "g1e2",
+            "g1f3",
+            "h5f3",
+            "h5g5",
+            "c4a6",
+            "h5g6",
+            "h5e5",
+            "h5h6",
+            "h5f5"
+          ],
+          "scores": [
+            -3.311433792114258,
+            -3.435791492462158,
+            -3.961209774017334,
+            -3.9001922607421875,
+            -3.7722558975219727,
+            -3.984902858734131,
+            -3.936495304107666,
+            -3.459566116333008,
+            -3.2022109031677246,
+            -3.4696874618530273,
+            -3.7559003829956055,
+            -3.3362460136413574,
+            -3.3520736694335938,
+            -3.41430401802063,
+            -3.6638944149017334,
+            -3.8321239948272705,
+            -3.167308807373047,
+            -3.489590883255005,
+            -2.0939018726348877,
+            -2.5143654346466064,
+            -2.99320125579834,
+            -3.3997819423675537,
+            -3.677988052368164,
+            -3.7470273971557617,
+            -3.698352098464966,
+            -3.3996007442474365,
+            -3.6706771850585938,
+            -3.39416241645813,
+            -2.9231624603271484,
+            -2.952723503112793,
+            -3.058011054992676,
+            -3.301727533340454,
+            -3.331139087677002,
+            -2.413735866546631,
+            -3.081902027130127,
+            -2.9016222953796387,
+            -3.281919002532959,
+            -3.1860244274139404,
+            -3.4333086013793945,
+            -3.570225954055786,
+            -2.9135594367980957,
+            -3.0212788581848145,
+            -3.2918858528137207
+          ],
+          "probabilities": [
+            0.021859837955989923,
+            0.01930363402358632,
+            0.011414392829774795,
+            0.012132558223843532,
+            0.013788418001266694,
+            0.011147129304660405,
+            0.01170000837854329,
+            0.018850109929729877,
+            0.024382702302299688,
+            0.01866028372286112,
+            0.014015788988413852,
+            0.021324120468658926,
+            0.02098926659618121,
+            0.019722908812575747,
+            0.015366509709103394,
+            0.012987155975724916,
+            0.025248734979710464,
+            0.01829255193238753,
+            0.07386085530128719,
+            0.04850754861501864,
+            0.030050629411245127,
+            0.020011416179076993,
+            0.015151458677409121,
+            0.014140704251777917,
+            0.01484603406961394,
+            0.020015042538604366,
+            0.015262634883405493,
+            0.020124187414451673,
+            0.03223079628007275,
+            0.031291965112265244,
+            0.028164823538000268,
+            0.02207304826325004,
+            0.021433299721037625,
+            0.053642893262237056,
+            0.027499912831278315,
+            0.03293258412698381,
+            0.02251464214356737,
+            0.024780583784300928,
+            0.019351622394664713,
+            0.016875433207255385,
+            0.03254180027443637,
+            0.029218614932320502,
+            0.022291356651127418
+          ]
+        }
+      },
+      "passed": false,
+      "error": null,
+      "seconds": 17.272064792000037
+    },
+    {
+      "example": "07_application_conditions",
+      "field": "next_step",
+      "expected": "request_missing_evidence",
+      "source_sha256": "77f1b7d7f2169d389a277f86c6cbd45fd15220dfccdf75ab5020ed68dd862ebf",
+      "result": {
+        "level": 1,
+        "next_step": "request_missing_evidence",
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "1",
+          "ranking": [
+            "1",
+            "0",
+            "2"
+          ],
+          "scores": [
+            -2.7979960441589355,
+            0.39492014050483704,
+            -3.822474956512451
+          ],
+          "probabilities": [
+            0.03888275257186224,
+            0.9471589816549698,
+            0.01395826577316796
+          ]
+        }
+      },
+      "passed": true,
+      "error": null,
+      "seconds": 8.141988833000141
+    },
+    {
+      "example": "08_service_handoff",
+      "field": "destination",
+      "expected": "network_billing",
+      "source_sha256": "39d69a96550b0fc96b20af0c234f9aa841e8501d3c143515b0317d357c7f6806",
+      "result": {
+        "destination": "network_billing",
+        "probability_network_billing": 0.9796577591616026,
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "true",
+          "ranking": [
+            "true",
+            "false"
+          ],
+          "scores": [
+            -2.572366237640381,
+            1.3021374940872192
+          ],
+          "probabilities": [
+            0.020342240838397516,
+            0.9796577591616026
+          ]
+        }
+      },
+      "passed": true,
+      "error": null,
+      "seconds": 7.712905249999949
+    },
+    {
+      "example": "09_updated_request",
+      "field": "proposal_id",
+      "expected": "updated_quantity",
+      "source_sha256": "4e2e4aef146b6bbf1c0cfc2202d3c35dcf126649b6c369297d7850d2efa6d3d1",
+      "result": {
+        "proposal_id": "updated_quantity",
+        "next_step": "review_fulfillment_proposal",
+        "ranking": [
+          "updated_quantity",
+          "old_quantity"
+        ],
+        "expected_scores": {
+          "old_quantity": 2.1467808573379528,
+          "updated_quantity": 2.448735446542547
+        },
+        "decisions": [
+          {
+            "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+            "selected": "2",
+            "ranking": [
+              "2",
+              "3",
+              "4",
+              "1",
+              "0"
+            ],
+            "scores": [
+              -3.4991042613983154,
+              -3.0778634548187256,
+              2.1937942504882812,
+              0.45378968119621277,
+              -3.0136828422546387
+            ],
+            "probabilities": [
+              0.0028329646430419807,
+              0.004317016535791224,
+              0.8406893854907042,
+              0.1475574635010973,
+              0.0046031698293653115
+            ]
+          },
+          {
+            "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+            "selected": "2",
+            "ranking": [
+              "2",
+              "3",
+              "4",
+              "1",
+              "0"
+            ],
+            "scores": [
+              -3.3582935333251953,
+              -3.240966320037842,
+              -0.49996325373649597,
+              -1.4982467889785767,
+              -1.674023985862732
+            ],
+            "probabilities": [
+              0.03187816602993054,
+              0.03584659337999422,
+              0.5557127947386145,
+              0.20478651972051926,
+              0.17177592613094153
+            ]
+          }
+        ]
+      },
+      "passed": true,
+      "error": null,
+      "seconds": 11.847530583999742
+    },
+    {
+      "example": "10_incident_priority",
+      "field": "queue",
+      "expected": "team_incident",
+      "source_sha256": "2579ead4ec08bb5e4d7ee9685bdbeeb1d4cbff2c622298e51b98b1b3fead2c6b",
+      "result": {
+        "level": 3,
+        "queue": "team_incident",
+        "expected_impact": 2.8552670162929052,
+        "decision": {
+          "model_id": "fork-197dbfe2735120311093338f20d4f2918755bb488d88d450c710f19fc9ee8ff6",
+          "selected": "3",
+          "ranking": [
+            "3",
+            "1",
+            "4",
+            "2",
+            "0"
+          ],
+          "scores": [
+            -3.4322686195373535,
+            -2.912250518798828,
+            -3.15869402885437,
+            0.15656062960624695,
+            -2.9456892013549805
+          ],
+          "probabilities": [
+            0.023914785607625073,
+            0.04022605874342785,
+            0.031439702435900184,
+            0.8655162601745107,
+            0.038903193038536274
+          ]
+        }
+      },
+      "passed": true,
+      "error": null,
+      "seconds": 4.575335166000059
+    }
+  ],
+  "recorded_date": "2026-10-18",
+  "model_source": {
+    "repository": "teilomillet/wyat-1-800m",
+    "revision": "552166bdaa102bab14d9c0e4cea893a5a5aa234f",
+    "manifest_sha256": "b363a65eaed1693e9d6139d08542f46e2f1b5c2e12b6c85a08a3afbcdf159901",
+    "checkpoint_sha256": "4df67c77abcdea83a418538159f22c3c3f6e353280564d2e05ebf9e9aecf2a1e",
+    "files_sha256": {
+      "adapters.safetensors": "9a4589019b36198d70bbd9c6142e5236920e864a862d258bab681219d8297c9e",
+      "base/config.json": "b90b86f35c8e6925ef74ee04d0e758f0a845c83a42089ad82bbaa948de9b4204",
+      "base/model.safetensors": "c2b1e5a17d9c1e27685d92ed9b382911ebb99955ecd89052d1721241adfbab6c",
+      "head.safetensors": "49e880231224f201c5b300c5943af6327d1f58273ffe8a679a370f04e7308ac6",
+      "merges.txt": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d",
+      "tokenizer.json": "fe000e3ed39ed12b8d2481d527d44f93c65d37e87645d2dcc80d1bf9d50d2927",
+      "tokenizer_config.json": "e611fbccc7c29ef3b1cafb1cb7ea548d189968632901d678fd62be68c47885de",
+      "vocab.json": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+    },
+    "input_rendering": {
+      "mode": "api-bank-schema-next-v1",
+      "source_sha256": "7cb8b11dfa3101881bdcaba14dbadbbcf408a0900200ce6badec7c10cac06c61"
+    },
+    "verification": "all eight manifest file hashes reverified locally"
+  },
+  "runtime": {
+    "backend": "torch",
+    "device": "cpu",
+    "platform": "macOS-27.2-arm64-arm-64bit-Mach-O",
+    "thread_limits": 4
+  },
+  "evaluation_method": "first exploratory run on original fixtures; no retries or prompt selection",
+  "evaluator_at_measurement_sha256": "7f8e2888182093fa4737028538d7f20d1ee2b3fe98dbbc2fb68c729e8c2779a8",
+  "evaluation_note": "Evaluator CLI subsequently changed only to keep stdout JSON, return a failing exit status, and record its own hash. Ten fixture files and expected checks were unchanged."
+}

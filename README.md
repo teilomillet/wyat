@@ -85,6 +85,16 @@ uv run wyat serve  teilomillet/wyat-1-800m
 Besides choosing an option, wyat rates on an ordered scale (`Request.score`)
 and answers yes or no with a probability (`Request.noul`).
 
+## Workflow examples
+
+Start with the [workflow examples and integration guide](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/benchmark_workflows/README.md):
+ten runnable examples show how inputs become decisions and application actions.
+Use the included [sample data](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/benchmark_workflows/sample-inputs.json),
+then supply your own JSON with the file-input runner. The guide explains setup,
+output fields, and how to reuse each function in your application; the
+[recorded model results](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/benchmark_workflows/recorded-run.json)
+include both successes and failures.
+
 ## Documentation
 
 | | |
@@ -95,6 +105,7 @@ and answers yes or no with a probability (`Request.noul`).
 | [Workflows](https://github.com/teilomillet/wyat/blob/main/docs/agent-workflows.md) | Routing, review, recovery |
 | [Explaining decisions](https://github.com/teilomillet/wyat/blob/main/docs/explaining-decisions.md) | Reading scores and owning policy |
 | [Use cases](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/README.md) | Choice, Score and Noul in short scripts |
+| [Workflow examples and integration guide](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/benchmark_workflows/README.md) | Ten workflows, editable sample data, custom JSON inputs, and recorded results |
 | [Expert use cases](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/expert/README.md) | Triage, agents, RAG gates, calibration |
 | [Integrations](https://github.com/teilomillet/wyat/blob/main/examples/use_cases/integrations/README.md) | LangChain, LangGraph, LlamaIndex, MCP, pandas |
 | [All documentation](https://github.com/teilomillet/wyat/blob/main/docs/README.md) | |

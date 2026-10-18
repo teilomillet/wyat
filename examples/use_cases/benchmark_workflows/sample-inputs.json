@@ -1,0 +1,59 @@
+{
+  "group_statement": {
+    "opinions": [
+      "Léa souhaite réduire le bruit des voitures après 23 h.",
+      "Malik veut pouvoir rentrer chez lui à vélo la nuit.",
+      "Chloé demande que les secours puissent toujours traverser le quartier."
+    ],
+    "drafts": {
+      "ban_all": "Interdire toute circulation dans le quartier, jour et nuit.",
+      "night_access": "Fermer le quartier aux voitures de 23 h à 6 h, en maintenant le passage des vélos et des secours.",
+      "unchanged": "Maintenir la circulation automobile sans restriction."
+    }
+  },
+  "phishing_triage": {
+    "message": "Votre compte sera bloqué dans 30 minutes. Confirmez immédiatement votre mot de passe et votre code SMS sur banque-azur-verification.example.",
+    "usual_domain": "banque-azur.example"
+  },
+  "review_tags": {
+    "review_id": "review-001",
+    "text": "La soupe était délicieuse. En revanche, le serveur nous a ignorés pendant quarante minutes."
+  },
+  "product_relevance": {
+    "query": "appareil photo Lumina X2",
+    "product_id": "battery-002",
+    "description": "Batterie de remplacement compatible avec l'appareil photo Lumina X2. Appareil photo vendu séparément."
+  },
+  "code_output_review": {
+    "code": "def f(s):\n    parts = s.split(\"-\")\n    return \":\".join(p[::-1] for p in parts if len(p) > 1)",
+    "expression": "f(\"ab-c-def--gh\")",
+    "outputs": {
+      "keep_single": "ba:c:fed:hg",
+      "filtered": "ba:fed:hg",
+      "unreversed": "ab:def:gh",
+      "reverse_order": "hg:fed:ba"
+    }
+  },
+  "chess_move": {
+    "fen": "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4"
+  },
+  "application_conditions": {
+    "application": "Lina demande une place à l'atelier de céramique avancée. Le registre validé confirme qu'elle est majeure et sa cotisation annuelle à jour. L'attestation de son initiation à la sécurité n'a pas été retrouvée et le registre de cette initiation n'a pas encore été consulté.",
+    "rules": "L'accès exige d'être majeur, d'avoir une cotisation à jour et d'avoir terminé l'initiation à la sécurité. Cette initiation doit être établie par une attestation ou par le registre validé."
+  },
+  "service_handoff": {
+    "ticket": "Émile demande le remboursement d'un second débit pour un seul titre de transport. Les deux débits sont confirmés.",
+    "payment_record": "Le titre a été vendu et encaissé directement par le réseau municipal.",
+    "routing_rules": "Facturation traite les remboursements des paiements encaissés directement par le réseau. Si une agence partenaire a vendu et encaissé le titre, seul le service Clients de cette agence traite le remboursement."
+  },
+  "updated_request": {
+    "request_history": "La commande prévoyait dix repas végétariens à retirer à 12 h 30. La cliente corrige uniquement la quantité à quatorze. Elle confirme que végétarien et retrait à 12 h 30 restent obligatoires, et préfère un plateau réutilisable si possible. La dernière correction explicite remplace seulement le champ qu'elle vise.",
+    "proposals": {
+      "old_quantity": "Dix repas végétariens, retrait à 12 h 30, plateau jetable.",
+      "updated_quantity": "Quatorze repas végétariens, retrait à 12 h 30, plateau jetable."
+    }
+  },
+  "incident_priority": {
+    "incident": "L'imprimante d'accueil ne produit plus aucun badge. Les badges imprimés sont le seul moyen autorisé d'admettre les visiteurs. Toute l'équipe d'accueil est empêchée d'accomplir cette opération. Aucun autre appareil ni autre procédure ne peut la remplacer aujourd'hui. Les autres équipes et les autres sites fonctionnent normalement."
+  }
+}

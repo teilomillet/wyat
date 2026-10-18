@@ -71,6 +71,11 @@ wyat.Request.score("How urgent?", ["Can wait.", "Today.", "Now."], context=msg)
 
 ## Going further
 
+The [benchmark-related workflows](benchmark_workflows/README.md) show ten
+input → decision → application patterns, including prerequisite checks,
+service handoffs, product relevance, review tagging, and incident priority.
+They include real recorded outputs, failures, and a small repeatable diagnostic.
+
 The [expert examples](expert/README.md) combine these decisions into larger
 systems: triage with abstention, agents with guards, calibrated thresholds,
 RAG gates, LLM judging and bulk jobs.
