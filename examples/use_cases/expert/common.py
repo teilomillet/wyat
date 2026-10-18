@@ -7,6 +7,7 @@ import argparse
 import re
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Literal, cast
 
 import wyat
 
@@ -70,11 +71,21 @@ def load_model(description: str | None) -> wyat.Model:
         "--demo", action="store_true", help="Word-overlap stand-in, no model"
     )
     parser.add_argument(
+        "--backend",
+        choices=("torch", "mlx"),
+        default="torch",
+        help="Runtime for --model (default: torch)",
+    )
+    parser.add_argument(
         "--device",
-        help="Torch device, for example mps on Apple Silicon (default: cpu)",
+        help="Device: cpu, mps or cuda for torch; gpu or cpu for mlx",
     )
     arguments = parser.parse_args()
     if arguments.demo:
         print("Demo mode: word-overlap stand-in, not a model.\n")
         return wyat.Model(OverlapScorer(), model_id="demo-overlap")
-    return wyat.load(arguments.model, device=arguments.device)
+    return wyat.load(
+        arguments.model,
+        backend=cast(Literal["torch", "mlx"], arguments.backend),
+        device=arguments.device,
+    )

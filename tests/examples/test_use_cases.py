@@ -4,14 +4,16 @@
 """Every use case runs end to end without weights, and on a real model if given.
 
 Set ``WYAT_TEST_MODEL`` to a model name or directory (and optionally
-``WYAT_TEST_DEVICE``, for example ``mps``) to check the clear cases of each
-example on that model. Without it those tests are skipped.
+``WYAT_TEST_BACKEND`` and ``WYAT_TEST_DEVICE``, for example ``mlx`` or ``mps``)
+to check the clear cases of each example on that model. Without it those tests
+are skipped.
 """
 
 import os
 import runpy
 import sys
 from pathlib import Path
+from typing import Literal, cast
 
 import pytest
 
@@ -100,7 +102,10 @@ def real_model() -> wyat.Model:
     source = os.environ.get("WYAT_TEST_MODEL")
     if not source:
         pytest.skip("set WYAT_TEST_MODEL to check the examples on a real model")
-    return wyat.load(source, device=os.environ.get("WYAT_TEST_DEVICE"))
+    backend = cast(
+        Literal["torch", "mlx"], os.environ.get("WYAT_TEST_BACKEND", "torch")
+    )
+    return wyat.load(source, backend=backend, device=os.environ.get("WYAT_TEST_DEVICE"))
 
 
 @pytest.mark.parametrize("name", sorted(MODEL_SHOWS))

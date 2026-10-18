@@ -6,6 +6,7 @@
 import argparse
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Literal, cast
 
 import wyat
 
@@ -29,11 +30,21 @@ def load_model(description: str | None) -> wyat.Model:
     )
     source.add_argument("--demo", action="store_true", help="Run without weights")
     parser.add_argument(
+        "--backend",
+        choices=("torch", "mlx"),
+        default="torch",
+        help="Runtime for --model (default: torch)",
+    )
+    parser.add_argument(
         "--device",
-        help="Torch device, for example mps on Apple Silicon (default: cpu)",
+        help="Device: cpu, mps or cuda for torch; gpu or cpu for mlx",
     )
     arguments = parser.parse_args()
     if arguments.demo:
         print("Demo mode: equal scores, no trained model.\n")
         return wyat.Model(DemoScorer(), model_id="demo")
-    return wyat.load(arguments.model, device=arguments.device)
+    return wyat.load(
+        arguments.model,
+        backend=cast(Literal["torch", "mlx"], arguments.backend),
+        device=arguments.device,
+    )

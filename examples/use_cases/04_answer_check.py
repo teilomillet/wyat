@@ -25,5 +25,5 @@ for answer in [
         context={"source": source, "answer": answer},
     )
     p_supported = model.decide(request).probability_true
-    action = "show" if p_supported >= THRESHOLD else "send for review"
+    action = "show" if p_supported > THRESHOLD else "send for review"
     print(f"p={p_supported:.2f} -> {action}: {answer!r}")

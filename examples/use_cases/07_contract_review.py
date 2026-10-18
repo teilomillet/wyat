@@ -24,7 +24,7 @@ contract = (
     "4. The supplier may share data with its employees who need it. "
     "7. Either party may end this agreement with 30 days' notice."
 )
-answers = model.predict(
+answers: wyat.Answers = model.predict(
     {
         "state": contract,
         "questions": {
@@ -50,13 +50,8 @@ answers = model.predict(
         },
     }
 )
-# Each question type returns its own answer type; isinstance narrows it.
+# Each question type has a typed accessor on Answers: .choice(), .noul(), .score().
 for key in ("share_with_employees", "share_with_partners"):
-    shared = answers[key]
-    assert isinstance(shared, wyat.ChoiceAnswer)
-    print(f"{key}: {shared.choice}")
-easy_exit, risk = answers["easy_exit"], answers["risk"]
-assert isinstance(easy_exit, wyat.NoulAnswer)
-assert isinstance(risk, wyat.ScoreAnswer)
-print(f"easy_exit: p={easy_exit.probability_true:.2f}")
-print(f"risk: {risk.expected_ordinal_value:.2f} of 2")
+    print(f"{key}: {answers.choice(key).choice}")
+print(f"easy_exit: p={answers.noul('easy_exit').probability_true:.2f}")
+print(f"risk: {answers.score('risk').expected_ordinal_value:.2f} of 2")

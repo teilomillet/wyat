@@ -14,7 +14,7 @@ import sys
 from collections.abc import Sequence
 from importlib import metadata
 from pathlib import Path
-from typing import NoReturn
+from typing import Literal, NoReturn, cast
 
 import wyat
 
@@ -102,12 +102,22 @@ def load_model(description: str | None) -> wyat.Model:
         "--demo", action="store_true", help="Word-overlap stand-in, no model"
     )
     parser.add_argument(
+        "--backend",
+        choices=("torch", "mlx"),
+        default="torch",
+        help="Runtime for --model (default: torch)",
+    )
+    parser.add_argument(
         "--device",
-        help="Torch device, for example mps on Apple Silicon (default: cpu)",
+        help="Device: cpu, mps or cuda for torch; gpu or cpu for mlx",
     )
     arguments, _ = parser.parse_known_args()
     if arguments.demo:
         # stderr: stdout may be a protocol stream (MCP stdio), not a terminal.
         print("Demo mode: word-overlap stand-in, not a model.\n", file=sys.stderr)
         return wyat.Model(OverlapScorer(), model_id="demo-overlap")
-    return wyat.load(arguments.model, device=arguments.device)
+    return wyat.load(
+        arguments.model,
+        backend=cast(Literal["torch", "mlx"], arguments.backend),
+        device=arguments.device,
+    )

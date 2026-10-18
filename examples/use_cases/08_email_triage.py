@@ -23,7 +23,7 @@ signals = {
     "lookalike_sender": "Does the sender imitate a known brand's domain?",
     "asks_for_login": "Does the email ask the reader to log in or click a link?",
 }
-answers = model.predict(
+answers: wyat.Answers = model.predict(
     {
         "state": email,
         "questions": {
@@ -31,11 +31,7 @@ answers = model.predict(
         },
     }
 )
-p: dict[str, float] = {}
-for key in signals:
-    answer = answers[key]
-    assert isinstance(answer, wyat.NoulAnswer)  # each Noul question gives a NoulAnswer
-    p[key] = answer.probability_true
+p = {key: answers.noul(key).probability_true for key in signals}
 for key, value in p.items():
     print(f"{key}: {value:.2f}")
 
