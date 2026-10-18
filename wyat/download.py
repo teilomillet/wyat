@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: 2026 Teïlo Millet - teilomillet
 # SPDX-License-Identifier: Apache-2.0
 
-"""Download and verify the pinned Wyat model release.
+"""Download and verify an explicitly pinned Wyat model release.
 
 This is Wyat's only network path. It runs when ``wyat download`` is called, or
-when ``wyat.load`` receives the exact release name and no local path of that
+when ``wyat.load`` receives a recognized release name and no local path of that
 name exists; any other path loads locally. Every file is checked against a
 pinned SHA-256 digest before it is moved into place, so an interrupted or
 altered download never looks complete.
@@ -19,35 +19,58 @@ import sys
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import BinaryIO
 
-REPOSITORY = "teilomillet/wyat-1-600m"
-MANIFEST = "model/native_manifest.json"
-# The release pin: the Hub commit and the SHA-256 digests that make a download
-# trustworthy. Fill all three from the published release (docs/releasing.md);
-# until then download() refuses before any network access.
-REVISION = ""
-MANIFEST_SHA256 = ""
-LICENSE_FILES = {"LICENSE": "", "NOTICE": ""}
-# Payloads whose digests the pinned manifest records, relative to model/.
-MODEL_FILES = (
-    "backbone/config.json",
-    "backbone/model.safetensors",
-    "decision_head.safetensors",
-    "native-adapters.safetensors",
-    "tokenizer.json",
-    "tokenizer_config.json",
+REPOSITORY = "teilomillet/wyat-1-800m"
+
+
+@dataclass(frozen=True)
+class ModelRelease:
+    """The reviewed identity, payload layout and license pins of one release."""
+
+    repository: str
+    revision: str
+    manifest_sha256: str
+    license_files: tuple[tuple[str, str], ...]
+    manifest: str
+    model_files: tuple[str, ...]
+    foreign_tokenizer_files: tuple[str, ...]
+    download_size: str
+
+
+RELEASE_600M = ModelRelease(
+    repository="teilomillet/wyat-1-600m",
+    revision="0d5a3195aecf9087ac3f1a635c3c771940e2b130",
+    manifest_sha256="0c7e78ea5c0a888206c3bc0f5a7e15479ac6832e5cfac7ec4943f5c821019deb",
+    license_files=(
+        ("LICENSE", "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"),
+        ("NOTICE", "3f8fab23291636f6cd66a57655e287aee4be86c191f41495772c1ea98cf84c58"),
+    ),
+    manifest="model/native_manifest.json",
+    model_files=(
+        "backbone/config.json",
+        "backbone/model.safetensors",
+        "decision_head.safetensors",
+        "native-adapters.safetensors",
+        "tokenizer.json",
+        "tokenizer_config.json",
+    ),
+    foreign_tokenizer_files=(
+        "special_tokens_map.json",
+        "added_tokens.json",
+        "vocab.json",
+        "merges.txt",
+    ),
+    download_size="about 2.44 GB",
 )
-# Optional tokenizer files change loading behavior and are absent from this
-# release; their presence means another release's files were mixed in.
-FOREIGN_TOKENIZER_FILES = (
-    "special_tokens_map.json",
-    "added_tokens.json",
-    "vocab.json",
-    "merges.txt",
+# No 800M checkpoint has been selected and pinned for release. In particular,
+# its different artifact format must never inherit the 600M release's pins.
+RELEASES: Mapping[str, ModelRelease | None] = MappingProxyType(
+    {REPOSITORY: None, RELEASE_600M.repository: RELEASE_600M}
 )
-DOWNLOAD_SIZE = "about 1.5 GB"  # a 600M-parameter backbone plus small files
 PROGRESS_BYTES = 100_000_000
 
 Opener = Callable[[urllib.request.Request], BinaryIO]
@@ -68,18 +91,44 @@ def _token() -> str | None:
         return None
 
 
-def cache_directory() -> Path:
-    """Where ``wyat download`` and ``wyat.load(REPOSITORY)`` keep the release."""
+def cache_directory(repository: str = REPOSITORY) -> Path:
+    """Where the named release is cached; each release has its own directory."""
+    if repository not in RELEASES:
+        raise DownloadError(f"Wyat does not recognize model release {repository!r}.")
     base = os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache"
-    return Path(base) / "wyat" / REPOSITORY.rsplit("/", 1)[1]
+    return Path(base) / "wyat" / repository.rsplit("/", 1)[1]
 
 
-def _url(name: str) -> str:
-    return f"https://huggingface.co/{REPOSITORY}/resolve/{REVISION}/{name}"
+def _release(repository: str) -> ModelRelease:
+    if repository not in RELEASES:
+        raise DownloadError(f"Wyat does not recognize model release {repository!r}.")
+    release = RELEASES[repository]
+    if release is None:
+        raise DownloadError(
+            f"{repository} is the default model, but no release checkpoint is "
+            "selected and pinned in this version of Wyat. Upgrade after its "
+            "release, or explicitly choose teilomillet/wyat-1-600m."
+        )
+    if not (
+        release.revision
+        and release.manifest_sha256
+        and release.license_files
+        and all(digest for _, digest in release.license_files)
+    ):
+        raise DownloadError(
+            f"{repository} does not have complete release pins in this version "
+            "of Wyat. Upgrade after the release is pinned."
+        )
+    return release
 
 
-def _request(name: str, token: str | None) -> urllib.request.Request:
-    request = urllib.request.Request(_url(name), headers={"User-Agent": "wyat"})
+def _request(
+    release: ModelRelease, name: str, token: str | None
+) -> urllib.request.Request:
+    url = (
+        f"https://huggingface.co/{release.repository}/resolve/{release.revision}/{name}"
+    )
+    request = urllib.request.Request(url, headers={"User-Agent": "wyat"})
     if token:
         # Unredirected: the token reaches huggingface.co, never the storage
         # host it redirects to.
@@ -106,6 +155,7 @@ def _size(count: float) -> str:
 
 
 def _fetch(
+    release: ModelRelease,
     name: str,
     target: Path,
     expected: str,
@@ -124,7 +174,10 @@ def _fetch(
     partial = target.with_name(target.name + ".part")
     digest = hashlib.sha256()
     try:
-        with opener(_request(name, token)) as response, partial.open("wb") as out:
+        with (
+            opener(_request(release, name, token)) as response,
+            partial.open("wb") as out,
+        ):
             total: int | None = getattr(response, "length", None)
             done, reported = 0, 0
             while chunk := response.read(1 << 20):
@@ -139,7 +192,8 @@ def _fetch(
         partial.unlink(missing_ok=True)
         if error.code in (401, 403):
             raise DownloadError(
-                f"Hugging Face refused access to {REPOSITORY} (HTTP {error.code}). "
+                f"Hugging Face refused access to {release.repository} "
+                f"(HTTP {error.code}). "
                 "The model may not be public yet. If you have been given access, "
                 "create a read token at https://huggingface.co/settings/tokens "
                 "and set it as HF_TOKEN, then run this again."
@@ -174,11 +228,12 @@ def _fetch(
 def download(
     directory: str | Path | None = None,
     *,
+    repository: str = REPOSITORY,
     token: str | None = None,
     opener: Opener | None = None,
     log: Callable[[str], None] = lambda line: print(line, file=sys.stderr),
 ) -> Path:
-    """Download the pinned release into ``directory``; return its model path.
+    """Download the named pinned release; return its local model path.
 
     The default directory is :func:`cache_directory`, which ``wyat.load``
     also uses. Files already present and matching their digests are kept, so
@@ -187,12 +242,8 @@ def download(
     """
     import json
 
-    if not (REVISION and MANIFEST_SHA256 and all(LICENSE_FILES.values())):
-        raise DownloadError(
-            "This version of Wyat does not pin a model release yet. Upgrade Wyat, "
-            "or obtain the model files and check them with examples/model/verify.py."
-        )
-    root = cache_directory() if directory is None else Path(directory)
+    release = _release(repository)
+    root = cache_directory(repository) if directory is None else Path(directory)
     model = root / "model"
     token = token or _token()
     opener = opener or _open
@@ -202,12 +253,15 @@ def download(
         # Only a download that actually fetches says so; a verified copy is quiet.
         nonlocal fetched
         if not fetched:
-            log(f"Wyat model {REPOSITORY} @ {REVISION[:12]} -> {root}")
-            log(f"Downloading {DOWNLOAD_SIZE}; files already verified are kept.")
+            log(f"Wyat model {repository} @ {release.revision[:12]} -> {root}")
+            log(
+                f"Downloading {release.download_size}; files already verified are kept."
+            )
             fetched = True
 
     def fetch(name: str, expected: str) -> None:
         _fetch(
+            release,
             name,
             root / name,
             expected,
@@ -217,15 +271,17 @@ def download(
             announce=announce,
         )
 
-    for name, expected in LICENSE_FILES.items():
+    for name, expected in release.license_files:
         fetch(name, expected)
     # The manifest is trusted only after its own pinned digest matches.
-    fetch(MANIFEST, MANIFEST_SHA256)
-    manifest = json.loads((root / MANIFEST).read_text("utf-8"))
+    fetch(release.manifest, release.manifest_sha256)
+    manifest = json.loads((root / release.manifest).read_text("utf-8"))
     digests: Mapping[str, str] = manifest["files_sha256"]
-    for name in MODEL_FILES:
+    for name in release.model_files:
         fetch(f"model/{name}", digests[name])
-    foreign = [name for name in FOREIGN_TOKENIZER_FILES if (model / name).exists()]
+    foreign = [
+        name for name in release.foreign_tokenizer_files if (model / name).exists()
+    ]
     if foreign:
         raise DownloadError(
             f"{model} also contains {', '.join(foreign)} from another release. "

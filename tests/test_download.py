@@ -13,8 +13,10 @@ import runpy
 import urllib.error
 import urllib.request
 from collections.abc import Callable
+from dataclasses import replace
 from email.message import Message
 from pathlib import Path
+from types import MappingProxyType
 from typing import BinaryIO
 
 import pytest
@@ -24,29 +26,32 @@ from wyat import download as module
 
 VERIFIER = Path(__file__).resolve().parents[1] / "examples" / "model" / "verify.py"
 Hub = dict[str, bytes]
+MODEL_600M = module.RELEASE_600M.repository
 
 
 @pytest.fixture
 def hub(monkeypatch: pytest.MonkeyPatch) -> Hub:
     """A synthetic release whose pins the module trusts for this test."""
-    files = {f"model/{name}": name.encode() for name in module.MODEL_FILES}
-    files |= {name: name.encode() for name in module.LICENSE_FILES}
+    release = module.RELEASES[MODEL_600M]
+    assert release is not None
+    files = {f"model/{name}": name.encode() for name in release.model_files}
+    files |= {name: name.encode() for name, _ in release.license_files}
     digests = {
         name: hashlib.sha256(files[f"model/{name}"]).hexdigest()
-        for name in module.MODEL_FILES
+        for name in release.model_files
     }
-    files[module.MANIFEST] = json.dumps({"files_sha256": digests}).encode()
-    monkeypatch.setattr(module, "REVISION", "0" * 40)
-    monkeypatch.setattr(
-        module, "MANIFEST_SHA256", hashlib.sha256(files[module.MANIFEST]).hexdigest()
+    files[release.manifest] = json.dumps({"files_sha256": digests}).encode()
+    release = replace(
+        release,
+        revision="0" * 40,
+        manifest_sha256=hashlib.sha256(files[release.manifest]).hexdigest(),
+        license_files=tuple(
+            (name, hashlib.sha256(name.encode()).hexdigest())
+            for name, _ in release.license_files
+        ),
     )
     monkeypatch.setattr(
-        module,
-        "LICENSE_FILES",
-        {
-            name: hashlib.sha256(name.encode()).hexdigest()
-            for name in module.LICENSE_FILES
-        },
+        module, "RELEASES", MappingProxyType({**module.RELEASES, MODEL_600M: release})
     )
     monkeypatch.delenv("HF_TOKEN", raising=False)
     monkeypatch.setenv("HF_HOME", "/nonexistent")
@@ -56,7 +61,9 @@ def hub(monkeypatch: pytest.MonkeyPatch) -> Hub:
 def serve(
     files: Hub, requests: list[urllib.request.Request] | None = None
 ) -> Callable[[urllib.request.Request], BinaryIO]:
-    prefix = f"https://huggingface.co/{module.REPOSITORY}/resolve/{module.REVISION}/"
+    release = module.RELEASES[MODEL_600M]
+    assert release is not None
+    prefix = f"https://huggingface.co/{MODEL_600M}/resolve/{release.revision}/"
 
     def opener(request: urllib.request.Request) -> BinaryIO:
         if requests is not None:
@@ -74,7 +81,9 @@ def quiet(line: str) -> None:
 def test_download_places_verified_release_and_returns_the_model_path(
     hub: Hub, tmp_path: Path
 ) -> None:
-    model = module.download(tmp_path, opener=serve(hub), log=quiet)
+    model = module.download(
+        tmp_path, repository=MODEL_600M, opener=serve(hub), log=quiet
+    )
     assert model == tmp_path / "model"
     for name, payload in hub.items():
         assert (tmp_path / name).read_bytes() == payload
@@ -84,10 +93,12 @@ def test_download_places_verified_release_and_returns_the_model_path(
 def test_rerun_keeps_verified_files_and_refetches_only_changed_ones(
     hub: Hub, tmp_path: Path
 ) -> None:
-    module.download(tmp_path, opener=serve(hub), log=quiet)
+    module.download(tmp_path, repository=MODEL_600M, opener=serve(hub), log=quiet)
     (tmp_path / "model" / "tokenizer.json").write_bytes(b"changed")
     requests: list[urllib.request.Request] = []
-    module.download(tmp_path, opener=serve(hub, requests), log=quiet)
+    module.download(
+        tmp_path, repository=MODEL_600M, opener=serve(hub, requests), log=quiet
+    )
     assert [request.full_url.rsplit("/", 1)[1] for request in requests] == [
         "tokenizer.json"
     ]
@@ -97,18 +108,20 @@ def test_rerun_keeps_verified_files_and_refetches_only_changed_ones(
 def test_manifest_is_checked_before_any_model_payload_is_requested(
     hub: Hub, tmp_path: Path
 ) -> None:
-    hub[module.MANIFEST] = b"{}"
+    hub[module.RELEASE_600M.manifest] = b"{}"
     requests: list[urllib.request.Request] = []
     with pytest.raises(module.DownloadError, match="does not match"):
-        module.download(tmp_path, opener=serve(hub, requests), log=quiet)
-    assert requests[-1].full_url.endswith(module.MANIFEST)
-    assert not (tmp_path / module.MANIFEST).exists()
+        module.download(
+            tmp_path, repository=MODEL_600M, opener=serve(hub, requests), log=quiet
+        )
+    assert requests[-1].full_url.endswith(module.RELEASE_600M.manifest)
+    assert not (tmp_path / module.RELEASE_600M.manifest).exists()
 
 
 def test_altered_payload_leaves_no_file_behind(hub: Hub, tmp_path: Path) -> None:
     hub["model/backbone/model.safetensors"] = b"altered"
     with pytest.raises(module.DownloadError, match="model.safetensors"):
-        module.download(tmp_path, opener=serve(hub), log=quiet)
+        module.download(tmp_path, repository=MODEL_600M, opener=serve(hub), log=quiet)
     backbone = tmp_path / "model" / "backbone"
     assert not (backbone / "model.safetensors").exists()
     assert not list(tmp_path.rglob("*.part"))
@@ -118,7 +131,7 @@ def test_files_from_another_release_are_rejected(hub: Hub, tmp_path: Path) -> No
     (tmp_path / "model").mkdir()
     (tmp_path / "model" / "vocab.json").write_text("{}")
     with pytest.raises(module.DownloadError, match="vocab.json"):
-        module.download(tmp_path, opener=serve(hub), log=quiet)
+        module.download(tmp_path, repository=MODEL_600M, opener=serve(hub), log=quiet)
 
 
 @pytest.mark.parametrize(
@@ -135,7 +148,7 @@ def test_failures_explain_the_next_step(
         raise failure
 
     with pytest.raises(module.DownloadError, match=message):
-        module.download(tmp_path, opener=opener, log=quiet)
+        module.download(tmp_path, repository=MODEL_600M, opener=opener, log=quiet)
 
 
 @pytest.mark.parametrize(
@@ -161,8 +174,10 @@ def test_interrupted_transfer_keeps_verified_files_and_no_partial(
         return complete(request)
 
     with pytest.raises(module.DownloadError, match="internet connection"):
-        module.download(tmp_path, opener=opener, log=quiet)
-    assert (tmp_path / module.MANIFEST).read_bytes() == hub[module.MANIFEST]
+        module.download(tmp_path, repository=MODEL_600M, opener=opener, log=quiet)
+    assert (tmp_path / module.RELEASE_600M.manifest).read_bytes() == hub[
+        module.RELEASE_600M.manifest
+    ]
     assert not list(tmp_path.rglob("*.part"))
 
 
@@ -171,7 +186,9 @@ def test_token_reaches_the_hub_but_not_its_redirect_target(
 ) -> None:
     monkeypatch.setenv("HF_TOKEN", "secret")
     requests: list[urllib.request.Request] = []
-    module.download(tmp_path, opener=serve(hub, requests), log=quiet)
+    module.download(
+        tmp_path, repository=MODEL_600M, opener=serve(hub, requests), log=quiet
+    )
     for request in requests:
         assert request.unredirected_hdrs == {"Authorization": "Bearer secret"}
         assert "Authorization" not in request.headers
@@ -184,7 +201,7 @@ def test_cli_prints_only_the_model_path_on_stdout(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setattr(module, "_open", serve(hub))
-    assert cli.main(["download", str(tmp_path)]) == 0
+    assert cli.main(["download", str(tmp_path), "--model", MODEL_600M]) == 0
     captured = capsys.readouterr()
     assert captured.out == f"{tmp_path / 'model'}\n"
     assert "wyat.load" in captured.err
@@ -200,36 +217,83 @@ def test_cli_reports_failure_without_a_traceback(
         raise urllib.error.URLError("offline")
 
     monkeypatch.setattr(module, "_open", offline)
-    assert cli.main(["download", str(tmp_path)]) == 1
+    assert cli.main(["download", str(tmp_path), "--model", MODEL_600M]) == 1
     captured = capsys.readouterr()
     assert captured.out == ""
     assert captured.err.splitlines()[-1].startswith("wyat: Could not reach")
     assert "Traceback" not in captured.err
 
 
-def test_unpinned_release_refuses_before_any_request(tmp_path: Path) -> None:
+def test_unpinned_default_refuses_before_any_request_or_cache_write(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     def opener(request: urllib.request.Request) -> BinaryIO:
         raise AssertionError("no request without a release pin")
 
-    if module.REVISION and module.MANIFEST_SHA256:
-        pytest.skip("this checkout pins a release")
-    with pytest.raises(module.DownloadError, match="does not pin a model release"):
-        module.download(tmp_path, opener=opener, log=quiet)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
+    with pytest.raises(
+        module.DownloadError, match="wyat-1-800m.*no release checkpoint"
+    ):
+        module.download(opener=opener, log=quiet)
+    assert not any(tmp_path.iterdir())
+
+
+def test_unknown_release_refuses_before_any_request(tmp_path: Path) -> None:
+    def opener(request: urllib.request.Request) -> BinaryIO:
+        raise AssertionError("unknown releases cannot download")
+
+    with pytest.raises(module.DownloadError, match="does not recognize"):
+        module.download(tmp_path, repository="someone/other-model", opener=opener)
+    assert not any(tmp_path.iterdir())
+
+
+def test_incomplete_pins_refuse_before_any_request(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    release = replace(module.RELEASE_600M, revision="")
+    monkeypatch.setattr(
+        module, "RELEASES", MappingProxyType({**module.RELEASES, MODEL_600M: release})
+    )
+
+    def opener(request: urllib.request.Request) -> BinaryIO:
+        raise AssertionError("incomplete release pins cannot download")
+
+    with pytest.raises(module.DownloadError, match="complete release pins"):
+        module.download(tmp_path, repository=MODEL_600M, opener=opener)
+    assert not any(tmp_path.iterdir())
+
+
+def test_cli_default_reports_unreleased_800m_without_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    def opener(request: urllib.request.Request) -> BinaryIO:
+        raise AssertionError("the unavailable default cannot request another model")
+
+    monkeypatch.setattr(module, "_open", opener)
+    assert cli.main(["download", str(tmp_path)]) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "wyat-1-800m" in captured.err
+    assert "explicitly choose teilomillet/wyat-1-600m" in captured.err
+    assert "Traceback" not in captured.err
     assert not any(tmp_path.iterdir())
 
 
 def test_copyable_verifier_pins_the_same_release() -> None:
     values = runpy.run_path(str(VERIFIER))
-    assert values["REPOSITORY"] == module.REPOSITORY
-    assert values["REVISION"] == module.REVISION
-    assert values["MANIFEST_SHA256"] == module.MANIFEST_SHA256
-    assert set(values["FILES"]) == set(module.MODEL_FILES)
+    release = module.RELEASES[values["REPOSITORY"]]
+    assert release is not None
+    assert values["REVISION"] == release.revision
+    assert values["MANIFEST_SHA256"] == release.manifest_sha256
+    assert set(values["FILES"]) == set(release.model_files)
 
 
 def test_complete_copy_is_verified_quietly(hub: Hub, tmp_path: Path) -> None:
-    module.download(tmp_path, opener=serve(hub), log=quiet)
+    module.download(tmp_path, repository=MODEL_600M, opener=serve(hub), log=quiet)
     lines: list[str] = []
-    module.download(tmp_path, opener=serve(hub), log=lines.append)
+    module.download(
+        tmp_path, repository=MODEL_600M, opener=serve(hub), log=lines.append
+    )
     assert lines and all(line.startswith("  ok ") for line in lines)
 
 
@@ -237,9 +301,10 @@ def test_default_directory_is_the_wyat_cache(
     hub: Hub, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
-    model = module.download(opener=serve(hub), log=quiet)
+    model = module.download(repository=MODEL_600M, opener=serve(hub), log=quiet)
     assert model == tmp_path / "wyat" / "wyat-1-600m" / "model"
-    assert module.cache_directory() / "model" == model
+    assert module.cache_directory(MODEL_600M) / "model" == model
+    assert module.cache_directory() == tmp_path / "wyat" / "wyat-1-800m"
 
 
 def bundle(target: Path) -> Path:
@@ -264,36 +329,37 @@ def test_load_by_repository_name_uses_the_verified_download(
     import wyat
 
     local = bundle(tmp_path / "cache")
-    calls: list[object] = []
+    calls: list[tuple[object, object]] = []
 
     def fake_download(directory: object = None, **kwargs: object) -> Path:
-        calls.append(directory)
+        calls.append((directory, kwargs["repository"]))
         return local
 
     monkeypatch.setattr(module, "download", fake_download)
     monkeypatch.chdir(tmp_path)
-    model = wyat.load(module.REPOSITORY)
-    assert wyat.load(Path(module.REPOSITORY)).model_id == model.model_id
-    assert calls == [None, None]
+    model = wyat.load(MODEL_600M)
+    assert wyat.load(Path(MODEL_600M)).model_id == model.model_id
+    assert calls == [(None, MODEL_600M), (None, MODEL_600M)]
     assert model.decide(
         wyat.Request("Pick", [wyat.Candidate("a", "A"), wyat.Candidate("b", "B")])
     ).selected in {"a", "b"}
 
 
+@pytest.mark.parametrize("repository", [module.REPOSITORY, MODEL_600M])
 def test_local_directory_takes_precedence_over_the_name(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    repository: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     pytest.importorskip("torch")
     import wyat
 
-    bundle(tmp_path / module.REPOSITORY)
+    bundle(tmp_path / repository)
 
     def no_download(*args: object, **kwargs: object) -> Path:
         raise AssertionError("a local directory must not trigger a download")
 
     monkeypatch.setattr(module, "download", no_download)
     monkeypatch.chdir(tmp_path)
-    assert wyat.load(module.REPOSITORY).model_id
+    assert wyat.load(repository).model_id
 
 
 def test_other_names_are_local_paths_and_never_download(

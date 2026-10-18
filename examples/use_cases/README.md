@@ -1,16 +1,18 @@
 # Use cases
 
-Short, copyable examples of a Wyat decision model inside an application. Each
+Short, copyable examples of a wyat decision model inside an application. Each
 script is one idea and fits on one screen.
 
 ```sh
 uv run python examples/use_cases/01_support_routing.py --demo
-uv run python examples/use_cases/01_support_routing.py --model teilomillet/wyat-1-600m
+uv run python examples/use_cases/01_support_routing.py --model teilomillet/wyat-1-800m
 ```
 
 `--demo` runs without weights: every option gets the same score, so you can
 read the code and see the API work, but the answers mean nothing. Use
-`--model` with a local model to see real decisions.
+`--model` with a local model to see real decisions. The 800M named download is
+pending; use its prepared local `model/` directory until it is pinned. The
+800M artifact uses PyTorch, including on Apple Silicon.
 
 ## The idea
 
@@ -68,7 +70,7 @@ The [expert examples](expert/README.md) combine these decisions into larger
 systems: triage with abstention, agents with guards, calibrated thresholds,
 RAG gates, LLM judging and bulk jobs.
 
-The [integration examples](integrations/README.md) plug Wyat into LangChain,
+The [integration examples](integrations/README.md) plug wyat into LangChain,
 LangGraph, LlamaIndex, MCP, pandas and Pydantic through their usual
 extension points.
 

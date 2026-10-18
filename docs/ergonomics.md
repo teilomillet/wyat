@@ -1,4 +1,4 @@
-# Wyat ergonomics standard
+# wyat ergonomics standard
 
 Make a correct decision easy to express, understand, and recover when it fails.
 The preferred public path is **load once → describe a request → decide → use an
@@ -14,10 +14,11 @@ trained-model quality.
   stable exact ties, and documented scalar/batch behavior.
 - Retain finite raw-logit interpretation and relative, uncalibrated softmax
   probabilities. A selected ID identifies an action; it does not execute it.
-- Keep local loading explicit. Importing the package does not load weights or
-  optional runtimes. The only network access is the pinned release, fetched and
-  verified when its exact name is passed to `wyat.load` or `wyat download`. Do
-  not add other downloads or custom model-code execution.
+- Keep model acquisition explicit. Importing the package does not load weights
+  or optional runtimes. Network access only fetches and verifies supported
+  pinned releases selected through `wyat.load` or `wyat download`; a default
+  without release pins fails explicitly. Do not add other downloads or custom
+  model-code execution.
 - Reject unsupported input explicitly. Never truncate, retry, repair or skip
   input, split it to hide a failure, or invent successful output.
 - Preserve the wire format, failure-inclusive evaluation, and explicit resource,

@@ -104,6 +104,8 @@ artifacts/
 !/tests/test_core.py
 !/tests/test_download.py
 !/tests/test_evaluation.py
+!/tests/test_fork_artifact.py
+!/tests/test_fork_loading.py
 !/tests/test_installation_recovery.py
 !/tests/test_loading.py
 !/tests/test_native_mlx.py

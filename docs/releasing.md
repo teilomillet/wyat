@@ -1,14 +1,18 @@
-# Preparing a public Wyat release
+# Preparing a public wyat release
 
 Release preparation covers two public surfaces: the pip distributions and the
 public source repository `teilomillet/wyat`. Both must contain only explicitly
 approved files. Ignored files in the maintainer workspace (research, data,
 models, receipts) remain private and are never committed or exported.
 
-Version **0.1.0** is the first release of this API. The existing PyPI `0.0.1`
+Version **0.1.1** is the current release candidate and includes the option-fork
+loader for the 800M artifact. Version **0.1.0** introduced this API. The old PyPI `0.0.1`
 release contains a different implementation; never reuse or overwrite a
 published version. Nothing is published merely by building, exporting or
 checking it.
+
+Pushing `main` prepares the source. Creating the version tag is a separate
+publication step.
 
 ## Export a clean source candidate
 
@@ -81,17 +85,31 @@ quality, calibration, device coverage or performance.
 
 ## Pin the model release
 
-`wyat download` and the [standalone verifier](../examples/model/verify.py)
-refuse to run until a release is pinned. After publishing the model to
-`teilomillet/wyat-1-600m`, copy its commit hash into `REVISION`, the SHA-256 of
-`model/native_manifest.json` into `MANIFEST_SHA256` and the digests of
-`LICENSE` and `NOTICE` into `LICENSE_FILES` in `wyat/download.py`, and the same
-`REVISION` and `MANIFEST_SHA256` into the verifier; a test keeps the two equal.
-Then run `wyat download` into an empty directory, load the result and make one
-decision before tagging. A model only loads when its manifest records the
-artifact contract of the version being released (`artifact_contract()` in
-`wyat/loading/native_artifact.py`, versioned by `wyat.tasks.RECIPE` and
-`PREDICTOR`).
+`wyat download` refuses to run for a name without a pinned release. Its default
+is `teilomillet/wyat-1-800m`, which has no release pins yet. Keep that entry
+unavailable until the distinct 800M artifact satisfies the release requirements;
+do not reuse a 600M revision, manifest or runtime contract for it.
+
+After the reviewed 800M upload exists, record its immutable commit, the
+SHA-256 of `model/fork_manifest.json`, the digests of `LICENSE` and `NOTICE`,
+the exact payload filenames and total download size in its own descriptor in
+`wyat/download.py`. The downloader must follow that fork layout, including
+its tokenizer files. Then run `wyat download --model teilomillet/wyat-1-800m`
+into an empty directory, load the result with PyTorch and make a decision
+before tagging. The manifest must match `contract()` in
+`wyat/loading/fork_artifact.py`. The 800M artifact has no MLX runtime.
+
+The 600M compatibility artifact keeps a separate native descriptor and the
+[standalone 600M verifier](../examples/model/verify.py). Keep their immutable
+revision and manifest hash consistent when updating that artifact; neither
+its native manifest nor its release pins apply to 800M.
+
+Append benchmark results only after the selected evaluation has complete,
+validated outputs for the exact model artifact. Identify the suite version,
+split, model identity, task denominators and scoring method. Keep Choice,
+Score and Noul separate, retain unsupported or failed rows, and identify
+partial comparisons as incomplete. A benchmark result does not remove a
+separate model-release requirement.
 
 Every code file bundled with a model release must carry the attribution
 `Teïlo Millet - teilomillet` and its SPDX license header, and third-party

@@ -1,18 +1,24 @@
 # Decision task meanings
 
-Wyat supports three structured decision tasks: **Choice**, **Score**, and
-**Noul**. The single-choice candidate-head loader supports **Choice**, while the native
-full-task loader (`wyat-native-full-v1`) supports **Choice**, **Score**, and
-**Noul** across `model.decide(request)` and `model.predict(record)`. The
-published `teilomillet/wyat-1-600m` is a `wyat-native-full-v1` artifact. For a
-team-facing walkthrough, see [Explaining decisions](explaining-decisions.md).
+wyat supports three structured decision tasks: **Choice**, **Score**, and
+**Noul**. The upcoming v0.1.1 targets
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), whose
+`wyat-option-fork-v1` format supports all three through `model.decide(request)`
+and `model.predict(record)`. Its named download is pending; use a prepared
+local artifact for now. For a team-facing walkthrough, see
+[Explaining decisions](explaining-decisions.md).
 
-The supported path is `wyat.load(path)` (a local directory, or
-`"teilomillet/wyat-1-600m"`) followed by `model.decide(request)` (or
-`model.predict(record)` for multi-question records, and `model.predict_many`
-for several records).
+Load a supported artifact with `wyat.load("/path/to/wyat-1-800m/model")`, then
+call `model.decide(request)` or `model.predict(record)` for a multi-question
+record, and `model.predict_many` for several records.
 [Obtain a supported artifact](model-acquisition.md) and follow the
 [Python API guide](api.md). The package contains no model weights.
+
+| Artifact format | Tasks | Backends |
+| --- | --- | --- |
+| `wyat-option-fork-v1` (800M) | Choice, Score, Noul | PyTorch CPU/CUDA |
+| `wyat-native-full-v1` (legacy compatibility) | Choice, Score, Noul | PyTorch CPU/CUDA, MLX Apple Silicon |
+| Single-choice candidate-head | Choice | PyTorch CPU/CUDA, MLX Apple Silicon |
 
 ## Task capabilities
 
@@ -22,12 +28,13 @@ for several records).
 | Inspect a candidate's raw score | `decision.scores_by_id[id]` | Finite raw logit; its absolute magnitude is not a rating or confidence. |
 | Inspect relative alternatives | `decision.probabilities_by_id[id]` | Softmax weight among supplied candidates; not calibrated correctness. |
 | Rank supplied choices | `decision.ranking` | IDs in descending raw score order; exact ties preserve input order. |
-| Rate against an ordered rubric | `Request.score(...)` / `decision.expected_ordinal_value` | Supported on `wyat-native-full-v1` artifacts (`0..N-1` rubric levels); `wyat.interpret` gives the same value on a `ScoreAnswer`. |
-| Estimate yes/no probability | `Request.noul(...)` / `decision.probability_true` | Supported on `wyat-native-full-v1` artifacts (`true`/`false` options); `wyat.interpret` gives the same value on a `NoulAnswer`. |
+| Rate against an ordered rubric | `Request.score(...)` / `decision.expected_ordinal_value` | Supported on option-fork and native full-task artifacts (`0..N-1` rubric levels); `wyat.interpret` gives the same value on a `ScoreAnswer`. |
+| Estimate yes/no probability | `Request.noul(...)` / `decision.probability_true` | Supported on option-fork and native full-task artifacts (`true`/`false` options); `wyat.interpret` gives the same value on a `NoulAnswer`. |
 
 The single-choice candidate-head encoder supports `task="choice"` and rejects non-Choice
-tasks rather than guessing. Native full-task (`wyat-native-full-v1`) artifacts
-render each task (`choice`, `score`, `noul`) with its trained task framing.
+tasks rather than guessing. Native full-task (`wyat-native-full-v1`) and
+option-fork (`wyat-option-fork-v1`) artifacts render each task (`choice`,
+`score`, `noul`) with their respective trained task framing.
 
 An application can include a review/abstain action in its supplied menu or apply
 its own explicit policy using `decision.score_gap`,
@@ -56,7 +63,7 @@ failures separately from semantic outcomes.
 
 The [use-case examples](../examples/use_cases/README.md) are short scripts that
 run with `--demo` (no weights) or `--model` (a local model directory or
-`teilomillet/wyat-1-600m`).
+`/path/to/wyat-1-800m/model`).
 
 | Task | Typical use | Example |
 | --- | --- | --- |

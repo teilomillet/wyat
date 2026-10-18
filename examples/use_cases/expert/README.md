@@ -7,12 +7,14 @@ thresholds, bias checks and bulk jobs.
 
 ```sh
 uv run python examples/use_cases/expert/01_support_triage.py --demo
-uv run python examples/use_cases/expert/01_support_triage.py --model teilomillet/wyat-1-600m
+uv run python examples/use_cases/expert/01_support_triage.py --model teilomillet/wyat-1-800m
 ```
 
 `--demo` uses a word-overlap stand-in instead of a model. It is **not** a
 model; it only makes the numbers vary so that thresholds, fallbacks and loops
-visibly do something. Use `--model` to see real decisions.
+visibly do something. Use `--model` to see real decisions. Until the 800M
+named download is pinned, pass its prepared local `model/` directory. It
+uses the PyTorch backend.
 
 | # | System | What it teaches |
 | --- | --- | --- |
@@ -41,10 +43,11 @@ visibly do something. Use `--model` to see real decisions.
 - **Guard effects.** Allowlists, approvals for irreversible actions, step
   limits and repeat detection live in code, not in the model (04).
 
-## Tested on a real model
+## Earlier integration checks
 
-Every example also ran on a trained Wyat model (CPU, 2026-10-14). The code
-paths all worked. Some decisions were wrong, which is why examples 05 and 06
+Every example also ran on an earlier trained wyat artifact (CPU, 2026-10-14).
+These are historical integration observations, not 800M quality results. The
+code paths all worked. Some decisions were wrong, which is why examples 05 and 06
 exist. Observations worth showing:
 
 - In 03, grading passages kept only the right passage for both shipping

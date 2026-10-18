@@ -70,6 +70,26 @@ def test_torch_default_preserves_cpu(loaded: list[dict[str, object]]) -> None:
     assert loaded[0]["attention"] == "sdpa"
 
 
+@pytest.mark.parametrize("explicit_name", [False, True])
+def test_default_800m_refuses_before_loading_another_model(
+    explicit_name: bool,
+    loaded: list[dict[str, object]],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from wyat.download import REPOSITORY, DownloadError
+
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    with pytest.raises(DownloadError, match="wyat-1-800m.*no release checkpoint"):
+        if explicit_name:
+            wyat.load(REPOSITORY)
+        else:
+            wyat.load()
+    assert loaded == []
+    assert not (tmp_path / "cache").exists()
+
+
 def test_mlx_explicit_selection_and_compile(loaded: list[dict[str, object]]) -> None:
     wyat.load("local", backend="mlx", compile=True, token_cache_size=8)
     assert loaded[0]["device"] == "gpu"

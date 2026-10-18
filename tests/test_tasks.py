@@ -531,7 +531,7 @@ def test_typed_answers_share_decision_confidence_metrics(kind: str) -> None:
 # tasks.RECIPE and record the new digest beside the old one; artifacts trained
 # on the old recipe must then stop loading. Never rewrite an existing entry.
 ENCODING_GOLDEN = {
-    # Recorded from tasks.py sha256 dd4847e3, the v7 training source.
+    # Recorded from tasks.py reference source sha256 dd4847e3.
     "wyat-native-typed-segmented-independent-questions-v1": (
         "42c7999f9d462f8a5b5421056a9f2230f6ef4474b9aca8bc27a3c5aa7bc70f98"
     ),

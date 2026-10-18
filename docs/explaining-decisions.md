@@ -84,7 +84,7 @@ then state the relevant validation evidence and what remains unknown.
 
 ## Run a result example
 
-With Wyat installed, run the [custom scorer example](../examples/scorer/main.py):
+With wyat installed, run the [custom scorer example](../examples/scorer/main.py):
 
 ```sh
 uv run python examples/scorer/main.py

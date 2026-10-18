@@ -448,7 +448,7 @@ def test_exact_candidate_ties_survive_ragged_batching(scorer: WyatScorer) -> Non
 # wyat.loading.native_artifact.PREDICTOR and record the new entry beside the
 # old one; never rewrite an existing entry.
 HEAD_GOLDEN = {
-    # Recorded from CandidateHead source sha256 dca28885, the v7 training source.
+    # Recorded from CandidateHead reference source sha256 dca28885.
     "wyat-bilinear-gelu-candidate-head-v1": (
         [
             ("candidate_mlp.bias", (4,)),

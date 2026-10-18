@@ -3,7 +3,7 @@
 
 [project]
 name = "wyat"
-version = "0.1.0"
+version = "0.1.1"
 description = "Local decision-model inference, evaluation, and serving"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -133,6 +133,7 @@ only-include = [
     "tests/fixtures/wyat.py",
     "tests/infrastructure/test_checks.py",
     "tests/infrastructure/test_export.py",
+    "tests/infrastructure/test_fork_release_privacy.py",
     "tests/infrastructure/test_hatch.py",
     "tests/infrastructure/test_package.py",
     "tests/infrastructure/test_public_boundary.py",
@@ -145,6 +146,8 @@ only-include = [
     "tests/test_core.py",
     "tests/test_download.py",
     "tests/test_evaluation.py",
+    "tests/test_fork_artifact.py",
+    "tests/test_fork_loading.py",
     "tests/test_installation_recovery.py",
     "tests/test_loading.py",
     "tests/test_native_adapters.py",
@@ -174,6 +177,8 @@ only-include = [
     "wyat/evaluation.py",
     "wyat/input_rendering.py",
     "wyat/loading/__init__.py",
+    "wyat/loading/fork.py",
+    "wyat/loading/fork_artifact.py",
     "wyat/loading/local.py",
     "wyat/loading/mlx.py",
     "wyat/loading/native.py",

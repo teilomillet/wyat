@@ -10,6 +10,7 @@ They do not identify arbitrary confidential prose or measure privacy in weights.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import re
@@ -74,13 +75,20 @@ _MODEL_NAMES = {
     "example.py",
     "runtime/SOURCE.json",
     "runtime/requirements.txt",
+    "model/adapters.safetensors",
     "model/backbone/config.json",
     "model/backbone/model.safetensors",
+    "model/base/config.json",
+    "model/base/model.safetensors",
     "model/decision_head.safetensors",
+    "model/fork_manifest.json",
+    "model/head.safetensors",
+    "model/merges.txt",
     "model/native-adapters.safetensors",
     "model/native_manifest.json",
     "model/tokenizer.json",
     "model/tokenizer_config.json",
+    "model/vocab.json",
     *(
         f"benchmarks/{name}"
         for name in (
@@ -90,6 +98,7 @@ _MODEL_NAMES = {
             "coverage.json",
             "decisionbench-toxicity-excluded.json",
             "decisionbench.json",
+            "dmbench-french.json",
             "execution.json",
             "quality.json",
             "screens.json",
@@ -116,14 +125,22 @@ _MODEL_NAMES = {
             "backends/wyat/encoding",
             "backends/wyat/torch",
             "core",
+            "download",
+            "input_rendering",
             "loading/__init__",
+            "loading/fork",
+            "loading/fork_artifact",
             "loading/local",
             "loading/native",
+            "loading/native_artifact",
             "tasks",
             "wire",
         )
     ),
 }
+# Exact public Qwen vocabulary carried by the reviewed option-fork export.
+# Vocabulary tokens can resemble private record keys; only these bytes qualify.
+_FORK_VOCAB_SHA256 = "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
 _RAW_KEYS = {
     "raw_request",
     "raw_requests",
@@ -188,6 +205,10 @@ _BENCHMARK_KEYS = _RAW_KEYS | {
     "source_artifacts",
     "original_source_artifacts",
     "evidence_pins",
+    "panels",
+    "panel_presentations",
+    "suite_sha256",
+    "plan_sha256",
 }
 _DENOMINATORS = {"n", "rows", "questions", "n_questions", "n_requests"}
 MINIMUM_AGGREGATE_SIZE = 20
@@ -309,13 +330,17 @@ def _json(name: str, raw: bytes) -> Any:
         _fail(name, "invalid or ambiguous JSON")
 
 
-def _model_json(name: str, value: Any) -> None:
+def _model_json(name: str, value: Any, *, raw: bytes) -> None:
     """Reject raw collections and class-level diagnostics, including object keys."""
     if not isinstance(value, dict):
         _fail(name, "unexpected JSON root schema")
     forbidden = _BENCHMARK_KEYS if name.startswith("benchmarks/") else _RAW_KEYS
     if name == "model/tokenizer.json":
         # Public vocabulary equality is reviewed separately and bound to inventory.
+        return
+    if name == "model/vocab.json":
+        if hashlib.sha256(raw).hexdigest() != _FORK_VOCAB_SHA256:
+            _fail(name, "unrecognized public vocabulary")
         return
     if name == "verification/VERIFICATION.json":
         fixture = value.get("synthetic_fixture")
@@ -430,7 +455,7 @@ def check_files(
             raw = path.read_bytes()
             check_text(name, raw)
             if profile == "model" and name.endswith(".json"):
-                _model_json(name, _json(name, raw))
+                _model_json(name, _json(name, raw), raw=raw)
 
 
 def main() -> None:

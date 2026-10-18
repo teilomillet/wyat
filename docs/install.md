@@ -1,4 +1,4 @@
-# Install Wyat in your application
+# Install wyat in your application
 
 Use Python **3.12 or newer**. The package and import are `wyat`.
 Install the core, describe a decision with `wyat.Request`, and call a loaded
@@ -16,7 +16,7 @@ cd wyat-demo
 If you already have a uv project, run the commands below from its directory.
 `uv run` uses that project's environment; no shell activation is needed.
 
-## Add Wyat
+## Add wyat
 
 ```sh
 uv add wyat --extra inference
@@ -33,25 +33,30 @@ Choose only the extras you need:
 | --- | --- |
 | *(none)* | The core: requests, results, evaluation and `wyat download`; no dependencies |
 | `inference` | PyTorch inference, using CPU unless a device is explicit |
-| `mlx` | Native MLX inference on Apple Silicon macOS |
+| `mlx` | MLX inference for compatible native/candidate-head artifacts on Apple Silicon; excludes 800M |
 | `server` | FastAPI and Uvicorn for HTTP serving alongside an inference backend |
 
-For example, `uv add wyat --extra inference --extra server` or, on Apple Silicon
-macOS, `uv add wyat --extra mlx --extra server`. Dependency installation
+For 800M serving, use `uv add wyat --extra inference --extra server`.
+Compatible native/candidate-head artifacts can instead use
+`uv add wyat --extra mlx --extra server` on Apple Silicon. Dependency installation
 provides no trained weights. The self-contained [quickstart demo](quickstart.md)
 works with the core alone. Installed wheels do not include the source checkout's
 `examples/` files.
 
 ## Acquire and load a trained model
 
-Pass the model's name, `teilomillet/wyat-1-600m`, to `wyat.load`. On first use
-it downloads [wyat-1-600m](https://huggingface.co/teilomillet/wyat-1-600m)
-(about 1.5 GB) into the Wyat cache, checks every file against pinned SHA-256
-digests, and loads it; later loads use the verified cache. Run
-`uv run wyat download` beforehand to fetch it ahead of time, for example
-before going offline. A local directory path works too. The
-[acquisition guide](model-acquisition.md) covers the cache and the standalone
-verifier. Loading executes no model code from the download.
+The upcoming v0.1.1 targets
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), which is also the
+library default. Its named download is not pinned or available yet. Until it
+is, obtain a prepared 800M artifact and set `WYAT_MODEL` to its local model
+directory, as below. `wyat.load()` and `wyat download` report the pending release
+rather than downloading a different model.
+
+800M uses the `wyat-option-fork-v1` format with PyTorch, on CPU by default or a
+compatible CUDA device with `device="cuda"`. MLX does not support this model.
+The [acquisition guide](model-acquisition.md) covers artifact layout, validation
+and explicit legacy compatibility. Loading local weights needs no network or
+downloaded model code.
 
 Copy this into `decide.py` in your application:
 
@@ -77,28 +82,24 @@ print(decision.to_dict())
 ```
 
 ```sh
-WYAT_MODEL=teilomillet/wyat-1-600m uv run python decide.py
+WYAT_MODEL=/path/to/wyat-1-800m/model uv run python decide.py
 ```
 
-With the `mlx` extra, change the load call to
-`wyat.load(os.environ["WYAT_MODEL"], backend="mlx")`. MLX defaults to the Apple
-GPU; `device="cpu"` selects MLX CPU explicitly. To keep the FP32 configuration
-described in the [MLX guide](mlx-inference.md), set `MLX_ENABLE_TF32=0` before
-starting Python:
-
-```sh
-MLX_ENABLE_TF32=0 WYAT_MODEL=teilomillet/wyat-1-600m uv run python decide.py
-```
+For a compatible native/candidate-head artifact, the `mlx` extra and
+`wyat.load(local_path, backend="mlx")` select MLX on Apple Silicon. MLX defaults
+to the Apple GPU; `device="cpu"` selects MLX CPU explicitly. Set
+`MLX_ENABLE_TF32=0` before starting Python for the FP32 configuration in the
+[MLX guide](mlx-inference.md). These settings do not apply to 800M.
 
 Keep the loaded model across requests. Call `model.decide_many((request,
-request))` for a batch. Wyat requires 2 to 255 candidates per request and
+request))` for a batch. wyat requires 2 to 255 candidates per request and
 rejects other counts with `ModelInputError` instead of truncating. See the [API guide](api.md) and runtime guides for
 [PyTorch](torch-inference.md) and [MLX](mlx-inference.md).
 
 For Windows PowerShell, set the model name before running the same Python script:
 
 ```powershell
-$env:WYAT_MODEL = "teilomillet/wyat-1-600m"
+$env:WYAT_MODEL = "C:\path\to\wyat-1-800m\model"
 uv run python decide.py
 ```
 
@@ -108,10 +109,11 @@ Install the `server` extra with your chosen inference backend. The CLI loads
 one model and serves it on localhost:
 
 ```sh
-uv run wyat serve teilomillet/wyat-1-600m --host 127.0.0.1 --port 8000
+uv run wyat serve /path/to/wyat-1-800m/model --host 127.0.0.1 --port 8000
 ```
 
-Add `--backend mlx` for MLX. To embed serving in your application, copy this into
+For a compatible native/candidate-head artifact, add `--backend mlx` for MLX.
+To embed serving in your application, copy this into
 `app.py`:
 
 ```python
@@ -133,10 +135,10 @@ def app() -> FastAPI:
 ```
 
 Change the load call to `wyat.load(os.environ["WYAT_MODEL"], backend="mlx")`
-for MLX. Start the factory with one worker:
+for an MLX-compatible artifact. Start the factory with one worker:
 
 ```sh
-WYAT_MODEL=teilomillet/wyat-1-600m uv run uvicorn app:app --factory --workers 1 --host 127.0.0.1 --port 8000
+WYAT_MODEL=/path/to/wyat-1-800m/model uv run uvicorn app:app --factory --workers 1 --host 127.0.0.1 --port 8000
 ```
 
 Importing `app.py` loads no weights. The factory loads one model per worker;
@@ -179,8 +181,7 @@ create and activate a Python 3.12+ virtual environment:
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install 'wyat[inference]'
-wyat download
-python demo.py --model teilomillet/wyat-1-600m
+python demo.py --model /path/to/wyat-1-800m/model
 ```
 
 On PowerShell, activate

@@ -26,7 +26,7 @@ PREDICTOR = "wyat-bilinear-gelu-candidate-head-v1"
 
 # Earlier exports recorded source hashes in place of the two versions. These
 # are the exact v1 sources the golden tests were recorded from (tasks.py
-# dd4847e3, CandidateHead dca28885; the v7 training pins), so an artifact
+# dd4847e3, CandidateHead dca28885; the reference source pins), so an artifact
 # carrying them has the v1 encoding and readout. Remove once none must load.
 _V1_VERSIONS = {
     "recipe": "wyat-native-typed-segmented-independent-questions-v1",
@@ -59,8 +59,8 @@ ADAPTER = {
     "targets": [f"{owner}.{name}" for owner, name in ADAPTER_TARGETS],
     "merged": False,
 }
-# Released models (v7, wyat-1-600m) adapt q/v only. They still load; no new
-# model may be trained or exported with this form.
+# Historical exports adapt q/v only. They remain loadable; wyat-1-600m and
+# new models use the all-linear ADAPTER policy.
 _LEGACY_QV_ADAPTER = {
     "rank": 16,
     "alpha": 32,

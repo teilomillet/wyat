@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2026 Teïlo Millet - teilomillet
 # SPDX-License-Identifier: Apache-2.0
 
-"""Verify the pinned full Wyat download without loading weights or model code."""
+"""Verify the pinned 600M download without loading weights or model code."""
 
 import argparse
 import hashlib
@@ -9,9 +9,9 @@ import json
 from pathlib import Path
 
 REPOSITORY = "teilomillet/wyat-1-600m"
-# Copy these from the release; they must equal the pins in wyat/download.py.
-REVISION = ""
-MANIFEST_SHA256 = ""
+# These identify the supported 600M release, independently of the library default.
+REVISION = "0d5a3195aecf9087ac3f1a635c3c771940e2b130"
+MANIFEST_SHA256 = "0c7e78ea5c0a888206c3bc0f5a7e15479ac6832e5cfac7ec4943f5c821019deb"
 FILES = (
     "backbone/config.json",
     "backbone/model.safetensors",

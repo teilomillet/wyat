@@ -3,8 +3,8 @@
 
 """Select a local artifact runtime without executing model code.
 
-The one network path is the pinned release named by ``wyat.download.REPOSITORY``,
-which is downloaded and verified into a local cache before loading.
+The only network path downloads recognized, pinned releases into a verified
+local cache before loading. A release without pins fails before any request.
 """
 
 import sys
@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Literal
 
 from wyat.core import Model, Scorer
+from wyat.download import REPOSITORY
 
 
 def _raise_missing_runtime(
@@ -35,21 +36,22 @@ def _raise_missing_runtime(
 
 def _local_directory(path: str | Path) -> str | Path:
     """Return a local directory, downloading the pinned release when it is named."""
-    from wyat.download import REPOSITORY, download
+    from wyat.download import RELEASES, download
 
-    # Only the pinned release can be verified, so only its exact name downloads.
-    if Path(path).as_posix() != REPOSITORY or Path(path).exists():
+    # Named releases have explicit identities; other strings remain local paths.
+    repository = Path(path).as_posix()
+    if repository not in RELEASES or Path(path).exists():
         return path
 
     def log(line: str) -> None:
         if not line.startswith("  ok "):
             print(line, file=sys.stderr)
 
-    return download(log=log)
+    return download(repository=repository, log=log)
 
 
 def load(
-    path: str | Path,
+    path: str | Path = REPOSITORY,
     *,
     backend: Literal["torch", "mlx"] = "torch",
     device: str | None = None,
@@ -63,8 +65,9 @@ def load(
 ) -> Model:
     """Load a local model directory, or the pinned release by its Hub name.
 
-    ``wyat.load("teilomillet/wyat-1-600m")`` downloads and verifies that release
-    into the Wyat cache on first use, then loads the cached copy; a local
+    The default is ``teilomillet/wyat-1-800m``; it raises a clear error until a
+    release is selected and pinned. Explicitly choose ``teilomillet/wyat-1-600m``
+    to download and verify that release into the Wyat cache. A local
     directory with that relative path takes precedence. Torch defaults to CPU;
     MLX defaults to Apple GPU. Compilation is an opt-in MLX experiment and must
     pass the caller's quality and performance gates. Native MLX GPU inference
@@ -80,6 +83,25 @@ def load(
     is_native = (Path(path) / "native_manifest.json").is_file()
     if not responsive and not (backend == "mlx" and is_native):
         raise ValueError("responsive=False applies only to native MLX inference")
+    if (Path(path) / "fork_manifest.json").is_file():
+        # Option-fork artifacts (Qwen3.5 hybrid) have a PyTorch runtime only.
+        # It keeps no cross-call caches: token and prefix cache sizes do not apply.
+        if backend != "torch":
+            raise ValueError(
+                "option-fork artifacts are supported only by the torch backend; "
+                "use backend='torch'"
+            )
+        if attention != "sdpa" or compile:
+            raise ValueError("option-fork inference uses sdpa attention, uncompiled")
+        try:
+            from wyat.loading.fork import load_fork
+        except ModuleNotFoundError as exc:
+            _raise_missing_runtime(exc, "torch")
+            raise
+        fork = load_fork(
+            path, device="cpu" if device is None else device, max_length=max_length
+        )
+        return Model(fork, fork.model_id, temperature=temperature)
     wyat_max_length = 2048 if max_length is None else max_length
     scorer: Scorer
     if backend == "torch":

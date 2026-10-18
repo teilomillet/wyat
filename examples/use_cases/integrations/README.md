@@ -1,10 +1,10 @@
 # Integrations
 
-Wyat is a plain Python object: build a request, get a scored decision. So it
+wyat is a plain Python object: build a request, get a scored decision. So it
 plugs into the tools teams already use, usually through the extension point
 those tools already have. Nothing here needs a special adapter package.
 
-| # | With | Wyat plays the role of | Extension point |
+| # | With | wyat plays the role of | Extension point |
 | --- | --- | --- | --- |
 | 01 | [LangChain](01_langchain_router.py) | Router of an LCEL chain | `RunnableLambda` + `RunnableBranch` |
 | 02 | [LangChain](02_langchain_rerank.py) | Reranker in a RAG chain | `BaseDocumentCompressor` |
@@ -19,19 +19,22 @@ For an HTTP service, see the [server example](../../server/main.py).
 
 ## Run
 
-Wyat installs none of these libraries. With `--with`, each one is installed
+wyat installs none of these libraries. With `--with`, each one is installed
 only for the run; nothing is added to your project:
 
 ```sh
 cd examples/use_cases/integrations
 uv run --with 'langchain-core>=1.6' python 01_langchain_router.py --demo
 uv run --with 'langgraph>=1.2' python 03_langgraph_workflow.py --demo
-uv run --with 'mcp>=2.3' python 06_mcp_server.py --model teilomillet/wyat-1-600m --serve
+uv run --with 'mcp>=2.3' python 06_mcp_server.py --model teilomillet/wyat-1-800m --serve
 ```
 
 In a wyat checkout, `uv sync --group examples` installs all of them. A plain
 `uv sync` removes them again; `uv sync --inexact` and `uv run` keep them. An
 example whose library is missing or too old stops and says what to install.
+
+The 800M named download is pending; pass its prepared local `model/` directory
+until it is pinned. Use the PyTorch inference extra for that artifact.
 
 `--demo` uses a word-overlap stand-in instead of a model (not a model; it
 only makes the numbers move). The fake LLMs in 01 and 02 stand in for any
@@ -39,8 +42,8 @@ chat model; replace them with yours.
 
 ## What stays the same everywhere
 
-- **The framework orchestrates, Wyat decides.** Chains, graphs and agents call
-  Wyat at the points where a choice is made: which branch, which documents,
+- **The framework orchestrates, wyat decides.** Chains, graphs and agents call
+  wyat at the points where a choice is made: which branch, which documents,
   which tool, which label.
 - **Fall back when unsure.** Low-margin routes go to a default or a human
   (01, 03, 07).

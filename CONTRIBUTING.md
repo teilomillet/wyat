@@ -1,4 +1,4 @@
-# Contributing to Wyat
+# Contributing to wyat
 
 Use Python 3.12 or newer. From the public source checkout, install the development
 environment and run the core example:
@@ -28,7 +28,7 @@ fixtures and do not download model weights.
 | --- | --- |
 | `wyat/core.py` | Request validation, scorer contract, ranking and softmax |
 | `wyat/loading/` | Explicit local backend selection |
-| `wyat/backends/wyat/` | Artifact admission, rendering and Wyat runtimes |
+| `wyat/backends/wyat/` | Artifact admission, rendering and wyat runtimes |
 | `wyat/wire.py`, `wyat/cli.py` | JSON decoding and command orchestration |
 | `wyat/evaluation.py` | Failure-inclusive labeled evaluation |
 | `wyat/server.py` | HTTP admission, body limits and worker lifetime |

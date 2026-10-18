@@ -1,16 +1,16 @@
-# Put Wyat inside a coding agent
+# Put wyat inside a coding agent
 
 Imagine a tiny coding helper. Someone tells it:
 
 > "My program says 2 + 3 is -1. Please fix it."
 
 The helper has a few buttons it can press: **look at the code**, **apply a fix**,
-**run a test**, or **ask for help**. Wyat chooses a button. The helper presses it.
+**run a test**, or **ask for help**. wyat chooses a button. The helper presses it.
 
 ```text
-The agent tells Wyat what happened and which buttons are available.
+The agent tells wyat what happened and which buttons are available.
                          ↓
-Wyat returns a button's name, such as "fix".
+wyat returns a button's name, such as "fix".
                          ↓
 The agent runs the function attached to that name.
                          ↓
@@ -19,7 +19,7 @@ The agent remembers the result and asks again.
 
 ## Try the story
 
-In your application's uv project, install Wyat:
+In your application's uv project, install wyat:
 
 ```sh
 uv add wyat
@@ -47,7 +47,7 @@ Here is the important part of its output:
 Turn 1
 Agent knows: The user says add(2, 3) returns -1. It should return 5.
 Agent offers: inspect, ask
-Small Wyat picks: inspect. Score gap: 2.00.
+Small wyat picks: inspect. Score gap: 2.00.
 Router: gap at least 1.00; keep the small model's choice.
 Final choice: inspect
 Agent runs: inspect_code()
@@ -56,7 +56,7 @@ Result: I looked at the code. It says return a - b.
 Turn 2
 Agent knows: I looked at the code. It says return a - b.
 Agent offers: inspect, fix, test, ask
-Small Wyat picks: test. Score gap: 0.10.
+Small wyat picks: test. Score gap: 0.10.
 Router: gap below 1.00; ask the larger model.
 Larger model picks: fix.
 Final choice: fix
@@ -66,7 +66,7 @@ Result: I changed return a - b to return a + b. No test run yet.
 Turn 3
 Agent knows: I changed return a - b to return a + b. No test run yet.
 Agent offers: inspect, test, ask
-Small Wyat picks: test. Score gap: 2.00.
+Small wyat picks: test. Score gap: 2.00.
 Router: gap at least 1.00; keep the small model's choice.
 Final choice: test
 Agent runs: run_test()
@@ -143,25 +143,26 @@ actions = {
 }
 ```
 
-So when Wyat returns `"test"`, the agent runs `agent.run_test()`. Choosing and
+So when wyat returns `"test"`, the agent runs `agent.run_test()`. Choosing and
 doing are two separate steps. Your program owns the functions, their arguments,
 and which choices are available. In this story, the fix button appears only
 after the agent has looked at the code.
 
 ## Use a trained chooser
 
-Install the inference runtime, then [obtain and verify local Wyat weights](model-acquisition.md):
+Install the inference runtime, then [obtain and verify local wyat weights](model-acquisition.md):
 
 ```sh
 uv add wyat --extra inference
-uv run python agent_demo.py --model teilomillet/wyat-1-600m --larger-model /path/to/larger-model
+uv run python agent_demo.py --model teilomillet/wyat-1-800m --larger-model /path/to/larger-model
 ```
 
-For Apple Silicon, use the `mlx` extra and add `--backend mlx` to the run command.
+The 800M artifact uses PyTorch, including CPU on Apple Silicon. Its named
+download is pending; use the prepared local model directory until it is pinned.
 
 Supply both models; the example requires a fallback rather than silently
-disabling it. Both must work with `wyat.load`. Wyat publishes one size,
-wyat-1-600m, so the larger fallback is a model directory you provide.
+disabling it. Both must work with `wyat.load`. The larger fallback is a model
+directory you provide.
 An arbitrary chat-model directory cannot be passed to that loader. Another model
 runtime can be connected in Python through a custom [scorer](api.md).
 
@@ -185,7 +186,7 @@ door a message should go through.
 | --- | --- |
 | Input: what happened while fixing a bug | Input: a customer's message |
 | Choices: inspect, fix, test, ask | Choices: billing, technical, human help |
-| Wyat returns `"test"` | Wyat returns `"billing"` |
+| wyat returns `"test"` | wyat returns `"billing"` |
 | The agent runs its test function | Your program sends the message to billing |
 
 The same `Request → decide → selected ID → application function` connection

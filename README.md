@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://wyat.io/banners/banner.jpg" alt="Wyat" width="100%">
+  <img src="https://wyat.io/banners/banner.jpg" alt="wyat" width="100%">
 </p>
 
-<h1 align="center">Wyat</h1>
+<h1 align="center">wyat</h1>
 
 <p align="center">
   Decisions, made locally.
@@ -10,16 +10,22 @@
 
 <p align="center">
   <a href="https://wyat.io">wyat.io</a> ·
-  <a href="https://huggingface.co/teilomillet/wyat-1-600m">wyat-1-600m</a> ·
+  <a href="https://huggingface.co/teilomillet/wyat-1-800m">wyat-1-800m</a> ·
   <a href="https://github.com/teilomillet/wyat/blob/main/docs/README.md">Documentation</a>
 </p>
 
 ---
 
-Wyat chooses between options your application defines. You provide a message
+wyat chooses between options your application defines. You provide a message
 and a set of candidates. A small local model returns the ID of one of them.
-It is built to perform well in French while staying strong in English.
+The model was trained on French and English decisions.
 Nothing leaves your machine, and nothing runs until you act on the result.
+
+The model is [wyat-1 800M](https://huggingface.co/teilomillet/wyat-1-800m),
+using the PyTorch runtime on CPU or CUDA. The upcoming **0.1.1** package adds
+its loader. The model upload and verified named download are still pending;
+until then, load a prepared local model directory. The examples below show
+the name that will be available once the release is pinned.
 
 ## Try it
 
@@ -39,19 +45,22 @@ Python 3.12 or newer, with [uv](https://docs.astral.sh/uv/).
 uv add wyat --extra inference   # PyTorch, CPU or CUDA
 ```
 
-Use `--extra mlx` instead on Apple Silicon, and add `--extra server` to serve
-over HTTP. The core alone (`uv add wyat`) has no dependencies. The model,
-[Wyat-1 600M](https://huggingface.co/teilomillet/wyat-1-600m), downloads on
-first use (about 1.5 GB) and every file is checked against pinned SHA-256
-digests; `uv run wyat download` fetches it ahead of time. Inference itself
-never uses the network.
+Add `--extra server` to serve over HTTP. The core alone (`uv add wyat`) has
+no dependencies. Model weights are separate from the package. Once the 800M
+release is pinned, loading its name will download and verify every file;
+`uv run wyat download --model teilomillet/wyat-1-800m` will fetch it ahead of
+time. Inference itself never uses the network.
+
+On Apple Silicon, 800M uses PyTorch CPU. The `mlx` extra supports other native
+artifacts; it does not support the 800M artifact format.
 
 ## Use it
 
 ```python
 import wyat
 
-model = wyat.load("teilomillet/wyat-1-600m")
+model = wyat.load("teilomillet/wyat-1-800m")  # after the model release is pinned
+# Until then: model = wyat.load("/path/to/wyat-1-800m/model")
 
 decision = model.decide(wyat.Request(
     query="Choose the requested booking action.",
@@ -69,11 +78,11 @@ Load once. Decide many times. The same request and result work in Python,
 JSONL, and HTTP:
 
 ```sh
-uv run wyat decide teilomillet/wyat-1-600m < requests.jsonl > decisions.jsonl
-uv run wyat serve  teilomillet/wyat-1-600m
+uv run wyat decide teilomillet/wyat-1-800m < requests.jsonl > decisions.jsonl
+uv run wyat serve  teilomillet/wyat-1-800m
 ```
 
-Besides choosing an option, Wyat rates on an ordered scale (`Request.score`)
+Besides choosing an option, wyat rates on an ordered scale (`Request.score`)
 and answers yes or no with a probability (`Request.noul`).
 
 ## Documentation
@@ -81,7 +90,7 @@ and answers yes or no with a probability (`Request.noul`).
 | | |
 | --- | --- |
 | [Quickstart](https://github.com/teilomillet/wyat/blob/main/docs/quickstart.md) | Your first decision, step by step |
-| [Embedded demo](https://github.com/teilomillet/wyat/blob/main/docs/embedded.md) | A coding agent acting on Wyat's choice |
+| [Embedded demo](https://github.com/teilomillet/wyat/blob/main/docs/embedded.md) | A coding agent acting on wyat's choice |
 | [Python API](https://github.com/teilomillet/wyat/blob/main/docs/api.md) | Requests, results, batching, serving, evaluation |
 | [Workflows](https://github.com/teilomillet/wyat/blob/main/docs/agent-workflows.md) | Routing, review, recovery |
 | [Explaining decisions](https://github.com/teilomillet/wyat/blob/main/docs/explaining-decisions.md) | Reading scores and owning policy |

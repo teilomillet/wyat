@@ -1,46 +1,49 @@
-# Wyat
+# wyat
 
-> Wyat is a Python library for local decision models. Your application supplies a message and the options it allows. A small model, [Wyat-1 600M](https://huggingface.co/teilomillet/wyat-1-600m), runs on your machine, scores every option, and returns one of your option IDs together with a full probability distribution. It supports three task types: Choice (which option?), Score (where on an ordered scale?) and Noul (yes or no, and how likely?). It works best in French and is also strong in English. Inference runs on your machine and sends nothing over the network; the only download is the pinned model, on first use. Choosing an option does not perform it; your code acts on the result.
+> wyat is a Python library for local decision models. Your application supplies a message and the options it allows. The model, [wyat-1 800M](https://huggingface.co/teilomillet/wyat-1-800m), scores every option and returns one of your option IDs together with a full probability distribution. It supports Choice (which option?), Score (where on an ordered scale?) and Noul (yes or no, and how likely?). The 800M artifact uses PyTorch on CPU or CUDA. Inference runs on your machine. Choosing an option does not perform it; your code acts on the result.
 
-This file is an index of Wyat's documentation for coding agents and other programs. Every link below serves raw Markdown or Python. In a source checkout, the same file sits at the repository-relative path that follows `/main/` in the URL.
+This file is an index of wyat's documentation for coding agents and other programs. Every link below serves raw Markdown or Python. In a source checkout, the same file sits at the repository-relative path that follows `/main/` in the URL.
+
+This documents the upcoming 0.1.1 release. The default model is `teilomillet/wyat-1-800m`; its upload and verified named download are pending. `wyat.load()` and bare `wyat download` currently report that it is unavailable. Until it is pinned, use the prepared local model directory with the 0.1.1 candidate or this source checkout. The named examples below describe the pinned-release path.
 
 ## Instructions for agents
 
-- **Use version 0.1.0 or newer.** This documents `wyat` 0.1.0. The old `wyat` 0.0.1 on PyPI has a different, incompatible API, so require `wyat>=0.1.0` when you add it. Do not write code from a remembered version of the API.
-- **Model weights are separate from the package.** Installing Wyat, with or without extras, gives you no trained weights. Load the model by name: `wyat.load("teilomillet/wyat-1-600m")` downloads [Wyat-1 600M](https://huggingface.co/teilomillet/wyat-1-600m) (about 1.5 GB) into `~/.cache/wyat/` on first use, checks every file's SHA-256 against pins in the installed Wyat, and loads it; later loads reuse the verified cache. `uv run wyat download` fetches it ahead of time. Only that exact name downloads anything; any other string or path is treated as a local directory, so do not pass other Hugging Face names. See [model acquisition](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/model-acquisition.md).
-- **To try Wyat without weights, use a demo.** Every example accepts `--demo`, which uses fixed or stand-in scores. Demo output shows how the API works and nothing about model quality.
+- **Use version 0.1.1 or newer.** This documents the `wyat` 0.1.1 release candidate, including the option-fork loader. The old `wyat` 0.0.1 on PyPI has a different, incompatible API, so require `wyat>=0.1.1` when you add it. Do not write code from a remembered version of the API.
+- **Model weights are separate from the package.** Installing wyat gives you no trained weights. Once the 800M release is pinned, `wyat.load("teilomillet/wyat-1-800m")` will download and verify it into `~/.cache/wyat/wyat-1-800m`; later loads will reuse the verified cache. Until then, pass a local 800M `model/` directory. A name without pins fails before network or cache writes. Other strings or paths remain local directories. See [model acquisition](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/model-acquisition.md).
+- **800M uses PyTorch.** Install the `inference` extra, including on Apple Silicon. The `mlx` backend supports other native artifact formats and rejects the 800M option-fork artifact.
+- **To try wyat without weights, use a demo.** Every example accepts `--demo`, which uses fixed or stand-in scores. Demo output shows how the API works and nothing about model quality.
 - **Load once, decide many times.** Create the model outside any per-request handler and reuse it. Use `decide_many` or `predict_many` for batches.
 - **Write the options for a reader.** The model reads each candidate's ID and its text. Describe what each option covers, as you would for a person choosing. If a fallback is acceptable, offer it as an option, such as `"human": "Unclear: ask a person"`.
 - **Your code owns the action.** `decision.selected` is a candidate ID. Look it up in your own allowlist or dispatch table. Never pass model output directly to `eval`, a shell, or an unchecked tool call.
 - **Probabilities are not calibrated confidence.** They are softmax weights over the options you supplied. Choose abstention thresholds (`probability_margin`, `score_gap`, `normalized_entropy`) from labeled cases using `wyat.evaluation`, then confirm them on cases you did not use to choose them.
 - **Use the right task type.** For a yes/no question, use `Request.noul` and read `probability_true`. A Choice with options named `true` and `false` is not the same task. For ratings, use `Request.score` and read `expected_ordinal_value`.
-- **Wyat never silently changes input.** Inputs that are too long, have too many candidates, or use an unsupported task raise `wyat.ModelInputError` (a `ValueError`), whose `.reason` is one of `unsupported-task`, `candidate-count`, `input-length` or `input-segment`. Wyat-1 600M accepts 2 to 255 options for Choice and Score, and exactly 2 for Noul; the loaded model sets the token limits, and the error message can state them. Retrying the same input gives the same refusal: shorten it deliberately or route it elsewhere. `wyat.ModelOutputError` means the backend failed, not the input. Wyat does not truncate input or retry calls.
+- **wyat never silently changes input.** Inputs that are too long, have too many candidates, or use an unsupported task raise `wyat.ModelInputError` (a `ValueError`), whose `.reason` is one of `unsupported-task`, `candidate-count`, `input-length` or `input-segment`. wyat-1 800M accepts 2 to 255 options for Choice and Score, and exactly 2 for Noul; the loaded model sets the token limits, and the error message can state them. Retrying the same input gives the same refusal: shorten it deliberately or route it elsewhere. `wyat.ModelOutputError` means the backend failed, not the input. wyat does not truncate input or retry calls.
 - **Python 3.12 or newer, managed with uv.** In a checkout, run scripts with `uv run python ...`.
 
-## When Wyat fits
+## When wyat fits
 
 - **It fits** when the answer is one of a set of options your code defines: routing a message, choosing an agent's next tool, rating against a rubric, checking an answer against its source, reranking results, or answering several fixed questions about one document.
-- **It does not fit** when you need generated text, free-form values extracted from text (names, dates, amounts) or an open-ended answer. Wyat only scores the options you supply.
+- **It does not fit** when you need generated text, free-form values extracted from text (names, dates, amounts) or an open-ended answer. wyat only scores the options you supply.
 
 ## Setup
 
 ```sh
 uv init --bare --python 3.12 my-app && cd my-app      # skip if a uv project exists
-uv add 'wyat[inference]>=0.1.0'                          # or [mlx] on Apple Silicon
+uv add 'wyat[inference]>=0.1.1'                          # once 0.1.1 is published
 ```
 
 | Extra | Adds | Use it when |
 | --- | --- | --- |
 | *(none)* | nothing; the core has no dependencies | you only need demos, custom scorers, or evaluation with fixed logits |
 | `inference` | PyTorch, Transformers, safetensors | running on CPU (the default) or CUDA (requires BF16 support) |
-| `mlx` | MLX, mlx-lm | running natively on Apple Silicon macOS; load with `backend="mlx"` |
+| `mlx` | MLX, mlx-lm | other native Apple Silicon artifacts; 800M is not supported |
 | `server` | FastAPI, Pydantic, Uvicorn | serving over HTTP; combine with `inference` or `mlx` |
 
-The model downloads and verifies itself on the first `wyat.load("teilomillet/wyat-1-600m")`. To fetch it ahead of time, for example before going offline (the core install is enough):
+Once the model release is pinned, download it ahead of time with the core CLI:
 
 ```sh
-uv run wyat download                 # into ~/.cache/wyat/wyat-1-600m
-WYAT_MODEL=teilomillet/wyat-1-600m   # wyat.load and the CLI accept the name
+uv run wyat download --model teilomillet/wyat-1-800m  # after the model is pinned
+WYAT_MODEL=teilomillet/wyat-1-800m   # wyat.load and the CLI accept the name
 ```
 
 ## Core API
@@ -48,9 +51,9 @@ WYAT_MODEL=teilomillet/wyat-1-600m   # wyat.load and the CLI accept the name
 ```python
 import wyat
 
-model = wyat.load("teilomillet/wyat-1-600m")                    # PyTorch CPU
-# model = wyat.load("teilomillet/wyat-1-600m", backend="mlx")   # Apple Silicon
-# model = wyat.load("teilomillet/wyat-1-600m", device="cuda")   # NVIDIA GPU, BF16-capable
+model = wyat.load("teilomillet/wyat-1-800m")                    # once pinned; PyTorch CPU
+# Until then: model = wyat.load("/path/to/wyat-1-800m/model")
+# model = wyat.load("teilomillet/wyat-1-800m", device="cuda")   # NVIDIA GPU, BF16-capable
 
 # Choice: which option?
 d = model.decide(wyat.Request.choice(
@@ -68,7 +71,7 @@ d.expected_ordinal_value                                  # a float between 0 an
 d = model.decide(wyat.Request.noul("Is the answer supported by the source?", context=text))
 d.probability_true
 
-# Several typed questions about one document share a single encoding of it.
+# Ask several typed questions about one document in one call.
 answers = model.predict({
     "state": contract_text,                               # text or a JSON object/array
     "questions": {
@@ -88,7 +91,7 @@ results = model.decide_many(requests, errors="return")
 Put it together: route on the selected ID, and send refused or uncertain cases to a person.
 
 ```python
-model = wyat.load("teilomillet/wyat-1-600m")              # once, at startup
+model = wyat.load("teilomillet/wyat-1-800m")              # once, at startup
 OPTIONS = {"billing": "Payments, invoices, refunds", "tech": "Bugs and errors"}
 HANDLERS = {"billing": send_to_billing, "tech": send_to_tech}   # your allowlist
 MIN_MARGIN = 0.2                                          # choose it with report.selective() below
@@ -114,7 +117,7 @@ report = evaluate(model, [EvaluationCase(id="c1", request=req, expected=("billin
 report.accuracy, report.expected_calibration_error
 temperature, calibrated = report.calibrate()       # fitted on these cases, without retraining
 report.selective(min_margin=0.2)        # accuracy and automation rate when only confident cases are automated
-model = wyat.load("teilomillet/wyat-1-600m", temperature=temperature)   # or model.decide(req, temperature=...)
+model = wyat.load("teilomillet/wyat-1-800m", temperature=temperature)   # or model.decide(req, temperature=...)
 ```
 
 ## CLI and HTTP
@@ -125,16 +128,16 @@ The CLI and the HTTP server accept the same JSON request shape as the Python API
 echo '{"query":"Choose the requested action","context":"Cancel my booking","candidates":[{"id":"cancel","text":"Cancel the booking"},{"id":"create","text":"Create a booking"}]}' \
   | uv run wyat decide "$WYAT_MODEL"                     # JSONL in, one decision per line out
 uv run wyat evaluate "$WYAT_MODEL" < cases.jsonl          # {"id":..., "request":{...}, "expected":["cancel"]}
-uv run wyat serve "$WYAT_MODEL" --host 127.0.0.1 --port 8000   # add --backend mlx on Apple Silicon
+uv run wyat serve "$WYAT_MODEL" --host 127.0.0.1 --port 8000   # PyTorch for 800M
 curl -s localhost:8000/v1/decide -H 'Content-Type: application/json' \
   -d '{"query":"Is the claim supported?","task":"noul","context":"Evidence for the claim"}'
 ```
 
-The server also provides `GET /health` for liveness, `GET /readyz` (whose `model_id` is a content digest of the artifact) and an OpenAPI 3.1 schema at `/openapi.json`. To embed the server in your own application, call `wyat.server.create_app(model)`. A rejected input returns HTTP 422 with an `X-Wyat-Rejection: <reason>` header, and 503 means the server is busy. The server does not handle authentication or TLS; put those at your deployment boundary.
+The server also provides `GET /health` for liveness, `GET /readyz` (whose `model_id` is a content digest of the artifact) and an OpenAPI 3.1 schema at `/openapi.json`. To embed the server in your own application, call `wyat.server.create_app(model)`. A rejected input returns HTTP 422 with an `X-wyat-Rejection: <reason>` header, and 503 means the server is busy. The server does not handle authentication or TLS; put those at your deployment boundary.
 
 ## Docs
 
-- [Wyat-1 600M model card](https://huggingface.co/teilomillet/wyat-1-600m): the model weights and license on Hugging Face
+- [wyat-1 800M model card](https://huggingface.co/teilomillet/wyat-1-800m): the model weights and license on Hugging Face
 - [Quickstart](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/quickstart.md): make a first decision, first in demo mode, then with the model
 - [Installation](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/install.md): uv project setup, extras, serving, pip as an alternative, Windows
 - [Model acquisition](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/model-acquisition.md): loading by name, the cache, `wyat download`, directory layout, integrity verification, model license
@@ -142,7 +145,7 @@ The server also provides `GET /health` for liveness, `GET /readyz` (whose `model
 - [Decision task meanings](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/decision-tasks.md): the differences between Choice, Score and Noul, and which artifact supports which task
 - [Explaining decisions](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/explaining-decisions.md): what a score and a probability mean, and what to record for an audit
 - [Application workflows](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/agent-workflows.md): routing, evaluation, review and recovery as an application uses them
-- [Embedded agent demo](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/embedded.md): a small coding agent that asks Wyat which tool to use next
+- [Embedded agent demo](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/embedded.md): a small coding agent that asks wyat which tool to use next
 - [PyTorch runtime](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/torch-inference.md): CPU and CUDA, precision, attention options, threads
 - [MLX runtime](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/mlx-inference.md): native Apple Silicon inference, GPU or CPU, the TF32 setting
 
@@ -152,7 +155,7 @@ The server also provides `GET /health` for liveness, `GET /readyz` (whose `model
 - [Expert use cases](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/use_cases/expert/README.md): triage with abstention, hierarchical routing, RAG gates, a guarded agent loop, threshold calibration, option-order checks, LLM judging, bulk jobs
 - [Integrations](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/use_cases/integrations/README.md): LangChain, LangGraph, LlamaIndex, BM25 RAG, an MCP server, pandas, Pydantic, with no adapter package needed
 - [Quickstart script](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/quickstart/main.py): the `--demo` and `--model` entry point
-- [Model verifier](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/model/verify.py): a standalone standard-library integrity check, for copies made without `wyat download`
+- [Legacy 600M verifier](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/model/verify.py): the standalone check for the explicitly pinned 600M compatibility artifact; it does not verify 800M
 - [HTTP server example](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/server/main.py): embed `create_app` in your application
 - [Custom scorer](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/scorer/main.py): wrap your own logit producer with `wyat.Model(scorer, model_id)`
 - [Evaluation example](https://raw.githubusercontent.com/teilomillet/wyat/main/examples/evaluation/main.py): an evaluation report with a correct case, a wrong case and a failed call

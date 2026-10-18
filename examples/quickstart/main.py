@@ -30,7 +30,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument(
-        "--model", type=Path, help="teilomillet/wyat-1-600m, or a local model directory"
+        "--model", type=Path, help="teilomillet/wyat-1-800m, or a local model directory"
     )
     source.add_argument(
         "--demo", action="store_true", help="Try fixed scores without weights"

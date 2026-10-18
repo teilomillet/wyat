@@ -1,6 +1,6 @@
-# Your first Wyat decision
+# Your first wyat decision
 
-Give Wyat a message and the choices your application supports. It returns the
+Give wyat a message and the choices your application supports. It returns the
 selected choice's ID. Here we choose between creating and cancelling a booking.
 
 ## 1. Install
@@ -14,7 +14,7 @@ uv init --bare --python 3.12 wyat-demo
 cd wyat-demo
 ```
 
-Then add Wyat:
+Then add wyat:
 
 ```sh
 uv add wyat
@@ -54,17 +54,19 @@ Install the PyTorch runtime:
 uv add wyat --extra inference
 ```
 
-Then run the same demo with [the model](https://huggingface.co/teilomillet/wyat-1-600m).
-The first run downloads and verifies it (about 1.5 GB) into the Wyat cache;
-later runs reuse it. See [model acquisition](model-acquisition.md) for details:
+The upcoming v0.1.1 targets
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m). Its named download
+is not pinned or available yet. If you have a prepared 800M artifact, pass its
+local model directory to the same demo:
 
 ```sh
-uv run python demo.py --model teilomillet/wyat-1-600m
+uv run python demo.py --model /path/to/wyat-1-800m/model
 ```
 
 The model chooses the result; the fixed demonstration output above is not an
-expected answer for trained inference. For Apple Silicon, install the `mlx`
-extra instead and add `--backend mlx`.
+expected answer for trained inference. 800M uses PyTorch on CPU by default;
+MLX does not support its option-fork format. See
+[model acquisition](model-acquisition.md) for availability and artifact details.
 
 ## 4. Put the API in your application
 
@@ -74,7 +76,7 @@ runtime and obtaining weights:
 ```python
 import wyat
 
-model = wyat.load("teilomillet/wyat-1-600m")
+model = wyat.load("/path/to/wyat-1-800m/model")
 
 request = wyat.Request(
     query="Choose the requested booking action.",
@@ -98,5 +100,5 @@ the query, context, and candidates. IDs must be unique and a decision requires a
 least two choices. Invalid requests raise an error rather than silently changing the input.
 
 Continue with the [Python API](api.md) for batching, scores, and errors, or
-[watch a coding agent use Wyat step by step](embedded.md). See
+[watch a coding agent use wyat step by step](embedded.md). See
 [application workflows](agent-workflows.md) for using a selected ID in an application.

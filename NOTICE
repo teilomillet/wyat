@@ -1,11 +1,11 @@
-Wyat code: Copyright 2026 Teïlo Millet - teilomillet.
+wyat code: Copyright 2026 Teïlo Millet - teilomillet.
 
-Wyat includes an adaptation of the Decision 2.0 candidate head and segmented
+wyat includes an adaptation of the Decision 2.0 candidate head and segmented
 prompt contract from the vLLM Semantic Router Team's Decision 2.0 release,
 Apache License 2.0 (revision cd49ea3813fd8ba0928a9a23ef6c9a0f2f0cd764).
 
-Changes: local-only Wyat choice and typed adapters, bounded token caching,
-explicit validation, and integration with Wyat's scorer interface.
+Changes: local-only wyat choice and typed adapters, bounded token caching,
+explicit validation, and integration with wyat's scorer interface.
 No upstream weight files are included in this repository.
 
 Portions of wyat/backends/wyat/readout.py adapt MLX-LM's maintained Qwen3

@@ -1,108 +1,100 @@
-# Obtain the Wyat model
+# Obtain the wyat model
 
-Wyat's model is [wyat-1-600m](https://huggingface.co/teilomillet/wyat-1-600m),
-published on Hugging Face. Installing Wyat does not include it. The release
-already has the layout Wyat loads: no export, conversion, adapter merge or
-downloaded model code is needed.
+The upcoming v0.1.1 targets
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), which is also the
+library default. Its named download is not pinned or available yet.
+`wyat.load()` and `wyat download --model teilomillet/wyat-1-800m` report that
+pending release. Installing wyat includes no weights.
 
-Load it by name; the first load downloads it:
+## Load a prepared 800M artifact
+
+If you have a prepared 800M artifact, load its local model directory with the
+PyTorch inference extra installed:
 
 ```python
 import wyat
 
-model = wyat.load("teilomillet/wyat-1-600m")
+model = wyat.load("/path/to/wyat-1-800m/model")
+# For a compatible CUDA device: device="cuda".
 ```
 
-The first call downloads about 1.5 GB into the Wyat cache,
-`~/.cache/wyat/wyat-1-600m` (or under `$XDG_CACHE_HOME`), checks every file
-against SHA-256 digests pinned in your installed version of Wyat, and then
-loads it. Later calls check the cached files' digests locally and need no
-network. The CLI accepts the same name: `uv run wyat serve
-teilomillet/wyat-1-600m`.
+The directory passed to `load` contains `fork_manifest.json`. 800M uses the
+`wyat-option-fork-v1` format with a Qwen3.5 backbone, separate adapters and a
+scalar decision head. Its required layout is:
 
-To download ahead of time, for example before going offline, run this from your
-application project after [installing Wyat](install.md). The core install is
-enough:
+```text
+model/
+├── fork_manifest.json
+├── adapters.safetensors
+├── head.safetensors
+├── tokenizer.json
+├── tokenizer_config.json
+└── base/
+    ├── config.json
+    └── model.safetensors
+```
+
+An artifact may also contain supported tokenizer files declared in its
+manifest. The loader checks file hashes, manifest structure, model identity,
+architecture, adapter inventory and tensor shapes before inference. It uses
+local files without executing downloaded Python code, converting the model or
+merging its adapters. A local manifest establishes internal consistency; until
+the release is pinned, it does not authenticate a copy as the public 800M
+release.
+
+800M supports PyTorch on CPU by default or a compatible CUDA device. MLX does
+not support this format. See [PyTorch inference](torch-inference.md) for runtime
+settings. Local loading needs no network; retain the artifact's own license
+and notice files alongside the weights.
+
+## Legacy 600M compatibility
+
+The explicit name `teilomillet/wyat-1-600m` remains supported for applications
+that already use the legacy `wyat-native-full-v1` artifact. It is a separate
+model with its own pinned revision and file hashes; it is not an 800M download
+or conversion. Repository access is required until that artifact is public.
+
+For those applications, `wyat.load("teilomillet/wyat-1-600m")` downloads about
+2.44 GB of FP32 weights into `~/.cache/wyat/wyat-1-600m` (or under
+`$XDG_CACHE_HOME`), verifies each file against the installed package's pins,
+and loads it. Later loads verify and reuse the cache. To fetch ahead of time:
 
 ```sh
-uv run wyat download
+uv run wyat download --model teilomillet/wyat-1-600m
 ```
 
-```text
-Wyat model teilomillet/wyat-1-600m @ … -> ~/.cache/wyat/wyat-1-600m
-Downloading about 1.5 GB; files already verified are kept.
-  verified  LICENSE
-  …
-  verified  model/tokenizer_config.json
-Done. Review the model's LICENSE and NOTICE before redistributing it.
-Next: wyat.load("…/.cache/wyat/wyat-1-600m/model") in Python, or 'wyat serve …'.
-…/.cache/wyat/wyat-1-600m/model
-```
+The command prints the absolute `model/` directory path last, as its only
+stdout output. Passing a destination directory puts the release there. An
+interrupted download can resume: verified files are kept, and missing or
+changed files are fetched again. Mixed optional tokenizer files are refused.
+Only supported release names trigger acquisition; other strings are local
+paths.
 
-It prints the absolute model path last; that path is the only output on stdout.
-Pass a directory as an argument to place the release elsewhere, then load that
-directory's `model` path. If a download stops, run the same command, or the same
-`wyat.load` call, again: verified files are kept, and only missing or changed
-files are fetched. Downloading this release is Wyat's only network access, and
-only that exact name triggers it.
-
-The resulting layout is:
-
-```text
-wyat-1-600m/
-├── LICENSE
-├── NOTICE
-└── model/
-    ├── native_manifest.json
-    ├── decision_head.safetensors
-    ├── native-adapters.safetensors
-    ├── tokenizer.json
-    ├── tokenizer_config.json
-    └── backbone/
-        ├── config.json
-        └── model.safetensors
-```
-
-Download into a new or previously used Wyat directory. The download refuses a
-`model/` directory that also contains tokenizer files from another release
-(`special_tokens_map.json`, `added_tokens.json`, `vocab.json`, `merges.txt`).
-
-## Verify a copy made another way
-
-`wyat download` already verified its files. For a copy obtained another way,
-such as from a colleague or an offline mirror, copy
-[verify.py](../examples/model/verify.py) into your application as
-`verify_wyat.py` and run it on the `model` directory:
+The standalone [verify.py](../examples/model/verify.py) is **600M-specific**.
+For an offline copy of that legacy artifact, copy it into your application as
+`verify_wyat.py` and run:
 
 ```sh
 uv run python verify_wyat.py ~/.cache/wyat/wyat-1-600m/model
 ```
 
-The verifier uses only the Python standard library and carries the same release
-pins as `wyat download` in the same Wyat version. It first checks the manifest's
-pinned SHA-256, then checks every payload against that manifest and rejects
-mixed optional tokenizer files.
-Missing or changed files fail before inference. Wyat additionally validates the
-architecture, tensor storage, configured limits and consumed file hashes when
-loading.
-
-Continue with [load, decide and use the ID](install.md#acquire-and-load-a-trained-model).
-Keep the loaded model across calls. CPU inference promotes supported storage to
-FP32 and needs memory beyond the download's file size.
+It uses the Python standard library and the same 600M release pins as the
+package. It checks the manifest's pinned SHA-256, payload hashes and mixed
+optional tokenizer files before inference. It cannot verify an 800M artifact.
 
 ## Artifact identity and rights
 
-Wyat's Apache-2.0 source license does not replace the model's license. Keep the
-downloaded `LICENSE` and `NOTICE` with the artifact and review them before using
-or redistributing weights. Wyat's source [NOTICE](../NOTICE) records
-third-party attributions for the code; the model's own NOTICE comes with the
-download. Wyat's package contains no model weights.
+wyat's Apache-2.0 source license does not replace the model's license. Keep the
+artifact's `LICENSE` and `NOTICE` and review them before using or redistributing
+weights. The source [NOTICE](../NOTICE) records third-party code attributions.
 
-Verification establishes file identity for the pinned release. It does not
-establish model quality, calibration, language coverage or suitability for an
-application. Evaluate those properties on your own relevant cases.
+File verification establishes identity or internal consistency within the
+stated scope. It does not establish model quality, calibration, language
+coverage or suitability for an application. Evaluate those properties on your
+own relevant cases. CPU inference uses FP32 and needs memory beyond the files'
+size.
 
-If the download fails, the message says what to do next: check the connection,
-or run the command again. Do not substitute partial model files or load files
-that failed verification. No remote service is needed once the verified
-model exists.
+If a download or validation fails, follow its error message. Do not substitute
+partial model files or load files that failed verification. Continue with
+[load, decide and use the ID](install.md#acquire-and-load-a-trained-model), and
+keep the loaded model across requests.

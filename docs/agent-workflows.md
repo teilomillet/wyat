@@ -1,7 +1,7 @@
 # Complete decision workflows
 
 For a plain-language introduction, [watch a tiny coding agent](embedded.md)
-ask Wyat what to do, run the chosen function, and check what happened.
+ask wyat what to do, run the chosen function, and check what happened.
 
 Use a result through the whole application path:
 
@@ -50,7 +50,7 @@ A fixed Noul scorer returns `probability_true` 0.75. An illustrative caller
 policy (accept at 0.9 or above, reject at 0.1 or below) sends it to a pending
 review record that keeps the input, result and policy version. The billing
 effect happens only after a simulated reviewer approves it, and only once. A
-malformed output is retained as a separate failure. The cutoffs are not Wyat
+malformed output is retained as a separate failure. The cutoffs are not wyat
 defaults or calibrated thresholds.
 
 ## Evaluate the decisions
@@ -71,8 +71,8 @@ failures separately from the model's choice accuracy.
 
 ## Run from an installed wheel
 
-Wheels contain Wyat's runtime, not these example files. Copy a selected script
-into your application, install Wyat as described in [installation](install.md),
+Wheels contain wyat's runtime, not these example files. Copy a selected script
+into your application, install wyat as described in [installation](install.md),
 then run it from that directory. The routing, review and evaluation scripts
 need only `wyat` and the Python standard library.
 

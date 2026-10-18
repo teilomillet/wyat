@@ -86,7 +86,6 @@ def test_mixed_tokenizer_files_are_rejected(
 
 def test_unpinned_verifier_refuses(tmp_path: Path) -> None:
     values = runpy.run_path(str(VERIFIER))
-    if values["MANIFEST_SHA256"]:
-        pytest.skip("this checkout pins a release")
+    values["verify"].__globals__["MANIFEST_SHA256"] = ""
     with pytest.raises(ValueError, match="no model release is pinned"):
         values["verify"](tmp_path)

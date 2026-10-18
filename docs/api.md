@@ -9,7 +9,7 @@ JSON parsing for the CLI and server and is not the Python model interface.
 ```python
 import wyat
 
-model = wyat.load("teilomillet/wyat-1-600m")
+model = wyat.load("/path/to/wyat-1-800m/model")
 request = wyat.Request(
     query="Choose the requested action",
     context="Cancel my booking",
@@ -23,7 +23,7 @@ print(decision.selected)
 ```
 
 The candidate ID identifies a choice in your application; the text describes
-that choice to the model. Wyat renders both IDs and descriptions in its input
+that choice to the model. wyat renders both IDs and descriptions in its input
 (Score renders rubric positions, not custom IDs).
 Use the selected ID to dispatch an action. A decision chooses among supplied
 candidates; it does not execute that action.
@@ -36,10 +36,17 @@ context as the same canonical text that `predict` renders for a record `state`
 Unicode spelling in Python values, rendering and JSON transport. The configured tokenizer may normalize
 text internally; exact application IDs do not establish learned language quality.
 
-`wyat.load` takes a local model directory or the name of the pinned release,
-`"teilomillet/wyat-1-600m"`, which it downloads and verifies into the Wyat cache
-on first use; no other name downloads anything. The default is PyTorch on CPU.
-On Apple Silicon, use `wyat.load(path, backend="mlx")` for native MLX. See the
+The upcoming v0.1.1 targets
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m).
+`wyat.load()` selects that name, but its release is not pinned or downloadable
+yet and raises an availability error. Use a prepared local 800M model directory
+in the example above. Other strings are treated as local paths unless they
+name a supported pinned release.
+
+800M uses the `wyat-option-fork-v1` format and PyTorch on CPU by default;
+`device="cuda"` selects a compatible CUDA device. It does not support MLX.
+Native full-task and single-choice candidate-head artifacts retain their
+existing PyTorch and MLX paths. See the
 [application installation guide](install.md) and
 [artifact requirements](model-acquisition.md).
 Keep the loaded model outside your per-request handler. Loading and inference
@@ -53,7 +60,7 @@ have separate lifetimes.
 | `wyat.Candidate.from_schema(id, schema)` | Build a candidate from a tool or JSON schema mapping (`description`, `parameters`). |
 | `wyat.Request(query, candidates, context="", task="choice")` | Immutable input to one decision; also `Request.choice(...)`, `Request.score(...)`, and `Request.noul(...)`. |
 | `wyat.Decision` | Model identity, raw scores, probabilities, ranked IDs, uncertainty metrics (`score_gap`, `probability_margin`, `entropy`, `normalized_entropy`), and task properties (`probability_true`, `expected_ordinal_value`). |
-| `wyat.load(path, ...)` | Load a supported local Wyat model (`wyat-native-full-v1` or single-choice candidate-head) and return a `wyat.Model`. |
+| `wyat.load(path=..., ...)` | Load a local option-fork, native full-task or single-choice candidate-head artifact, or a pinned release, and return a `wyat.Model`; the default 800M download is pending. |
 | `model.decide(request, *, temperature=None)` | Return one `Decision`. |
 | `model.decide_many(requests, *, temperature=None, errors="raise")` | Return decisions in request order, using one scorer batch call; with `errors="return"`, a refused request gets its `ModelInputError` in its slot. |
 | `wyat.PublicRecord` | Input to `predict`: `{"state": text or JSON, "questions": {id: {"type", "instructions"?, "criteria"}}}`. Choice and Noul `criteria` map IDs to text; Score `criteria` is an ordered list of levels. |
@@ -76,8 +83,10 @@ original list do not change the request. Unordered collections and generators
 are not input forms. The query and candidate text must also be nonempty. The
 single-choice candidate-head loader requires at least two candidates,
 `task="choice"`, and enforces its artifact's candidate and token limits; the native full-task loader
-(`wyat-native-full-v1`) supports `choice`, `score`, and `noul` tasks as well as
-prefix KV caching (`prefix_cache_size`). Loaders reject unsupported tasks and
+(`wyat-native-full-v1`) and option-fork loader (`wyat-option-fork-v1`) support
+`choice`, `score`, and `noul`. Native artifacts additionally support cross-call
+prefix KV caching (`prefix_cache_size`); option-fork artifacts reuse the prefix
+within each question and keep no cross-call cache. Loaders reject unsupported tasks and
 inputs beyond the configured limits; they never truncate a request silently.
 Native `predict` and `logits` score a record's questions in contiguous groups
 that fit the artifact's padded batch budget, so a record with many questions
@@ -141,7 +150,7 @@ own `ValueError`; inspect its documented failure contract rather than assuming e
 validation.
 
 `ModelInputError.reason` is one of `unsupported-task`, `candidate-count`,
-`input-length` or `input-segment`. Wyat uses these reasons at its task, menu and
+`input-length` or `input-segment`. wyat uses these reasons at its task, menu and
 encoding boundaries. The local message can include a configured numerical limit;
 HTTP exposes only the allowlisted reason, never arbitrary backend text. The
 library never repairs or truncates an input, and never retries a failed call.
@@ -229,8 +238,9 @@ if route.probability_margin < 0.2:
 ```
 
 Raw candidate scores are logits, not a rubric rating. Single-choice candidate-head
-artifacts support Choice, while native full-task artifacts (`wyat-native-full-v1`)
-support Choice, ordinal Score, and yes/no Noul. See [decision task meanings](decision-tasks.md).
+artifacts support Choice, while native full-task (`wyat-native-full-v1`) and
+option-fork (`wyat-option-fork-v1`) artifacts support Choice, ordinal Score, and
+yes/no Noul. See [decision task meanings](decision-tasks.md).
 The [use-case examples](../examples/use_cases/README.md) show each task in a
 short application, from support routing to reranking.
 
@@ -308,7 +318,7 @@ JSON body, a five-field decision response, examples for Choice, Score and Noul,
 and typed `{"detail": "..."}` errors for 400, 413, 422, 500 and 503. `GET /health`
 and `GET /readyz` declare typed `HealthResponse` and `ReadinessResponse` bodies.
 Every documented response advertises the `X-Request-ID` header, and `/v1/decide`
-also declares the optional `X-Wyat-Rejection` header for the model-owned rejection
+also declares the optional `X-wyat-Rejection` header for the model-owned rejection
 categories.
 
 Unknown request and candidate fields are rejected. Query, task, candidate IDs
@@ -375,7 +385,7 @@ as strict UTF-8: Python cannot change a text input's encoding after it has been
 read. Use the Python API for ordinary in-process integration.
 
 HTTP uses the status codes and JSON bodies below. A model-owned rejection
-additionally carries `X-Wyat-Rejection`; generic backend `ValueError` has no such
+additionally carries `X-wyat-Rejection`; generic backend `ValueError` has no such
 header. Do not infer an input-policy reason from an arbitrary backend exception.
 
 | Response | Permitted next step |
@@ -389,7 +399,7 @@ header. Do not infer an input-policy reason from an arbitrary backend exception.
 | 500 | Investigate the producer/runtime failure; keep it separate from semantic review. |
 | 503 | Wait for the model's admission slot; the application owns any bounded retry. |
 
-`X-Wyat-Rejection` adds a response header only: the 422 body remains
+`X-wyat-Rejection` adds a response header only: the 422 body remains
 `{"detail":"request is unsupported by this model"}`. Consumers may ignore the
 header. Proxies need to preserve it if the application uses it for recovery.
 The header contains a fixed category, never submitted text, a file path or
@@ -413,7 +423,7 @@ Comparable libraries also separate model loading from a named task operation:
 loads a `CrossEncoder` and calls `rank(query, documents)`;
 [MLX LM](https://github.com/ml-explore/mlx-lm/blob/main/README.md) loads a model
 and tokenizer before calling `generate`. These examples support the separation
-of lifetimes, but do not prescribe Wyat's input shape. Wyat retains application
+of lifetimes, but do not prescribe wyat's input shape. wyat retains application
 candidate IDs and one request shape across local and HTTP decisions.
 
 The design follows these primary-source principles:

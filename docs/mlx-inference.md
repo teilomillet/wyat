@@ -1,14 +1,21 @@
 # MLX inference (Apple Silicon)
 
-Wyat uses [MLX-LM's Qwen3 backbone](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py)
-for Apple Silicon. The runtime reads a local Wyat checkpoint directly; there is
+The upcoming v0.1.1 model,
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), uses the Qwen3.5
+option-fork format and **does not support MLX**. Use its
+[PyTorch runtime](torch-inference.md) on CPU or a compatible CUDA device.
+The rest of this guide applies to compatible native full-task and single-choice
+candidate-head artifacts retained for compatibility.
+
+For those artifacts, wyat uses [MLX-LM's Qwen3 backbone](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py)
+for Apple Silicon. The runtime reads a local wyat checkpoint directly; there is
 no model conversion, downloaded Python execution, vocabulary projection or
 generation loop.
 
 ```python
 from wyat import Candidate, Request, load
 
-model = load("teilomillet/wyat-1-600m", backend="mlx", device="gpu")
+model = load("/path/to/native-model", backend="mlx", device="gpu")
 request = Request(
     query="Where should this request go?",
     context="I need to reset my password.",
@@ -39,11 +46,11 @@ returning, so wall-clock timings include device execution.
 
 ## Native artifacts
 
-The published `teilomillet/wyat-1-600m` is a native (`wyat-native-full-v1`)
-artifact. Its FP32 LoRA adapters on `q_proj` and `v_proj` load unmerged from
-`native-adapters.safetensors`. Newer native artifacts adapt every linear
-projection of each block (`q`, `k`, `v`, `o`, `gate`, `up`, `down`); both forms
-load, on MLX and Torch.
+The legacy `teilomillet/wyat-1-600m` release remains a compatible native
+(`wyat-native-full-v1`) artifact. Its FP32 LoRA adapters cover every linear projection in each block
+(`q`, `k`, `v`, `o`, `gate`, `up`, `down`) and load unmerged from
+`native-adapters.safetensors`. Historical q/v-only artifacts also remain
+supported by the MLX and Torch loaders.
 
 - **Prefix cache.** A small least-recently-used cache keeps the K/V state of
   the token prefix before the candidates; later requests that begin with the
@@ -65,7 +72,7 @@ Single-choice candidate-head artifacts use a different scorer with these
 additional runtime paths.
 
 With MLX 0.32.3 and the `applegpu_g16s` architecture, eager GPU inference uses
-Metal TensorOps for the supported Wyat projection shapes. Eligible bias-free
+Metal TensorOps for the supported wyat projection shapes. Eligible bias-free
 layers use exact BF16 checkpoint values in independent inference storage; an
 FP32 checkpoint weight is compressed only when every bit survives the
 conversion. Activations, accumulation and outputs remain FP32. Split reductions
@@ -119,11 +126,12 @@ input limits and synchronous output are preserved.
 ## Installation and dependencies
 
 Install the MLX extra in the same application environment; see
-[installation](install.md). MLX requires Apple Silicon macOS. The artifact is
-the same download used by PyTorch; follow [model acquisition](model-acquisition.md).
+[installation](install.md). MLX requires Apple Silicon macOS. Compatible native
+artifacts use the same files with PyTorch and MLX; follow
+[model acquisition](model-acquisition.md). 800M requires the PyTorch extra.
 
 MLX-LM depends on Transformers and may initialize its optional Torch integration
-when Torch happens to be installed. Wyat's MLX inference uses MLX tensors and
+when Torch happens to be installed. wyat's MLX inference uses MLX tensors and
 needs no Torch installation. In a mixed environment, upstream initialization
 may still import Torch.
 

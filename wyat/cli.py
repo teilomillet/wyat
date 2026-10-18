@@ -16,7 +16,7 @@ from typing import Literal, cast
 
 from . import load
 from .core import Decision, Model, Request, request_from_dict
-from .download import DownloadError, download
+from .download import RELEASES, REPOSITORY, DownloadError, download
 from .loading.local import _raise_missing_runtime
 from .wire import JsonValue, decode_json
 
@@ -134,8 +134,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         command.add_argument(
             "model",
-            help="local model directory, or teilomillet/wyat-1-600m to use the "
-            "verified download",
+            help=f"local model directory, or a named release such as {REPOSITORY}",
         )
         command.add_argument(
             "--backend", choices=("torch", "mlx"), default="torch", help="runtime"
@@ -248,15 +247,21 @@ def main(argv: list[str] | None = None) -> int:
         "directory",
         nargs="?",
         help=(
-            "where to place the release (default: the Wyat cache, "
-            "~/.cache/wyat/wyat-1-600m); its model/ subdirectory is printed"
+            "where to place the release (default: ~/.cache/wyat/<model>); "
+            "its model/ subdirectory is printed"
         ),
+    )
+    download_command.add_argument(
+        "--model",
+        choices=tuple(RELEASES),
+        default=REPOSITORY,
+        help="named model release; the 800M default is not released yet",
     )
     args = Arguments()
     parser.parse_args(argv, namespace=args)
     if args.command == "download":
         try:
-            model_path = download(args.directory)
+            model_path = download(args.directory, repository=args.model)
         except (DownloadError, OSError) as exc:
             print(f"wyat: {exc}", file=sys.stderr)
             return 1
