@@ -51,9 +51,25 @@ from wyat.loading.fork_artifact import (
 from wyat.loading.native import _request_record
 
 
-class _DropLoadReport(logging.Filter):
+class _DropMessages(logging.Filter):
+    def __init__(self, *markers: str) -> None:
+        super().__init__()
+        self.markers = markers
+
     def filter(self, record: logging.LogRecord) -> bool:
-        return "LOAD REPORT" not in record.getMessage()
+        message = record.getMessage()
+        return not any(marker in message for marker in self.markers)
+
+
+@contextmanager
+def _dropping(logger: str, *markers: str) -> Iterator[None]:
+    """Drop one Transformers logger's records that contain a marker, briefly."""
+    drop = _DropMessages(*markers)
+    logging.getLogger(logger).addFilter(drop)
+    try:
+        yield
+    finally:
+        logging.getLogger(logger).removeFilter(drop)
 
 
 @contextmanager
@@ -65,17 +81,26 @@ def _quiet_base_loading() -> Iterator[None]:
     refuses every other missing, mismatched or unexpected weight. Other
     Transformers messages, and settings outside this load, are unchanged.
     """
-    report = logging.getLogger("transformers.modeling_utils")
-    drop = _DropLoadReport()
     progress = transformers_logging.is_progress_bar_enabled()
-    report.addFilter(drop)
     transformers_logging.disable_progress_bar()  # type: ignore[no-untyped-call]
     try:
-        yield
+        with _dropping("transformers.modeling_utils", "LOAD REPORT"):
+            yield
     finally:
-        report.removeFilter(drop)
         if progress:
             transformers_logging.enable_progress_bar()  # type: ignore[no-untyped-call]
+
+
+def _without_cuda_kernel_advice() -> AbstractContextManager[None]:
+    """Off CUDA, drop Transformers' advice to install its CUDA-only kernels.
+
+    ``causal-conv1d`` and ``flash-linear-attention`` need CUDA or Triton; on
+    CPU and MPS the reference PyTorch path is the runtime, not a fallback.
+    """
+    return _dropping(
+        "transformers.integrations.hub_kernels",
+        "is falling back to its reference PyTorch implementation",
+    )
 
 
 class _ForkAdapter(nn.Module):
@@ -264,7 +289,12 @@ class ForkScorer:
         return ids, mask
 
     def question_logits(self, row: ForkQuestion) -> list[float]:
-        with torch.inference_mode(), self._amp():
+        advice = (
+            nullcontext()
+            if self.device.type == "cuda"
+            else _without_cuda_kernel_advice()
+        )
+        with torch.inference_mode(), self._amp(), advice:
             ids, mask = self._rows([row.prefix_ids])
             cache = self.backbone(
                 input_ids=ids, attention_mask=mask, use_cache=True

@@ -378,3 +378,31 @@ def test_base_loading_drops_only_the_transformers_load_report() -> None:
         logger.removeHandler(handler)
     assert messages == ["another warning", "later LOAD REPORT"]
     assert transformers_logging.is_progress_bar_enabled() == enabled
+
+
+def test_cpu_scoring_drops_only_the_cuda_kernel_advice() -> None:
+    import logging
+
+    from wyat.loading.fork import _without_cuda_kernel_advice
+
+    messages: list[str] = []
+
+    class Collect(logging.Handler):
+        def emit(self, record: logging.LogRecord) -> None:
+            messages.append(record.getMessage())
+
+    logger = logging.getLogger("transformers.integrations.hub_kernels")
+    handler = Collect()
+    logger.addHandler(handler)
+    advice = (
+        "`chunk_gated_delta_rule` is falling back to its reference PyTorch "
+        "implementation because `flash-linear-attention` is not installed."
+    )
+    try:
+        with _without_cuda_kernel_advice():
+            logger.warning(advice)
+            logger.warning("another warning")
+        logger.warning(advice)
+    finally:
+        logger.removeHandler(handler)
+    assert messages == ["another warning", advice]
