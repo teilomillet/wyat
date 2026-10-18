@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://wyat.io/banners/banner.jpg" alt="wyat" width="100%">
+  <img src="https://raw.githubusercontent.com/teilomillet/wyat/main/assets/banner.gif" alt="wyat" width="100%">
 </p>
 
 <h1 align="center">wyat</h1>
