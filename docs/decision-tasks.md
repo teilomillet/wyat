@@ -16,7 +16,7 @@ record, and `model.predict_many` for several records.
 
 | Artifact format | Tasks | Backends |
 | --- | --- | --- |
-| `wyat-option-fork-v1` (800M) | Choice, Score, Noul | PyTorch CPU/CUDA |
+| `wyat-option-fork-v1` (800M) | Choice, Score, Noul | PyTorch CPU/CUDA/MPS, MLX Apple Silicon |
 | `wyat-native-full-v1` (legacy compatibility) | Choice, Score, Noul | PyTorch CPU/CUDA, MLX Apple Silicon |
 | Single-choice candidate-head | Choice | PyTorch CPU/CUDA, MLX Apple Silicon |
 

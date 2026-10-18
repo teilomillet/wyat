@@ -27,9 +27,9 @@ from wyat.loading import fork_artifact  # noqa: E402
 from wyat.loading.fork import (  # noqa: E402
     ForkScorer,
     _ScalarHead,
-    adapter_name,
     write_artifact,
 )
+from wyat.loading.fork_artifact import adapter_name  # noqa: E402
 
 RECORD = {
     "state": {"text": "Bonjour 世界 é", "count": 7},
@@ -93,11 +93,13 @@ def _config(vocabulary: int) -> Qwen3_5TextConfig:
     return config
 
 
-def _artifact(tmp_path: Path, *, seed: int = 3) -> Path:
+def _artifact(
+    tmp_path: Path, *, seed: int = 3, config: Qwen3_5TextConfig | None = None
+) -> Path:
     source = tmp_path / "source"
     source.mkdir()
     tokenizer_files = _tokenizer(source / "tokenizer")
-    config = _config(257)
+    config = _config(257) if config is None else config
     with torch.random.fork_rng():
         torch.manual_seed(seed)
         backbone = Qwen3_5TextModel(config)
@@ -169,7 +171,10 @@ def test_many_options_split_into_groups_without_changing_logits(artifact: Path) 
         },
     }
     (row,) = scorer.encode_record(record)
-    assert len(list(scorer._groups(row.option_ids, len(row.prefix_ids)))) > 2
+    groups = fork_artifact.branch_groups(
+        row.option_ids, len(row.prefix_ids), scorer.max_batch_tokens
+    )
+    assert len(list(groups)) > 2
     cached = torch.tensor(scorer.question_logits(row))
     torch.testing.assert_close(
         cached, _reference_logits(scorer, row), atol=2e-5, rtol=1e-4
@@ -199,8 +204,6 @@ def test_public_load_predicts_through_the_model_interface(artifact: Path) -> Non
     assert model.model_id.startswith("fork-")
     answers = ForkScorer.from_directory(artifact).predict(RECORD)
     assert set(answers) == {"choice", "score", "noul"}
-    with pytest.raises(ValueError, match="torch backend"):
-        wyat.load(artifact, backend="mlx")
 
 
 @pytest.mark.parametrize(

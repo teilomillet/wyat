@@ -47,7 +47,7 @@ Here is the important part of its output:
 Turn 1
 Agent knows: The user says add(2, 3) returns -1. It should return 5.
 Agent offers: inspect, ask
-Small wyat picks: inspect. Score gap: 2.00.
+Small Wyat picks: inspect. Score gap: 2.00.
 Router: gap at least 1.00; keep the small model's choice.
 Final choice: inspect
 Agent runs: inspect_code()
@@ -56,7 +56,7 @@ Result: I looked at the code. It says return a - b.
 Turn 2
 Agent knows: I looked at the code. It says return a - b.
 Agent offers: inspect, fix, test, ask
-Small wyat picks: test. Score gap: 0.10.
+Small Wyat picks: test. Score gap: 0.10.
 Router: gap below 1.00; ask the larger model.
 Larger model picks: fix.
 Final choice: fix
@@ -66,7 +66,7 @@ Result: I changed return a - b to return a + b. No test run yet.
 Turn 3
 Agent knows: I changed return a - b to return a + b. No test run yet.
 Agent offers: inspect, test, ask
-Small wyat picks: test. Score gap: 2.00.
+Small Wyat picks: test. Score gap: 2.00.
 Router: gap at least 1.00; keep the small model's choice.
 Final choice: test
 Agent runs: run_test()
@@ -157,7 +157,8 @@ uv add wyat --extra inference
 uv run python agent_demo.py --model teilomillet/wyat-1-800m --larger-model /path/to/larger-model
 ```
 
-The 800M artifact uses PyTorch, including CPU on Apple Silicon. The first load
+The example uses PyTorch CPU unless you pass `--backend mlx`, which is several
+times faster on Apple Silicon (`uv add wyat --extra mlx`). The first load
 downloads and verifies its pinned release; later loads use the verified cache.
 A local model directory also works.
 

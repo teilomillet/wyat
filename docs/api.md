@@ -44,9 +44,9 @@ Pass a local model directory to use an existing copy instead. Other strings
 are treated as local paths unless they name a supported pinned release.
 
 800M uses the `wyat-option-fork-v1` format and PyTorch on CPU by default;
-`device="cuda"` selects a compatible CUDA device. It does not support MLX.
-Native full-task and single-choice candidate-head artifacts retain their
-existing PyTorch and MLX paths. See the
+`device="cuda"` or `device="mps"` selects a compatible CUDA or Apple GPU, and
+`backend="mlx"` selects MLX on Apple Silicon. Native full-task and single-choice
+candidate-head artifacts retain their existing PyTorch and MLX paths. See the
 [application installation guide](install.md) and
 [artifact requirements](model-acquisition.md).
 Keep the loaded model outside your per-request handler. Loading and inference
@@ -62,7 +62,7 @@ have separate lifetimes.
 | `wyat.Decision` | Model identity, raw scores, probabilities, ranked IDs, uncertainty metrics (`score_gap`, `probability_margin`, `entropy`, `normalized_entropy`), and task properties (`probability_true`, `expected_ordinal_value`). |
 | `wyat.load(path=..., ...)` | Load a local option-fork, native full-task or single-choice candidate-head artifact, or a pinned release, and return a `wyat.Model`; the default is the pinned 800M release. |
 | `model.decide(request, *, temperature=None)` | Return one `Decision`. |
-| `model.decide_many(requests, *, temperature=None, errors="raise")` | Return decisions in request order, using one scorer batch call; with `errors="return"`, a refused request gets its `ModelInputError` in its slot. |
+| `model.decide_many(requests, *, temperature=None, errors="raise")` | Return decisions in request order, using one scorer batch call (800M scores its requests one after another within it); with `errors="return"`, a refused request gets its `ModelInputError` in its slot. |
 | `wyat.PublicRecord` | Input to `predict`: `{"state": text or JSON, "questions": {id: {"type", "instructions"?, "criteria"}}}`. Choice and Noul `criteria` map IDs to text; Score `criteria` is an ordered list of levels. |
 | `model.predict(record, *, temperature=None)` | Interpret a public multi-question record (`choice`, `score`, `noul`) into typed answers (`ChoiceAnswer`, `ScoreAnswer`, `NoulAnswer`) with the same uncertainty properties as `Decision`, the model ID and an input digest. Returns `wyat.Answers`. |
 | `wyat.Answers` | The `dict` of typed answers keyed by question ID that `predict` and `predict_many` return. `answers.choice(id)`, `answers.score(id)` and `answers.noul(id)` return that question's answer with its type narrowed, and raise `TypeError` if the question has another type. |

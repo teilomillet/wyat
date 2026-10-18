@@ -21,8 +21,9 @@ and a set of candidates. A small local model returns the ID of one of them.
 The model was trained on French and English decisions.
 Nothing leaves your machine, and nothing runs until you act on the result.
 
-The model is [wyat-1 800M](https://huggingface.co/teilomillet/wyat-1-800m),
-using the PyTorch runtime on CPU or CUDA. Version **0.1.1** downloads its pinned
+The model is [wyat-1 800M](https://huggingface.co/teilomillet/wyat-1-800m).
+It runs with PyTorch on CPU, CUDA or Apple MPS, or with MLX on Apple Silicon.
+Version **0.1.1** downloads its pinned
 release and verifies every file before loading.
 
 ## Try it
@@ -40,7 +41,8 @@ uv run python examples/quickstart/main.py --demo
 Python 3.12 or newer, with [uv](https://docs.astral.sh/uv/).
 
 ```sh
-uv add wyat --extra inference   # PyTorch, CPU or CUDA
+uv add wyat --extra inference   # PyTorch: CPU, CUDA or Apple MPS
+uv add wyat --extra mlx         # MLX on Apple Silicon
 ```
 
 Add `--extra server` to serve over HTTP. The core alone (`uv add wyat`) has
@@ -49,8 +51,9 @@ downloads and verifies wyat-1 800M on first use, then reuses the verified cache.
 Run `uv run wyat download` to fetch it ahead of time. Inference itself never
 uses the network.
 
-On Apple Silicon, 800M uses PyTorch CPU. The `mlx` extra supports other native
-artifacts; it does not support the 800M artifact format.
+On Apple Silicon, use the GPU: `wyat.load(backend="mlx")` with the `mlx` extra,
+or `wyat.load(device="mps")` with PyTorch. Both give the same scores as PyTorch
+CPU, which is several times slower there.
 
 ## Use it
 

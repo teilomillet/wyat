@@ -9,12 +9,13 @@ verifies every file before inference:
 import wyat
 
 model = wyat.load("teilomillet/wyat-1-800m")  # also the default for wyat.load()
-# For a compatible CUDA device: device="cuda".
+# For a compatible CUDA device: device="cuda". On Apple Silicon: backend="mlx".
 ```
 
-Install the [PyTorch inference extra](install.md) to load the model. 800M runs
-on CPU by default or a compatible CUDA device; MLX does not support this
-format. Inference itself needs no network or downloaded Python code.
+Install the [PyTorch inference extra](install.md), or the MLX extra on Apple
+Silicon, to load the model. PyTorch runs 800M on CPU by default, a compatible
+CUDA device or Apple MPS; MLX runs it on the Apple GPU or CPU. Inference itself
+needs no network or downloaded Python code.
 
 ## Download and reuse the verified cache
 
@@ -78,7 +79,8 @@ before inference. No conversion or adapter merge is required. For a copy made
 another way, local validation establishes internal consistency; compare it
 with the package's release pins to authenticate it as the same public release.
 Retain its license and notice files alongside the weights. See
-[PyTorch inference](torch-inference.md) for runtime settings.
+[PyTorch inference](torch-inference.md) and [MLX inference](mlx-inference.md)
+for runtime settings.
 
 ## Legacy 600M compatibility
 

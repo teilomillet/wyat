@@ -1,13 +1,45 @@
 # MLX inference (Apple Silicon)
 
-The default model,
-[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), uses the Qwen3.5
-option-fork format and **does not support MLX**. Use its
-[PyTorch runtime](torch-inference.md) on CPU or a compatible CUDA device.
-The rest of this guide applies to compatible native full-task and single-choice
-candidate-head artifacts retained for compatibility.
+## 800M option-fork inference
 
-For those artifacts, wyat uses [MLX-LM's Qwen3 backbone](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py)
+The default model, [wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m),
+runs on MLX with the `mlx` extra:
+
+```python
+import wyat
+
+model = wyat.load("teilomillet/wyat-1-800m", backend="mlx")  # Apple GPU
+# MLX CPU: device="cpu"
+```
+
+wyat runs the Qwen3.5 hybrid backbone with
+[MLX-LM's Qwen3.5 text model](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3_5.py).
+Artifact validation, prompt encoding, option branches and readout are shared
+with the [PyTorch runtime](torch-inference.md). Backbone weights are expanded
+from BF16 storage to FP32; the unmerged adapters and scalar head stay FP32. One
+deliberate difference from MLX-LM: gated-delta-net layers normalize queries and
+keys with the Transformers epsilon placement used in training. MLX-LM's own
+placement moved the released model's logits by up to 2e-2.
+
+On an Apple M4 Pro (2026-10-18), MLX GPU and MLX CPU matched PyTorch CPU logits
+on the released 800M within 1.8e-5, with no change of selected option, on six
+synthetic questions up to a 5,871-token prefix. The GPU scored the set in about
+4 s, against 17 s for one PyTorch CPU thread and 12 s for PyTorch MPS. MLX CPU
+took 117 s, because MLX-LM's CPU gated-delta path steps one token at a time; use
+it for parity checks, not speed. Measure your own requests and device.
+
+The prefix is reused within a question; `token_cache_size` and
+`prefix_cache_size` do not apply, and `compile=True` is rejected. GPU sharing
+pauses work as described under [native artifacts](#native-artifacts);
+`responsive=False` removes the pauses. The Metal kernel for gated-delta-net
+layers needs a linear key head width divisible by 32 (128 in 800M); other
+widths are refused on the GPU.
+
+## Compatible legacy artifacts
+
+The rest of this guide applies to compatible native full-task and single-choice
+candidate-head artifacts retained for compatibility. For those artifacts, wyat
+uses [MLX-LM's Qwen3 backbone](https://github.com/ml-explore/mlx-lm/blob/v0.31.3/mlx_lm/models/qwen3.py)
 for Apple Silicon. The runtime reads a local wyat checkpoint directly; there is
 no model conversion, downloaded Python execution, vocabulary projection or
 generation loop.
@@ -128,7 +160,8 @@ input limits and synchronous output are preserved.
 Install the MLX extra in the same application environment; see
 [installation](install.md). MLX requires Apple Silicon macOS. Compatible native
 artifacts use the same files with PyTorch and MLX; follow
-[model acquisition](model-acquisition.md). 800M requires the PyTorch extra.
+[model acquisition](model-acquisition.md). The 800M artifact needs no
+conversion either.
 
 MLX-LM depends on Transformers and may initialize its optional Torch integration
 when Torch happens to be installed. wyat's MLX inference uses MLX tensors and

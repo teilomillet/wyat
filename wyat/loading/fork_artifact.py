@@ -8,16 +8,22 @@ instructions and every option) followed by one isolated branch per option, and
 scores each branch's last token with a shared FP32 scalar head. It is a
 different model family from the native candidate-head format
 (``wyat.loading.native_artifact``), with its own manifest and contract.
-Importing this module never imports an inference framework.
+Importing this module never imports an inference framework; the prompt
+encoding, branch grouping and input refusals shared by the PyTorch and MLX
+runtimes live here.
 """
 
 from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
+from wyat import tasks
+from wyat.core import ModelInputError
 from wyat.input_rendering import validate_input_rendering_policy
 from wyat.loading.native_artifact import ADAPTER, ADAPTER_TARGETS, file_sha256
 
@@ -55,6 +61,12 @@ QWEN3_5_ADAPTER = {
     },
     "merged": False,
 }
+
+
+def adapter_name(layer: int, owner: str, name: str, factor: str) -> str:
+    return f"layers.{layer}.{owner}.{name}.{factor}"
+
+
 BACKBONES = ("qwen3_5_text",)
 BASE_FILES = ("base/config.json",)
 REQUIRED = frozenset(
@@ -213,3 +225,88 @@ def manifest_for(
         "files_sha256": files,
         "model_id": model_identity(files, policy),
     }
+
+
+# Branch rows per cached call: each row carries an FP32 recurrent state
+# (16 x 128 x 128) in every gated-delta-net block.
+BRANCH_ROWS = 32
+
+
+def _payload(option: tuple[str, str]) -> str:
+    return json.dumps(
+        {"key": option[0], "description": option[1]},
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+
+
+@dataclass(frozen=True)
+class ForkQuestion:
+    question: tasks.Question
+    prefix_ids: tuple[int, ...]
+    option_ids: tuple[tuple[int, ...], ...]
+
+
+def encode_record(
+    tokenizer: tasks.Tokenizer, record: object, *, max_length: int
+) -> tuple[ForkQuestion, ...]:
+    """Canonical prefix (options sorted by UTF-8 bytes) and caller-order branches.
+
+    Prefix and branches are separate tokenizer segments. Over-long input is
+    refused, never truncated.
+    """
+    state, questions = tasks.public_questions(record)
+
+    def tokens(text: str) -> tuple[int, ...]:
+        if len(text.encode("utf-8")) > max_length * 32:
+            raise ValueError("segment exceeds tokenization byte limit")
+        ids = tuple(tokenizer.encode(text, add_special_tokens=False))
+        if not ids or any(type(x) is not int or x < 0 for x in ids):
+            raise ValueError("tokenizer must return nonempty nonnegative token IDs")
+        return ids
+
+    result = []
+    for question in questions:
+        options = [_payload(option) for option in question.options]
+        canonical = sorted(options, key=lambda text: text.encode("utf-8"))
+        prefix = (
+            f"State:\n{state}\n\nTask type: {question.type}\n"
+            f"Question ID: {question.id}\nInstructions:\n{question.instructions}\n"
+            "All options:\n" + "\n".join(canonical) + "\n\nEvaluate option:\n"
+        )
+        pre = tokens(prefix)
+        suffixes = tuple(tokens(option) for option in options)
+        if len(pre) + max(map(len, suffixes)) > max_length:
+            raise ValueError("complete fork branch exceeds max_length; no truncation")
+        result.append(ForkQuestion(question, pre, suffixes))
+    return tuple(result)
+
+
+def input_error(error: ValueError) -> ModelInputError:
+    """Classify an encoder refusal of a valid record with the native reasons."""
+    message = str(error)
+    reason: Literal["input-length", "input-segment"] = (
+        "input-length"
+        if "max_length" in message or "byte limit" in message
+        else "input-segment"
+    )
+    return ModelInputError(message, reason=reason)
+
+
+def branch_groups(
+    suffixes: Sequence[tuple[int, ...]], prefix: int, max_batch_tokens: int
+) -> Iterator[list[tuple[int, ...]]]:
+    """Caller-order branch groups within the row and padded-token budgets."""
+    group: list[tuple[int, ...]] = []
+    for suffix in suffixes:
+        longest = max([len(suffix), *map(len, group)])
+        if group and (
+            len(group) + 1 > BRANCH_ROWS
+            or (len(group) + 1) * (prefix + longest) > max_batch_tokens
+        ):
+            yield group
+            group = []
+        group.append(suffix)
+    if group:
+        yield group

@@ -23,11 +23,10 @@ and measure on their own hardware.
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator, Sequence
+from collections.abc import Sequence
 from contextlib import AbstractContextManager, nullcontext
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, cast
+from typing import Any, cast
 
 import torch
 from safetensors.torch import load_file, save_file
@@ -41,62 +40,13 @@ from wyat import tasks
 from wyat.core import ModelInputError, Request
 from wyat.input_rendering import render_record, validate_input_rendering_policy
 from wyat.loading import fork_artifact as contract
+from wyat.loading.fork_artifact import (
+    ForkQuestion,
+    adapter_name,
+    branch_groups,
+    encode_record,
+)
 from wyat.loading.native import _request_record
-
-# Branch rows per cached call: each row carries an FP32 recurrent state
-# (16 x 128 x 128) in every gated-delta-net block.
-BRANCH_ROWS = 32
-
-
-def _payload(option: tuple[str, str]) -> str:
-    return json.dumps(
-        {"key": option[0], "description": option[1]},
-        sort_keys=True,
-        ensure_ascii=False,
-        separators=(",", ":"),
-    )
-
-
-@dataclass(frozen=True)
-class ForkQuestion:
-    question: tasks.Question
-    prefix_ids: tuple[int, ...]
-    option_ids: tuple[tuple[int, ...], ...]
-
-
-def encode_record(
-    tokenizer: tasks.Tokenizer, record: object, *, max_length: int
-) -> tuple[ForkQuestion, ...]:
-    """Canonical prefix (options sorted by UTF-8 bytes) and caller-order branches.
-
-    Prefix and branches are separate tokenizer segments. Over-long input is
-    refused, never truncated.
-    """
-    state, questions = tasks.public_questions(record)
-
-    def tokens(text: str) -> tuple[int, ...]:
-        if len(text.encode("utf-8")) > max_length * 32:
-            raise ValueError("segment exceeds tokenization byte limit")
-        ids = tuple(tokenizer.encode(text, add_special_tokens=False))
-        if not ids or any(type(x) is not int or x < 0 for x in ids):
-            raise ValueError("tokenizer must return nonempty nonnegative token IDs")
-        return ids
-
-    result = []
-    for question in questions:
-        options = [_payload(option) for option in question.options]
-        canonical = sorted(options, key=lambda text: text.encode("utf-8"))
-        prefix = (
-            f"State:\n{state}\n\nTask type: {question.type}\n"
-            f"Question ID: {question.id}\nInstructions:\n{question.instructions}\n"
-            "All options:\n" + "\n".join(canonical) + "\n\nEvaluate option:\n"
-        )
-        pre = tokens(prefix)
-        suffixes = tuple(tokens(option) for option in options)
-        if len(pre) + max(map(len, suffixes)) > max_length:
-            raise ValueError("complete fork branch exceeds max_length; no truncation")
-        result.append(ForkQuestion(question, pre, suffixes))
-    return tuple(result)
 
 
 class _ForkAdapter(nn.Module):
@@ -128,10 +78,6 @@ class _ScalarHead(nn.Module):
     def forward(self, hidden: torch.Tensor) -> torch.Tensor:
         with torch.autocast(hidden.device.type, enabled=False):
             return cast(torch.Tensor, self.net(hidden.float()).squeeze(-1))
-
-
-def adapter_name(layer: int, owner: str, name: str, factor: str) -> str:
-    return f"layers.{layer}.{owner}.{name}.{factor}"
 
 
 class ForkScorer:
@@ -274,22 +220,6 @@ class ForkScorer:
             max_length=self.max_length,
         )
 
-    def _groups(
-        self, suffixes: Sequence[tuple[int, ...]], prefix: int
-    ) -> Iterator[list[tuple[int, ...]]]:
-        group: list[tuple[int, ...]] = []
-        for suffix in suffixes:
-            longest = max([len(suffix), *map(len, group)])
-            if group and (
-                len(group) + 1 > BRANCH_ROWS
-                or (len(group) + 1) * (prefix + longest) > self.max_batch_tokens
-            ):
-                yield group
-                group = []
-            group.append(suffix)
-        if group:
-            yield group
-
     def _rows(
         self, sequences: Sequence[tuple[int, ...]]
     ) -> tuple[torch.Tensor, torch.Tensor]:
@@ -311,7 +241,7 @@ class ForkScorer:
             ).past_key_values
             prefix = len(row.prefix_ids)
             values = []
-            for group in self._groups(row.option_ids, prefix):
+            for group in branch_groups(row.option_ids, prefix, self.max_batch_tokens):
                 width = len(group)
                 fork = DynamicCache(config=self.backbone.config)
                 for source, layer in zip(cache.layers, fork.layers, strict=True):
@@ -374,17 +304,15 @@ class ForkScorer:
         except ModelInputError:
             raise
         except ValueError as error:
-            message = str(error)
-            reason: Literal["input-length", "input-segment"] = (
-                "input-length"
-                if "max_length" in message or "byte limit" in message
-                else "input-segment"
-            )
-            raise ModelInputError(message, reason=reason) from error
+            raise contract.input_error(error) from error
 
     def score_many(self, requests: Sequence[Request]) -> list[list[float]]:
-        """Score public Requests in request and candidate order."""
-        return [self.question_logits(self._encode_request(r)) for r in requests]
+        """Score public Requests in request and candidate order.
+
+        Every request is encoded before any forward pass, so a refused request
+        costs no model work."""
+        rows = [self._encode_request(r) for r in requests]
+        return [self.question_logits(row) for row in rows]
 
     def _encode_public(self, record: object) -> tuple[ForkQuestion, ...]:
         """A malformed record keeps its ValueError; encoder refusals of a valid
@@ -393,13 +321,7 @@ class ForkScorer:
         try:
             return self.encode_record(record)
         except ValueError as error:
-            message = str(error)
-            reason: Literal["input-length", "input-segment"] = (
-                "input-length"
-                if "max_length" in message or "byte limit" in message
-                else "input-segment"
-            )
-            raise ModelInputError(message, reason=reason) from error
+            raise contract.input_error(error) from error
 
     def logits(self, record: object) -> list[list[float]]:
         return [self.question_logits(row) for row in self._encode_public(record)]

@@ -148,6 +148,7 @@ only-include = [
     "tests/test_evaluation.py",
     "tests/test_fork_artifact.py",
     "tests/test_fork_loading.py",
+    "tests/test_fork_mlx.py",
     "tests/test_installation_recovery.py",
     "tests/test_loading.py",
     "tests/test_native_adapters.py",
@@ -179,6 +180,7 @@ only-include = [
     "wyat/loading/__init__.py",
     "wyat/loading/fork.py",
     "wyat/loading/fork_artifact.py",
+    "wyat/loading/fork_mlx.py",
     "wyat/loading/local.py",
     "wyat/loading/mlx.py",
     "wyat/loading/native.py",
@@ -192,7 +194,7 @@ only-include = [
 [project.optional-dependencies]
 inference = ["torch>=2.5,<3", "transformers>=5.17,<6", "safetensors>=0.5,<1"]
 server = ["fastapi>=0.115,<1", "pydantic>=2,<3", "uvicorn>=0.34,<1"]
-mlx = ["mlx>=0.31.2,<0.33; sys_platform == 'darwin' and platform_machine == 'arm64'", "mlx-lm>=0.30,<0.32; sys_platform == 'darwin' and platform_machine == 'arm64'"]
+mlx = ["mlx>=0.31.2,<0.33; sys_platform == 'darwin' and platform_machine == 'arm64'", "mlx-lm>=0.31,<0.32; sys_platform == 'darwin' and platform_machine == 'arm64'", "transformers>=5.17,<6; sys_platform == 'darwin' and platform_machine == 'arm64'"]
 
 [project.scripts]
 wyat = "wyat.cli:main"

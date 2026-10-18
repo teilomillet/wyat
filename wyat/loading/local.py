@@ -70,10 +70,10 @@ def load(
     to download and verify that release into the Wyat cache. A local
     directory with that relative path takes precedence. Torch defaults to CPU;
     MLX defaults to Apple GPU. Compilation is an opt-in MLX experiment and must
-    pass the caller's quality and performance gates. Native MLX GPU inference
-    pauses 1 ms after every fourth backbone layer so other applications can
-    submit GPU work; ``responsive=False`` removes those pauses and is rejected
-    by engines that do not pace.
+    pass the caller's quality and performance gates. Native and option-fork MLX
+    GPU inference pauses 1 ms after every fourth backbone layer so other
+    applications can submit GPU work; ``responsive=False`` removes those pauses
+    and is rejected by engines that do not pace.
     """
     if type(prefix_cache_size) is not int or prefix_cache_size < 0:
         raise ValueError("prefix_cache_size must be a nonnegative integer")
@@ -81,27 +81,43 @@ def load(
         raise ValueError("responsive must be a boolean")
     path = _local_directory(path)
     is_native = (Path(path) / "native_manifest.json").is_file()
-    if not responsive and not (backend == "mlx" and is_native):
-        raise ValueError("responsive=False applies only to native MLX inference")
-    if (Path(path) / "fork_manifest.json").is_file():
-        # Option-fork artifacts (Qwen3.5 hybrid) have a PyTorch runtime only.
-        # It keeps no cross-call caches: token and prefix cache sizes do not apply.
-        if backend != "torch":
-            raise ValueError(
-                "option-fork artifacts are supported only by the torch backend; "
-                "use backend='torch'"
-            )
+    is_fork = (Path(path) / "fork_manifest.json").is_file()
+    if not responsive and not (backend == "mlx" and (is_native or is_fork)):
+        raise ValueError(
+            "responsive=False applies only to native MLX and option-fork MLX inference"
+        )
+    if is_fork:
+        # Option-fork artifacts (Qwen3.5 hybrid) keep no cross-call caches:
+        # token and prefix cache sizes do not apply.
         if attention != "sdpa" or compile:
             raise ValueError("option-fork inference uses sdpa attention, uncompiled")
-        try:
-            from wyat.loading.fork import load_fork
-        except ModuleNotFoundError as exc:
-            _raise_missing_runtime(exc, "torch")
-            raise
-        fork = load_fork(
-            path, device="cpu" if device is None else device, max_length=max_length
-        )
-        return Model(fork, fork.model_id, temperature=temperature)
+        fork: Scorer
+        if backend == "torch":
+            try:
+                from wyat.loading.fork import load_fork
+            except ModuleNotFoundError as exc:
+                _raise_missing_runtime(exc, "torch")
+                raise
+            fork_torch = load_fork(
+                path, device="cpu" if device is None else device, max_length=max_length
+            )
+            fork, model_id = fork_torch, fork_torch.model_id
+        elif backend == "mlx":
+            try:
+                from wyat.loading.fork_mlx import load_fork_mlx
+            except ModuleNotFoundError as exc:
+                _raise_missing_runtime(exc, "mlx")
+                raise
+            fork_mlx = load_fork_mlx(
+                path,
+                device="gpu" if device is None else device,
+                max_length=max_length,
+                responsive=responsive,
+            )
+            fork, model_id = fork_mlx, fork_mlx.model_id
+        else:
+            raise ValueError(f"unsupported backend: {backend}")
+        return Model(fork, model_id, temperature=temperature)
     wyat_max_length = 2048 if max_length is None else max_length
     scorer: Scorer
     if backend == "torch":

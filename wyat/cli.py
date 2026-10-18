@@ -172,7 +172,7 @@ def main(argv: list[str] | None = None) -> int:
             action=argparse.BooleanOptionalAction,
             default=True,
             help=(
-                "native MLX GPU: pause 1 ms after every fourth layer so other "
+                "MLX GPU: pause 1 ms after every fourth layer so other "
                 "applications can submit GPU work; --no-responsive removes the pauses"
             ),
         )

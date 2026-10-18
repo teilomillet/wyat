@@ -71,13 +71,76 @@ def test_fork_dispatch_defaults_to_cpu_and_preserves_model_options(
     }
 
 
+def test_fork_mlx_dispatch_defaults_to_gpu_and_passes_responsiveness(
+    fork_directory: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[dict[str, object]] = []
+
+    class ForkMLXScorer:
+        model_id = "fork-mlx-fixture"
+
+    def load_fork_mlx(path: str | Path, **kwargs: object) -> ForkMLXScorer:
+        calls.append({"path": path, **kwargs})
+        return ForkMLXScorer()
+
+    module = ModuleType("wyat.loading.fork_mlx")
+    monkeypatch.setattr(module, "load_fork_mlx", load_fork_mlx, raising=False)
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    model = wyat.load(fork_directory, backend="mlx", temperature=1.5)
+    assert model.model_id == "fork-mlx-fixture"
+    assert model.temperature == 1.5
+    wyat.load(
+        fork_directory, backend="mlx", device="cpu", max_length=64, responsive=False
+    )
+    assert calls == [
+        {
+            "path": fork_directory,
+            "device": "gpu",
+            "max_length": None,
+            "responsive": True,
+        },
+        {
+            "path": fork_directory,
+            "device": "cpu",
+            "max_length": 64,
+            "responsive": False,
+        },
+    ]
+    with pytest.raises(ValueError, match="sdpa attention, uncompiled"):
+        wyat.load(fork_directory, backend="mlx", compile=True)
+    assert len(calls) == 2
+
+
+def test_fork_mlx_missing_runtime_names_the_mlx_extra(
+    monkeypatch: pytest.MonkeyPatch, fork_directory: Path
+) -> None:
+    original = ModuleNotFoundError("No module named 'mlx'", name="mlx")
+    original_import = builtins.__import__
+
+    def failing_import(
+        name: str,
+        globals: dict[str, object] | None = None,
+        locals: dict[str, object] | None = None,
+        fromlist: Sequence[str] = (),
+        level: int = 0,
+    ) -> ModuleType:
+        if name == "wyat.loading.fork_mlx":
+            raise original
+        return original_import(name, globals, locals, fromlist, level)
+
+    monkeypatch.setattr(builtins, "__import__", failing_import)
+    with pytest.raises(ModuleNotFoundError) as raised:
+        wyat.load(fork_directory, backend="mlx")
+    assert "wyat[mlx]" in str(raised.value)
+    assert raised.value.__cause__ is original
+
+
 @pytest.mark.parametrize(
     "options,message",
     [
-        ({"backend": "mlx"}, "torch backend"),
         ({"attention": "eager"}, "sdpa attention, uncompiled"),
         ({"compile": True}, "sdpa attention, uncompiled"),
-        ({"responsive": False}, "only to native MLX"),
+        ({"responsive": False}, "only to native MLX and option-fork MLX"),
         ({"prefix_cache_size": -1}, "prefix_cache_size"),
         ({"prefix_cache_size": True}, "prefix_cache_size"),
     ],

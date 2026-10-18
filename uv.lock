@@ -4144,6 +4144,7 @@ inference = [
 mlx = [
     { name = "mlx", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'" },
     { name = "mlx-lm", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'" },
+    { name = "transformers", marker = "platform_machine == 'arm64' and sys_platform == 'darwin'" },
 ]
 server = [
     { name = "fastapi" },
@@ -4179,10 +4180,11 @@ examples = [
 requires-dist = [
     { name = "fastapi", marker = "extra == 'server'", specifier = ">=0.115,<1" },
     { name = "mlx", marker = "platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'mlx'", specifier = ">=0.31.2,<0.33" },
-    { name = "mlx-lm", marker = "platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'mlx'", specifier = ">=0.30,<0.32" },
+    { name = "mlx-lm", marker = "platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'mlx'", specifier = ">=0.31,<0.32" },
     { name = "pydantic", marker = "extra == 'server'", specifier = ">=2,<3" },
     { name = "safetensors", marker = "extra == 'inference'", specifier = ">=0.5,<1" },
     { name = "torch", marker = "extra == 'inference'", specifier = ">=2.5,<3" },
+    { name = "transformers", marker = "platform_machine == 'arm64' and sys_platform == 'darwin' and extra == 'mlx'", specifier = ">=5.17,<6" },
     { name = "transformers", marker = "extra == 'inference'", specifier = ">=5.17,<6" },
     { name = "uvicorn", marker = "extra == 'server'", specifier = ">=0.34,<1" },
 ]

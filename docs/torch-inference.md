@@ -1,4 +1,4 @@
-# PyTorch inference (CPU and CUDA)
+# PyTorch inference (CPU, CUDA and Apple MPS)
 
 The default model is
 [wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m). It uses the
@@ -9,13 +9,13 @@ release by name; the first call downloads and verifies the files:
 import wyat
 
 model = wyat.load("teilomillet/wyat-1-800m", device="cpu")
-# For a compatible CUDA device: device="cuda".
+# For a compatible CUDA device: device="cuda". For the Apple GPU: device="mps".
 ```
 
 Install the inference extra in your application environment; see
 [installation](install.md). Dependencies and weights are separate; follow
 [model acquisition](model-acquisition.md) for the cache and local artifact
-layout. 800M does not support MLX.
+layout. On Apple Silicon, the [MLX runtime](mlx-inference.md) also runs 800M.
 
 ## 800M option-fork inference
 
@@ -34,10 +34,16 @@ do not create cross-call caches for this format.
 800M uses PyTorch's
 [scaled dot-product attention](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
 and uncompiled execution. `attention="eager"` and `compile=True` are rejected.
-CPU inference uses FP32. CUDA runs under BF16 autocast, stores frozen backbone
+CPU and MPS inference use FP32. CUDA runs under BF16 autocast, stores frozen backbone
 linear weights in BF16, and keeps adapter calculations and the decision head in
 FP32. Use a BF16-capable CUDA device and check numerical and decision parity
 for the artifact and workload you deploy.
+
+On an Apple M4 Pro (2026-10-18), MPS matched CPU logits on the released 800M
+within 1.2e-5, with no change of selected option, on six synthetic questions
+up to a 5,871-token prefix. It loaded in about 1 s and scored the set in 12 s,
+against 17 s for one CPU thread; MLX on the GPU scored the same set in about
+4 s. Measure your own requests and device.
 
 ## Runtime settings and legacy compatibility
 

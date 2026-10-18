@@ -33,11 +33,10 @@ Choose only the extras you need:
 | --- | --- |
 | *(none)* | The core: requests, results, evaluation and `wyat download`; no dependencies |
 | `inference` | PyTorch inference, using CPU unless a device is explicit |
-| `mlx` | MLX inference for compatible native/candidate-head artifacts on Apple Silicon; excludes 800M |
+| `mlx` | MLX inference on Apple Silicon, for 800M and compatible native/candidate-head artifacts |
 | `server` | FastAPI and Uvicorn for HTTP serving alongside an inference backend |
 
-For 800M serving, use `uv add wyat --extra inference --extra server`.
-Compatible native/candidate-head artifacts can instead use
+For serving, use `uv add wyat --extra inference --extra server`, or
 `uv add wyat --extra mlx --extra server` on Apple Silicon. Dependency installation
 provides no trained weights. The self-contained [quickstart demo](quickstart.md)
 works with the core alone. Installed wheels do not include the source checkout's
@@ -53,8 +52,11 @@ Later loads verify and reuse the cache. Run `uv run wyat download` to fetch
 it ahead of time, or pass an existing local model directory to `wyat.load`.
 The example below sets `WYAT_MODEL` to the release name.
 
-800M uses the `wyat-option-fork-v1` format with PyTorch, on CPU by default or a
-compatible CUDA device with `device="cuda"`. MLX does not support this model.
+800M uses the `wyat-option-fork-v1` format. PyTorch runs it on CPU by default,
+on a compatible CUDA device with `device="cuda"`, or on the Apple GPU with
+`device="mps"`. MLX runs it on Apple Silicon with `backend="mlx"`. On Apple
+Silicon, prefer MLX or MPS: PyTorch CPU gives the same scores several times
+more slowly.
 The [acquisition guide](model-acquisition.md) covers artifact layout, validation
 and explicit legacy compatibility. Loading local weights needs no network or
 downloaded model code.
@@ -86,14 +88,14 @@ print(decision.to_dict())
 WYAT_MODEL=teilomillet/wyat-1-800m uv run python decide.py
 ```
 
-For a compatible native/candidate-head artifact, the `mlx` extra and
-`wyat.load(local_path, backend="mlx")` select MLX on Apple Silicon. MLX defaults
-to the Apple GPU; `device="cpu"` selects MLX CPU explicitly. Set
-`MLX_ENABLE_TF32=0` before starting Python for the FP32 configuration in the
-[MLX guide](mlx-inference.md). These settings do not apply to 800M.
+The `mlx` extra and `wyat.load(model, backend="mlx")` select MLX on Apple
+Silicon. MLX defaults to the Apple GPU; `device="cpu"` selects MLX CPU
+explicitly. Set `MLX_ENABLE_TF32=0` before starting Python for the FP32
+configuration in the [MLX guide](mlx-inference.md).
 
-Keep the loaded model across requests. Call `model.decide_many((request,
-request))` for a batch. wyat requires 2 to 255 candidates per request and
+Keep the loaded model across requests. `model.decide_many((request, request))`
+is a convenience for several requests; 800M scores them one after another, not
+as one batch. wyat requires 2 to 255 candidates per request and
 rejects other counts with `ModelInputError` instead of truncating. See the [API guide](api.md) and runtime guides for
 [PyTorch](torch-inference.md) and [MLX](mlx-inference.md).
 
@@ -113,7 +115,7 @@ one model and serves it on localhost:
 uv run wyat serve teilomillet/wyat-1-800m --host 127.0.0.1 --port 8000
 ```
 
-For a compatible native/candidate-head artifact, add `--backend mlx` for MLX.
+On Apple Silicon, add `--backend mlx` for MLX.
 To embed serving in your application, copy this into
 `app.py`:
 
@@ -136,7 +138,7 @@ def app() -> FastAPI:
 ```
 
 Change the load call to `wyat.load(os.environ["WYAT_MODEL"], backend="mlx")`
-for an MLX-compatible artifact. Start the factory with one worker:
+for MLX. Start the factory with one worker:
 
 ```sh
 WYAT_MODEL=teilomillet/wyat-1-800m uv run uvicorn app:app --factory --workers 1 --host 127.0.0.1 --port 8000
