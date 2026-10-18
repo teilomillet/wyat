@@ -5,8 +5,8 @@ public source repository `teilomillet/wyat`. Both must contain only explicitly
 approved files. Ignored files in the maintainer workspace (research, data,
 models, receipts) remain private and are never committed or exported.
 
-Version **0.1.1** is the current release candidate and includes the option-fork
-loader for the 800M artifact. Version **0.1.0** introduced this API. The old PyPI `0.0.1`
+Version **0.1.1** includes the option-fork loader and pinned download for the
+800M artifact. Version **0.1.0** introduced this API. The old PyPI `0.0.1`
 release contains a different implementation; never reuse or overwrite a
 published version. Nothing is published merely by building, exporting or
 checking it.
@@ -85,19 +85,21 @@ quality, calibration, device coverage or performance.
 
 ## Pin the model release
 
-`wyat download` refuses to run for a name without a pinned release. Its default
-is `teilomillet/wyat-1-800m`, which has no release pins yet. Keep that entry
-unavailable until the distinct 800M artifact satisfies the release requirements;
-do not reuse a 600M revision, manifest or runtime contract for it.
+The default for `wyat.load()` and `wyat download` is the pinned
+`teilomillet/wyat-1-800m` release. Its canonical descriptor in
+[`wyat/download.py`](../wyat/download.py) records the immutable Hub commit,
+SHA-256 of `model/fork_manifest.json`, digests of `LICENSE` and `NOTICE`, all
+eight payload filenames and total download size. Keep those pins aligned with
+the reviewed upload whenever the model release changes; never copy the 600M
+revision, manifest or runtime contract into the 800M descriptor.
 
-After the reviewed 800M upload exists, record its immutable commit, the
-SHA-256 of `model/fork_manifest.json`, the digests of `LICENSE` and `NOTICE`,
-the exact payload filenames and total download size in its own descriptor in
-`wyat/download.py`. The downloader must follow that fork layout, including
-its tokenizer files. Then run `wyat download --model teilomillet/wyat-1-800m`
-into an empty directory, load the result with PyTorch and make a decision
-before tagging. The manifest must match `contract()` in
-`wyat/loading/fork_artifact.py`. The 800M artifact has no MLX runtime.
+Before tagging, run bare `wyat download` into an empty directory, verify its
+result against that descriptor, load it with PyTorch and make a decision.
+Exercise `wyat.load()` from an empty cache as well as a verified cache. The
+manifest must match `contract()` in
+[`wyat/loading/fork_artifact.py`](../wyat/loading/fork_artifact.py), and the
+downloader must preserve its eight payload files, including `vocab.json` and
+`merges.txt`. The 800M artifact has no MLX runtime.
 
 The 600M compatibility artifact keeps a separate native descriptor and the
 [standalone 600M verifier](../examples/model/verify.py). Keep their immutable

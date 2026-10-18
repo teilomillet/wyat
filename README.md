@@ -22,10 +22,8 @@ The model was trained on French and English decisions.
 Nothing leaves your machine, and nothing runs until you act on the result.
 
 The model is [wyat-1 800M](https://huggingface.co/teilomillet/wyat-1-800m),
-using the PyTorch runtime on CPU or CUDA. The upcoming **0.1.1** package adds
-its loader. The model upload and verified named download are still pending;
-until then, load a prepared local model directory. The examples below show
-the name that will be available once the release is pinned.
+using the PyTorch runtime on CPU or CUDA. Version **0.1.1** downloads its pinned
+release and verifies every file before loading.
 
 ## Try it
 
@@ -46,10 +44,10 @@ uv add wyat --extra inference   # PyTorch, CPU or CUDA
 ```
 
 Add `--extra server` to serve over HTTP. The core alone (`uv add wyat`) has
-no dependencies. Model weights are separate from the package. Once the 800M
-release is pinned, loading its name will download and verify every file;
-`uv run wyat download --model teilomillet/wyat-1-800m` will fetch it ahead of
-time. Inference itself never uses the network.
+no dependencies. Model weights are separate from the package. `wyat.load()`
+downloads and verifies wyat-1 800M on first use, then reuses the verified cache.
+Run `uv run wyat download` to fetch it ahead of time. Inference itself never
+uses the network.
 
 On Apple Silicon, 800M uses PyTorch CPU. The `mlx` extra supports other native
 artifacts; it does not support the 800M artifact format.
@@ -59,8 +57,7 @@ artifacts; it does not support the 800M artifact format.
 ```python
 import wyat
 
-model = wyat.load("teilomillet/wyat-1-800m")  # after the model release is pinned
-# Until then: model = wyat.load("/path/to/wyat-1-800m/model")
+model = wyat.load("teilomillet/wyat-1-800m")  # also the default for wyat.load()
 
 decision = model.decide(wyat.Request(
     query="Choose the requested booking action.",
@@ -105,5 +102,7 @@ Coding agents can start from [llms.txt](https://github.com/teilomillet/wyat/blob
 
 Code is licensed under [Apache 2.0](https://github.com/teilomillet/wyat/blob/main/LICENSE);
 see [NOTICE](https://github.com/teilomillet/wyat/blob/main/NOTICE). Model
-artifacts carry their own licenses. Contributions are welcome; see
+artifacts carry their own licenses. The 800M trained adapters and decision head
+are released for non-commercial use; its backbone and runtime use Apache 2.0.
+Contributions are welcome; see
 [CONTRIBUTING.md](https://github.com/teilomillet/wyat/blob/main/CONTRIBUTING.md).

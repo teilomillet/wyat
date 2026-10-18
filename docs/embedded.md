@@ -157,8 +157,9 @@ uv add wyat --extra inference
 uv run python agent_demo.py --model teilomillet/wyat-1-800m --larger-model /path/to/larger-model
 ```
 
-The 800M artifact uses PyTorch, including CPU on Apple Silicon. Its named
-download is pending; use the prepared local model directory until it is pinned.
+The 800M artifact uses PyTorch, including CPU on Apple Silicon. The first load
+downloads and verifies its pinned release; later loads use the verified cache.
+A local model directory also works.
 
 Supply both models; the example requires a fallback rather than silently
 disabling it. Both must work with `wyat.load`. The larger fallback is a model

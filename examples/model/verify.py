@@ -10,7 +10,7 @@ from pathlib import Path
 
 REPOSITORY = "teilomillet/wyat-1-600m"
 # These identify the supported 600M release, independently of the library default.
-REVISION = "0d5a3195aecf9087ac3f1a635c3c771940e2b130"
+REVISION = "d651830acc7e37aa96ac466876895a3d4dac6c92"
 MANIFEST_SHA256 = "0c7e78ea5c0a888206c3bc0f5a7e15479ac6832e5cfac7ec4943f5c821019deb"
 FILES = (
     "backbone/config.json",

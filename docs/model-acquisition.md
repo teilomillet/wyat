@@ -1,58 +1,91 @@
 # Obtain the wyat model
 
-The upcoming v0.1.1 targets
-[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), which is also the
-library default. Its named download is not pinned or available yet.
-`wyat.load()` and `wyat download --model teilomillet/wyat-1-800m` report that
-pending release. Installing wyat includes no weights.
-
-## Load a prepared 800M artifact
-
-If you have a prepared 800M artifact, load its local model directory with the
-PyTorch inference extra installed:
+The default model is
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m). Installing wyat
+includes no weights. The first load downloads its immutable release and
+verifies every file before inference:
 
 ```python
 import wyat
 
-model = wyat.load("/path/to/wyat-1-800m/model")
+model = wyat.load("teilomillet/wyat-1-800m")  # also the default for wyat.load()
 # For a compatible CUDA device: device="cuda".
 ```
 
-The directory passed to `load` contains `fork_manifest.json`. 800M uses the
-`wyat-option-fork-v1` format with a Qwen3.5 backbone, separate adapters and a
-scalar decision head. Its required layout is:
+Install the [PyTorch inference extra](install.md) to load the model. 800M runs
+on CPU by default or a compatible CUDA device; MLX does not support this
+format. Inference itself needs no network or downloaded Python code.
 
-```text
-model/
-├── fork_manifest.json
-├── adapters.safetensors
-├── head.safetensors
-├── tokenizer.json
-├── tokenizer_config.json
-└── base/
-    ├── config.json
-    └── model.safetensors
+## Download and reuse the verified cache
+
+The download is about **1.82 GB**: the backbone is stored in BF16, with FP32
+adapters and decision head. The package pins the immutable Hub revision,
+manifest and license hashes in [`wyat/download.py`](../wyat/download.py).
+Every payload file is checked against that pinned manifest before loading.
+Later loads verify and reuse the files in `~/.cache/wyat/wyat-1-800m` (or under
+`$XDG_CACHE_HOME`) without network access.
+
+To fetch ahead of time, for example before going offline, the core CLI is
+enough:
+
+```sh
+uv run wyat download
+# Equivalent: uv run wyat download --model teilomillet/wyat-1-800m
 ```
 
-An artifact may also contain supported tokenizer files declared in its
-manifest. The loader checks file hashes, manifest structure, model identity,
-architecture, adapter inventory and tensor shapes before inference. It uses
-local files without executing downloaded Python code, converting the model or
-merging its adapters. A local manifest establishes internal consistency; until
-the release is pinned, it does not authenticate a copy as the public 800M
-release.
+The command prints the absolute `model/` directory path last, as its only
+stdout output. Pass a destination directory to place the release elsewhere:
 
-800M supports PyTorch on CPU by default or a compatible CUDA device. MLX does
-not support this format. See [PyTorch inference](torch-inference.md) for runtime
-settings. Local loading needs no network; retain the artifact's own license
-and notice files alongside the weights.
+```sh
+uv run wyat download /path/to/wyat-1-800m
+```
+
+An interrupted download can resume: verified files are kept, and missing or
+changed files are fetched again. Only supported release names trigger
+acquisition; other strings are local directory paths.
+
+## Use an existing local artifact
+
+The released artifact has this layout, including all eight payload files:
+
+```text
+wyat-1-800m/
+├── LICENSE
+├── NOTICE
+└── model/
+    ├── fork_manifest.json
+    ├── adapters.safetensors
+    ├── head.safetensors
+    ├── tokenizer.json
+    ├── tokenizer_config.json
+    ├── vocab.json
+    ├── merges.txt
+    └── base/
+        ├── config.json
+        └── model.safetensors
+```
+
+Pass the directory containing `fork_manifest.json` to `load`:
+
+```python
+model = wyat.load("/path/to/wyat-1-800m/model")
+```
+
+800M uses the `wyat-option-fork-v1` format with a Qwen3.5 backbone, separate
+adapters and a scalar decision head. The loader checks file hashes, manifest
+structure, model identity, architecture, adapter inventory and tensor shapes
+before inference. No conversion or adapter merge is required. For a copy made
+another way, local validation establishes internal consistency; compare it
+with the package's release pins to authenticate it as the same public release.
+Retain its license and notice files alongside the weights. See
+[PyTorch inference](torch-inference.md) for runtime settings.
 
 ## Legacy 600M compatibility
 
 The explicit name `teilomillet/wyat-1-600m` remains supported for applications
 that already use the legacy `wyat-native-full-v1` artifact. It is a separate
 model with its own pinned revision and file hashes; it is not an 800M download
-or conversion. Repository access is required until that artifact is public.
+or conversion. Access to its private Hugging Face repository is required.
 
 For those applications, `wyat.load("teilomillet/wyat-1-600m")` downloads about
 2.44 GB of FP32 weights into `~/.cache/wyat/wyat-1-600m` (or under
@@ -63,12 +96,8 @@ and loads it. Later loads verify and reuse the cache. To fetch ahead of time:
 uv run wyat download --model teilomillet/wyat-1-600m
 ```
 
-The command prints the absolute `model/` directory path last, as its only
-stdout output. Passing a destination directory puts the release there. An
-interrupted download can resume: verified files are kept, and missing or
-changed files are fetched again. Mixed optional tokenizer files are refused.
-Only supported release names trigger acquisition; other strings are local
-paths.
+This legacy download uses the same cache verification and resumable behavior
+described above. Mixed optional tokenizer files are refused.
 
 The standalone [verify.py](../examples/model/verify.py) is **600M-specific**.
 For an offline copy of that legacy artifact, copy it into your application as
@@ -87,6 +116,9 @@ optional tokenizer files before inference. It cannot verify an 800M artifact.
 wyat's Apache-2.0 source license does not replace the model's license. Keep the
 artifact's `LICENSE` and `NOTICE` and review them before using or redistributing
 weights. The source [NOTICE](../NOTICE) records third-party code attributions.
+The 800M trained adapters and decision head permit non-commercial use and
+redistribution with attribution; commercial use is not granted. Its upstream
+backbone, tokenizer and runtime retain Apache-2.0 terms.
 
 File verification establishes identity or internal consistency within the
 stated scope. It does not establish model quality, calibration, language

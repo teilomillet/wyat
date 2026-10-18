@@ -1,14 +1,14 @@
 # Decision task meanings
 
 wyat supports three structured decision tasks: **Choice**, **Score**, and
-**Noul**. The upcoming v0.1.1 targets
+**Noul**. The default model is
 [wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), whose
 `wyat-option-fork-v1` format supports all three through `model.decide(request)`
-and `model.predict(record)`. Its named download is pending; use a prepared
-local artifact for now. For a team-facing walkthrough, see
+and `model.predict(record)`. Loading its name downloads and verifies the pinned
+release on first use. For a team-facing walkthrough, see
 [Explaining decisions](explaining-decisions.md).
 
-Load a supported artifact with `wyat.load("/path/to/wyat-1-800m/model")`, then
+Load a supported artifact with `wyat.load("teilomillet/wyat-1-800m")`, then
 call `model.decide(request)` or `model.predict(record)` for a multi-question
 record, and `model.predict_many` for several records.
 [Obtain a supported artifact](model-acquisition.md) and follow the
@@ -63,7 +63,7 @@ failures separately from semantic outcomes.
 
 The [use-case examples](../examples/use_cases/README.md) are short scripts that
 run with `--demo` (no weights) or `--model` (a local model directory or
-`/path/to/wyat-1-800m/model`).
+`teilomillet/wyat-1-800m`).
 
 | Task | Typical use | Example |
 | --- | --- | --- |

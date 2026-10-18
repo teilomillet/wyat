@@ -1,21 +1,21 @@
 # PyTorch inference (CPU and CUDA)
 
-The upcoming v0.1.1 targets
+The default model is
 [wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m). It uses the
-`wyat-option-fork-v1` format with a Qwen3.5 hybrid backbone. The named download
-is pending; a prepared local artifact can be loaded now:
+`wyat-option-fork-v1` format with a Qwen3.5 hybrid backbone. Load its pinned
+release by name; the first call downloads and verifies the files:
 
 ```python
 import wyat
 
-model = wyat.load("/path/to/wyat-1-800m/model", device="cpu")
+model = wyat.load("teilomillet/wyat-1-800m", device="cpu")
 # For a compatible CUDA device: device="cuda".
 ```
 
 Install the inference extra in your application environment; see
 [installation](install.md). Dependencies and weights are separate; follow
-[model acquisition](model-acquisition.md) for the required layout and current
-availability. 800M does not support MLX.
+[model acquisition](model-acquisition.md) for the cache and local artifact
+layout. 800M does not support MLX.
 
 ## 800M option-fork inference
 

@@ -33,8 +33,9 @@ In a wyat checkout, `uv sync --group examples` installs all of them. A plain
 `uv sync` removes them again; `uv sync --inexact` and `uv run` keep them. An
 example whose library is missing or too old stops and says what to install.
 
-The 800M named download is pending; pass its prepared local `model/` directory
-until it is pinned. Use the PyTorch inference extra for that artifact.
+The first 800M load downloads and verifies the pinned release, then reuses the
+verified cache. A local model directory also works. Use the PyTorch inference
+extra for that artifact.
 
 `--demo` uses a word-overlap stand-in instead of a model (not a model; it
 only makes the numbers move). The fake LLMs in 01 and 02 stand in for any

@@ -10,9 +10,9 @@ uv run python examples/use_cases/01_support_routing.py --model teilomillet/wyat-
 
 `--demo` runs without weights: every option gets the same score, so you can
 read the code and see the API work, but the answers mean nothing. Use
-`--model` with a local model to see real decisions. The 800M named download is
-pending; use its prepared local `model/` directory until it is pinned. The
-800M artifact uses PyTorch, including on Apple Silicon.
+`--model teilomillet/wyat-1-800m` to download and verify the pinned release on
+first use, then reuse the verified cache. A local model directory also works.
+The 800M artifact uses PyTorch, including on Apple Silicon.
 
 ## The idea
 

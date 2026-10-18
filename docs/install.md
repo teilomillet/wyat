@@ -45,12 +45,13 @@ works with the core alone. Installed wheels do not include the source checkout's
 
 ## Acquire and load a trained model
 
-The upcoming v0.1.1 targets
-[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), which is also the
-library default. Its named download is not pinned or available yet. Until it
-is, obtain a prepared 800M artifact and set `WYAT_MODEL` to its local model
-directory, as below. `wyat.load()` and `wyat download` report the pending release
-rather than downloading a different model.
+The default model is
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m). On first use,
+`wyat.load()` or `wyat.load("teilomillet/wyat-1-800m")` downloads about 1.82 GB
+and verifies every file against the immutable release pins in the package.
+Later loads verify and reuse the cache. Run `uv run wyat download` to fetch
+it ahead of time, or pass an existing local model directory to `wyat.load`.
+The example below sets `WYAT_MODEL` to the release name.
 
 800M uses the `wyat-option-fork-v1` format with PyTorch, on CPU by default or a
 compatible CUDA device with `device="cuda"`. MLX does not support this model.
@@ -82,7 +83,7 @@ print(decision.to_dict())
 ```
 
 ```sh
-WYAT_MODEL=/path/to/wyat-1-800m/model uv run python decide.py
+WYAT_MODEL=teilomillet/wyat-1-800m uv run python decide.py
 ```
 
 For a compatible native/candidate-head artifact, the `mlx` extra and
@@ -99,7 +100,7 @@ rejects other counts with `ModelInputError` instead of truncating. See the [API 
 For Windows PowerShell, set the model name before running the same Python script:
 
 ```powershell
-$env:WYAT_MODEL = "C:\path\to\wyat-1-800m\model"
+$env:WYAT_MODEL = "teilomillet/wyat-1-800m"
 uv run python decide.py
 ```
 
@@ -109,7 +110,7 @@ Install the `server` extra with your chosen inference backend. The CLI loads
 one model and serves it on localhost:
 
 ```sh
-uv run wyat serve /path/to/wyat-1-800m/model --host 127.0.0.1 --port 8000
+uv run wyat serve teilomillet/wyat-1-800m --host 127.0.0.1 --port 8000
 ```
 
 For a compatible native/candidate-head artifact, add `--backend mlx` for MLX.
@@ -138,7 +139,7 @@ Change the load call to `wyat.load(os.environ["WYAT_MODEL"], backend="mlx")`
 for an MLX-compatible artifact. Start the factory with one worker:
 
 ```sh
-WYAT_MODEL=/path/to/wyat-1-800m/model uv run uvicorn app:app --factory --workers 1 --host 127.0.0.1 --port 8000
+WYAT_MODEL=teilomillet/wyat-1-800m uv run uvicorn app:app --factory --workers 1 --host 127.0.0.1 --port 8000
 ```
 
 Importing `app.py` loads no weights. The factory loads one model per worker;
@@ -181,7 +182,7 @@ create and activate a Python 3.12+ virtual environment:
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install 'wyat[inference]'
-python demo.py --model /path/to/wyat-1-800m/model
+python demo.py --model teilomillet/wyat-1-800m
 ```
 
 On PowerShell, activate

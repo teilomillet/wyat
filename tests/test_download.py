@@ -231,6 +231,11 @@ def test_unpinned_default_refuses_before_any_request_or_cache_write(
         raise AssertionError("no request without a release pin")
 
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path))
+    monkeypatch.setattr(
+        module,
+        "RELEASES",
+        MappingProxyType({**module.RELEASES, module.REPOSITORY: None}),
+    )
     with pytest.raises(
         module.DownloadError, match="wyat-1-800m.*no release checkpoint"
     ):
@@ -270,6 +275,11 @@ def test_cli_default_reports_unreleased_800m_without_fallback(
         raise AssertionError("the unavailable default cannot request another model")
 
     monkeypatch.setattr(module, "_open", opener)
+    monkeypatch.setattr(
+        module,
+        "RELEASES",
+        MappingProxyType({**module.RELEASES, module.REPOSITORY: None}),
+    )
     assert cli.main(["download", str(tmp_path)]) == 1
     captured = capsys.readouterr()
     assert captured.out == ""
@@ -277,6 +287,62 @@ def test_cli_default_reports_unreleased_800m_without_fallback(
     assert "explicitly choose teilomillet/wyat-1-600m" in captured.err
     assert "Traceback" not in captured.err
     assert not any(tmp_path.iterdir())
+
+
+@pytest.mark.parametrize("foreign", [None, "chat_template.jinja"])
+def test_default_download_verifies_the_option_fork_layout(
+    foreign: str | None,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release = module.RELEASE_800M
+    files = {f"model/{name}": name.encode() for name in release.model_files}
+    files |= {name: name.encode() for name, _ in release.license_files}
+    files[release.manifest] = json.dumps(
+        {
+            "files_sha256": {
+                name: hashlib.sha256(files[f"model/{name}"]).hexdigest()
+                for name in release.model_files
+            }
+        }
+    ).encode()
+    release = replace(
+        release,
+        revision="1" * 40,
+        manifest_sha256=hashlib.sha256(files[release.manifest]).hexdigest(),
+        license_files=tuple(
+            (name, hashlib.sha256(name.encode()).hexdigest())
+            for name, _ in release.license_files
+        ),
+    )
+    monkeypatch.setattr(
+        module,
+        "RELEASES",
+        MappingProxyType({**module.RELEASES, module.REPOSITORY: release}),
+    )
+    monkeypatch.setattr(module, "_token", lambda: None)
+    prefix = f"https://huggingface.co/{module.REPOSITORY}/resolve/{release.revision}/"
+    requested: list[str] = []
+
+    def opener(request: urllib.request.Request) -> BinaryIO:
+        assert request.full_url.startswith(prefix)
+        name = request.full_url.removeprefix(prefix)
+        requested.append(name)
+        return io.BytesIO(files[name])
+
+    if foreign:
+        (tmp_path / "model").mkdir()
+        (tmp_path / "model" / foreign).write_text("unexpected")
+        with pytest.raises(module.DownloadError, match=foreign):
+            module.download(tmp_path, opener=opener, log=quiet)
+    else:
+        assert module.download(tmp_path, opener=opener, log=quiet) == tmp_path / "model"
+        assert requested == [
+            *(name for name, _ in release.license_files),
+            release.manifest,
+            *(f"model/{name}" for name in release.model_files),
+        ]
+        assert not list(tmp_path.rglob("*.part"))
 
 
 def test_copyable_verifier_pins_the_same_release() -> None:

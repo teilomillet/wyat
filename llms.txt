@@ -4,12 +4,14 @@
 
 This file is an index of wyat's documentation for coding agents and other programs. Every link below serves raw Markdown or Python. In a source checkout, the same file sits at the repository-relative path that follows `/main/` in the URL.
 
-This documents the upcoming 0.1.1 release. The default model is `teilomillet/wyat-1-800m`; its upload and verified named download are pending. `wyat.load()` and bare `wyat download` currently report that it is unavailable. Until it is pinned, use the prepared local model directory with the 0.1.1 candidate or this source checkout. The named examples below describe the pinned-release path.
+This documents the 0.1.1 release. The default model is `teilomillet/wyat-1-800m`. `wyat.load()` downloads and verifies its immutable release on first use, then loads from the verified cache. Bare `wyat download` fetches the same artifact ahead of time.
+
+The library code uses Apache-2.0. The 800M trained adapters and decision head permit non-commercial use and redistribution with attribution; commercial use is not granted. Its upstream backbone, tokenizer and runtime retain Apache-2.0 terms. See the [model license](https://huggingface.co/teilomillet/wyat-1-800m#license).
 
 ## Instructions for agents
 
-- **Use version 0.1.1 or newer.** This documents the `wyat` 0.1.1 release candidate, including the option-fork loader. The old `wyat` 0.0.1 on PyPI has a different, incompatible API, so require `wyat>=0.1.1` when you add it. Do not write code from a remembered version of the API.
-- **Model weights are separate from the package.** Installing wyat gives you no trained weights. Once the 800M release is pinned, `wyat.load("teilomillet/wyat-1-800m")` will download and verify it into `~/.cache/wyat/wyat-1-800m`; later loads will reuse the verified cache. Until then, pass a local 800M `model/` directory. A name without pins fails before network or cache writes. Other strings or paths remain local directories. See [model acquisition](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/model-acquisition.md).
+- **Use version 0.1.1 or newer.** This documents `wyat` 0.1.1, including the option-fork loader. The old `wyat` 0.0.1 on PyPI has a different, incompatible API, so require `wyat>=0.1.1` when you add it. Do not write code from a remembered version of the API.
+- **Model weights are separate from the package.** Installing wyat gives you no trained weights. `wyat.load("teilomillet/wyat-1-800m")`, or bare `wyat.load()`, downloads about 1.82 GB into `~/.cache/wyat/wyat-1-800m`, verifying the immutable revision and file hashes pinned in the package. Later loads verify and reuse the cache. You can also pass a local 800M `model/` directory. Other strings or paths remain local directories. See [model acquisition](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/model-acquisition.md).
 - **800M uses PyTorch.** Install the `inference` extra, including on Apple Silicon. The `mlx` backend supports other native artifact formats and rejects the 800M option-fork artifact.
 - **To try wyat without weights, use a demo.** Every example accepts `--demo`, which uses fixed or stand-in scores. Demo output shows how the API works and nothing about model quality.
 - **Load once, decide many times.** Create the model outside any per-request handler and reuse it. Use `decide_many` or `predict_many` for batches.
@@ -29,7 +31,7 @@ This documents the upcoming 0.1.1 release. The default model is `teilomillet/wya
 
 ```sh
 uv init --bare --python 3.12 my-app && cd my-app      # skip if a uv project exists
-uv add 'wyat[inference]>=0.1.1'                          # once 0.1.1 is published
+uv add 'wyat[inference]>=0.1.1'
 ```
 
 | Extra | Adds | Use it when |
@@ -39,10 +41,10 @@ uv add 'wyat[inference]>=0.1.1'                          # once 0.1.1 is publish
 | `mlx` | MLX, mlx-lm | other native Apple Silicon artifacts; 800M is not supported |
 | `server` | FastAPI, Pydantic, Uvicorn | serving over HTTP; combine with `inference` or `mlx` |
 
-Once the model release is pinned, download it ahead of time with the core CLI:
+Download the default model ahead of time with the core CLI:
 
 ```sh
-uv run wyat download --model teilomillet/wyat-1-800m  # after the model is pinned
+uv run wyat download  # same as --model teilomillet/wyat-1-800m
 WYAT_MODEL=teilomillet/wyat-1-800m   # wyat.load and the CLI accept the name
 ```
 
@@ -51,8 +53,8 @@ WYAT_MODEL=teilomillet/wyat-1-800m   # wyat.load and the CLI accept the name
 ```python
 import wyat
 
-model = wyat.load("teilomillet/wyat-1-800m")                    # once pinned; PyTorch CPU
-# Until then: model = wyat.load("/path/to/wyat-1-800m/model")
+model = wyat.load("teilomillet/wyat-1-800m")                    # default; PyTorch CPU
+# model = wyat.load("/path/to/wyat-1-800m/model")              # local copy
 # model = wyat.load("teilomillet/wyat-1-800m", device="cuda")   # NVIDIA GPU, BF16-capable
 
 # Choice: which option?
@@ -147,7 +149,7 @@ The server also provides `GET /health` for liveness, `GET /readyz` (whose `model
 - [Application workflows](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/agent-workflows.md): routing, evaluation, review and recovery as an application uses them
 - [Embedded agent demo](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/embedded.md): a small coding agent that asks wyat which tool to use next
 - [PyTorch runtime](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/torch-inference.md): CPU and CUDA, precision, attention options, threads
-- [MLX runtime](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/mlx-inference.md): native Apple Silicon inference, GPU or CPU, the TF32 setting
+- [MLX runtime](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/mlx-inference.md): compatible legacy artifacts on Apple Silicon, GPU or CPU, the TF32 setting; excludes 800M
 
 ## Examples
 

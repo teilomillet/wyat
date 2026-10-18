@@ -7,7 +7,7 @@ import builtins
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from types import ModuleType
+from types import MappingProxyType, ModuleType
 from typing import Literal
 
 import pytest
@@ -71,16 +71,20 @@ def test_torch_default_preserves_cpu(loaded: list[dict[str, object]]) -> None:
 
 
 @pytest.mark.parametrize("explicit_name", [False, True])
-def test_default_800m_refuses_before_loading_another_model(
+def test_unpinned_default_refuses_before_loading_another_model(
     explicit_name: bool,
     loaded: list[dict[str, object]],
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    from wyat import download
     from wyat.download import REPOSITORY, DownloadError
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
+    monkeypatch.setattr(
+        download, "RELEASES", MappingProxyType({**download.RELEASES, REPOSITORY: None})
+    )
     with pytest.raises(DownloadError, match="wyat-1-800m.*no release checkpoint"):
         if explicit_name:
             wyat.load(REPOSITORY)

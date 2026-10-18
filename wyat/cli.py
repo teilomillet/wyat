@@ -255,7 +255,7 @@ def main(argv: list[str] | None = None) -> int:
         "--model",
         choices=tuple(RELEASES),
         default=REPOSITORY,
-        help="named model release; the 800M default is not released yet",
+        help="pinned release name (default: teilomillet/wyat-1-800m)",
     )
     args = Arguments()
     parser.parse_args(argv, namespace=args)

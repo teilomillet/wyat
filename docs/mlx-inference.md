@@ -1,6 +1,6 @@
 # MLX inference (Apple Silicon)
 
-The upcoming v0.1.1 model,
+The default model,
 [wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m), uses the Qwen3.5
 option-fork format and **does not support MLX**. Use its
 [PyTorch runtime](torch-inference.md) on CPU or a compatible CUDA device.

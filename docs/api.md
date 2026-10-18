@@ -9,7 +9,7 @@ JSON parsing for the CLI and server and is not the Python model interface.
 ```python
 import wyat
 
-model = wyat.load("/path/to/wyat-1-800m/model")
+model = wyat.load("teilomillet/wyat-1-800m")
 request = wyat.Request(
     query="Choose the requested action",
     context="Cancel my booking",
@@ -36,12 +36,12 @@ context as the same canonical text that `predict` renders for a record `state`
 Unicode spelling in Python values, rendering and JSON transport. The configured tokenizer may normalize
 text internally; exact application IDs do not establish learned language quality.
 
-The upcoming v0.1.1 targets
+The default for `wyat.load()` is
 [wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m).
-`wyat.load()` selects that name, but its release is not pinned or downloadable
-yet and raises an availability error. Use a prepared local 800M model directory
-in the example above. Other strings are treated as local paths unless they
-name a supported pinned release.
+The first load downloads its immutable release and verifies every file against
+the pins in the installed package; later loads verify and reuse the cache.
+Pass a local model directory to use an existing copy instead. Other strings
+are treated as local paths unless they name a supported pinned release.
 
 800M uses the `wyat-option-fork-v1` format and PyTorch on CPU by default;
 `device="cuda"` selects a compatible CUDA device. It does not support MLX.
@@ -60,7 +60,7 @@ have separate lifetimes.
 | `wyat.Candidate.from_schema(id, schema)` | Build a candidate from a tool or JSON schema mapping (`description`, `parameters`). |
 | `wyat.Request(query, candidates, context="", task="choice")` | Immutable input to one decision; also `Request.choice(...)`, `Request.score(...)`, and `Request.noul(...)`. |
 | `wyat.Decision` | Model identity, raw scores, probabilities, ranked IDs, uncertainty metrics (`score_gap`, `probability_margin`, `entropy`, `normalized_entropy`), and task properties (`probability_true`, `expected_ordinal_value`). |
-| `wyat.load(path=..., ...)` | Load a local option-fork, native full-task or single-choice candidate-head artifact, or a pinned release, and return a `wyat.Model`; the default 800M download is pending. |
+| `wyat.load(path=..., ...)` | Load a local option-fork, native full-task or single-choice candidate-head artifact, or a pinned release, and return a `wyat.Model`; the default is the pinned 800M release. |
 | `model.decide(request, *, temperature=None)` | Return one `Decision`. |
 | `model.decide_many(requests, *, temperature=None, errors="raise")` | Return decisions in request order, using one scorer batch call; with `errors="return"`, a refused request gets its `ModelInputError` in its slot. |
 | `wyat.PublicRecord` | Input to `predict`: `{"state": text or JSON, "questions": {id: {"type", "instructions"?, "criteria"}}}`. Choice and Noul `criteria` map IDs to text; Score `criteria` is an ordered list of levels. |

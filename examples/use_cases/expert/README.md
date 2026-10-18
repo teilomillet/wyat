@@ -12,9 +12,9 @@ uv run python examples/use_cases/expert/01_support_triage.py --model teilomillet
 
 `--demo` uses a word-overlap stand-in instead of a model. It is **not** a
 model; it only makes the numbers vary so that thresholds, fallbacks and loops
-visibly do something. Use `--model` to see real decisions. Until the 800M
-named download is pinned, pass its prepared local `model/` directory. It
-uses the PyTorch backend.
+visibly do something. Use `--model teilomillet/wyat-1-800m` to see real
+decisions: the first run downloads and verifies the pinned release, then reuses
+the verified cache. A local model directory also works. 800M uses PyTorch.
 
 | # | System | What it teaches |
 | --- | --- | --- |

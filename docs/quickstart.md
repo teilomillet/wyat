@@ -54,19 +54,19 @@ Install the PyTorch runtime:
 uv add wyat --extra inference
 ```
 
-The upcoming v0.1.1 targets
-[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m). Its named download
-is not pinned or available yet. If you have a prepared 800M artifact, pass its
-local model directory to the same demo:
+Run the same demo with
+[wyat-1-800m](https://huggingface.co/teilomillet/wyat-1-800m). The first run
+downloads about 1.82 GB and verifies every file against the package's release
+pins. Later runs verify and reuse the cache:
 
 ```sh
-uv run python demo.py --model /path/to/wyat-1-800m/model
+uv run python demo.py --model teilomillet/wyat-1-800m
 ```
 
 The model chooses the result; the fixed demonstration output above is not an
 expected answer for trained inference. 800M uses PyTorch on CPU by default;
 MLX does not support its option-fork format. See
-[model acquisition](model-acquisition.md) for availability and artifact details.
+[model acquisition](model-acquisition.md) for the cache and local artifact details.
 
 ## 4. Put the API in your application
 
@@ -76,7 +76,7 @@ runtime and obtaining weights:
 ```python
 import wyat
 
-model = wyat.load("/path/to/wyat-1-800m/model")
+model = wyat.load("teilomillet/wyat-1-800m")
 
 request = wyat.Request(
     query="Choose the requested booking action.",

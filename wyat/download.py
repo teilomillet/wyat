@@ -43,11 +43,11 @@ class ModelRelease:
 
 RELEASE_600M = ModelRelease(
     repository="teilomillet/wyat-1-600m",
-    revision="0d5a3195aecf9087ac3f1a635c3c771940e2b130",
+    revision="d651830acc7e37aa96ac466876895a3d4dac6c92",
     manifest_sha256="0c7e78ea5c0a888206c3bc0f5a7e15479ac6832e5cfac7ec4943f5c821019deb",
     license_files=(
         ("LICENSE", "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"),
-        ("NOTICE", "3f8fab23291636f6cd66a57655e287aee4be86c191f41495772c1ea98cf84c58"),
+        ("NOTICE", "b612666d7e55bb93e93443dca1d783cdf8719893c11ca5ecf6a50462b4b7dbd2"),
     ),
     manifest="model/native_manifest.json",
     model_files=(
@@ -66,10 +66,34 @@ RELEASE_600M = ModelRelease(
     ),
     download_size="about 2.44 GB",
 )
-# No 800M checkpoint has been selected and pinned for release. In particular,
-# its different artifact format must never inherit the 600M release's pins.
+RELEASE_800M = ModelRelease(
+    repository=REPOSITORY,
+    revision="552166bdaa102bab14d9c0e4cea893a5a5aa234f",
+    manifest_sha256="b363a65eaed1693e9d6139d08542f46e2f1b5c2e12b6c85a08a3afbcdf159901",
+    license_files=(
+        ("LICENSE", "50cbab8a892c5f2993b8c7351a99182507472def3b1374558308605d99b86b32"),
+        ("NOTICE", "9a74a05b5ae902ac68b47806a912d96bca4bc9f38e3013322faaa8148140c8b0"),
+    ),
+    manifest="model/fork_manifest.json",
+    model_files=(
+        "adapters.safetensors",
+        "base/config.json",
+        "base/model.safetensors",
+        "head.safetensors",
+        "merges.txt",
+        "tokenizer.json",
+        "tokenizer_config.json",
+        "vocab.json",
+    ),
+    foreign_tokenizer_files=(
+        "special_tokens_map.json",
+        "added_tokens.json",
+        "chat_template.jinja",
+    ),
+    download_size="about 1.82 GB",
+)
 RELEASES: Mapping[str, ModelRelease | None] = MappingProxyType(
-    {REPOSITORY: None, RELEASE_600M.repository: RELEASE_600M}
+    {REPOSITORY: RELEASE_800M, RELEASE_600M.repository: RELEASE_600M}
 )
 PROGRESS_BYTES = 100_000_000
 
