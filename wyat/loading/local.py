@@ -89,13 +89,33 @@ def load(
         raise ValueError("responsive must be a boolean")
     native_prefix_cache_size = 16 if prefix_cache_size is None else prefix_cache_size
     fork_prefix_cache_size = 0 if prefix_cache_size is None else prefix_cache_size
+    ouro_prefix_cache_size = 0 if prefix_cache_size is None else prefix_cache_size
     path = _local_directory(path)
     is_native = (Path(path) / "native_manifest.json").is_file()
     is_fork = (Path(path) / "fork_manifest.json").is_file()
+    is_ouro = (Path(path) / "ouro_manifest.json").is_file()
     if not responsive and not (backend == "mlx" and (is_native or is_fork)):
         raise ValueError(
             "responsive=False applies only to native MLX and option-fork MLX inference"
         )
+    if is_ouro:
+        if compile:
+            raise ValueError("Ouro decision inference does not support compile")
+        if backend != "torch":
+            raise ValueError("Ouro decision inference supports the torch backend only")
+        try:
+            from wyat.loading.ouro import load_ouro
+        except ModuleNotFoundError as exc:
+            _raise_missing_runtime(exc, "torch")
+            raise
+        ouro_torch = load_ouro(
+            path,
+            device="cpu" if device is None else device,
+            max_length=max_length,
+            prefix_cache_size=ouro_prefix_cache_size,
+            attention=attention,
+        )
+        return Model(ouro_torch, ouro_torch.model_id, temperature=temperature)
     if is_fork:
         # Option-fork artifacts (Qwen3.5 hybrid) retain bounded cross-call
         # state-block prefix caches; token caching stays question-local.

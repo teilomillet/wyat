@@ -1,0 +1,356 @@
+# SPDX-FileCopyrightText: 2026 Teïlo Millet - teilomillet
+# SPDX-License-Identifier: Apache-2.0
+
+"""Ouro decision artifacts: clean nomenclature, inference, and tampering refusal."""
+
+from __future__ import annotations
+
+import json
+import shutil
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+torch = pytest.importorskip("torch")
+from tokenizers import Tokenizer  # noqa: E402
+from tokenizers.decoders import ByteLevel as ByteLevelDecoder  # noqa: E402
+from tokenizers.models import BPE  # noqa: E402
+from tokenizers.pre_tokenizers import ByteLevel  # noqa: E402
+from transformers import PreTrainedTokenizerFast  # noqa: E402
+
+import wyat  # noqa: E402
+from wyat.loading import ouro_artifact  # noqa: E402
+from wyat.loading.ouro import (  # noqa: E402
+    CandidateBatch,
+    ContextKVCache,
+    LayerKVCache,
+    OuroScorer,
+    ScalarScoreHead,
+    SegmentedQuestion,
+    StepLoRALinear,
+    StepLoRARouter,
+    attach_step_lora,
+    load_ouro_classes,
+    prefill_context,
+    run_candidate_steps,
+    score_candidates,
+    write_ouro_artifact,
+)
+
+SOURCE_FIXTURE = Path(__file__).parent / "fixtures" / "ouro_source"
+
+RECORD = {
+    "state": {"text": "Bonjour 世界 é", "count": 7},
+    "questions": {
+        "choice": {
+            "type": "choice",
+            "instructions": "Which applies?",
+            "criteria": {"a": "short", "b": "a much longer option " * 3, "c": "x"},
+        },
+        "score": {
+            "type": "score",
+            "instructions": "Rate.",
+            "criteria": ["no", "maybe", "yes"],
+        },
+        "noul": {
+            "type": "noul",
+            "instructions": "True?",
+            "criteria": {"false": "no", "true": "yes"},
+        },
+    },
+}
+
+
+def _tokenizer(path: Path) -> Path:
+    path.mkdir(parents=True, exist_ok=True)
+    alphabet = ByteLevel.alphabet()
+    vocabulary = {symbol: index for index, symbol in enumerate(sorted(alphabet))}
+    vocabulary["[PAD]"] = len(vocabulary)
+    tokenizer = Tokenizer(BPE(vocabulary, [], unk_token=None))
+    tokenizer.pre_tokenizer = ByteLevel(add_prefix_space=False)
+    tokenizer.decoder = ByteLevelDecoder()
+    wrapped = PreTrainedTokenizerFast(  # type: ignore[no-untyped-call]
+        tokenizer_object=tokenizer, pad_token="[PAD]"
+    )
+    wrapped.save_pretrained(path)
+    special_map = path / "special_tokens_map.json"
+    if not special_map.is_file():
+        special_map.write_text(json.dumps({"pad_token": "[PAD]"}) + "\n")
+    return path
+
+
+def _tiny_config_dict(vocabulary: int = 320) -> dict[str, Any]:
+    return {
+        "architectures": ["OuroForCausalLM"],
+        "attention_dropout": 0.0,
+        "bos_token_id": 0,
+        "eos_token_id": 0,
+        "head_dim": 4,
+        "hidden_act": "silu",
+        "hidden_size": 16,
+        "initializer_range": 0.02,
+        "intermediate_size": 32,
+        "layer_types": ["full_attention"] * ouro_artifact.NATIVE_LAYERS,
+        "max_position_embeddings": 65536,
+        "max_window_layers": ouro_artifact.NATIVE_LAYERS,
+        "model_type": "ouro",
+        "num_attention_heads": 4,
+        "num_hidden_layers": ouro_artifact.NATIVE_LAYERS,
+        "num_key_value_heads": 4,
+        "rms_norm_eps": 1e-6,
+        "rope_scaling": None,
+        "rope_theta": 1000000.0,
+        "sliding_window": None,
+        "tie_word_embeddings": False,
+        "torch_dtype": "bfloat16",
+        "total_ut_steps": 4,
+        "early_exit_threshold": 1.0,
+        "use_cache": True,
+        "use_sliding_window": False,
+        "vocab_size": vocabulary,
+    }
+
+
+def _build_ouro_artifact(tmp_path: Path, *, seed: int = 11) -> Path:
+    src_dir = tmp_path / "source"
+    src_dir.mkdir()
+    shutil.copy2(
+        SOURCE_FIXTURE / "configuration_ouro.py", src_dir / "configuration_ouro.py"
+    )
+    shutil.copy2(SOURCE_FIXTURE / "modeling_ouro.py", src_dir / "modeling_ouro.py")
+    cfg_dict = _tiny_config_dict(320)
+    (src_dir / "config.json").write_text(json.dumps(cfg_dict, indent=2) + "\n")
+    tok_dir = _tokenizer(tmp_path / "tokenizer")
+
+    config_cls, model_cls = load_ouro_classes(src_dir)
+    config = config_cls(**cfg_dict)
+    config._attn_implementation = "sdpa"
+    with torch.random.fork_rng():
+        torch.manual_seed(seed)
+        backbone = model_cls(config).to(dtype=torch.bfloat16).eval()
+        base_weights = {k: v.detach().clone() for k, v in backbone.state_dict().items()}
+        attach_step_lora(
+            backbone,
+            rank=ouro_artifact.ADAPTER_RANK,
+            alpha=ouro_artifact.ADAPTER_ALPHA,
+            steps=ouro_artifact.CANDIDATE_STEPS,
+            targets=ouro_artifact.ADAPTER_TARGETS,
+        )
+        # Initialize non-zero lora_B weights so both step adapters have an effect.
+        for name, param in backbone.named_parameters():
+            if ".lora_B." in name:
+                param.data.normal_(0.0, 0.05)
+        adapters = {
+            f"backbone.{name}": param.detach().float().clone()
+            for name, param in backbone.named_parameters()
+            if ".lora_" in name
+        }
+        head = ScalarScoreHead(config.hidden_size, ouro_artifact.HEAD_WIDTH)
+        head_state = {
+            f"head.{k}": v.detach().float().clone()
+            for k, v in head.state_dict().items()
+        }
+
+    artifact_dir = tmp_path / "artifact"
+    write_ouro_artifact(
+        artifact_dir,
+        source_dir=src_dir,
+        tokenizer_dir=tok_dir,
+        base_weights=base_weights,
+        adapters=adapters,
+        head=head_state,
+        max_length=2048,
+        attention="sdpa-math",
+        device_policy="cuda-bf16-autocast",
+        cache_entries=4,
+        cache_state_block_tokens=128,
+    )
+    return artifact_dir
+
+
+@pytest.fixture(scope="module")
+def artifact(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    return _build_ouro_artifact(tmp_path_factory.mktemp("ouro"))
+
+
+def test_clean_nomenclature_symbols_and_aliases() -> None:
+    assert SegmentedQuestion is CandidateBatch
+    assert ouro_artifact.TOTAL_STEPS == 4
+    assert ouro_artifact.CONTEXT_STEPS == 4
+    assert ouro_artifact.CONTEXT_KV_STEP == 4
+    assert ouro_artifact.CANDIDATE_STEPS == 2
+    assert len(ouro_artifact.adapter_tensor_names()) == 384
+
+
+def test_candidate_batch_encoding_and_backwards_compatible_properties(
+    artifact: Path,
+) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    rows = scorer.encode_record(RECORD)
+    assert len(rows) == 3
+    for row in rows:
+        assert isinstance(row, CandidateBatch)
+        assert row.prefix_ids == row.context_ids
+        assert row.option_ids == row.candidate_ids
+        assert len(row.candidate_ids) == len(row.question.options)
+
+
+def test_scorer_matches_direct_score_candidates(artifact: Path) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    for row in scorer.encode_record(RECORD):
+        scored = torch.tensor(scorer.question_logits(row), dtype=torch.float32)
+        context_tensor = torch.tensor([row.context_ids], dtype=torch.long)
+        ctx_cache = prefill_context(
+            scorer.backbone,
+            context_tensor,
+            policy="last",
+            context_steps=ouro_artifact.CONTEXT_STEPS,
+        )
+        assert isinstance(ctx_cache, ContextKVCache)
+        assert len(ctx_cache.banks) == 1
+        assert isinstance(ctx_cache.banks[0][0], LayerKVCache)
+        first_cand = run_candidate_steps(
+            scorer.backbone,
+            ctx_cache,
+            torch.tensor([row.candidate_ids[0]], dtype=torch.long),
+            candidate_steps=ouro_artifact.CANDIDATE_STEPS,
+        )
+        assert first_cand.shape == (1, len(row.candidate_ids[0]), 16)
+        direct = score_candidates(
+            scorer.backbone,
+            scorer.head,
+            context_tensor,
+            [torch.tensor([ids], dtype=torch.long) for ids in row.candidate_ids],
+            policy="last",
+            context_steps=ouro_artifact.CONTEXT_STEPS,
+            candidate_steps=ouro_artifact.CANDIDATE_STEPS,
+        )
+        torch.testing.assert_close(scored, direct, atol=1e-7, rtol=1e-5)
+
+
+def test_step_lora_router_activates_distinct_steps(artifact: Path) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    router = scorer.backbone._step_lora_router
+    assert isinstance(router, StepLoRARouter)
+    assert router.active_step is None
+    layer0_q = scorer.backbone.model.layers[0].self_attn.q_proj
+    assert isinstance(layer0_q, StepLoRALinear)
+
+    x = torch.randn(1, 3, 16)
+    out_disabled = layer0_q(x)
+    with router.activate(0):
+        assert router.active_step == 0
+        out_step0 = layer0_q(x)
+        with router.disabled():
+            assert router.active_step is None
+            out_nested_disabled = layer0_q(x)
+    with router.activate(1):
+        assert router.active_step == 1
+        out_step1 = layer0_q(x)
+
+    torch.testing.assert_close(out_disabled, out_nested_disabled, atol=0.0, rtol=0.0)
+    assert not torch.allclose(out_disabled, out_step0)
+    assert not torch.allclose(out_step0, out_step1)
+
+
+def test_option_permutation_only_remaps_logits(artifact: Path) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    swapped = json.loads(json.dumps(RECORD))
+    swapped["questions"]["choice"]["criteria"] = {
+        "c": "x",
+        "a": "short",
+        "b": "a much longer option " * 3,
+    }
+    left = scorer.logits(RECORD)[0]
+    right = scorer.logits(swapped)[0]
+    torch.testing.assert_close(
+        torch.tensor(right),
+        torch.tensor([left[2], left[0], left[1]]),
+        atol=1e-6,
+        rtol=1e-5,
+    )
+
+
+def test_context_prefix_cache_reuses_state_across_questions(artifact: Path) -> None:
+    uncached = OuroScorer.from_directory(artifact, device="cpu", prefix_cache_size=0)
+    cached = OuroScorer.from_directory(artifact, device="cpu", prefix_cache_size=4)
+
+    ref_logits = uncached.logits(RECORD)
+    hit_logits = cached.logits(RECORD)
+    assert cached.prefix_cache_currsize == 1
+    assert cached.prefix_cache_misses == 1
+    assert cached.prefix_cache_hits == 2
+
+    for ref, got in zip(ref_logits, hit_logits, strict=True):
+        torch.testing.assert_close(
+            torch.tensor(got),
+            torch.tensor(ref),
+            atol=ouro_artifact.CACHE_TOLERANCE_ATOL,
+            rtol=ouro_artifact.CACHE_TOLERANCE_RTOL,
+        )
+
+    cached.clear_prefix_cache()
+    assert cached.prefix_cache_currsize == 0
+    assert cached.prefix_cache_hits == 0
+    assert cached.prefix_cache_misses == 0
+
+
+def test_public_load_predicts_through_the_model_interface(artifact: Path) -> None:
+    model = wyat.load(artifact, device="cpu")
+    assert model.model_id.startswith("ouro-")
+    answers = OuroScorer.from_directory(artifact, device="cpu").predict(RECORD)
+    assert set(answers) == {"choice", "score", "noul"}
+
+
+def test_overlong_records_raise_model_input_error_without_forward_pass(
+    artifact: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu", max_length=64)
+    passes: list[object] = []
+    orig = scorer.question_logits
+
+    def counted(row: CandidateBatch) -> list[float]:
+        passes.append(row)
+        return orig(row)
+
+    monkeypatch.setattr(scorer, "question_logits", counted)
+    options = {"a": "short", "b": "x"}
+    fits = [wyat.Request.choice("Which?", options, context=t) for t in ("u", "v")]
+    refused = wyat.Request.choice("Which?", options, context="y" * 200)
+    with pytest.raises(wyat.ModelInputError) as raised:
+        scorer.score_many([*fits, refused])
+    assert raised.value.reason == "input-length"
+    assert passes == []
+
+
+@pytest.mark.parametrize(
+    "tamper",
+    ["weights", "extra-file", "contract", "duplicate-key", "subdir"],
+)
+def test_tampered_artifacts_are_refused(tmp_path: Path, tamper: str) -> None:
+    root = _build_ouro_artifact(tmp_path)
+    manifest_path = root / ouro_artifact.MANIFEST
+    manifest = json.loads(manifest_path.read_text())
+    if tamper == "weights":
+        (root / "head.safetensors").write_bytes(
+            (root / "head.safetensors").read_bytes() + b"\0"
+        )
+    elif tamper == "extra-file":
+        (root / "notes.txt").write_text("unexpected")
+    elif tamper == "contract":
+        manifest["contract"]["branch_loops"] = 4
+        manifest_path.write_text(json.dumps(manifest))
+    elif tamper == "duplicate-key":
+        text = manifest_path.read_text()
+        manifest_path.write_text(
+            text.replace(
+                '"format": "wyat-ouro-decision-v1",',
+                '"format": "wyat-ouro-decision-v1", "format": "wyat-ouro-decision-v1",',
+                1,
+            )
+        )
+    elif tamper == "subdir":
+        (root / "extra_dir").mkdir()
+    with pytest.raises(ValueError):
+        ouro_artifact.validate_artifact(root)
