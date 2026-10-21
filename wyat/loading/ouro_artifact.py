@@ -82,18 +82,12 @@ PINNED_BASE_FILES: dict[str, dict[str, int | str]] = {
 }
 
 # Clean domain nomenclature for Universal Transformer recurrent steps and
-# two-stage context + candidate scoring, with aliases for manifest keys.
+# two-stage context + candidate scoring.
 TOTAL_STEPS = 4
 CONTEXT_STEPS = 4
 CONTEXT_KV_STEP = 4
 CANDIDATE_STEPS = 2
 CANDIDATE_KV_POLICY = "last"
-
-TOTAL_LOOPS = TOTAL_STEPS
-PREFIX_LOOPS = CONTEXT_STEPS
-PREFIX_BANK = CONTEXT_KV_STEP
-BRANCH_LOOPS = CANDIDATE_STEPS
-BRANCH_POLICY = CANDIDATE_KV_POLICY
 
 ADAPTER_RANK = 16
 ADAPTER_ALPHA = 32
@@ -513,17 +507,6 @@ class CandidateBatch:
                     "Ouro tokens must be nonempty nonnegative integer tuples"
                 )
 
-    @property
-    def prefix_ids(self) -> tuple[int, ...]:
-        return self.context_ids
-
-    @property
-    def option_ids(self) -> tuple[tuple[int, ...], ...]:
-        return self.candidate_ids
-
-
-SegmentedQuestion = CandidateBatch
-
 
 def encode_record(
     tokenizer: tasks.Tokenizer, record: object, *, max_length: int
@@ -588,9 +571,6 @@ def reuse_context_prefix(
             break
         matched += 1
     return row.context_ids[:matched]
-
-
-reuse_prefix = reuse_context_prefix
 
 
 def input_error(error: ValueError) -> ModelInputError:

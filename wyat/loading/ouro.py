@@ -69,7 +69,6 @@ from wyat.loading.native import _request_record
 from wyat.loading.native_artifact import file_sha256
 from wyat.loading.ouro_artifact import (
     CandidateBatch,
-    SegmentedQuestion,
     encode_record,
     reuse_context_prefix,
 )
@@ -346,7 +345,6 @@ def attach_step_lora(
     for owner, proj_name, replacement in replacements:
         setattr(owner, proj_name, replacement)
     model._step_lora_router = router  # type: ignore[assignment]
-    model._branch_adapters = router  # type: ignore[assignment]
     return router
 
 
@@ -378,18 +376,12 @@ class ScalarScoreHead(nn.Module):
             )
 
 
-ScalarHead = ScalarScoreHead
-
-
 @dataclass(frozen=True)
 class LayerKVCache:
     """Post-RoPE key and value tensors for one decoder layer."""
 
     key: torch.Tensor
     value: torch.Tensor
-
-
-LayerKV = LayerKVCache
 
 
 @dataclass(frozen=True)
@@ -400,9 +392,6 @@ class ContextKVCache:
     length: int
     policy: CachePolicy
     owner: nn.Module
-
-
-PrefixState = ContextKVCache
 
 
 def _native_backbone(model: nn.Module) -> Any:
@@ -569,9 +558,7 @@ def prefill_context(
     native = _native_backbone(backbone)
     _validate_token_tensor(native, context_ids)
     banks: list[tuple[LayerKVCache, ...]] = []
-    router = getattr(backbone, "_step_lora_router", None) or getattr(
-        backbone, "_branch_adapters", None
-    )
+    router = getattr(backbone, "_step_lora_router", None)
     with router.disabled() if router is not None else nullcontext():
         hidden = native.embed_tokens(context_ids)
         for step in range(context_steps):
@@ -582,9 +569,6 @@ def prefill_context(
             if cache.entries:
                 banks.append(tuple(cache.entries))
     return ContextKVCache(tuple(banks), int(context_ids.shape[1]), policy, backbone)
-
-
-prefill = prefill_context
 
 
 def run_candidate_steps(
@@ -601,9 +585,7 @@ def run_candidate_steps(
         raise ValueError("context cache belongs to another backbone")
     if context_cache.policy == "matched" and len(context_cache.banks) < candidate_steps:
         raise ValueError("matched context cache has fewer banks than candidate_steps")
-    router = getattr(backbone, "_step_lora_router", None) or getattr(
-        backbone, "_branch_adapters", None
-    )
+    router = getattr(backbone, "_step_lora_router", None)
     if router is not None and (
         router.owner is not backbone or router.steps < candidate_steps
     ):
@@ -627,9 +609,6 @@ def run_candidate_steps(
                 _ReadContextKV(bank, step),
             )
     return cast(torch.Tensor, hidden)
-
-
-branch_hidden = run_candidate_steps
 
 
 def score_candidates(
@@ -686,9 +665,6 @@ def score_candidates_from_cache(
     if not torch.isfinite(scores).all():
         raise ValueError("nonfinite Ouro candidate logits")
     return cast(torch.Tensor, scores[:, 0])
-
-
-branch_logits = score_candidates
 
 
 def _clone_banks(
@@ -984,9 +960,7 @@ class OuroScorer:
         native = _native_backbone(self.backbone)
         ids = torch.tensor([tail_ids], dtype=torch.long, device=self.device)
         _validate_token_tensor(native, ids)
-        router = getattr(self.backbone, "_step_lora_router", None) or getattr(
-            self.backbone, "_branch_adapters", None
-        )
+        router = getattr(self.backbone, "_step_lora_router", None)
         final_bank: tuple[LayerKVCache, ...] = ()
         with router.disabled() if router is not None else nullcontext():
             hidden = native.embed_tokens(ids)
@@ -1229,21 +1203,14 @@ def write_ouro_artifact(
 __all__ = [
     "CandidateBatch",
     "ContextKVCache",
-    "LayerKV",
     "LayerKVCache",
     "OuroScorer",
-    "PrefixState",
-    "ScalarHead",
     "ScalarScoreHead",
-    "SegmentedQuestion",
     "StepLoRALinear",
     "StepLoRARouter",
     "attach_step_lora",
-    "branch_hidden",
-    "branch_logits",
     "load_ouro",
     "load_ouro_classes",
-    "prefill",
     "prefill_context",
     "run_candidate_steps",
     "score_candidates",

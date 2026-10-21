@@ -20,14 +20,13 @@ from tokenizers.pre_tokenizers import ByteLevel  # noqa: E402
 from transformers import PreTrainedTokenizerFast  # noqa: E402
 
 import wyat  # noqa: E402
-from wyat.loading import ouro_artifact  # noqa: E402
+from wyat.loading import ouro, ouro_artifact  # noqa: E402
 from wyat.loading.ouro import (  # noqa: E402
     CandidateBatch,
     ContextKVCache,
     LayerKVCache,
     OuroScorer,
     ScalarScoreHead,
-    SegmentedQuestion,
     StepLoRALinear,
     StepLoRARouter,
     attach_step_lora,
@@ -174,16 +173,31 @@ def artifact(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return _build_ouro_artifact(tmp_path_factory.mktemp("ouro"))
 
 
-def test_clean_nomenclature_symbols_and_aliases() -> None:
-    assert SegmentedQuestion is CandidateBatch
+def test_clean_nomenclature_symbols_and_forbidden_legacy_names() -> None:
     assert ouro_artifact.TOTAL_STEPS == 4
     assert ouro_artifact.CONTEXT_STEPS == 4
     assert ouro_artifact.CONTEXT_KV_STEP == 4
     assert ouro_artifact.CANDIDATE_STEPS == 2
     assert len(ouro_artifact.adapter_tensor_names()) == 384
+    for legacy in (
+        "OuroForkModel",
+        "OptionForkModel",
+        "SegmentedQuestion",
+        "PrefixState",
+        "LayerKV",
+        "ScalarHead",
+        "BranchAdapterController",
+        "BranchAdapterLinear",
+        "attach_branch_adapters",
+        "branch_hidden",
+        "branch_logits",
+        "prefill",
+    ):
+        assert not hasattr(ouro, legacy), legacy
+        assert not hasattr(ouro_artifact, legacy), legacy
 
 
-def test_candidate_batch_encoding_and_backwards_compatible_properties(
+def test_candidate_batch_encoding(
     artifact: Path,
 ) -> None:
     scorer = OuroScorer.from_directory(artifact, device="cpu")
@@ -191,8 +205,8 @@ def test_candidate_batch_encoding_and_backwards_compatible_properties(
     assert len(rows) == 3
     for row in rows:
         assert isinstance(row, CandidateBatch)
-        assert row.prefix_ids == row.context_ids
-        assert row.option_ids == row.candidate_ids
+        assert not hasattr(row, "prefix_ids")
+        assert not hasattr(row, "option_ids")
         assert len(row.candidate_ids) == len(row.question.options)
 
 

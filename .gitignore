@@ -117,6 +117,8 @@ artifacts/
 !/tests/test_tasks.py
 /wyat.bench.toml
 /.claude/
+/AGENTS.md
+/CLAUDE.md
 /node_modules/
 /package.json
 /package-lock.json

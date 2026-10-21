@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import ast
 import builtins
 import subprocess
 import sys
@@ -15,6 +16,34 @@ from types import ModuleType
 import pytest
 
 import wyat
+from wyat.loading import ouro_artifact
+
+ROOT = Path(__file__).resolve().parents[1]
+FORBIDDEN_OURO_IDENTIFIERS = frozenset(
+    {
+        "OuroForkModel",
+        "OptionForkModel",
+        "SegmentedQuestion",
+        "PrefixState",
+        "LayerKV",
+        "ScalarHead",
+        "BranchAdapterController",
+        "BranchAdapterLinear",
+        "attach_branch_adapters",
+        "branch_hidden",
+        "branch_logits",
+        "cached_branch_logits",
+        "prefix_ids",
+        "option_ids",
+        "PREFIX_LOOPS",
+        "PREFIX_BANK",
+        "BRANCH_LOOPS",
+        "BRANCH_POLICY",
+        "TOTAL_LOOPS",
+        "reuse_prefix",
+        "_branch_adapters",
+    }
+)
 
 
 @pytest.fixture
@@ -140,3 +169,29 @@ def test_ouro_contract_import_remains_framework_free() -> None:
         capture_output=True,
         text=True,
     )
+
+
+def test_ouro_modules_forbid_legacy_nomenclature() -> None:
+    for relative in ("wyat/loading/ouro_artifact.py", "wyat/loading/ouro.py"):
+        tree = ast.parse(
+            (ROOT / relative).read_text(encoding="utf-8"), filename=relative
+        )
+        found: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Name) and node.id in FORBIDDEN_OURO_IDENTIFIERS:
+                found.add(node.id)
+            elif (
+                isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+                and node.name in FORBIDDEN_OURO_IDENTIFIERS
+            ):
+                found.add(node.name)
+            elif (
+                isinstance(node, ast.Attribute)
+                and node.attr in FORBIDDEN_OURO_IDENTIFIERS
+            ):
+                found.add(node.attr)
+        assert not found, (
+            f"{relative} uses forbidden legacy identifiers: {sorted(found)}"
+        )
+    for forbidden in FORBIDDEN_OURO_IDENTIFIERS:
+        assert not hasattr(ouro_artifact, forbidden), forbidden
