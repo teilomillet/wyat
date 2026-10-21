@@ -111,7 +111,9 @@ def _tiny_config_dict(vocabulary: int = 320) -> dict[str, Any]:
     }
 
 
-def _build_ouro_artifact(tmp_path: Path, *, seed: int = 11) -> Path:
+def _build_ouro_artifact(
+    tmp_path: Path, *, seed: int = 11, contract_prompt: str = ouro_artifact.PROMPT
+) -> Path:
     src_dir = tmp_path / "source"
     src_dir.mkdir()
     shutil.copy2(
@@ -154,6 +156,7 @@ def _build_ouro_artifact(tmp_path: Path, *, seed: int = 11) -> Path:
     artifact_dir = tmp_path / "artifact"
     write_ouro_artifact(
         artifact_dir,
+        contract_prompt=contract_prompt,
         source_dir=src_dir,
         tokenizer_dir=tok_dir,
         base_weights=base_weights,
@@ -166,6 +169,18 @@ def _build_ouro_artifact(tmp_path: Path, *, seed: int = 11) -> Path:
         cache_state_block_tokens=128,
     )
     return artifact_dir
+
+
+def test_write_ouro_artifact_refuses_quoted_contract_before_mkdir(
+    tmp_path: Path,
+) -> None:
+    with pytest.raises(ValueError) as raised:
+        _build_ouro_artifact(tmp_path, contract_prompt="quoted-menu-isolated-option-v1")
+    assert str(raised.value) == (
+        "write_ouro_artifact only writes the frozen current-prompt layout; "
+        "quoted/preview contracts must use a v2 artifact writer"
+    )
+    assert not (tmp_path / "artifact").exists()
 
 
 @pytest.fixture(scope="module")

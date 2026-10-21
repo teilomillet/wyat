@@ -1127,6 +1127,7 @@ def load_ouro(
 def write_ouro_artifact(
     output: str | Path,
     *,
+    contract_prompt: str,
     source_dir: str | Path,
     tokenizer_dir: str | Path,
     base_weights: str | Path | Mapping[str, torch.Tensor],
@@ -1141,6 +1142,11 @@ def write_ouro_artifact(
     encoder_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Assemble and validate a complete ``wyat-ouro-decision-v1`` artifact directory."""
+    if contract_prompt != contract.PROMPT:
+        raise ValueError(
+            "write_ouro_artifact only writes the frozen current-prompt layout; "
+            "quoted/preview contracts must use a v2 artifact writer"
+        )
     root = Path(output)
     root.mkdir(parents=True, exist_ok=False)
     src_root = Path(source_dir)
