@@ -246,6 +246,7 @@ class ForkQuestion:
     question: tasks.Question
     prefix_ids: tuple[int, ...]
     option_ids: tuple[tuple[int, ...], ...]
+    state: str = ""
 
 
 def encode_record(
@@ -279,8 +280,41 @@ def encode_record(
         suffixes = tuple(tokens(option) for option in options)
         if len(pre) + max(map(len, suffixes)) > max_length:
             raise ValueError("complete fork branch exceeds max_length; no truncation")
-        result.append(ForkQuestion(question, pre, suffixes))
+        result.append(ForkQuestion(question, pre, suffixes, state))
     return tuple(result)
+
+
+def reuse_prefix(tokenizer: tasks.Tokenizer, row: ForkQuestion) -> tuple[int, ...]:
+    """Token prefix of the rendered state block, when it is exactly reusable.
+
+    The rendered prefix starts with ``State:\\n<canonical state>\\n`` and every
+    question made from the same record state repeats those tokens. A scorer can
+    retain the backbone state after that token prefix and continue with the rest
+    of a later question, saving the state prefill without changing any request
+    tokens. The boundary is the longest token prefix shared by the separately
+    encoded state block and the complete rendered prefix: tokenizers may merge
+    across the following boundary, so this compares actual token IDs rather
+    than assuming ``len(tokens(text))`` equals the prefix length. Returns an
+    empty tuple when no nonempty exact token prefix exists; callers must treat
+    an empty result as "no reuse" and must not truncate a partial token.
+    """
+    if type(row) is not ForkQuestion or type(row.state) is not str or not row.state:
+        return ()
+    header = f"State:\n{row.state}\n"
+    if len(header.encode("utf-8")) > 32 * max(len(row.prefix_ids), 1):
+        return ()
+    try:
+        ids = tuple(tokenizer.encode(header, add_special_tokens=False))
+    except (TypeError, ValueError, OverflowError):
+        return ()
+    if not ids or any(type(token) is not int or token < 0 for token in ids):
+        return ()
+    matched = 0
+    for expected, actual in zip(ids, row.prefix_ids, strict=False):
+        if expected != actual:
+            break
+        matched += 1
+    return row.prefix_ids[:matched]
 
 
 def input_error(error: ValueError) -> ModelInputError:

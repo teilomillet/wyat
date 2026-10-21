@@ -11,6 +11,12 @@ shared FP32 scalar head reads the branch's last token after the final norm.
 This reproduces the training recipe exactly; golden tests compare it with the
 trainer's own forward pass.
 
+Optionally, per-layer state after a question's rendered state block is kept
+across calls, keyed by that exact token prefix: consecutive questions of one
+record state then continue from it instead of re-prefilling the state. Reuse is
+token-exact and disabled by default (``prefix_cache_size=0``), which takes no
+extra tokenization or forward pass and returns the historical logits.
+
 CPU threads: without the optional flash-linear-attention and causal-conv1d
 kernels, the hybrid layers run as many small PyTorch operations, and extra
 intra-op threads mostly add synchronization. Measured on an Apple Silicon CPU
@@ -24,6 +30,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections import OrderedDict
 from collections.abc import Iterator, Sequence
 from contextlib import AbstractContextManager, contextmanager, nullcontext
 from pathlib import Path
@@ -47,8 +54,20 @@ from wyat.loading.fork_artifact import (
     adapter_name,
     branch_groups,
     encode_record,
+    reuse_prefix,
 )
 from wyat.loading.native import _request_record
+
+# Per-layer prefix state: attention keys/values or gated-delta-net convolution
+# and recurrent tensors, each defensively cloned so later forwards cannot mutate
+# a stored snapshot.
+type _ForkLayerState = tuple[torch.Tensor, torch.Tensor]
+
+
+def _checked_prefix_cache_size(value: object) -> int:
+    if type(value) is not int or value < 0:
+        raise ValueError("prefix_cache_size must be a nonnegative integer")
+    return value
 
 
 class _DropMessages(logging.Filter):
@@ -135,7 +154,18 @@ class _ScalarHead(nn.Module):
 
 
 class ForkScorer:
-    """Score public Requests or records with an option-fork artifact."""
+    """Score public Requests or records with an option-fork artifact.
+
+    With a nonnegative ``prefix_cache_size``, the per-layer state after the
+    rendered state block of a question is retained across calls, keyed by the
+    exact token prefix it covers. A later question whose prefix begins with a
+    stored key (consecutive questions of one record state, or an exact repeat)
+    continues the backbone from that state instead of re-prefilling it. Only
+    token prefixes are reused and the disabled default takes no extra
+    tokenization or forward pass, so results never depend on earlier requests.
+    The cache is owned by a single inference owner: the Wyat server serializes
+    active inference, so no lock is taken here.
+    """
 
     def __init__(
         self,
@@ -147,12 +177,21 @@ class ForkScorer:
         max_length: int,
         max_batch_tokens: int,
         input_rendering: object,
+        prefix_cache_size: int = 0,
     ) -> None:
         self.backbone, self.head, self.tokenizer = backbone, head, tokenizer
         self.model_id = model_id
         self.max_length = max_length
         self.max_batch_tokens = max_batch_tokens
         self.input_rendering = validate_input_rendering_policy(input_rendering)
+        self.prefix_cache_size = _checked_prefix_cache_size(prefix_cache_size)
+        # Longest-first matching keeps the most prefix tokens cached; an entry's
+        # state is the per-layer state after exactly its key tokens.
+        self._prefix_cache: OrderedDict[
+            tuple[int, ...], tuple[_ForkLayerState, ...]
+        ] = OrderedDict()
+        self._prefix_hits = 0
+        self._prefix_misses = 0
         pad = tokenizer.pad_token_id
         self.pad_id = tokenizer.eos_token_id if pad is None else pad
 
@@ -160,10 +199,34 @@ class ForkScorer:
     def device(self) -> torch.device:
         return next(self.head.parameters()).device
 
+    @property
+    def prefix_cache_currsize(self) -> int:
+        return len(self._prefix_cache)
+
+    @property
+    def prefix_cache_hits(self) -> int:
+        return self._prefix_hits
+
+    @property
+    def prefix_cache_misses(self) -> int:
+        return self._prefix_misses
+
+    def clear_prefix_cache(self) -> None:
+        """Clear every retained prefix state and reset the cache counters."""
+        self._prefix_cache.clear()
+        self._prefix_hits = 0
+        self._prefix_misses = 0
+
     @classmethod
     def from_directory(
-        cls, path: str | Path, *, device: str = "cpu", max_length: int | None = None
+        cls,
+        path: str | Path,
+        *,
+        device: str = "cpu",
+        max_length: int | None = None,
+        prefix_cache_size: int = 0,
     ) -> ForkScorer:
+        prefix_cache_size = _checked_prefix_cache_size(prefix_cache_size)
         root = Path(path)
         manifest = contract.validate_artifact(root)
         config = AutoConfig.from_pretrained(
@@ -261,6 +324,7 @@ class ForkScorer:
             max_length=limit,
             max_batch_tokens=manifest["max_batch_tokens"],
             input_rendering=manifest.get("input_rendering"),
+            prefix_cache_size=prefix_cache_size,
         )
 
     def _amp(self) -> AbstractContextManager[Any]:
@@ -288,6 +352,195 @@ class ForkScorer:
             mask[index, : len(sequence)] = 1
         return ids, mask
 
+    @staticmethod
+    def _snapshot(cache: DynamicCache, length: int) -> tuple[_ForkLayerState, ...]:
+        """Defensive clones of every layer's state after ``length`` tokens.
+
+        Gated-delta-net convolution/recurrent tensors are updated in place by
+        later forwards and attention keys/values are concatenated onto, so a
+        stored snapshot must not share storage with the cache it came from.
+        Attention states are sliced to the cached token count.
+        """
+        states: list[_ForkLayerState] = []
+        for raw in cache.layers:
+            if isinstance(raw, LinearAttentionLayer):
+                linear = raw
+                conv = cast(torch.Tensor, linear.conv_states[0])
+                recurrent = cast(torch.Tensor, linear.recurrent_states[0])
+                states.append((conv.detach().clone(), recurrent.detach().clone()))
+            else:
+                attention = cast(DynamicLayer, raw)
+                keys = cast(torch.Tensor, attention.keys)[:, :, :length, :]
+                values = cast(torch.Tensor, attention.values)[:, :, :length, :]
+                states.append((keys.detach().clone(), values.detach().clone()))
+        return tuple(states)
+
+    def _restore(self, states: tuple[_ForkLayerState, ...]) -> DynamicCache:
+        """A fresh prefix cache holding the given per-layer states."""
+        cache = DynamicCache(config=self.backbone.config)
+        for (first, second), raw in zip(states, cache.layers, strict=True):
+            if isinstance(raw, LinearAttentionLayer):
+                linear = raw
+                conv, recurrent = first.clone(), second.clone()
+                linear.lazy_initialization(conv_states=conv, recurrent_states=recurrent)
+                linear.conv_states[0] = conv
+                linear.recurrent_states[0] = recurrent
+                linear.is_conv_states_initialized[0] = True
+                linear.is_recurrent_states_initialized[0] = True
+                linear.has_previous_state[0] = True
+            else:
+                attention = cast(DynamicLayer, raw)
+                keys, values = first.clone(), second.clone()
+                attention.lazy_initialization(keys, values)
+                attention.keys, attention.values = keys, values
+        return cache
+
+    def _match_prefix(self, prefix_ids: tuple[int, ...]) -> tuple[int, ...] | None:
+        """The longest stored key that is an exact token prefix, or None."""
+        best: tuple[int, ...] | None = None
+        for key in self._prefix_cache:
+            if len(key) <= (0 if best is None else len(best)):
+                continue
+            if prefix_ids[: len(key)] == key:
+                best = key
+        if best is not None:
+            self._prefix_cache.move_to_end(best)
+        return best
+
+    def _store_prefix(
+        self, key: tuple[int, ...], states: tuple[_ForkLayerState, ...]
+    ) -> None:
+        if not key or self.prefix_cache_size <= 0:
+            return
+        self._prefix_cache[key] = states
+        self._prefix_cache.move_to_end(key)
+        while len(self._prefix_cache) > self.prefix_cache_size:
+            self._prefix_cache.popitem(last=False)
+
+    def _run_prefix_tail(
+        self, cache: DynamicCache, row: ForkQuestion, start: int
+    ) -> DynamicCache:
+        """Advance ``cache`` (holding ``start`` prefix tokens) to the full prefix."""
+        prefix = len(row.prefix_ids)
+        if start >= prefix:
+            return cache
+        ids, mask = self._rows([row.prefix_ids[start:]])
+        # The cached tokens are all non-padding, and the tail is one sequence.
+        seen = torch.ones(
+            (1, len(row.prefix_ids)), dtype=mask.dtype, device=self.device
+        )
+        positions = torch.arange(start, len(row.prefix_ids), device=self.device)[
+            None, :
+        ]
+        return cast(
+            DynamicCache,
+            self.backbone(
+                input_ids=ids,
+                attention_mask=seen,
+                position_ids=positions,
+                past_key_values=cache,
+                use_cache=True,
+            ).past_key_values,
+        )
+
+    def _prefix_cursor(self, row: ForkQuestion) -> DynamicCache:
+        """A cache advanced over every token of ``row.prefix_ids``.
+
+        With the cache disabled, this is the historical single prefix forward.
+        Otherwise a stored token prefix is continued when one matches; on a miss
+        the forward is split at the state-block token boundary so the resulting
+        state can be retained for later questions of the same record state.
+        """
+        if self.prefix_cache_size <= 0:
+            ids, mask = self._rows([row.prefix_ids])
+            return cast(
+                DynamicCache,
+                self.backbone(
+                    input_ids=ids, attention_mask=mask, use_cache=True
+                ).past_key_values,
+            )
+        key = self._match_prefix(row.prefix_ids)
+        if key is not None:
+            self._prefix_hits += 1
+            return self._run_prefix_tail(
+                self._restore(self._prefix_cache[key]), row, len(key)
+            )
+        self._prefix_misses += 1
+        boundary = reuse_prefix(self.tokenizer, row)
+        if not boundary or len(boundary) >= len(row.prefix_ids):
+            ids, mask = self._rows([row.prefix_ids])
+            return cast(
+                DynamicCache,
+                self.backbone(
+                    input_ids=ids, attention_mask=mask, use_cache=True
+                ).past_key_values,
+            )
+        ids, mask = self._rows([boundary])
+        cache = cast(
+            DynamicCache,
+            self.backbone(
+                input_ids=ids, attention_mask=mask, use_cache=True
+            ).past_key_values,
+        )
+        self._store_prefix(boundary, self._snapshot(cache, len(boundary)))
+        return self._run_prefix_tail(cache, row, len(boundary))
+
+    def _branch_logits(self, cache: DynamicCache, row: ForkQuestion) -> torch.Tensor:
+        """Score every option branch from a cache holding the full prefix."""
+        prefix = len(row.prefix_ids)
+        values = []
+        for group in branch_groups(row.option_ids, prefix, self.max_batch_tokens):
+            width = len(group)
+            fork = DynamicCache(config=self.backbone.config)
+            for source, layer in zip(cache.layers, fork.layers, strict=True):
+                if isinstance(source, LinearAttentionLayer):
+                    linear = cast(LinearAttentionLayer, layer)
+                    conv = cast(torch.Tensor, source.conv_states[0])
+                    state = cast(torch.Tensor, source.recurrent_states[0])
+                    conv = conv.expand(width, -1, -1).clone()
+                    state = state.expand(width, -1, -1, -1).clone()
+                    linear.lazy_initialization(conv_states=conv, recurrent_states=state)
+                    linear.conv_states[0] = conv
+                    linear.recurrent_states[0] = state
+                    linear.is_conv_states_initialized[0] = True
+                    linear.is_recurrent_states_initialized[0] = True
+                    linear.has_previous_state[0] = True
+                else:
+                    attention = cast(DynamicLayer, layer)
+                    keys = cast(torch.Tensor, cast(DynamicLayer, source).keys)
+                    vals = cast(torch.Tensor, cast(DynamicLayer, source).values)
+                    keys = keys.expand(width, -1, -1, -1).clone()
+                    vals = vals.expand(width, -1, -1, -1).clone()
+                    attention.lazy_initialization(keys, vals)
+                    attention.keys, attention.values = keys, vals
+            suffix_ids, suffix_mask = self._rows(group)
+            positions = torch.arange(
+                prefix, prefix + suffix_ids.shape[1], device=self.device
+            )[None, :].expand(width, -1)
+            output = self.backbone(
+                input_ids=suffix_ids,
+                attention_mask=torch.cat(
+                    [
+                        torch.ones(
+                            (width, prefix),
+                            dtype=suffix_mask.dtype,
+                            device=self.device,
+                        ),
+                        suffix_mask,
+                    ],
+                    dim=1,
+                ),
+                position_ids=positions,
+                past_key_values=fork,
+                use_cache=True,
+            )
+            last = output.last_hidden_state[
+                torch.arange(width, device=self.device),
+                torch.tensor([len(s) - 1 for s in group], device=self.device),
+            ]
+            values.append(self.head(last))
+        return torch.cat(values).float()
+
     def question_logits(self, row: ForkQuestion) -> list[float]:
         advice = (
             nullcontext()
@@ -295,65 +548,7 @@ class ForkScorer:
             else _without_cuda_kernel_advice()
         )
         with torch.inference_mode(), self._amp(), advice:
-            ids, mask = self._rows([row.prefix_ids])
-            cache = self.backbone(
-                input_ids=ids, attention_mask=mask, use_cache=True
-            ).past_key_values
-            prefix = len(row.prefix_ids)
-            values = []
-            for group in branch_groups(row.option_ids, prefix, self.max_batch_tokens):
-                width = len(group)
-                fork = DynamicCache(config=self.backbone.config)
-                for source, layer in zip(cache.layers, fork.layers, strict=True):
-                    if isinstance(source, LinearAttentionLayer):
-                        linear = cast(LinearAttentionLayer, layer)
-                        conv = cast(torch.Tensor, source.conv_states[0])
-                        state = cast(torch.Tensor, source.recurrent_states[0])
-                        conv = conv.expand(width, -1, -1).clone()
-                        state = state.expand(width, -1, -1, -1).clone()
-                        linear.lazy_initialization(
-                            conv_states=conv, recurrent_states=state
-                        )
-                        linear.conv_states[0] = conv
-                        linear.recurrent_states[0] = state
-                        linear.is_conv_states_initialized[0] = True
-                        linear.is_recurrent_states_initialized[0] = True
-                        linear.has_previous_state[0] = True
-                    else:
-                        attention = cast(DynamicLayer, layer)
-                        keys = cast(torch.Tensor, cast(DynamicLayer, source).keys)
-                        vals = cast(torch.Tensor, cast(DynamicLayer, source).values)
-                        keys = keys.expand(width, -1, -1, -1).clone()
-                        vals = vals.expand(width, -1, -1, -1).clone()
-                        attention.lazy_initialization(keys, vals)
-                        attention.keys, attention.values = keys, vals
-                suffix_ids, suffix_mask = self._rows(group)
-                positions = torch.arange(
-                    prefix, prefix + suffix_ids.shape[1], device=self.device
-                )[None, :].expand(width, -1)
-                output = self.backbone(
-                    input_ids=suffix_ids,
-                    attention_mask=torch.cat(
-                        [
-                            torch.ones(
-                                (width, prefix),
-                                dtype=suffix_mask.dtype,
-                                device=self.device,
-                            ),
-                            suffix_mask,
-                        ],
-                        dim=1,
-                    ),
-                    position_ids=positions,
-                    past_key_values=fork,
-                    use_cache=True,
-                )
-                last = output.last_hidden_state[
-                    torch.arange(width, device=self.device),
-                    torch.tensor([len(s) - 1 for s in group], device=self.device),
-                ]
-                values.append(self.head(last))
-            logits = torch.cat(values).float()
+            logits = self._branch_logits(self._prefix_cursor(row), row)
         if not torch.isfinite(logits).all():
             raise ValueError("nonfinite fork logits")
         return cast(list[float], logits.cpu().tolist())
@@ -396,9 +591,18 @@ class ForkScorer:
 
 
 def load_fork(
-    path: str | Path, *, device: str = "cpu", max_length: int | None = None
+    path: str | Path,
+    *,
+    device: str = "cpu",
+    max_length: int | None = None,
+    prefix_cache_size: int = 0,
 ) -> ForkScorer:
-    return ForkScorer.from_directory(path, device=device, max_length=max_length)
+    return ForkScorer.from_directory(
+        path,
+        device=device,
+        max_length=max_length,
+        prefix_cache_size=prefix_cache_size,
+    )
 
 
 def write_artifact(

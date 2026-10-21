@@ -29,7 +29,7 @@ class Arguments(argparse.Namespace):
     device: str | None
     max_length: int
     token_cache_size: int
-    prefix_cache_size: int
+    prefix_cache_size: int | None
     attention: str
     compile: bool
     responsive: bool
@@ -155,8 +155,11 @@ def main(argv: list[str] | None = None) -> int:
         command.add_argument(
             "--prefix-cache-size",
             type=int,
-            default=16,
-            help="native prefix KV cache entries; 0 disables caching",
+            default=None,
+            help=(
+                "exact token-prefix state cache entries; default 16 for native "
+                "artifacts and 0 (disabled) for option-fork artifacts"
+            ),
         )
         command.add_argument(
             "--attention",
@@ -274,7 +277,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.temperature <= 0 or not math.isfinite(args.temperature):
         parser.error("--temperature must be a positive finite number")
-    if args.prefix_cache_size < 0:
+    if args.prefix_cache_size is not None and args.prefix_cache_size < 0:
         parser.error("--prefix-cache-size must be nonnegative")
     if args.command == "decide" and args.batch_size <= 0:
         parser.error("--batch-size must be positive")
@@ -326,7 +329,7 @@ def main(argv: list[str] | None = None) -> int:
             "compile": args.compile,
             "temperature": args.temperature,
         }
-        if args.prefix_cache_size != 16:
+        if args.prefix_cache_size is not None:
             load_kwargs["prefix_cache_size"] = args.prefix_cache_size
         if not args.responsive:
             load_kwargs["responsive"] = False

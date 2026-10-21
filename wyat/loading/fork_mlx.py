@@ -11,6 +11,12 @@ scalar head. The prefix runs once; every branch group continues from broadcast
 copies of its attention keys/values and gated-delta-net convolution/recurrent
 states.
 
+An optional bounded LRU cache retains the backbone state after the rendered
+record-state token prefix (and after exact whole-prefix matches), so later
+questions built from the same record state skip that prefill. Reuse compares
+actual token IDs; it never shares state for a token mismatch. Retained arrays
+are defensive copies because cache kernels mutate live state in place.
+
 Branch rows are right-padded without a mask: every layer is causal, so padding
 after a branch's last token cannot change the hidden state read there.
 """
@@ -18,6 +24,7 @@ after a branch's last token cannot change the hidden state read there.
 from __future__ import annotations
 
 import json
+from collections import OrderedDict
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from threading import Lock
@@ -45,10 +52,14 @@ from wyat.loading.fork_artifact import (
     adapter_name,
     branch_groups,
     encode_record,
+    reuse_prefix,
 )
 from wyat.loading.mlx import _Adapter, _request_record
 
 type _Cache = KVCache | ArraysCache
+# One layer's retained prefix state: attention key/value or linear-attention
+# convolution/recurrent arrays. A cache entry holds one list per layer.
+type _PrefixStates = list[list[mx.array]]
 
 _new_kv_cache = cast(Callable[[], KVCache], KVCache)
 
@@ -229,9 +240,12 @@ class ForkMLXScorer:
         max_batch_tokens: int,
         input_rendering: object,
         responsive: bool = True,
+        prefix_cache_size: int = 0,
     ) -> None:
         if type(responsive) is not bool:
             raise ValueError("responsive must be a boolean")
+        if type(prefix_cache_size) is not int or prefix_cache_size < 0:
+            raise ValueError("prefix_cache_size must be a nonnegative integer")
         self.backbone, self.head, self.tokenizer = backbone, head, tokenizer
         self.device = device
         self.model_id = model_id
@@ -239,9 +253,33 @@ class ForkMLXScorer:
         self.max_batch_tokens = max_batch_tokens
         self.input_rendering = validate_input_rendering_policy(input_rendering)
         self.responsive = responsive
+        self.prefix_cache_size = prefix_cache_size
+        # Exact token-prefix state entries, least-recently-used first. Values are
+        # defensive copies; MLX cache kernels may mutate their state arrays.
+        self._prefix_cache: OrderedDict[tuple[int, ...], _PrefixStates] = OrderedDict()
+        self._prefix_hits = 0
+        self._prefix_misses = 0
         self._inference_lock = Lock()
         pad = tokenizer.pad_token_id
         self.pad_id = tokenizer.eos_token_id if pad is None else pad
+
+    @property
+    def prefix_cache_currsize(self) -> int:
+        return len(self._prefix_cache)
+
+    @property
+    def prefix_cache_hits(self) -> int:
+        return self._prefix_hits
+
+    @property
+    def prefix_cache_misses(self) -> int:
+        return self._prefix_misses
+
+    def clear_prefix_cache(self) -> None:
+        """Clear all retained prefix states and reset cache counters."""
+        self._prefix_cache.clear()
+        self._prefix_hits = 0
+        self._prefix_misses = 0
 
     def encode_record(self, record: object) -> tuple[ForkQuestion, ...]:
         return encode_record(
@@ -285,15 +323,84 @@ class ForkMLXScorer:
                 caches.append(attention)
         return caches
 
+    def _fresh_caches(self) -> list[_Cache]:
+        return [
+            ArraysCache(size=2) if layer.is_linear else _new_kv_cache()
+            for layer in self.backbone.layers
+        ]
+
+    def _match_prefix(
+        self, prefix: tuple[int, ...]
+    ) -> tuple[tuple[int, ...], _PrefixStates] | None:
+        """Longest retained key that is an exact token prefix of ``prefix``."""
+        best_key: tuple[int, ...] | None = None
+        best_states: _PrefixStates | None = None
+        best_length = 0
+        for key, states in self._prefix_cache.items():
+            length = len(key)
+            if length <= best_length or length > len(prefix):
+                continue
+            if prefix[:length] != key:
+                continue
+            best_key, best_states, best_length = key, states, length
+        if best_key is None or best_states is None:
+            return None
+        self._prefix_cache.move_to_end(best_key)
+        return best_key, best_states
+
+    def _store_prefix(self, key: tuple[int, ...], states: _PrefixStates) -> None:
+        if (
+            not key
+            or self.prefix_cache_size <= 0
+            or len(states) != len(self.backbone.layers)
+        ):
+            return
+        self._prefix_cache[key] = states
+        self._prefix_cache.move_to_end(key)
+        while len(self._prefix_cache) > self.prefix_cache_size:
+            self._prefix_cache.popitem(last=False)
+
+    @staticmethod
+    def _snapshot(caches: Sequence[_Cache]) -> _PrefixStates:
+        """Defensive copies of per-layer state; later forwards mutate live arrays."""
+        return [[mx.array(array) for array in cache.state] for cache in caches]
+
+    def _prefix_states(self, row: ForkQuestion) -> _PrefixStates:
+        """Advance prefix state over ``row.prefix_ids``, reusing retained state.
+
+        A retained entry that is an exact token prefix of the request continues
+        from its snapshot. Otherwise the state-block boundary from
+        ``reuse_prefix`` is retained so later questions from the same record
+        state can skip that prefill. Caller holds ``_inference_lock``.
+        """
+        if self.prefix_cache_size <= 0:
+            caches = self._fresh_caches()
+            self._hidden(mx.array([row.prefix_ids]), caches)
+            return [list(cache.state) for cache in caches]
+        match = self._match_prefix(row.prefix_ids)
+        if match is not None:
+            key, states = match
+            self._prefix_hits += 1
+            caches = self._branch_caches(states, 1)
+            tail = row.prefix_ids[len(key) :]
+            if tail:
+                self._hidden(mx.array([tail]), caches)
+            return [list(cache.state) for cache in caches]
+        self._prefix_misses += 1
+        boundary = reuse_prefix(self.tokenizer, row)
+        caches = self._fresh_caches()
+        if 0 < len(boundary) < len(row.prefix_ids):
+            self._hidden(mx.array([row.prefix_ids[: len(boundary)]]), caches)
+            self._store_prefix(boundary, self._snapshot(caches))
+            self._hidden(mx.array([row.prefix_ids[len(boundary) :]]), caches)
+        else:
+            self._hidden(mx.array([row.prefix_ids]), caches)
+        return [list(cache.state) for cache in caches]
+
     def question_logits(self, row: ForkQuestion) -> list[float]:
         with self._inference_lock, mx.stream(self.device):
-            caches: list[_Cache] = [
-                ArraysCache(size=2) if layer.is_linear else _new_kv_cache()
-                for layer in self.backbone.layers
-            ]
             # Only the caches are needed; lazy evaluation skips the last block.
-            self._hidden(mx.array([row.prefix_ids]), caches)
-            states = [tuple(cache.state) for cache in caches]
+            states = self._prefix_states(row)
             mx.eval(states)
             prefix = len(row.prefix_ids)
             values = []
@@ -355,12 +462,15 @@ def load_fork_mlx(
     device: str = "gpu",
     max_length: int | None = None,
     responsive: bool = True,
+    prefix_cache_size: int = 0,
 ) -> ForkMLXScorer:
     """Load a validated option-fork artifact for MLX on Apple GPU or CPU."""
     if device not in {"cpu", "gpu"}:
         raise ValueError("MLX device must be cpu or gpu")
     if type(responsive) is not bool:
         raise ValueError("responsive must be a boolean")
+    if type(prefix_cache_size) is not int or prefix_cache_size < 0:
+        raise ValueError("prefix_cache_size must be a nonnegative integer")
     if device == "gpu" and not mx.metal.is_available():
         raise ValueError("MLX GPU inference requires available Apple Metal")
     root = Path(path).resolve()
@@ -427,4 +537,5 @@ def load_fork_mlx(
         max_batch_tokens=manifest["max_batch_tokens"],
         input_rendering=manifest.get("input_rendering"),
         responsive=responsive,
+        prefix_cache_size=prefix_cache_size,
     )

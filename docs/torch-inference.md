@@ -27,9 +27,13 @@ token of each branch. Returned scores follow the caller's option order.
 There is no autoregressive generation loop.
 
 Branches are evaluated in groups within the artifact's token budget. An input
-that exceeds the configured length is refused rather than truncated. The
-prefix is reused within a question; `token_cache_size` and `prefix_cache_size`
-do not create cross-call caches for this format.
+that exceeds the configured length is refused rather than truncated. The prefix
+is reused within a question, and `prefix_cache_size` optionally retains the
+rendered record-state block across calls so later questions with the same state
+skip that prefill. The option-fork default is `0` (disabled); a retained entry
+holds attention keys/values plus gated-delta-net convolution and recurrent
+state, so size it against memory. `token_cache_size` does not apply to this
+format.
 
 800M uses PyTorch's
 [scaled dot-product attention](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
@@ -59,13 +63,14 @@ The existing artifact families retain their distinct inference contracts:
 
 | Artifact | Readout and cache | Attention |
 | --- | --- | --- |
-| `wyat-option-fork-v1` (800M) | Last token of each isolated option branch; question-local prefix reuse | SDPA, uncompiled |
+| `wyat-option-fork-v1` (800M) | Last token of each isolated option branch; question-local prefix reuse and opt-in cross-call state-block cache | SDPA, uncompiled |
 | `wyat-native-full-v1` (legacy compatibility) | Candidate and final decision endpoints; cross-call prefix KV cache | SDPA, uncompiled |
 | Single-choice candidate-head | Candidate and final decision endpoints; full prefill | SDPA or reference eager, uncompiled |
 
 Native artifacts keep up to `prefix_cache_size` shared token prefixes (default
-16); `prefix_cache_size=0`, or the CLI's `--prefix-cache-size 0`, restores full
-prefill. They retain backbone weights in their stored FP32 or BF16 dtype on
+16). Option-fork artifacts keep up to `prefix_cache_size` record-state prefixes
+(default 0, opt-in). `prefix_cache_size=0`, or the CLI's
+`--prefix-cache-size 0`, restores full prefill for either family. They retain backbone weights in their stored FP32 or BF16 dtype on
 CUDA, with FP32 adapters and decision head. Candidate-head artifacts restore
 exactly representable BF16 linear weights to BF16 on CUDA; embeddings, norms,
 residuals and decision head retain FP32. Both use BF16 autocast on CUDA and

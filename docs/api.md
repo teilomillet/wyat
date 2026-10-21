@@ -84,10 +84,16 @@ are not input forms. The query and candidate text must also be nonempty. The
 single-choice candidate-head loader requires at least two candidates,
 `task="choice"`, and enforces its artifact's candidate and token limits; the native full-task loader
 (`wyat-native-full-v1`) and option-fork loader (`wyat-option-fork-v1`) support
-`choice`, `score`, and `noul`. Native artifacts additionally support cross-call
-prefix KV caching (`prefix_cache_size`); option-fork artifacts reuse the prefix
-within each question and keep no cross-call cache. Loaders reject unsupported tasks and
-inputs beyond the configured limits; they never truncate a request silently.
+`choice`, `score`, and `noul`. Both full-task loaders support cross-call prefix
+caching (`prefix_cache_size`): native artifacts retain candidate-prefix K/V,
+while option-fork artifacts retain the rendered record-state block plus the
+hybrid backbone's attention and gated-delta-net state. Omit the argument for the
+family defaults (native 16 entries, option-fork 0), or pass `0` to disable
+caching. A retained prefix is only reused when its token IDs exactly prefix the
+new request; reuse changes floating-point grouping, so cached results follow the
+documented per-family numerical tolerance rather than bitwise equality. Loaders
+reject unsupported tasks and inputs beyond the configured limits; they never
+truncate a request silently.
 Native `predict` and `logits` score a record's questions in contiguous groups
 that fit the artifact's padded batch budget, so a record with many questions
 gives the same answers as one batch within numeric tolerance. Their input-size

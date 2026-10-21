@@ -54,7 +54,12 @@ def test_fork_dispatch_defaults_to_cpu_and_preserves_model_options(
     assert model.model_id == "fork-fixture"
     assert model.temperature == 1.5
     assert loaded_fork == [
-        {"path": fork_directory, "device": "cpu", "max_length": None}
+        {
+            "path": fork_directory,
+            "device": "cpu",
+            "max_length": None,
+            "prefix_cache_size": 0,
+        }
     ]
 
     wyat.load(
@@ -68,6 +73,7 @@ def test_fork_dispatch_defaults_to_cpu_and_preserves_model_options(
         "path": fork_directory,
         "device": "cuda:1",
         "max_length": 256,
+        "prefix_cache_size": 32,
     }
 
 
@@ -98,12 +104,14 @@ def test_fork_mlx_dispatch_defaults_to_gpu_and_passes_responsiveness(
             "device": "gpu",
             "max_length": None,
             "responsive": True,
+            "prefix_cache_size": 0,
         },
         {
             "path": fork_directory,
             "device": "cpu",
             "max_length": 64,
             "responsive": False,
+            "prefix_cache_size": 0,
         },
     ]
     with pytest.raises(ValueError, match="sdpa attention, uncompiled"):

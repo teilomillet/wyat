@@ -57,7 +57,7 @@ def load(
     device: str | None = None,
     max_length: int | None = None,
     token_cache_size: int = 0,
-    prefix_cache_size: int = 16,
+    prefix_cache_size: int | None = None,
     attention: str = "sdpa",
     compile: bool = False,
     responsive: bool = True,
@@ -74,11 +74,21 @@ def load(
     GPU inference pauses 1 ms after every fourth backbone layer so other
     applications can submit GPU work; ``responsive=False`` removes those pauses
     and is rejected by engines that do not pace.
+
+    ``prefix_cache_size`` bounds a least-recently-used cache of exact token
+    prefixes. ``None`` keeps the family defaults (native 16, option-fork 0);
+    a nonnegative integer sets the entry count for the selected family, and
+    ``0`` disables caching. Option-fork entries retain the state-block prefix
+    plus attention and gated-delta-net state, so size them against memory.
     """
-    if type(prefix_cache_size) is not int or prefix_cache_size < 0:
-        raise ValueError("prefix_cache_size must be a nonnegative integer")
+    if prefix_cache_size is not None and (
+        type(prefix_cache_size) is not int or prefix_cache_size < 0
+    ):
+        raise ValueError("prefix_cache_size must be a nonnegative integer or None")
     if type(responsive) is not bool:
         raise ValueError("responsive must be a boolean")
+    native_prefix_cache_size = 16 if prefix_cache_size is None else prefix_cache_size
+    fork_prefix_cache_size = 0 if prefix_cache_size is None else prefix_cache_size
     path = _local_directory(path)
     is_native = (Path(path) / "native_manifest.json").is_file()
     is_fork = (Path(path) / "fork_manifest.json").is_file()
@@ -87,8 +97,8 @@ def load(
             "responsive=False applies only to native MLX and option-fork MLX inference"
         )
     if is_fork:
-        # Option-fork artifacts (Qwen3.5 hybrid) keep no cross-call caches:
-        # token and prefix cache sizes do not apply.
+        # Option-fork artifacts (Qwen3.5 hybrid) retain bounded cross-call
+        # state-block prefix caches; token caching stays question-local.
         if attention != "sdpa" or compile:
             raise ValueError("option-fork inference uses sdpa attention, uncompiled")
         fork: Scorer
@@ -99,7 +109,10 @@ def load(
                 _raise_missing_runtime(exc, "torch")
                 raise
             fork_torch = load_fork(
-                path, device="cpu" if device is None else device, max_length=max_length
+                path,
+                device="cpu" if device is None else device,
+                max_length=max_length,
+                prefix_cache_size=fork_prefix_cache_size,
             )
             fork, model_id = fork_torch, fork_torch.model_id
         elif backend == "mlx":
@@ -113,6 +126,7 @@ def load(
                 device="gpu" if device is None else device,
                 max_length=max_length,
                 responsive=responsive,
+                prefix_cache_size=fork_prefix_cache_size,
             )
             fork, model_id = fork_mlx, fork_mlx.model_id
         else:
@@ -136,7 +150,7 @@ def load(
                 path,
                 device="cpu" if device is None else device,
                 max_length=max_length,
-                prefix_cache_size=prefix_cache_size,
+                prefix_cache_size=native_prefix_cache_size,
             )
             scorer, model_id = native_torch, native_torch.model_id
         else:
@@ -171,7 +185,7 @@ def load(
                 device="gpu" if device is None else device,
                 max_length=max_length,
                 responsive=responsive,
-                prefix_cache_size=prefix_cache_size,
+                prefix_cache_size=native_prefix_cache_size,
             )
             scorer, model_id = native_mlx, native_mlx.model_id
         else:

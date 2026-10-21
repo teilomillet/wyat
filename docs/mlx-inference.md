@@ -28,8 +28,15 @@ synthetic questions up to a 5,871-token prefix. The GPU scored the set in about
 took 117 s, because MLX-LM's CPU gated-delta path steps one token at a time; use
 it for parity checks, not speed. Measure your own requests and device.
 
-The prefix is reused within a question; `token_cache_size` and
-`prefix_cache_size` do not apply, and `compile=True` is rejected. GPU sharing
+The prefix is reused within a question. Option-fork artifacts also support an
+opt-in cross-call cache of the rendered record-state prefix: consecutive
+questions that share the same record state (for example a scenario with several
+sibling questions, or retries) continue from the retained attention and
+gated-delta-net state instead of re-prefilling the state block. Set its entry
+count with `load(..., prefix_cache_size=N)` or the CLI's `--prefix-cache-size`;
+the option-fork default is `0` (disabled) because each entry retains the hybrid
+state for a full state block. `token_cache_size` does not apply, and
+`compile=True` is rejected. GPU sharing
 pauses work as described under [native artifacts](#native-artifacts);
 `responsive=False` removes the pauses. The Metal kernel for gated-delta-net
 layers needs a linear key head width divisible by 32 (128 in 800M); other
@@ -138,7 +145,9 @@ from wyat import Model
 from wyat.backends.wyat.mlx import MLXWyatScorer
 from wyat.backends.wyat.prefix import PrefixScorer
 
-base = MLXWyatScorer.from_directory("/path/to/candidate-head-model", device="gpu", compile=False)
+base = MLXWyatScorer.from_directory(
+    "/path/to/candidate-head-model", device="gpu", compile=False
+)
 # Choose a length shared by your encoded requests, before all candidate readouts.
 # request is the representative Request above; 3 is an example, not a speed policy.
 prefix = base.encode_request(request).ids[:3]

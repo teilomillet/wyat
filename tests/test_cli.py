@@ -619,6 +619,8 @@ def test_cli_forwards_prefix_cache_size_and_serve_queue_options(
     assert cli.main(["serve", "local-path", "--no-access-log"]) == 0
     assert app_kwargs.pop()["log_access"] is False
     assert not access_logger.handlers
+    # Omitting the flag keeps the artifact-family defaults (native 16, fork 0).
+    assert "prefix_cache_size" not in load_kwargs[0]
     load_kwargs.clear()
 
     assert (
