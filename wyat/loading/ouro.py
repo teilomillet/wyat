@@ -54,7 +54,7 @@ from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 from torch import nn
 from torch.nn import functional as F
-from transformers import PreTrainedTokenizerFast
+from transformers import AttentionInterface, PreTrainedTokenizerFast
 from transformers.modeling_rope_utils import ROPE_INIT_FUNCTIONS
 
 from wyat import tasks
@@ -660,7 +660,7 @@ def _run_recurrent_step(
     hidden: torch.Tensor,
     context_length: int,
     step: int,
-    cache: _CaptureStepKV | _ReadAndCaptureStepKV | _ReadContextKV,
+    cache: _CaptureStepKV | _ReadAndCaptureStepKV | _ReadContextKV | _OwnCandidateKV,
     geometry: _GeometryCache,
 ) -> torch.Tensor:
     positions, rotary, mask = geometry.get(hidden, context_length)
@@ -787,59 +787,219 @@ def run_candidate_steps(
     )
 
 
-def _batched_candidate_last_hidden(
+CandidateBatching = Literal["shared_context", "per_candidate"]
+# Inference scores candidates in shared-context batches by default; the
+# per-candidate path stays bitwise identical to ``run_candidate_steps``.
+CANDIDATE_BATCHING: CandidateBatching = "shared_context"
+# A batch grows while its FP32 scores and their softmax,
+# 8 · heads · packed · (context + packed) bytes, stay within this budget.
+SHARED_SCORE_BUDGET_BYTES = 512 * 2**20
+_SHARED_CONTEXT_KIND = "wyat_shared_context_batch"
+_SHARED_CONTEXT_LAYER: ContextVar[LayerKVCache | None] = ContextVar(
+    "wyat_shared_context_layer", default=None
+)
+
+
+def _candidate_batching(value: object) -> CandidateBatching:
+    """``"shared_context"`` or ``"per_candidate"``.
+
+    ``True``/``False``, the earlier opt-in flag the profiling scripts in
+    ``scripts/ouro_speed`` pass, map to those two modes.
+    """
+    if value is True or value == "shared_context":
+        return "shared_context"
+    if value is False or value == "per_candidate":
+        return "per_candidate"
+    raise ValueError("candidate_batching must be 'shared_context' or 'per_candidate'")
+
+
+def _shared_context_attention(
+    module: nn.Module,
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    attention_mask: torch.Tensor | None,
+    dropout: float = 0.0,
+    scaling: float | None = None,
+    **kwargs: Any,
+) -> tuple[torch.Tensor, None]:
+    """Attention of a candidate batch over one shared context and its own tokens.
+
+    Per head, the batch's candidate tokens follow the context in one packed
+    sequence; a block-diagonal causal mask lets each token see the whole
+    context and its own candidate's earlier tokens only. The context K/V is
+    read once for the batch instead of copied into every row. FP32 softmax;
+    equal to attention over the concatenated K/V in exact arithmetic, with
+    different rounding than the native kernels.
+    """
+    context = _SHARED_CONTEXT_LAYER.get()
+    if context is None or dropout or scaling is None or attention_mask is None:
+        raise ValueError("shared-context attention runs only inside its own batches")
+    batch, heads, length, dim = query.shape
+    if key.shape[1] != heads or context.key.shape[:2] != (1, heads):
+        raise ValueError("shared-context attention needs one K/V head per query head")
+    packed = batch * length
+    with torch.autocast(query.device.type, enabled=False):
+
+        def pack(states: torch.Tensor) -> torch.Tensor:
+            # [batch, heads, length, dim] -> [heads, batch · length, dim]
+            return states.float().transpose(0, 1).reshape(heads, packed, dim)
+
+        keys = torch.cat((context.key[0].float(), pack(key)), dim=1)
+        values = torch.cat((context.value[0].float(), pack(value)), dim=1)
+        scores = torch.matmul(pack(query) * scaling, keys.transpose(-1, -2))
+        token = torch.arange(packed, device=query.device)
+        row, position = token // length, token % length
+        own = (row[:, None] == row[None, :]) & (position[None, :] <= position[:, None])
+        scores[..., context.key.shape[2] :].masked_fill_(~own, float("-inf"))
+        output = torch.matmul(scores.softmax(-1), values)
+    # [heads, batch · length, dim] -> [batch, length, heads, dim], as SDPA returns.
+    output = output.reshape(heads, batch, length, dim).permute(1, 2, 0, 3)
+    return output.to(query.dtype).contiguous(), None
+
+
+AttentionInterface.register(_SHARED_CONTEXT_KIND, _shared_context_attention)
+
+
+class _OwnCandidateKV:
+    """Cache stand-in for a shared-context batch.
+
+    Each layer keeps its own candidate K/V; the layer's context K/V is published
+    for the attention instead of being concatenated into every row.
+    """
+
+    def __init__(self, bank: tuple[LayerKVCache, ...], step: int) -> None:
+        self.bank = bank
+        self.step = step
+        self.count = 0
+
+    def update(
+        self,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        layer_idx: int,
+        cache_kwargs: object = None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if layer_idx != self.step * len(self.bank) + self.count:
+            raise ValueError("unexpected native cache update order")
+        layer = self.bank[self.count]
+        if layer.key.device != key.device:
+            layer = LayerKVCache(
+                layer.key.to(key.device, non_blocking=True),
+                layer.value.to(key.device, non_blocking=True),
+            )
+        _SHARED_CONTEXT_LAYER.set(layer)
+        self.count += 1
+        return key, value
+
+
+@contextmanager
+def _shared_context_layers(native: Any) -> Iterator[None]:
+    previous = native.config._attn_implementation
+    native.config._attn_implementation = _SHARED_CONTEXT_KIND
+    token = _SHARED_CONTEXT_LAYER.set(None)
+    try:
+        yield
+    finally:
+        native.config._attn_implementation = previous
+        _SHARED_CONTEXT_LAYER.reset(token)
+
+
+def shared_context_batches(
+    lengths: Sequence[int],
+    context_length: int,
+    heads: int,
+    budget_bytes: int = SHARED_SCORE_BUDGET_BYTES,
+) -> list[list[int]]:
+    """Candidate indices per batch, shortest first, within the score budget.
+
+    Shortest first keeps right padding small. A batch takes the next candidate
+    while its packed scores fit ``budget_bytes``; a candidate that alone exceeds
+    the budget still gets a batch of its own.
+    """
+    batches: list[list[int]] = []
+    current: list[int] = []
+    for index in sorted(range(len(lengths)), key=lambda i: (lengths[i], i)):
+        packed = (len(current) + 1) * lengths[index]
+        if current and 8 * heads * packed * (context_length + packed) > budget_bytes:
+            batches.append(current)
+            current = []
+        current.append(index)
+    if current:
+        batches.append(current)
+    return batches
+
+
+def score_candidates_shared_context(
     backbone: nn.Module,
+    head: nn.Module,
     context_cache: ContextKVCache,
     candidates: Sequence[torch.Tensor],
     *,
-    candidate_steps: int,
-    geometry: _GeometryCache,
-    pool: _WorkspacePool,
+    candidate_steps: int = contract.CANDIDATE_STEPS,
+    score_budget_bytes: int = SHARED_SCORE_BUDGET_BYTES,
 ) -> torch.Tensor:
-    """Run equal-length candidate groups as one batched forward per step.
+    """Score candidates in right-padded batches that share one context read.
 
-    Candidates are grouped by token length, so no padding is involved: every
-    real token keeps exactly the positions and causal mask it has in the
-    sequential path, and each frozen backbone weight is read once per recurrent
-    step for the whole group. Rows are written back in caller order.
+    The default path of ``OuroScorer``. Every candidate is validated before any
+    runs. Every linear runs once per batch instead of once per candidate, and
+    attention reads the context K/V once per layer for the whole batch
+    (``_shared_context_attention``). It is not bitwise identical to the
+    per-candidate path: it rounds differently, and is held to the same ranking
+    within the execution tolerance instead.
     """
-    native: Any = None
-    router: Any = None
-    groups: dict[int, list[int]] = {}
-    for index, candidate in enumerate(candidates):
-        native = _native_backbone(backbone)
-        router = _prepare_candidate_pass(
+    if not candidates:
+        raise ValueError("at least one candidate is required")
+    if type(candidate_steps) is not int or candidate_steps not in {1, 2, 3, 4}:
+        raise ValueError("candidate_steps must be 1, 2, 3, or 4")
+    native = _native_backbone(backbone)
+    heads = int(native.config.num_attention_heads)
+    if int(native.config.num_key_value_heads) != heads:
+        raise ValueError("shared-context attention needs one K/V head per query head")
+    routers = [
+        _prepare_candidate_pass(
             native, backbone, context_cache, candidate, candidate_steps
         )
-        groups.setdefault(int(candidate.shape[1]), []).append(index)
-    if native is None:
-        raise ValueError("at least one candidate is required")
-    rows: torch.Tensor | None = None
-    for indices in groups.values():
-        batched_ids = torch.cat([candidates[index] for index in indices], dim=0)
-        hidden = native.embed_tokens(batched_ids)
-        for step in range(candidate_steps):
-            bank = context_cache.banks[step if context_cache.policy == "matched" else 0]
-            with router.activate(step) if router is not None else nullcontext():
-                hidden = _run_recurrent_step(
-                    native,
-                    hidden,
-                    context_cache.length,
-                    step,
-                    _ReadContextKV(bank, step, pool),
-                    geometry,
-                )
-        last = hidden[:, -1]
-        if rows is None:
-            rows = torch.empty(
-                (len(candidates), last.shape[1]),
-                dtype=last.dtype,
-                device=last.device,
-            )
-        rows[indices] = last
-    if rows is None:
-        raise ValueError("at least one candidate is required")
-    return rows
+        for candidate in candidates
+    ]
+    router = routers[-1]
+    lengths = [int(candidate.shape[1]) for candidate in candidates]
+    geometry = _GeometryCache(native)
+    endpoints: list[torch.Tensor | None] = [None] * len(candidates)
+    batches = shared_context_batches(
+        lengths, context_cache.length, heads, score_budget_bytes
+    )
+    for batch in batches:
+        width = max(lengths[index] for index in batch)
+        padded = torch.zeros(
+            (len(batch), width), dtype=torch.long, device=candidates[0].device
+        )
+        for row, index in enumerate(batch):
+            padded[row, : lengths[index]] = candidates[index][0]
+        # Causal masking keeps every real token blind to the padding after it.
+        hidden = native.embed_tokens(padded)
+        with _shared_context_layers(native):
+            for step in range(candidate_steps):
+                bank = context_cache.banks[
+                    step if context_cache.policy == "matched" else 0
+                ]
+                with router.activate(step) if router is not None else nullcontext():
+                    hidden = _run_recurrent_step(
+                        native,
+                        hidden,
+                        context_cache.length,
+                        step,
+                        _OwnCandidateKV(bank, step),
+                        geometry,
+                    )
+        for row, index in enumerate(batch):
+            endpoints[index] = hidden[row : row + 1, lengths[index] - 1]
+    scores = head(torch.cat([e for e in endpoints if e is not None], dim=0))
+    if scores.shape != (len(candidates), 1):
+        raise ValueError("scalar score head must return shape [K, 1]")
+    if not torch.isfinite(scores).all():
+        raise ValueError("nonfinite Ouro candidate logits")
+    return cast(torch.Tensor, scores[:, 0])
 
 
 def candidate_kv_workspace_bytes(
@@ -853,8 +1013,9 @@ def candidate_kv_workspace_bytes(
 
     Counting key and value for every decoder layer, the exact scoring path holds
     one pair per recurrent step and candidate length (reused across all
-    candidates of that length). The opt-in ``candidate_batching`` fast path
-    holds one pair per (step, candidate length, batch-size) group.
+    candidates of that length). The default shared-context path copies no
+    context K/V: its transient attention scores stay within
+    ``SHARED_SCORE_BUDGET_BYTES`` per batch.
     """
     if type(context_length) is not int or context_length < 0:
         raise ValueError("context_length must be a nonnegative integer")
@@ -890,7 +1051,7 @@ def score_candidates(
     policy: CachePolicy = "last",
     context_steps: int = contract.CONTEXT_STEPS,
     candidate_steps: int = contract.CANDIDATE_STEPS,
-    candidate_batching: bool = False,
+    candidate_batching: CandidateBatching | bool = "per_candidate",
 ) -> torch.Tensor:
     """Prefill shared context once and score all candidate continuations."""
     if not candidates:
@@ -915,67 +1076,57 @@ def score_candidates_from_cache(
     candidates: Sequence[torch.Tensor],
     *,
     candidate_steps: int = contract.CANDIDATE_STEPS,
-    candidate_batching: bool = False,
+    candidate_batching: CandidateBatching | bool = "per_candidate",
 ) -> torch.Tensor:
     """Score candidate continuations from an already-computed ``ContextKVCache``.
 
-    The default path evaluates candidates sequentially and is bitwise identical
-    to the per-candidate ``run_candidate_steps`` path. Every candidate is
-    validated before any is evaluated: the token-range checks read device
-    values, so on asynchronous devices (MPS, CUDA) checking between passes
-    would make the host wait for each pass to drain before issuing the next.
-    ``candidate_batching`` is
-    an opt-in, tolerance-gated fast path: candidates are grouped by equal token
-    length and each group runs as one batched forward per recurrent step, so
-    each frozen backbone weight is read once per step instead of once per
-    candidate. Batched FP32 GEMMs can legitimately shift results by a few ULPs,
-    so keep the default when logits must match bitwise (measured drift on the
-    1.4B artifact is reported by the fast-path gate script).
+    ``"per_candidate"``, the default of this building block, evaluates
+    candidates one at a time and is bitwise identical to the per-candidate
+    ``run_candidate_steps`` path. Every candidate is validated before any is
+    evaluated: the token-range checks read device values, so on asynchronous
+    devices (MPS, CUDA) checking between passes would make the host wait for
+    each pass to drain before issuing the next. ``"shared_context"`` (the
+    default of ``OuroScorer`` and ``load_ouro``) runs
+    ``score_candidates_shared_context``: candidates batched, the context read
+    once per layer, rounding different from the per-candidate path.
     """
     if not candidates:
         raise ValueError("at least one candidate is required")
     if type(candidate_steps) is not int or candidate_steps not in {1, 2, 3, 4}:
         raise ValueError("candidate_steps must be 1, 2, 3, or 4")
-    if type(candidate_batching) is not bool:
-        raise ValueError("candidate_batching must be a bool")
-    if candidate_batching:
-        native: Any = _native_backbone(backbone)
-        geometry = _GeometryCache(native)
-        pool = _WorkspacePool()
-        hidden = _batched_candidate_last_hidden(
+    if _candidate_batching(candidate_batching) == "shared_context":
+        return score_candidates_shared_context(
             backbone,
+            head,
             context_cache,
             candidates,
             candidate_steps=candidate_steps,
-            geometry=geometry,
-            pool=pool,
         )
-    else:
-        native = _native_backbone(backbone)
-        routers = [
-            _prepare_candidate_pass(
-                native, backbone, context_cache, candidate, candidate_steps
-            )
-            for candidate in candidates
-        ]
-        geometry = _GeometryCache(native)
-        pool = _WorkspacePool()
-        hidden = torch.cat(
-            [
-                _candidate_hidden_steps(
-                    native,
-                    router,
-                    context_cache.length,
-                    candidate,
-                    context_cache,
-                    candidate_steps,
-                    geometry,
-                    pool,
-                )[:, -1]
-                for router, candidate in zip(routers, candidates, strict=True)
-            ],
-            dim=0,
+    native = _native_backbone(backbone)
+    routers = [
+        _prepare_candidate_pass(
+            native, backbone, context_cache, candidate, candidate_steps
         )
+        for candidate in candidates
+    ]
+    geometry = _GeometryCache(native)
+    pool = _WorkspacePool()
+    hidden = torch.cat(
+        [
+            _candidate_hidden_steps(
+                native,
+                router,
+                context_cache.length,
+                candidate,
+                context_cache,
+                candidate_steps,
+                geometry,
+                pool,
+            )[:, -1]
+            for router, candidate in zip(routers, candidates, strict=True)
+        ],
+        dim=0,
+    )
     scores = head(hidden)
     if scores.shape != (len(candidates), 1):
         raise ValueError("scalar score head must return shape [K, 1]")
@@ -1016,15 +1167,14 @@ class OuroScorer:
         input_rendering: object = None,
         prefix_cache_size: int = 0,
         state_block_tokens: int = contract.CACHE_MAX_STATE_BLOCK_TOKENS,
-        candidate_batching: bool = False,
+        candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         device_policy: str | None = None,
     ) -> None:
         if type(prefix_cache_size) is not int or prefix_cache_size < 0:
             raise ValueError("prefix_cache_size must be a nonnegative integer")
         if type(state_block_tokens) is not int or state_block_tokens < 0:
             raise ValueError("state_block_tokens must be a nonnegative integer")
-        if type(candidate_batching) is not bool:
-            raise ValueError("candidate_batching must be a bool")
+        batching = _candidate_batching(candidate_batching)
         if device_policy is not None and device_policy not in contract.DEVICE_POLICIES:
             raise ValueError(f"unknown artifact device_policy: {device_policy!r}")
         self.backbone: Any = backbone
@@ -1035,8 +1185,8 @@ class OuroScorer:
         self.input_rendering = _normalize_input_rendering(input_rendering)
         self.prefix_cache_size = prefix_cache_size
         self.device_policy = device_policy
-        # Opt-in, tolerance-gated candidate-batching fast path (default off).
-        self.candidate_batching = candidate_batching
+        # Shared-context batches by default; "per_candidate" is bitwise exact.
+        self.candidate_batching: CandidateBatching = batching
         self.state_block_tokens = (
             contract.CACHE_MAX_STATE_BLOCK_TOKENS
             if prefix_cache_size > 0 and state_block_tokens == 0
@@ -1083,7 +1233,7 @@ class OuroScorer:
         prefix_cache_size: int | None = None,
         attention: str | None = None,
         verify_release_base: bool = False,
-        candidate_batching: bool = False,
+        candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
     ) -> OuroScorer:
         root = Path(path).resolve()
@@ -1483,7 +1633,7 @@ def load_ouro(
     prefix_cache_size: int | None = None,
     attention: str | None = None,
     verify_release_base: bool = False,
-    candidate_batching: bool = False,
+    candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
     allow_device_policy_override: bool = False,
 ) -> OuroScorer:
     """Load an Ouro decision artifact directory.
@@ -1495,7 +1645,9 @@ def load_ouro(
     ``allow_device_policy_override=True`` to execute elsewhere under the
     artifact's declared execution tolerance. ``mps-fp32`` runs FP32 math on the
     Apple GPU and matches the CPU FP32 reference within
-    ``contract.MPS_EXECUTION_TOLERANCE_ATOL``/``RTOL``.
+    ``contract.MPS_EXECUTION_TOLERANCE_ATOL``/``RTOL``. Candidates are scored in
+    shared-context batches by default; ``candidate_batching="per_candidate"``
+    scores them one at a time, bitwise identical to the reference path.
     """
     return OuroScorer.from_directory(
         path,
@@ -1592,7 +1744,10 @@ def write_ouro_artifact(
 
 
 __all__ = [
+    "CANDIDATE_BATCHING",
+    "SHARED_SCORE_BUDGET_BYTES",
     "CandidateBatch",
+    "CandidateBatching",
     "ContextKVCache",
     "LayerKVCache",
     "OuroScorer",
@@ -1607,5 +1762,7 @@ __all__ = [
     "run_candidate_steps",
     "score_candidates",
     "score_candidates_from_cache",
+    "score_candidates_shared_context",
+    "shared_context_batches",
     "write_ouro_artifact",
 ]

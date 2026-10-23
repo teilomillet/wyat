@@ -99,10 +99,11 @@ import wyat
 #   "cuda-bf16-autocast"  -> CUDA when available, otherwise CPU
 model = wyat.load("/path/to/ouro-artifact")
 
-# Opt-in, tolerance-gated candidate batching (default off):
+# Candidates are scored in shared-context batches by default. For bitwise
+# replay against golden logits, score them one at a time:
 from wyat.loading import load_ouro
 
-scorer = load_ouro("/path/to/ouro-artifact", candidate_batching=True)
+scorer = load_ouro("/path/to/ouro-artifact", candidate_batching="per_candidate")
 ```
 
 `load_ouro(..., device="mps")` on a `cpu-fp32` artifact is refused unless
@@ -160,7 +161,21 @@ against a declared tolerance.
   The stored golden logits for `P400/K6/S16` reproduce exactly (only
   sixth-decimal JSON rounding differs), and the real-artifact golden check runs
   with `atol=2e-5` and rank equality.
-- **`candidate_batching=True`:** tolerance-gated, default off. On 36 synthetic
+- **Shared-context batching (`candidate_batching="shared_context"`, the
+  default since 2026-10-24):** `score_candidates_shared_context`. Candidates are
+  batched within `SHARED_SCORE_BUDGET_BYTES`, and attention reads each layer's
+  context K/V once for the whole batch instead of copying it into every row.
+  It is not bitwise identical to the per-candidate path. On the real 1.4B
+  artifact it matches the stored CPU FP32 golden logits within `atol=2e-5`, with
+  identical ranking, at P400/K6/S16 and P832/K10/S64. On MPS (the `mps-fp32`
+  artifact) it lands 4.5e-6 from the CPU golden, against 4.6e-6 for the
+  per-candidate path on MPS, and 3.4e-6 from that path; ranking is unchanged.
+  Its speed on this machine has not been measured yet.
+  `candidate_batching=True`/`False` still map to the two modes.
+- **Earlier grouped batching (replaced 2026-10-24; the measurements below and
+  the `candidate_batching` columns above are of this implementation):** it
+  grouped equal-length candidates and copied the context K/V into every row of
+  a group's workspace. On 36 synthetic
   questions with K ∈ {1,2,3,4,5,6,8,10} and varied context/candidate lengths it
   measured max |Δlogit| = 6.8e-6 (gate 2e-5), 0 rank changes, 0 top-1 changes
   and 0 pair-order flips across 442 compared pairs; 18/36 questions were

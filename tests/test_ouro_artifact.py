@@ -521,3 +521,107 @@ def test_tampered_artifacts_are_refused(tmp_path: Path, tamper: str) -> None:
         (root / "extra_dir").mkdir()
     with pytest.raises(ValueError):
         ouro_artifact.validate_artifact(root)
+
+
+# Shared-context candidate batching: the scorer's default for inference.
+
+
+def test_shared_context_is_the_default_and_keeps_every_ranking(artifact: Path) -> None:
+    shared = OuroScorer.from_directory(artifact, device="cpu")
+    exact = OuroScorer.from_directory(
+        artifact, device="cpu", candidate_batching="per_candidate"
+    )
+    assert ouro.CANDIDATE_BATCHING == "shared_context"
+    assert shared.candidate_batching == "shared_context"
+    assert exact.candidate_batching == "per_candidate"
+    for row in shared.encode_record(RECORD):
+        batched = torch.tensor(shared.question_logits(row))
+        reference = torch.tensor(exact.question_logits(row))
+        torch.testing.assert_close(batched, reference, atol=1e-6, rtol=0)
+        assert torch.equal(batched.argsort(), reference.argsort())
+
+
+@pytest.mark.parametrize("policy", ["last", "matched"])
+@pytest.mark.parametrize("budget", [1, 4096, ouro.SHARED_SCORE_BUDGET_BYTES])
+def test_shared_context_scores_each_candidate_in_its_place(
+    artifact: Path, policy: str, budget: int
+) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    vocabulary = scorer.backbone.config.vocab_size
+    generator = torch.Generator().manual_seed(9)
+    context = torch.randint(0, vocabulary, (1, 13), generator=generator)
+    candidates = [
+        torch.randint(0, vocabulary, (1, n), generator=generator)
+        for n in (5, 2, 7, 2, 4)
+    ]
+    with torch.inference_mode():
+        cache = prefill_context(scorer.backbone, context, policy=policy)
+        reference = ouro.score_candidates_from_cache(
+            scorer.backbone, scorer.head, cache, candidates
+        )
+        batched = ouro.score_candidates_shared_context(
+            scorer.backbone, scorer.head, cache, candidates, score_budget_bytes=budget
+        )
+    torch.testing.assert_close(batched, reference, atol=1e-6, rtol=0)
+    assert scorer.backbone.model.config._attn_implementation in {"eager", "sdpa"}
+
+
+def test_shared_context_batches_follow_the_budget_shortest_first() -> None:
+    lengths = [5, 2, 7, 2, 4]
+    assert ouro.shared_context_batches(lengths, 30, 4, budget_bytes=10**9) == [
+        [1, 3, 4, 0, 2]
+    ]
+    # 8 · 4 heads · packed · (30 + packed) bytes: [1, 3] fits, a third row does not.
+    assert ouro.shared_context_batches(lengths, 30, 4, budget_bytes=12_800) == [
+        [1, 3],
+        [4, 0],
+        [2],
+    ]
+    assert ouro.shared_context_batches(lengths, 30, 4, budget_bytes=1) == [
+        [1],
+        [3],
+        [4],
+        [0],
+        [2],
+    ]
+
+
+def test_shared_context_validates_every_candidate_before_any_pass(
+    artifact: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    vocabulary = scorer.backbone.config.vocab_size
+    cache = prefill_context(scorer.backbone, torch.randint(0, vocabulary, (1, 11)))
+    passes: list[int] = []
+    run_step = ouro._run_recurrent_step
+
+    def counted(*args: Any, **kwargs: Any) -> Any:
+        passes.append(1)
+        return run_step(*args, **kwargs)
+
+    monkeypatch.setattr(ouro, "_run_recurrent_step", counted)
+    candidates = [
+        torch.randint(0, vocabulary, (1, 4)),
+        torch.full((1, 3), vocabulary, dtype=torch.long),
+    ]
+    with pytest.raises(ValueError, match="outside the vocabulary"):
+        ouro.score_candidates_shared_context(
+            scorer.backbone, scorer.head, cache, candidates
+        )
+    assert passes == []
+
+
+def test_candidate_batching_takes_two_modes_and_the_earlier_flag(
+    artifact: Path,
+) -> None:
+    on = OuroScorer.from_directory(artifact, device="cpu", candidate_batching=True)
+    off = OuroScorer.from_directory(artifact, device="cpu", candidate_batching=False)
+    assert on.candidate_batching == "shared_context"
+    assert off.candidate_batching == "per_candidate"
+    for invalid in ("all", 1, None):
+        with pytest.raises(ValueError, match="candidate_batching"):
+            OuroScorer.from_directory(
+                artifact,
+                device="cpu",
+                candidate_batching=invalid,  # type: ignore[arg-type]
+            )
