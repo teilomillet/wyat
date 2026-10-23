@@ -76,16 +76,17 @@ def loaded_ouro(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, object]]:
     return calls
 
 
-def test_ouro_dispatch_defaults_to_cpu_and_preserves_model_options(
+def test_ouro_dispatch_defaults_to_artifact_policy_and_preserves_model_options(
     ouro_directory: Path, loaded_ouro: list[dict[str, object]]
 ) -> None:
     model = wyat.load(ouro_directory, temperature=1.25)
     assert model.model_id == "ouro-fixture"
     assert model.temperature == 1.25
+    # device=None lets the artifact's declared device_policy select the device.
     assert loaded_ouro == [
         {
             "path": ouro_directory,
-            "device": "cpu",
+            "device": None,
             "max_length": None,
             "prefix_cache_size": 0,
             "attention": "sdpa",

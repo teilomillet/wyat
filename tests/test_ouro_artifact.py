@@ -112,7 +112,11 @@ def _tiny_config_dict(vocabulary: int = 320) -> dict[str, Any]:
 
 
 def _build_ouro_artifact(
-    tmp_path: Path, *, seed: int = 11, contract_prompt: str = ouro_artifact.PROMPT
+    tmp_path: Path,
+    *,
+    seed: int = 11,
+    device_policy: str = "cuda-bf16-autocast",
+    contract_prompt: str = ouro_artifact.PROMPT,
 ) -> Path:
     src_dir = tmp_path / "source"
     src_dir.mkdir()
@@ -164,11 +168,16 @@ def _build_ouro_artifact(
         head=head_state,
         max_length=2048,
         attention="sdpa-math",
-        device_policy="cuda-bf16-autocast",
+        device_policy=device_policy,
         cache_entries=4,
         cache_state_block_tokens=128,
     )
     return artifact_dir
+
+
+@pytest.fixture(scope="module")
+def artifact(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    return _build_ouro_artifact(tmp_path_factory.mktemp("ouro"))
 
 
 def test_write_ouro_artifact_refuses_quoted_contract_before_mkdir(
@@ -183,9 +192,66 @@ def test_write_ouro_artifact_refuses_quoted_contract_before_mkdir(
     assert not (tmp_path / "artifact").exists()
 
 
-@pytest.fixture(scope="module")
-def artifact(tmp_path_factory: pytest.TempPathFactory) -> Path:
-    return _build_ouro_artifact(tmp_path_factory.mktemp("ouro"))
+def test_mps_fp32_device_policy_artifact_is_accepted(tmp_path: Path) -> None:
+    artifact_dir = _build_ouro_artifact(tmp_path, device_policy="mps-fp32")
+    manifest = ouro_artifact.validate_artifact(artifact_dir)
+    assert manifest["execution"]["device_policy"] == "mps-fp32"
+    assert "mps-fp32" in ouro_artifact.DEVICE_POLICIES
+
+
+def test_unknown_device_policy_is_refused(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="unsupported device policy"):
+        _build_ouro_artifact(tmp_path, device_policy="tpu-fp32")
+
+
+def test_device_policy_mismatch_requires_explicit_override(tmp_path: Path) -> None:
+    artifact_dir = _build_ouro_artifact(tmp_path)
+    with pytest.raises(ValueError, match="does not permit 'mps'"):
+        OuroScorer.from_directory(artifact_dir, device="mps")
+    # A CUDA artifact keeps its historical CPU fallback.
+    cpu_scorer = OuroScorer.from_directory(artifact_dir, device="cpu")
+    assert cpu_scorer.device.type == "cpu"
+    assert cpu_scorer.device_policy == "cuda-bf16-autocast"
+
+
+def test_mps_artifact_selects_mps_by_default_and_needs_override_for_cpu(
+    tmp_path: Path,
+) -> None:
+    artifact_dir = _build_ouro_artifact(tmp_path, device_policy="mps-fp32")
+    if torch.backends.mps.is_available():
+        scorer = OuroScorer.from_directory(artifact_dir)
+        assert scorer.device.type == "mps"
+        assert scorer.device_policy == "mps-fp32"
+        assert len(scorer.logits(RECORD)) == 3
+    else:
+        with pytest.raises(ValueError, match="MPS is unavailable"):
+            OuroScorer.from_directory(artifact_dir)
+    with pytest.raises(ValueError, match="does not permit 'cpu'"):
+        OuroScorer.from_directory(artifact_dir, device="cpu")
+    overridden = OuroScorer.from_directory(
+        artifact_dir, device="cpu", allow_device_policy_override=True
+    )
+    assert overridden.device.type == "cpu"
+
+
+@pytest.mark.skipif(
+    not torch.backends.mps.is_available(), reason="Apple MPS is unavailable"
+)
+def test_mps_override_matches_cpu_within_declared_tolerance(tmp_path: Path) -> None:
+    artifact_dir = _build_ouro_artifact(tmp_path)
+    cpu_scorer = OuroScorer.from_directory(artifact_dir, device="cpu")
+    mps_scorer = OuroScorer.from_directory(
+        artifact_dir, device="mps", allow_device_policy_override=True
+    )
+    row = cpu_scorer.encode_record(RECORD)[0]
+    reference = torch.tensor(cpu_scorer.question_logits(row))
+    observed = torch.tensor(mps_scorer.question_logits(row))
+    torch.testing.assert_close(
+        observed,
+        reference,
+        atol=ouro_artifact.MPS_EXECUTION_TOLERANCE_ATOL,
+        rtol=ouro_artifact.MPS_EXECUTION_TOLERANCE_RTOL,
+    )
 
 
 def test_clean_nomenclature_symbols_and_forbidden_legacy_names() -> None:

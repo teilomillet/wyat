@@ -75,6 +75,15 @@ from wyat.loading.ouro_artifact import (
 
 CachePolicy = Literal["matched", "last"]
 
+# Target device types each declared execution policy permits. A request outside
+# this set requires the explicit ``allow_device_policy_override`` opt-in and
+# then runs under the artifact's declared execution tolerance.
+_DEVICE_POLICY_DEVICES: dict[str, frozenset[str]] = {
+    "cuda-bf16-autocast": frozenset({"cuda", "cpu"}),
+    "cpu-fp32": frozenset({"cpu"}),
+    "mps-fp32": frozenset({"mps"}),
+}
+
 
 def _default_rope_init(
     config: Any, device: torch.device | None = None
@@ -442,6 +451,44 @@ def _causal_mask(hidden: torch.Tensor, context_length: int) -> torch.Tensor:
     return mask.masked_fill(blocked, torch.finfo(hidden.dtype).min)[None, None]
 
 
+_StepGeometry = tuple[
+    torch.Tensor,
+    tuple[torch.Tensor, torch.Tensor],
+    torch.Tensor,
+]
+
+
+class _GeometryCache:
+    """Positions, rotary embeddings, and causal mask per step geometry.
+
+    The geometry of a recurrent pass only depends on ``(context_length,
+    sequence_length, dtype, device)``, not on the recurrent step or candidate.
+    Sharing one cache across the steps of a prefill and across every candidate
+    of a question removes the duplicate mask/rotary construction (and the
+    duplicate allocations it caused) without changing any value fed to the
+    native decoder layers.
+    """
+
+    def __init__(self, backbone: Any) -> None:
+        self._backbone = backbone
+        self._entries: dict[
+            tuple[int, int, torch.dtype, torch.device], _StepGeometry
+        ] = {}
+
+    def get(self, hidden: torch.Tensor, context_length: int) -> _StepGeometry:
+        length = int(hidden.shape[1])
+        key = (context_length, length, hidden.dtype, hidden.device)
+        entry = self._entries.get(key)
+        if entry is None:
+            positions = torch.arange(
+                context_length, context_length + length, device=hidden.device
+            )
+            rotary = self._backbone.rotary_emb(hidden, positions[None])
+            entry = (positions, rotary, _causal_mask(hidden, context_length))
+            self._entries[key] = entry
+        return entry
+
+
 class _CaptureStepKV:
     """Capture K/V tensors during one recurrent context pass."""
 
@@ -497,13 +544,93 @@ class _ReadAndCaptureStepKV:
         return full_key, full_value
 
 
-class _ReadContextKV:
-    """Concatenate retained context K/V with the current candidate suffix."""
+class _KVWorkspace:
+    """Preallocated combined context+candidate K/V buffer for one recurrent pass.
+
+    One buffer pair is reused for every layer of a pass because a layer's
+    attention consumes it before the next layer runs, which keeps the workspace
+    at two ``[batch, heads, context + candidate, head_dim]`` tensors instead of
+    one pair per layer. Each layer pass copies its own retained context prefix
+    and overwrites the candidate suffix in place, so no per-candidate
+    ``torch.cat`` allocation is needed.
+    """
 
     def __init__(self, bank: tuple[LayerKVCache, ...], step: int) -> None:
         self.bank = bank
         self.step = step
         self.count = 0
+        self.context_length = int(bank[0].key.shape[2])
+        self.key_buffer: torch.Tensor | None = None
+        self.value_buffer: torch.Tensor | None = None
+
+    def update(
+        self,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        layer_idx: int,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if layer_idx != self.step * len(self.bank) + self.count:
+            raise ValueError("unexpected native cache update order")
+        total = self.context_length + int(key.shape[2])
+        key_buffer = self.key_buffer
+        if key_buffer is None or key_buffer.shape[2] != total:
+            shape = (key.shape[0], key.shape[1], total, key.shape[3])
+            key_buffer = torch.empty(shape, device=key.device, dtype=key.dtype)
+            self.key_buffer = key_buffer
+            self.value_buffer = torch.empty(
+                shape, device=value.device, dtype=value.dtype
+            )
+        value_buffer = self.value_buffer
+        if value_buffer is None:
+            raise RuntimeError("K/V workspace buffers are inconsistent")
+        context = self.bank[self.count]
+        key_buffer[:, :, : self.context_length].copy_(context.key)
+        value_buffer[:, :, : self.context_length].copy_(context.value)
+        key_buffer[:, :, self.context_length :].copy_(key)
+        value_buffer[:, :, self.context_length :].copy_(value)
+        self.count += 1
+        return (
+            key_buffer[:, :, :total],
+            value_buffer[:, :, :total],
+        )
+
+
+class _WorkspacePool:
+    """Reuse preallocated K/V workspaces across candidate passes."""
+
+    def __init__(self) -> None:
+        self._workspaces: dict[tuple[int, int, int], _KVWorkspace] = {}
+
+    def acquire(
+        self,
+        bank: tuple[LayerKVCache, ...],
+        step: int,
+        batch: int,
+        candidate_length: int,
+    ) -> _KVWorkspace:
+        key = (step, batch, candidate_length)
+        workspace = self._workspaces.get(key)
+        if workspace is None:
+            workspace = _KVWorkspace(bank, step)
+            self._workspaces[key] = workspace
+        else:
+            workspace.count = 0
+        return workspace
+
+
+class _ReadContextKV:
+    """Provide retained context K/V with the current candidate suffix appended."""
+
+    def __init__(
+        self,
+        bank: tuple[LayerKVCache, ...],
+        step: int,
+        pool: _WorkspacePool | None = None,
+    ) -> None:
+        self.bank = bank
+        self.step = step
+        self.pool = pool
+        self.workspace: _KVWorkspace | None = None
 
     def update(
         self,
@@ -512,14 +639,20 @@ class _ReadContextKV:
         layer_idx: int,
         cache_kwargs: object = None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        if layer_idx != self.step * len(self.bank) + self.count:
-            raise ValueError("unexpected native cache update order")
-        context = self.bank[self.count]
-        self.count += 1
-        return (
-            torch.cat((context.key, key), dim=2),
-            torch.cat((context.value, value), dim=2),
-        )
+        workspace = self.workspace
+        if workspace is None:
+            pool = self.pool
+            if pool is None:
+                workspace = _KVWorkspace(self.bank, self.step)
+            else:
+                workspace = pool.acquire(
+                    self.bank,
+                    self.step,
+                    int(key.shape[0]),
+                    int(key.shape[2]),
+                )
+            self.workspace = workspace
+        return workspace.update(key, value, layer_idx)
 
 
 def _run_recurrent_step(
@@ -528,12 +661,9 @@ def _run_recurrent_step(
     context_length: int,
     step: int,
     cache: _CaptureStepKV | _ReadAndCaptureStepKV | _ReadContextKV,
+    geometry: _GeometryCache,
 ) -> torch.Tensor:
-    positions = torch.arange(
-        context_length, context_length + hidden.shape[1], device=hidden.device
-    )
-    rotary = backbone.rotary_emb(hidden, positions[None])
-    mask = _causal_mask(hidden, context_length)
+    positions, rotary, mask = geometry.get(hidden, context_length)
     for layer in backbone.layers:
         hidden = layer(
             hidden,
@@ -566,13 +696,14 @@ def prefill_context(
     _validate_token_tensor(native, context_ids)
     banks: list[tuple[LayerKVCache, ...]] = []
     router = getattr(backbone, "_step_lora_router", None)
+    geometry = _GeometryCache(native)
     with router.disabled() if router is not None else nullcontext():
         hidden = native.embed_tokens(context_ids)
         for step in range(context_steps):
             cache = _CaptureStepKV(
                 len(native.layers), step, policy == "matched" or step == 3
             )
-            hidden = _run_recurrent_step(native, hidden, 0, step, cache)
+            hidden = _run_recurrent_step(native, hidden, 0, step, cache, geometry)
             if cache.entries:
                 banks.append(tuple(cache.entries))
     return ContextKVCache(tuple(banks), int(context_ids.shape[1]), policy, backbone)
@@ -611,8 +742,10 @@ def _candidate_hidden_steps(
     candidate_ids: torch.Tensor,
     context_cache: ContextKVCache,
     candidate_steps: int,
+    geometry: _GeometryCache,
+    pool: _WorkspacePool,
 ) -> torch.Tensor:
-    """Run the recurrent passes of one already-validated candidate."""
+    """Run validated candidate recurrent passes with shared geometry/workspace."""
     hidden = native.embed_tokens(candidate_ids)
     for step in range(candidate_steps):
         bank = context_cache.banks[step if context_cache.policy == "matched" else 0]
@@ -622,7 +755,8 @@ def _candidate_hidden_steps(
                 hidden,
                 context_length,
                 step,
-                _ReadContextKV(bank, step),
+                _ReadContextKV(bank, step, pool),
+                geometry,
             )
     return cast(torch.Tensor, hidden)
 
@@ -648,7 +782,103 @@ def run_candidate_steps(
         candidate_ids,
         context_cache,
         candidate_steps,
+        _GeometryCache(native),
+        _WorkspacePool(),
     )
+
+
+def _batched_candidate_last_hidden(
+    backbone: nn.Module,
+    context_cache: ContextKVCache,
+    candidates: Sequence[torch.Tensor],
+    *,
+    candidate_steps: int,
+    geometry: _GeometryCache,
+    pool: _WorkspacePool,
+) -> torch.Tensor:
+    """Run equal-length candidate groups as one batched forward per step.
+
+    Candidates are grouped by token length, so no padding is involved: every
+    real token keeps exactly the positions and causal mask it has in the
+    sequential path, and each frozen backbone weight is read once per recurrent
+    step for the whole group. Rows are written back in caller order.
+    """
+    native: Any = None
+    router: Any = None
+    groups: dict[int, list[int]] = {}
+    for index, candidate in enumerate(candidates):
+        native = _native_backbone(backbone)
+        router = _prepare_candidate_pass(
+            native, backbone, context_cache, candidate, candidate_steps
+        )
+        groups.setdefault(int(candidate.shape[1]), []).append(index)
+    if native is None:
+        raise ValueError("at least one candidate is required")
+    rows: torch.Tensor | None = None
+    for indices in groups.values():
+        batched_ids = torch.cat([candidates[index] for index in indices], dim=0)
+        hidden = native.embed_tokens(batched_ids)
+        for step in range(candidate_steps):
+            bank = context_cache.banks[step if context_cache.policy == "matched" else 0]
+            with router.activate(step) if router is not None else nullcontext():
+                hidden = _run_recurrent_step(
+                    native,
+                    hidden,
+                    context_cache.length,
+                    step,
+                    _ReadContextKV(bank, step, pool),
+                    geometry,
+                )
+        last = hidden[:, -1]
+        if rows is None:
+            rows = torch.empty(
+                (len(candidates), last.shape[1]),
+                dtype=last.dtype,
+                device=last.device,
+            )
+        rows[indices] = last
+    if rows is None:
+        raise ValueError("at least one candidate is required")
+    return rows
+
+
+def candidate_kv_workspace_bytes(
+    backbone: nn.Module,
+    context_length: int,
+    candidate_length: int,
+    *,
+    batch: int = 1,
+) -> int:
+    """Size in bytes of one preallocated candidate K/V workspace pair.
+
+    Counting key and value for every decoder layer, the exact scoring path holds
+    one pair per recurrent step and candidate length (reused across all
+    candidates of that length). The opt-in ``candidate_batching`` fast path
+    holds one pair per (step, candidate length, batch-size) group.
+    """
+    if type(context_length) is not int or context_length < 0:
+        raise ValueError("context_length must be a nonnegative integer")
+    if type(candidate_length) is not int or candidate_length <= 0:
+        raise ValueError("candidate_length must be a positive integer")
+    if type(batch) is not int or batch <= 0:
+        raise ValueError("batch must be a positive integer")
+    native = _native_backbone(backbone)
+    total = context_length + candidate_length
+    if total > native.config.max_position_embeddings:
+        raise ValueError("complete candidate sequence exceeds max_position_embeddings")
+    head_dim = getattr(native.config, "head_dim", None) or (
+        native.config.hidden_size // native.config.num_attention_heads
+    )
+    elements = (
+        2
+        * batch
+        * len(native.layers)
+        * native.config.num_key_value_heads
+        * total
+        * head_dim
+    )
+    element_size = native.layers[0].input_layernorm.weight.element_size()
+    return int(elements * element_size)
 
 
 def score_candidates(
@@ -660,6 +890,7 @@ def score_candidates(
     policy: CachePolicy = "last",
     context_steps: int = contract.CONTEXT_STEPS,
     candidate_steps: int = contract.CANDIDATE_STEPS,
+    candidate_batching: bool = False,
 ) -> torch.Tensor:
     """Prefill shared context once and score all candidate continuations."""
     if not candidates:
@@ -673,6 +904,7 @@ def score_candidates(
         context_cache,
         candidates,
         candidate_steps=candidate_steps,
+        candidate_batching=candidate_batching,
     )
 
 
@@ -683,40 +915,67 @@ def score_candidates_from_cache(
     candidates: Sequence[torch.Tensor],
     *,
     candidate_steps: int = contract.CANDIDATE_STEPS,
+    candidate_batching: bool = False,
 ) -> torch.Tensor:
     """Score candidate continuations from an already-computed ``ContextKVCache``.
 
-    Candidates are evaluated sequentially, bitwise identical to the
-    per-candidate ``run_candidate_steps`` path. Every candidate is validated
-    before any is evaluated: the token-range checks read device values, so on
-    asynchronous devices (MPS, CUDA) checking between passes would make the
-    host wait for each pass to drain before issuing the next.
+    The default path evaluates candidates sequentially and is bitwise identical
+    to the per-candidate ``run_candidate_steps`` path. Every candidate is
+    validated before any is evaluated: the token-range checks read device
+    values, so on asynchronous devices (MPS, CUDA) checking between passes
+    would make the host wait for each pass to drain before issuing the next.
+    ``candidate_batching`` is
+    an opt-in, tolerance-gated fast path: candidates are grouped by equal token
+    length and each group runs as one batched forward per recurrent step, so
+    each frozen backbone weight is read once per step instead of once per
+    candidate. Batched FP32 GEMMs can legitimately shift results by a few ULPs,
+    so keep the default when logits must match bitwise (measured drift on the
+    1.4B artifact is reported by the fast-path gate script).
     """
     if not candidates:
         raise ValueError("at least one candidate is required")
     if type(candidate_steps) is not int or candidate_steps not in {1, 2, 3, 4}:
         raise ValueError("candidate_steps must be 1, 2, 3, or 4")
-    native = _native_backbone(backbone)
-    routers = [
-        _prepare_candidate_pass(
-            native, backbone, context_cache, candidate, candidate_steps
+    if type(candidate_batching) is not bool:
+        raise ValueError("candidate_batching must be a bool")
+    if candidate_batching:
+        native: Any = _native_backbone(backbone)
+        geometry = _GeometryCache(native)
+        pool = _WorkspacePool()
+        hidden = _batched_candidate_last_hidden(
+            backbone,
+            context_cache,
+            candidates,
+            candidate_steps=candidate_steps,
+            geometry=geometry,
+            pool=pool,
         )
-        for candidate in candidates
-    ]
-    hidden = torch.cat(
-        [
-            _candidate_hidden_steps(
-                native,
-                router,
-                context_cache.length,
-                candidate,
-                context_cache,
-                candidate_steps,
-            )[:, -1]
-            for router, candidate in zip(routers, candidates, strict=True)
-        ],
-        dim=0,
-    )
+    else:
+        native = _native_backbone(backbone)
+        routers = [
+            _prepare_candidate_pass(
+                native, backbone, context_cache, candidate, candidate_steps
+            )
+            for candidate in candidates
+        ]
+        geometry = _GeometryCache(native)
+        pool = _WorkspacePool()
+        hidden = torch.cat(
+            [
+                _candidate_hidden_steps(
+                    native,
+                    router,
+                    context_cache.length,
+                    candidate,
+                    context_cache,
+                    candidate_steps,
+                    geometry,
+                    pool,
+                )[:, -1]
+                for router, candidate in zip(routers, candidates, strict=True)
+            ],
+            dim=0,
+        )
     scores = head(hidden)
     if scores.shape != (len(candidates), 1):
         raise ValueError("scalar score head must return shape [K, 1]")
@@ -757,11 +1016,17 @@ class OuroScorer:
         input_rendering: object = None,
         prefix_cache_size: int = 0,
         state_block_tokens: int = contract.CACHE_MAX_STATE_BLOCK_TOKENS,
+        candidate_batching: bool = False,
+        device_policy: str | None = None,
     ) -> None:
         if type(prefix_cache_size) is not int or prefix_cache_size < 0:
             raise ValueError("prefix_cache_size must be a nonnegative integer")
         if type(state_block_tokens) is not int or state_block_tokens < 0:
             raise ValueError("state_block_tokens must be a nonnegative integer")
+        if type(candidate_batching) is not bool:
+            raise ValueError("candidate_batching must be a bool")
+        if device_policy is not None and device_policy not in contract.DEVICE_POLICIES:
+            raise ValueError(f"unknown artifact device_policy: {device_policy!r}")
         self.backbone: Any = backbone
         self.head = head
         self.tokenizer = tokenizer
@@ -769,6 +1034,9 @@ class OuroScorer:
         self.max_length = max_length
         self.input_rendering = _normalize_input_rendering(input_rendering)
         self.prefix_cache_size = prefix_cache_size
+        self.device_policy = device_policy
+        # Opt-in, tolerance-gated candidate-batching fast path (default off).
+        self.candidate_batching = candidate_batching
         self.state_block_tokens = (
             contract.CACHE_MAX_STATE_BLOCK_TOKENS
             if prefix_cache_size > 0 and state_block_tokens == 0
@@ -815,6 +1083,8 @@ class OuroScorer:
         prefix_cache_size: int | None = None,
         attention: str | None = None,
         verify_release_base: bool = False,
+        candidate_batching: bool = False,
+        allow_device_policy_override: bool = False,
     ) -> OuroScorer:
         root = Path(path).resolve()
         manifest = contract.validate_artifact(
@@ -822,24 +1092,29 @@ class OuroScorer:
         )
         execution = manifest["execution"]
         declared_device_policy = execution["device_policy"]
+        permitted_devices = _DEVICE_POLICY_DEVICES[declared_device_policy]
         if device is None:
-            device = (
-                "cuda"
-                if declared_device_policy == "cuda-bf16-autocast"
-                and torch.cuda.is_available()
-                else "cpu"
-            )
+            if declared_device_policy == "cuda-bf16-autocast":
+                device = "cuda" if torch.cuda.is_available() else "cpu"
+            elif declared_device_policy == "mps-fp32":
+                if not torch.backends.mps.is_available():
+                    raise ValueError(
+                        "artifact device_policy is 'mps-fp32' but Apple Silicon "
+                        "MPS is unavailable on this host"
+                    )
+                device = "mps"
+            else:
+                device = "cpu"
         target = torch.device(device)
-        if target.type == "cuda" and declared_device_policy != "cuda-bf16-autocast":
+        if target.type not in {"cpu", "cuda", "mps"}:
+            raise ValueError(f"unsupported Ouro execution device: {device!r}")
+        if target.type not in permitted_devices and not allow_device_policy_override:
             raise ValueError(
-                "artifact device_policy does not permit CUDA execution: "
-                f"{declared_device_policy}"
+                f"artifact device_policy {declared_device_policy!r} does not permit "
+                f"{target.type!r} execution; pass "
+                "allow_device_policy_override=True to accept the artifact's "
+                "declared execution tolerance on this device"
             )
-        if target.type == "cpu" and declared_device_policy not in {
-            "cpu-fp32",
-            "cuda-bf16-autocast",
-        }:
-            raise ValueError(f"unsupported device_policy: {declared_device_policy}")
 
         declared_attention = execution["attention"]
         if attention is not None:
@@ -869,13 +1144,8 @@ class OuroScorer:
         if type(limit) is not int or not 0 < limit <= execution["max_length"]:
             raise ValueError("max_length must be within the artifact's execution limit")
 
-        # Validate safetensors dtypes and finiteness before materializing model.
-        _verify_safetensors_file(
-            root / contract.BASE_WEIGHT_FILE,
-            expected_keys=None,
-            expected_dtype=torch.bfloat16,
-            label="base",
-        )
+        # Validate the small adapter/head files before materializing the model;
+        # the base checkpoint is validated per tensor while streaming (below).
         _verify_safetensors_file(
             root / contract.ADAPTERS_FILE,
             expected_keys=set(contract.adapter_tensor_names()),
@@ -901,21 +1171,26 @@ class OuroScorer:
         if limit > config.max_position_embeddings:
             raise ValueError("max_length exceeds Ouro max_position_embeddings")
 
-        with _quiet_ouro_source_exec():
-            backbone = model_cls(config)
-        inv_freq = backbone.model.rotary_emb.inv_freq.detach().to(dtype=torch.float32)
-        base_tensors = load_file(str(root / contract.BASE_WEIGHT_FILE))
         base_dtype = torch.bfloat16 if target.type == "cuda" else torch.float32
-        cast_base = {k: v.to(dtype=base_dtype) for k, v in base_tensors.items()}
-        missing, unexpected = backbone.load_state_dict(cast_base, strict=False)
-        # lm_head.weight may be absent when tie_word_embeddings is false.
-        stray_missing = [k for k in missing if k != "lm_head.weight"]
-        if stray_missing or unexpected:
-            raise ValueError("Ouro base weights do not match native architecture")
-        backbone.to(device=target, dtype=base_dtype)
+        # Materialize an empty model directly on the target device and stream the
+        # base checkpoint into its parameters. Building on "meta" skips 5.7 GiB
+        # of random weight initialization, and streaming avoids holding the
+        # 2.9 GiB BF16 checkpoint as a host dictionary beside the parameters
+        # (peak RSS 8.43 GiB -> about 6 GiB). BF16 -> FP32 is exact per value,
+        # so this is bitwise identical to a load_state_dict of the same file.
+        with _quiet_ouro_source_exec(), torch.device("meta"):
+            backbone = model_cls(config)
+        backbone.to_empty(device=target)
+        # inv_freq is a non-persistent buffer: to_empty leaves it uninitialized,
+        # so restore the exact FP32 frequencies the native module would compute.
+        inv_freq, _ = _default_rope_init(config)
         backbone.model.rotary_emb.inv_freq = inv_freq.to(
             device=target, dtype=torch.float32
         )
+        backbone.model.rotary_emb.original_inv_freq = backbone.model.rotary_emb.inv_freq
+        _stream_base_weights(backbone, root / contract.BASE_WEIGHT_FILE)
+        if base_dtype != torch.float32:
+            backbone.to(dtype=base_dtype)
         attach_step_lora(
             backbone,
             rank=contract.ADAPTER_RANK,
@@ -969,6 +1244,8 @@ class OuroScorer:
             input_rendering=manifest["prompt"]["input_rendering"],
             prefix_cache_size=resolved_cache_size,
             state_block_tokens=state_tokens,
+            candidate_batching=candidate_batching,
+            device_policy=declared_device_policy,
         )
 
     def _amp(self) -> AbstractContextManager[Any]:
@@ -1019,6 +1296,7 @@ class OuroScorer:
         ids = torch.tensor([tail_ids], dtype=torch.long, device=self.device)
         _validate_token_tensor(native, ids)
         router = getattr(self.backbone, "_step_lora_router", None)
+        geometry = _GeometryCache(native)
         final_bank: tuple[LayerKVCache, ...] = ()
         with router.disabled() if router is not None else nullcontext():
             hidden = native.embed_tokens(ids)
@@ -1026,7 +1304,9 @@ class OuroScorer:
                 reader = _ReadAndCaptureStepKV(
                     prior_banks[step], step, retain=(step == contract.CONTEXT_STEPS - 1)
                 )
-                hidden = _run_recurrent_step(native, hidden, start, step, reader)
+                hidden = _run_recurrent_step(
+                    native, hidden, start, step, reader, geometry
+                )
                 if reader.entries:
                     final_bank = tuple(reader.entries)
         return ContextKVCache(
@@ -1090,6 +1370,7 @@ class OuroScorer:
                 context_cache,
                 candidates,
                 candidate_steps=contract.CANDIDATE_STEPS,
+                candidate_batching=self.candidate_batching,
             )
         if not torch.isfinite(logits).all():
             raise ValueError("nonfinite Ouro candidate logits")
@@ -1140,6 +1421,38 @@ def _normalize_input_rendering(policy: object) -> Any:
     return validate_input_rendering_policy(input_rendering_policy(mode))
 
 
+def _stream_base_weights(model: nn.Module, path: Path) -> None:
+    """Verify and copy BF16 base checkpoint tensors into ``model`` one at a time.
+
+    Combines the dtype/finiteness validation of ``_verify_safetensors_file`` with
+    the copy so the file is read once and never materialized as a full host-side
+    dictionary. Every BF16 value is converted to the destination dtype exactly.
+    """
+    state = dict(model.state_dict())
+    expected = set(state)
+    with safe_open(str(path), framework="pt", device="cpu") as handle:
+        keys = set(handle.keys())
+        missing = expected - keys
+        if missing - {"lm_head.weight"}:
+            raise ValueError("Ouro base weights do not match native architecture")
+        if keys - expected:
+            raise ValueError("Ouro base weights do not match native architecture")
+        with torch.no_grad():
+            for key in handle.keys():
+                tensor = handle.get_tensor(key)
+                destination = state[key]
+                if tensor.dtype != torch.bfloat16:
+                    raise ValueError(
+                        f"Ouro base tensor {key} has dtype {tensor.dtype}, "
+                        "expected torch.bfloat16"
+                    )
+                if destination.shape != tensor.shape:
+                    raise ValueError(f"Ouro base tensor {key} has unexpected shape")
+                if not torch.isfinite(tensor).all():
+                    raise ValueError(f"nonfinite Ouro base tensor: {key}")
+                destination.copy_(tensor)
+
+
 def _verify_safetensors_file(
     path: Path,
     *,
@@ -1170,8 +1483,20 @@ def load_ouro(
     prefix_cache_size: int | None = None,
     attention: str | None = None,
     verify_release_base: bool = False,
+    candidate_batching: bool = False,
+    allow_device_policy_override: bool = False,
 ) -> OuroScorer:
-    """Load an Ouro decision artifact directory."""
+    """Load an Ouro decision artifact directory.
+
+    The artifact's ``device_policy`` selects the default device: ``cuda`` when
+    available for ``cuda-bf16-autocast``, ``mps`` for ``mps-fp32`` on Apple
+    Silicon, and ``cpu`` for ``cpu-fp32``. An explicit ``device`` may only
+    select a device type the policy permits; pass
+    ``allow_device_policy_override=True`` to execute elsewhere under the
+    artifact's declared execution tolerance. ``mps-fp32`` runs FP32 math on the
+    Apple GPU and matches the CPU FP32 reference within
+    ``contract.MPS_EXECUTION_TOLERANCE_ATOL``/``RTOL``.
+    """
     return OuroScorer.from_directory(
         path,
         device=device,
@@ -1179,6 +1504,8 @@ def load_ouro(
         prefix_cache_size=prefix_cache_size,
         attention=attention,
         verify_release_base=verify_release_base,
+        candidate_batching=candidate_batching,
+        allow_device_policy_override=allow_device_policy_override,
     )
 
 
@@ -1273,6 +1600,7 @@ __all__ = [
     "StepLoRALinear",
     "StepLoRARouter",
     "attach_step_lora",
+    "candidate_kv_workspace_bytes",
     "load_ouro",
     "load_ouro_classes",
     "prefill_context",

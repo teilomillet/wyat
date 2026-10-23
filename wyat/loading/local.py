@@ -69,7 +69,10 @@ def load(
     release is selected and pinned. Explicitly choose ``teilomillet/wyat-1-600m``
     to download and verify that release into the Wyat cache. A local
     directory with that relative path takes precedence. Torch defaults to CPU;
-    MLX defaults to Apple GPU. Compilation is an opt-in MLX experiment and must
+    MLX defaults to Apple GPU. Ouro decision artifacts declare their own
+    execution policy: ``cpu-fp32`` defaults to CPU, ``mps-fp32`` to the Apple
+    GPU on Apple Silicon, and ``cuda-bf16-autocast`` to CUDA when available.
+    Compilation is an opt-in MLX experiment and must
     pass the caller's quality and performance gates. Native and option-fork MLX
     GPU inference pauses 1 ms after every fourth backbone layer so other
     applications can submit GPU work; ``responsive=False`` removes those pauses
@@ -110,7 +113,10 @@ def load(
             raise
         ouro_torch = load_ouro(
             path,
-            device="cpu" if device is None else device,
+            # Ouro artifacts declare their own execution policy: cpu-fp32
+            # defaults to CPU, mps-fp32 defaults to the Apple GPU, and
+            # cuda-bf16-autocast defaults to CUDA when available.
+            device=device,
             max_length=max_length,
             prefix_cache_size=ouro_prefix_cache_size,
             attention=attention,

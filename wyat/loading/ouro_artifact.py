@@ -121,7 +121,11 @@ EXECUTION_COMPUTE_DTYPE = "bfloat16"
 EXECUTION_ADAPTER_DTYPE = "float32"
 EXECUTION_HEAD_DTYPE = "float32"
 ATTENTION_IMPLEMENTATIONS = frozenset({"sdpa-math", "eager"})
-DEVICE_POLICIES = frozenset({"cuda-bf16-autocast", "cpu-fp32"})
+# ``cuda-bf16-autocast``: CUDA with a BF16 backbone and FP32 adapters/head.
+# ``cpu-fp32``: CPU with an FP32 backbone.
+# ``mps-fp32``: Apple Silicon MPS with an FP32 backbone; qualified against the
+# CPU FP32 reference within the declared MPS execution tolerance.
+DEVICE_POLICIES = frozenset({"cuda-bf16-autocast", "cpu-fp32", "mps-fp32"})
 
 TENSOR_DTYPES = frozenset({"float32"})
 
@@ -134,6 +138,17 @@ CACHE_MAX_STATE_BLOCK_TOKENS = 512
 CACHE_TOLERANCE_ATOL = 2e-5
 CACHE_TOLERANCE_RTOL = 1e-4
 CACHE_DISABLED_IS_BITWISE = True
+
+# Declared execution tolerance for ``mps-fp32`` artifacts measured against the
+# same artifact executed under ``cpu-fp32``. MPS runs FP32 math but uses Metal
+# kernels, so results are close rather than bitwise. Measured Ouro-1.4B logit
+# drift on the M4 Pro: ~5e-6 to 1.1e-5 on long-context synthetic shapes and up
+# to 6.5e-5 on short real decision prompts, with ranks, top-1 choices and
+# decisions unchanged on every measured question. A gate must therefore compare
+# rankings as well as magnitudes; a flat 2e-5 absolute bound is too strict for
+# short prompts.
+MPS_EXECUTION_TOLERANCE_ATOL = 1e-4
+MPS_EXECUTION_TOLERANCE_RTOL = 1e-4
 
 HEAD_TENSORS = (
     "head.norm.weight",
