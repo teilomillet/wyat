@@ -578,6 +578,55 @@ def prefill_context(
     return ContextKVCache(tuple(banks), int(context_ids.shape[1]), policy, backbone)
 
 
+def _prepare_candidate_pass(
+    native: Any,
+    backbone: nn.Module,
+    context_cache: ContextKVCache,
+    candidate_ids: torch.Tensor,
+    candidate_steps: int,
+) -> Any:
+    """Validate one candidate continuation and return its step-LoRA router."""
+    if context_cache.owner is not backbone:
+        raise ValueError("context cache belongs to another backbone")
+    if context_cache.policy == "matched" and len(context_cache.banks) < candidate_steps:
+        raise ValueError("matched context cache has fewer banks than candidate_steps")
+    router = getattr(backbone, "_step_lora_router", None)
+    if router is not None and (
+        router.owner is not backbone or router.steps < candidate_steps
+    ):
+        raise ValueError("step LoRA router does not cover this backbone and step count")
+    _validate_token_tensor(native, candidate_ids)
+    if (
+        context_cache.length + candidate_ids.shape[1]
+        > native.config.max_position_embeddings
+    ):
+        raise ValueError("complete candidate sequence exceeds max_position_embeddings")
+    return router
+
+
+def _candidate_hidden_steps(
+    native: Any,
+    router: Any,
+    context_length: int,
+    candidate_ids: torch.Tensor,
+    context_cache: ContextKVCache,
+    candidate_steps: int,
+) -> torch.Tensor:
+    """Run the recurrent passes of one already-validated candidate."""
+    hidden = native.embed_tokens(candidate_ids)
+    for step in range(candidate_steps):
+        bank = context_cache.banks[step if context_cache.policy == "matched" else 0]
+        with router.activate(step) if router is not None else nullcontext():
+            hidden = _run_recurrent_step(
+                native,
+                hidden,
+                context_length,
+                step,
+                _ReadContextKV(bank, step),
+            )
+    return cast(torch.Tensor, hidden)
+
+
 def run_candidate_steps(
     backbone: nn.Module,
     context_cache: ContextKVCache,
@@ -588,34 +637,18 @@ def run_candidate_steps(
     """Evaluate one candidate continuation across ``candidate_steps`` passes."""
     if type(candidate_steps) is not int or candidate_steps not in {1, 2, 3, 4}:
         raise ValueError("candidate_steps must be 1, 2, 3, or 4")
-    if context_cache.owner is not backbone:
-        raise ValueError("context cache belongs to another backbone")
-    if context_cache.policy == "matched" and len(context_cache.banks) < candidate_steps:
-        raise ValueError("matched context cache has fewer banks than candidate_steps")
-    router = getattr(backbone, "_step_lora_router", None)
-    if router is not None and (
-        router.owner is not backbone or router.steps < candidate_steps
-    ):
-        raise ValueError("step LoRA router does not cover this backbone and step count")
     native = _native_backbone(backbone)
-    _validate_token_tensor(native, candidate_ids)
-    if (
-        context_cache.length + candidate_ids.shape[1]
-        > native.config.max_position_embeddings
-    ):
-        raise ValueError("complete candidate sequence exceeds max_position_embeddings")
-    hidden = native.embed_tokens(candidate_ids)
-    for step in range(candidate_steps):
-        bank = context_cache.banks[step if context_cache.policy == "matched" else 0]
-        with router.activate(step) if router is not None else nullcontext():
-            hidden = _run_recurrent_step(
-                native,
-                hidden,
-                context_cache.length,
-                step,
-                _ReadContextKV(bank, step),
-            )
-    return cast(torch.Tensor, hidden)
+    router = _prepare_candidate_pass(
+        native, backbone, context_cache, candidate_ids, candidate_steps
+    )
+    return _candidate_hidden_steps(
+        native,
+        router,
+        context_cache.length,
+        candidate_ids,
+        context_cache,
+        candidate_steps,
+    )
 
 
 def score_candidates(
@@ -651,18 +684,36 @@ def score_candidates_from_cache(
     *,
     candidate_steps: int = contract.CANDIDATE_STEPS,
 ) -> torch.Tensor:
-    """Score candidate continuations from an already-computed ``ContextKVCache``."""
+    """Score candidate continuations from an already-computed ``ContextKVCache``.
+
+    Candidates are evaluated sequentially, bitwise identical to the
+    per-candidate ``run_candidate_steps`` path. Every candidate is validated
+    before any is evaluated: the token-range checks read device values, so on
+    asynchronous devices (MPS, CUDA) checking between passes would make the
+    host wait for each pass to drain before issuing the next.
+    """
     if not candidates:
         raise ValueError("at least one candidate is required")
+    if type(candidate_steps) is not int or candidate_steps not in {1, 2, 3, 4}:
+        raise ValueError("candidate_steps must be 1, 2, 3, or 4")
+    native = _native_backbone(backbone)
+    routers = [
+        _prepare_candidate_pass(
+            native, backbone, context_cache, candidate, candidate_steps
+        )
+        for candidate in candidates
+    ]
     hidden = torch.cat(
         [
-            run_candidate_steps(
-                backbone,
-                context_cache,
+            _candidate_hidden_steps(
+                native,
+                router,
+                context_cache.length,
                 candidate,
-                candidate_steps=candidate_steps,
+                context_cache,
+                candidate_steps,
             )[:, -1]
-            for candidate in candidates
+            for router, candidate in zip(routers, candidates, strict=True)
         ],
         dim=0,
     )

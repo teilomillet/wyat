@@ -328,6 +328,33 @@ def test_step_lora_keeps_fp32_factors_under_autocast(artifact: Path) -> None:
     assert torch.equal(actual, expected)
 
 
+def test_scoring_validates_every_candidate_before_any_pass(
+    artifact: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Checking between passes would make an async device drain each pass first.
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    vocabulary = scorer.backbone.config.vocab_size
+    cache = prefill_context(scorer.backbone, torch.randint(0, vocabulary, (1, 11)))
+    passes: list[int] = []
+    run_pass = ouro._candidate_hidden_steps
+
+    def counted(*args: Any, **kwargs: Any) -> Any:
+        passes.append(1)
+        return run_pass(*args, **kwargs)
+
+    monkeypatch.setattr(ouro, "_candidate_hidden_steps", counted)
+    candidates = [
+        torch.randint(0, vocabulary, (1, 4)),
+        torch.randint(0, vocabulary, (1, 6)),
+        torch.full((1, 3), vocabulary, dtype=torch.long),
+    ]
+    with pytest.raises(ValueError, match="outside the vocabulary"):
+        ouro.score_candidates_from_cache(
+            scorer.backbone, scorer.head, cache, candidates
+        )
+    assert passes == []
+
+
 def test_option_permutation_only_remaps_logits(artifact: Path) -> None:
     scorer = OuroScorer.from_directory(artifact, device="cpu")
     swapped = json.loads(json.dumps(RECORD))
