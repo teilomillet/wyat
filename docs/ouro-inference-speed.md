@@ -208,11 +208,11 @@ against a declared tolerance.
   --device-policy cpu-fp32
 
 .venv/bin/python scripts/ouro_speed/bench.py --artifact /tmp/ouro-speed/artifact-last2-cpu-fp32 \
-  --device cpu --threads 6 --repeats 5 --json-out artifacts/ouro-speed-20261021/baseline.json
+  --device cpu --threads 6 --repeats 5 --json-out /tmp/ouro-speed/baseline.json
 ```
 
-Receipts, golden logits and the transfer/parity audit live in
-`artifacts/ouro-speed-20261021/`; the benchmark harness is in
+Receipts, golden logits and the transfer/parity audit are local measurement
+records and are not published with the package; the benchmark harness is in
 `scripts/ouro_speed/` and the MPS probe scripts and results are in
 `scripts/ouro_speed/mps/`.
 

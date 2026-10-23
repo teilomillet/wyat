@@ -19,6 +19,7 @@ downloaded separately.
 | Explain a result and application-owned policy | [Explaining decisions](explaining-decisions.md) |
 | Select PyTorch devices and precision | [PyTorch runtime](torch-inference.md) |
 | Use MLX for compatible legacy artifacts on Apple Silicon | [MLX runtime](mlx-inference.md) |
+| Profile and speed up Ouro decision inference on Apple Silicon | [Ouro inference speed](ouro-inference-speed.md) |
 | Understand public API design principles | [Ergonomics](ergonomics.md) |
 | Contribute code and run public checks | [Contributing](../CONTRIBUTING.md) |
 | Prepare and inspect a public release | [Releasing](releasing.md) |
