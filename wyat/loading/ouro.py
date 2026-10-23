@@ -286,7 +286,14 @@ class StepLoRALinear(nn.Module):
         step = self.router.active_step
         if step is None:
             return cast(torch.Tensor, base_output)
-        with torch.autocast(device_type=hidden.device.type, enabled=False):
+        # The guard keeps the factors FP32 under autocast. Without autocast it
+        # changes no op, but entering it on every projection costs dispatch.
+        guard = (
+            torch.autocast(device_type=hidden.device.type, enabled=False)
+            if torch.is_autocast_enabled(hidden.device.type)
+            else nullcontext()
+        )
+        with guard:
             update = F.linear(
                 F.linear(hidden.float(), self.lora_A[step]), self.lora_B[step]
             )

@@ -283,6 +283,51 @@ def test_step_lora_router_activates_distinct_steps(artifact: Path) -> None:
     assert not torch.allclose(out_step0, out_step1)
 
 
+def _step_lora_reference(layer: StepLoRALinear, x: Any, step: int) -> Any:
+    base = layer.base(x)
+    with torch.autocast(device_type=x.device.type, enabled=False):
+        update = torch.nn.functional.linear(
+            torch.nn.functional.linear(x.float(), layer.lora_A[step]),
+            layer.lora_B[step],
+        )
+    return base + (update * layer.scaling).to(base.dtype)
+
+
+def test_step_lora_without_autocast_enters_no_guard(
+    artifact: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    layer = scorer.backbone.model.layers[0].self_attn.q_proj
+    x = torch.randn(1, 5, 16)
+    with scorer.backbone._step_lora_router.activate(1):
+        expected = _step_lora_reference(layer, x, 1)
+        guards: list[bool] = []
+        autocast = torch.autocast
+
+        def counted(*args: Any, **kwargs: Any) -> Any:
+            guards.append(True)
+            return autocast(*args, **kwargs)
+
+        monkeypatch.setattr(torch, "autocast", counted)
+        actual = layer(x)
+    assert guards == []
+    assert torch.equal(actual, expected)
+
+
+def test_step_lora_keeps_fp32_factors_under_autocast(artifact: Path) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    layer = scorer.backbone.model.layers[0].self_attn.q_proj
+    x = torch.randn(1, 5, 16)
+    with (
+        scorer.backbone._step_lora_router.activate(0),
+        torch.autocast("cpu", dtype=torch.bfloat16),
+    ):
+        actual = layer(x)
+        expected = _step_lora_reference(layer, x, 0)
+    assert actual.dtype == torch.bfloat16
+    assert torch.equal(actual, expected)
+
+
 def test_option_permutation_only_remaps_logits(artifact: Path) -> None:
     scorer = OuroScorer.from_directory(artifact, device="cpu")
     swapped = json.loads(json.dumps(RECORD))
