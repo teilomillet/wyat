@@ -117,6 +117,9 @@ def _build_ouro_artifact(
     seed: int = 11,
     device_policy: str = "cuda-bf16-autocast",
     contract_prompt: str = ouro_artifact.PROMPT,
+    cache_entries: int = 4,
+    context_prefill: dict[str, Any] | None = None,
+    numerics: str | None = None,
 ) -> Path:
     src_dir = tmp_path / "source"
     src_dir.mkdir()
@@ -169,8 +172,10 @@ def _build_ouro_artifact(
         max_length=2048,
         attention="sdpa-math",
         device_policy=device_policy,
-        cache_entries=4,
-        cache_state_block_tokens=128,
+        cache_entries=cache_entries,
+        cache_state_block_tokens=128 if cache_entries else 0,
+        context_prefill=context_prefill,
+        numerics=numerics,
     )
     return artifact_dir
 
@@ -625,3 +630,184 @@ def test_candidate_batching_takes_two_modes_and_the_earlier_flag(
                 device="cpu",
                 candidate_batching=invalid,  # type: ignore[arg-type]
             )
+
+
+# v2: the context execution a model was trained and judged with.
+CONTEXT_PREFILL = {
+    "chunk": 64,
+    "single_chunk_max_tokens": 128,
+    "chunked_attention": "lean",
+    "host_cache_above_tokens": 1024,
+}
+NUMERICS = "deterministic-no-tf32-v1"
+
+
+@pytest.fixture
+def restore_numerics() -> Any:
+    """Undo the process-wide numerics a v2 artifact applies when it loads."""
+    saved = (
+        torch.backends.cuda.matmul.allow_tf32,
+        torch.backends.cudnn.allow_tf32,
+        torch.get_float32_matmul_precision(),
+        torch.are_deterministic_algorithms_enabled(),
+        torch.utils.deterministic.fill_uninitialized_memory,
+    )
+    yield
+    torch.backends.cuda.matmul.allow_tf32 = saved[0]
+    torch.backends.cudnn.allow_tf32 = saved[1]
+    torch.set_float32_matmul_precision(saved[2])
+    torch.use_deterministic_algorithms(saved[3])
+    torch.utils.deterministic.fill_uninitialized_memory = saved[4]
+
+
+def _v2_artifact(tmp_path: Path) -> Path:
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    return _build_ouro_artifact(
+        tmp_path,
+        cache_entries=0,
+        context_prefill=CONTEXT_PREFILL,
+        numerics=NUMERICS,
+    )
+
+
+def test_v2_manifest_records_the_context_execution(tmp_path: Path) -> None:
+    v2 = json.loads((_v2_artifact(tmp_path / "v2") / "ouro_manifest.json").read_text())
+    (tmp_path / "v1").mkdir()
+    v1 = json.loads(
+        (
+            _build_ouro_artifact(tmp_path / "v1", cache_entries=0)
+            / "ouro_manifest.json"
+        ).read_text()
+    )
+    assert (v1["format"], v2["format"]) == (
+        ouro_artifact.FORMAT,
+        ouro_artifact.FORMAT_V2,
+    )
+    assert v2["execution"]["context_prefill"] == CONTEXT_PREFILL
+    assert v2["execution"]["numerics"] == NUMERICS
+    assert "context_prefill" not in v1["execution"]
+    # Same files, different execution: the execution is part of the identity.
+    assert v1["files_sha256"] == v2["files_sha256"]
+    assert v1["model_id"] != v2["model_id"]
+    assert v1["model_id"] == ouro_artifact.model_identity(
+        v1["files_sha256"], v1["prompt"]
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        ("chunk", 0, "must be positive"),
+        ("single_chunk_max_tokens", 32, "single exact pass"),
+        ("chunked_attention", "native", "chunked context attention"),
+        ("host_cache_above_tokens", 0, "positive or null"),
+        ("numerics", "fast", "execution numerics"),
+        ("attention", "eager", "replaces SDPA attention"),
+        ("cache", 4, "prefix reuse"),
+    ],
+)
+def test_v2_manifest_refuses_another_context_execution(
+    tmp_path: Path, field: str, value: object, message: str
+) -> None:
+    manifest = json.loads((_v2_artifact(tmp_path) / "ouro_manifest.json").read_text())
+    if field in CONTEXT_PREFILL:
+        manifest["execution"]["context_prefill"][field] = value
+    elif field == "cache":
+        manifest["cache"]["entries"] = value
+        manifest["cache"]["state_block_tokens"] = 128
+    else:
+        manifest["execution"][field] = value
+    with pytest.raises(ValueError, match=message):
+        ouro_artifact.validate_manifest(manifest)
+    with pytest.raises(ValueError, match="both context_prefill and numerics"):
+        ouro_artifact.build_manifest(
+            files_sha256=manifest["files_sha256"],
+            encoder_sha256=manifest["prompt"]["encoder_sha256"],
+            adapter_dtypes=manifest["tensors"]["adapters"],
+            head_dtypes=manifest["tensors"]["head"],
+            max_length=2048,
+            attention="sdpa-math",
+            device_policy="cuda-bf16-autocast",
+            context_prefill=CONTEXT_PREFILL,
+        )
+
+
+def test_a_context_of_one_chunk_takes_the_exact_single_pass(artifact: Path) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    context = torch.randint(0, scorer.backbone.config.vocab_size, (1, 40))
+    with torch.inference_mode():
+        single = prefill_context(scorer.backbone, context)
+        for chunk in (40, 64):
+            same = prefill_context(
+                scorer.backbone, context, chunk=chunk, attention="lean"
+            )
+            for a, b in zip(single.banks[0], same.banks[0], strict=True):
+                assert torch.equal(a.key, b.key) and torch.equal(a.value, b.value)
+
+
+def test_lean_chunked_prefill_keeps_the_single_pass_values(artifact: Path) -> None:
+    scorer = OuroScorer.from_directory(artifact, device="cpu")
+    context = torch.randint(0, scorer.backbone.config.vocab_size, (1, 90))
+    with torch.inference_mode():
+        single = prefill_context(scorer.backbone, context)
+        chunked = prefill_context(
+            scorer.backbone, context, chunk=16, attention="lean", bank_device="cpu"
+        )
+    assert chunked.length == single.length == 90
+    for a, b in zip(single.banks[0], chunked.banks[0], strict=True):
+        torch.testing.assert_close(b.key, a.key, atol=2e-5, rtol=1e-4)
+        torch.testing.assert_close(b.value, a.value, atol=2e-5, rtol=1e-4)
+    with pytest.raises(ValueError, match="last policy"):
+        prefill_context(scorer.backbone, context, policy="matched", chunk=16)
+
+
+def test_v2_scorer_chunks_only_contexts_longer_than_one_exact_pass(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, restore_numerics: Any
+) -> None:
+    v2 = OuroScorer.from_directory(_v2_artifact(tmp_path / "v2"), device="cpu")
+    (tmp_path / "v1").mkdir()
+    v1 = OuroScorer.from_directory(
+        _build_ouro_artifact(tmp_path / "v1", cache_entries=0), device="cpu"
+    )
+    assert v2.context_prefill == CONTEXT_PREFILL and v2.numerics == NUMERICS
+    assert (v1.context_prefill, v1.numerics) == (None, None)
+    assert v2._context_execution(128) == (None, "native", None)
+    # On CPU the context cache stays where it is computed.
+    assert v2._context_execution(2000) == (64, "lean", None)
+    chunked: list[int] = []
+    original = ouro._chunked_prefill_context
+
+    def spy(*args: Any, **kwargs: Any) -> Any:
+        chunked.append(kwargs["chunk"])
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(ouro, "_chunked_prefill_context", spy)
+    for row in v2.encode_record(RECORD):
+        expected = v1.question_logits(row)
+        torch.testing.assert_close(
+            torch.tensor(v2.question_logits(row)),
+            torch.tensor(expected),
+            atol=2e-5,
+            rtol=1e-4,
+        )
+    assert chunked and set(chunked) == {64}
+    assert (
+        v1.encode_record(RECORD)[0].context_ids
+        == v2.encode_record(RECORD)[0].context_ids
+    )
+    assert len(v2.encode_record(RECORD)[0].context_ids) > 128
+
+
+def test_v2_artifact_applies_its_numerics_and_refuses_prefix_reuse(
+    tmp_path: Path, restore_numerics: Any
+) -> None:
+    artifact_dir = _v2_artifact(tmp_path)
+    torch.use_deterministic_algorithms(False)
+    OuroScorer.from_directory(artifact_dir, device="cpu")
+    assert torch.are_deterministic_algorithms_enabled()
+    assert torch.get_float32_matmul_precision() == "highest"
+    assert not torch.backends.cuda.matmul.allow_tf32
+    with pytest.raises(ValueError, match="prefix reuse"):
+        OuroScorer.from_directory(artifact_dir, device="cpu", prefix_cache_size=2)
+    with pytest.raises(ValueError, match="unknown execution numerics"):
+        ouro.apply_numerics("fast")

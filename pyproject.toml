@@ -69,6 +69,7 @@ only-include = [
     "docs/install.md",
     "docs/mlx-inference.md",
     "docs/model-acquisition.md",
+    "docs/ouro-context-execution.md",
     "docs/ouro-inference-speed.md",
     "docs/quickstart.md",
     "docs/releasing.md",

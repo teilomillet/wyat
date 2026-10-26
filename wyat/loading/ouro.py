@@ -30,6 +30,7 @@ import io
 import json
 import logging
 import math
+import os
 import shutil
 import sys
 import types
@@ -54,6 +55,8 @@ from safetensors import safe_open
 from safetensors.torch import load_file, save_file
 from torch import nn
 from torch.nn import functional as F
+from torch.nn.attention import SDPBackend, sdpa_kernel
+from torch.nn.attention.bias import causal_lower_right
 from transformers import AttentionInterface, PreTrainedTokenizerFast
 from transformers.modeling_rope_utils import ROPE_INIT_FUNCTIONS
 
@@ -678,22 +681,266 @@ def _run_recurrent_step(
     return cast(torch.Tensor, backbone.norm(hidden))
 
 
+# Chunked context prefill: the context execution of a v2 artifact
+# (``execution.context_prefill``). The same arithmetic as keme's canonical
+# ``prefill_context``, which trained and judged those artifacts.
+ContextAttention = Literal["native", "lean", "flash"]
+
+
+class _ChunkedContextKV:
+    """Preallocated per-layer K/V written one query chunk at a time."""
+
+    def __init__(self, layer_idx: int, length: int) -> None:
+        self.layer_idx = layer_idx
+        self.length = length
+        self.key: torch.Tensor | None = None
+        self.value: torch.Tensor | None = None
+        self.key32: torch.Tensor | None = None
+        self.value32: torch.Tensor | None = None
+        self.start = 0
+        self.end = 0
+
+    def begin(self, start: int, end: int) -> None:
+        self.start, self.end = start, end
+
+    def update(
+        self,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        layer_idx: int,
+        cache_kwargs: object = None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        if layer_idx != self.layer_idx:
+            raise ValueError("unexpected native cache update order")
+        if key.shape[2] != self.end - self.start:
+            raise ValueError("chunk K/V length differs from the scheduled chunk")
+        if self.key is None:
+            shape = (*key.shape[:2], self.length, key.shape[3])
+            self.key, self.value = key.new_empty(shape), value.new_empty(shape)
+        assert self.value is not None
+        self.key[:, :, self.start : self.end].copy_(key)
+        self.value[:, :, self.start : self.end].copy_(value)
+        return self.key[:, :, : self.end], self.value[:, :, : self.end]
+
+    def fp32(self, root: float) -> tuple[torch.Tensor, torch.Tensor]:
+        """FP32 K (pre-scaled by sqrt(scale)) and V, converting only this chunk."""
+        assert self.key is not None and self.value is not None
+        if self.key32 is None:
+            self.key32 = self.key.new_empty(self.key.shape, dtype=torch.float32)
+            self.value32 = self.value.new_empty(self.value.shape, dtype=torch.float32)
+        assert self.value32 is not None
+        new = slice(self.start, self.end)
+        torch.mul(self.key[:, :, new].float(), root, out=self.key32[:, :, new])
+        self.value32[:, :, new].copy_(self.value[:, :, new])
+        return self.key32[:, :, : self.end], self.value32[:, :, : self.end]
+
+
+_ACTIVE_CONTEXT_WRITER: ContextVar[_ChunkedContextKV | None] = ContextVar(
+    "_ACTIVE_CONTEXT_WRITER", default=None
+)
+
+
+def _lean_context_attention(
+    module: nn.Module,
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    attention_mask: torch.Tensor | None,
+    dropout: float = 0.0,
+    scaling: float | None = None,
+    **kwargs: Any,
+) -> tuple[torch.Tensor, None]:
+    """PyTorch's MATH SDPA for one context chunk, without its per-call waste.
+
+    MATH upcasts BF16 to FP32, scales q and K by sqrt(scale), adds the mask,
+    applies ``_safe_softmax`` and multiplies by V. Here K/V are converted and
+    scaled once per new chunk instead of over the whole context on every call;
+    the mask is added only on the diagonal block (adding 0.0 elsewhere is the
+    identity); plain softmax equals ``_safe_softmax`` because a causal row is
+    never fully masked. The same FP32 matmuls run on the same shapes, so
+    results are bit-identical to MATH.
+    """
+    writer = _ACTIVE_CONTEXT_WRITER.get()
+    if writer is None or dropout or attention_mask is None or scaling is None:
+        raise ValueError("lean attention runs only inside chunked context prefill")
+    if key.shape[2] != writer.end or query.shape[2] != writer.end - writer.start:
+        raise ValueError("lean attention received another chunk's tensors")
+    root = math.sqrt(scaling)
+    with torch.autocast(query.device.type, enabled=False):
+        key32, value32 = writer.fp32(root)
+        scores = torch.matmul(query.float() * root, key32.transpose(-2, -1))
+        block = slice(writer.start, writer.end)
+        scores[..., block].add_(attention_mask[..., block])
+        output = torch.matmul(torch.softmax(scores, dim=-1), value32)
+    return output.to(query.dtype).transpose(1, 2).contiguous(), None
+
+
+def _flash_context_attention(
+    module: nn.Module,
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    attention_mask: torch.Tensor | None,
+    dropout: float = 0.0,
+    scaling: float | None = None,
+    **kwargs: Any,
+) -> tuple[torch.Tensor, None]:
+    """Fused BF16 causal attention for a chunked frozen context: not MATH-exact."""
+    if dropout:
+        raise ValueError("context attention has no dropout")
+    mask = causal_lower_right(query.shape[2], key.shape[2])
+    with sdpa_kernel([SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION]):
+        output = F.scaled_dot_product_attention(
+            query, key, value, attn_mask=mask, scale=scaling
+        )
+    return output.transpose(1, 2).contiguous(), None
+
+
+AttentionInterface.register("wyat_context_lean", _lean_context_attention)
+AttentionInterface.register("wyat_context_flash", _flash_context_attention)
+
+
+@contextmanager
+def _context_attention(native: Any, attention: ContextAttention) -> Iterator[None]:
+    if attention not in ("native", "lean", "flash"):
+        raise ValueError("context attention must be native, lean or flash")
+    if attention != "native" and native.config._attn_implementation != "sdpa":
+        raise ValueError("lean and flash context attention replace SDPA attention")
+    previous = native.config._attn_implementation
+    if attention != "native":
+        native.config._attn_implementation = f"wyat_context_{attention}"
+    try:
+        yield
+    finally:
+        native.config._attn_implementation = previous
+
+
+@contextmanager
+def _without_uninitialized_fill() -> Iterator[None]:
+    """Disable deterministic mode's fill of the K/V buffers before they are written."""
+    previous = torch.utils.deterministic.fill_uninitialized_memory  # type: ignore[attr-defined]
+    torch.utils.deterministic.fill_uninitialized_memory = False  # type: ignore[attr-defined]
+    try:
+        yield
+    finally:
+        torch.utils.deterministic.fill_uninitialized_memory = previous  # type: ignore[attr-defined]
+
+
+def _place_context_layer(
+    key: torch.Tensor, value: torch.Tensor, device: str | torch.device | None
+) -> LayerKVCache:
+    target = key.device if device is None else torch.device(device)
+    if target == key.device:
+        return LayerKVCache(key, value)
+    pinned = target.type == "cpu" and key.is_cuda
+    host = [
+        torch.empty(t.shape, dtype=t.dtype, device=target, pin_memory=pinned)
+        for t in (key, value)
+    ]
+    host[0].copy_(key, non_blocking=pinned)
+    host[1].copy_(value, non_blocking=pinned)
+    return LayerKVCache(host[0], host[1])
+
+
+def _chunked_prefill_context(
+    native: Any,
+    owner: nn.Module,
+    context_ids: torch.Tensor,
+    *,
+    chunk: int,
+    bank_device: str | torch.device | None,
+    attention: ContextAttention,
+) -> ContextKVCache:
+    length = int(context_ids.shape[1])
+    layers = len(native.layers)
+    router = getattr(owner, "_step_lora_router", None)
+    spans = [(start, min(start + chunk, length)) for start in range(0, length, chunk)]
+    bank: list[LayerKVCache] = []
+    with (
+        torch.no_grad(),
+        _without_uninitialized_fill(),
+        router.disabled() if router is not None else nullcontext(),
+        _context_attention(native, attention),
+    ):
+        hidden = native.embed_tokens(context_ids)
+        positions = [
+            torch.arange(start, end, device=hidden.device) for start, end in spans
+        ]
+        rotary = [native.rotary_emb(hidden, position[None]) for position in positions]
+        masks = [_causal_mask(hidden[:, start:end], start) for start, end in spans]
+        for step in range(contract.CONTEXT_STEPS):
+            for layer_index, layer in enumerate(native.layers):
+                writer = _ChunkedContextKV(step * layers + layer_index, length)
+                output = torch.empty_like(hidden)
+                for (start, end), position, rope, mask in zip(
+                    spans, positions, rotary, masks, strict=True
+                ):
+                    writer.begin(start, end)
+                    token = _ACTIVE_CONTEXT_WRITER.set(writer)
+                    try:
+                        output[:, start:end] = layer(
+                            hidden[:, start:end],
+                            attention_mask=mask,
+                            position_ids=position[None],
+                            past_key_value=writer,
+                            use_cache=True,
+                            cache_position=position,
+                            position_embeddings=rope,
+                            current_ut=step,
+                        )
+                    finally:
+                        _ACTIVE_CONTEXT_WRITER.reset(token)
+                if writer.key is None or writer.value is None:
+                    raise ValueError("native layer skipped its cache update")
+                if step == contract.CONTEXT_STEPS - 1:
+                    bank.append(
+                        _place_context_layer(writer.key, writer.value, bank_device)
+                    )
+                hidden = output
+                del writer
+            hidden = native.norm(hidden)
+    return ContextKVCache((tuple(bank),), length, "last", owner)
+
+
 def prefill_context(
     backbone: nn.Module,
     context_ids: torch.Tensor,
     *,
     policy: CachePolicy = "last",
     context_steps: int = contract.CONTEXT_STEPS,
+    chunk: int | None = None,
+    bank_device: str | torch.device | None = None,
+    attention: ContextAttention = "native",
 ) -> ContextKVCache:
-    """Run shared-context recurrent steps with all step-LoRA adapters disabled."""
+    """Run shared-context recurrent steps with all step-LoRA adapters disabled.
+
+    A context longer than ``chunk`` is prefilled in ``chunk``-token pieces with
+    ``attention``: ``native``, its bit-identical ``lean`` rewrite, or fused
+    ``flash`` (BF16 rounding differs), retaining only the last step's K/V, in
+    ``bank_device`` memory when given. A context that fits in one chunk always
+    takes the exact single pass.
+    """
     if policy not in {"matched", "last"}:
         raise ValueError("unknown cache policy")
     if type(context_steps) is not int or context_steps not in {1, 2, 3, 4}:
         raise ValueError("context_steps must be 1, 2, 3, or 4")
     if policy == "last" and context_steps != 4:
         raise ValueError("last policy requires four context steps")
+    if chunk is not None and (type(chunk) is not int or chunk <= 0):
+        raise ValueError("chunk must be a positive integer or None")
     native = _native_backbone(backbone)
     _validate_token_tensor(native, context_ids)
+    if chunk is not None and context_ids.shape[1] > chunk:
+        if policy != "last":
+            raise ValueError("chunked context prefill requires the last policy")
+        return _chunked_prefill_context(
+            native,
+            backbone,
+            context_ids,
+            chunk=chunk,
+            bank_device=bank_device,
+            attention=attention,
+        )
     banks: list[tuple[LayerKVCache, ...]] = []
     router = getattr(backbone, "_step_lora_router", None)
     geometry = _GeometryCache(native)
@@ -830,7 +1077,9 @@ def _shared_context_attention(
     context and its own candidate's earlier tokens only. The context K/V is
     read once for the batch instead of copied into every row. FP32 softmax;
     equal to attention over the concatenated K/V in exact arithmetic, with
-    different rounding than the native kernels.
+    different rounding than the native kernels. A context layer held in host
+    memory (a v2 artifact's long context) moves to the device here, one layer
+    at a time; the copy changes no value.
     """
     context = _SHARED_CONTEXT_LAYER.get()
     if context is None or dropout or scaling is None or attention_mask is None:
@@ -838,6 +1087,11 @@ def _shared_context_attention(
     batch, heads, length, dim = query.shape
     if key.shape[1] != heads or context.key.shape[:2] != (1, heads):
         raise ValueError("shared-context attention needs one K/V head per query head")
+    if context.key.device != query.device:
+        context = LayerKVCache(
+            context.key.to(query.device, non_blocking=True),
+            context.value.to(query.device, non_blocking=True),
+        )
     packed = batch * length
     with torch.autocast(query.device.type, enabled=False):
 
@@ -1154,6 +1408,11 @@ class OuroScorer:
     sharing the same rendered ``State:\\n<state>\\n`` block. Cache is disabled by
     default (``prefix_cache_size=0``), which executes the single-pass context
     prefill and is bitwise identical to training/evaluation without caching.
+
+    A v2 artifact's ``context_prefill`` replaces that prefill for contexts
+    longer than its ``single_chunk_max_tokens`` with the chunked execution it
+    was trained with, and its ``numerics`` restrict SDPA to the exact MATH
+    kernel while scoring; prefix caching is not part of that execution.
     """
 
     def __init__(
@@ -1169,6 +1428,8 @@ class OuroScorer:
         state_block_tokens: int = contract.CACHE_MAX_STATE_BLOCK_TOKENS,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         device_policy: str | None = None,
+        context_prefill: Mapping[str, Any] | None = None,
+        numerics: str | None = None,
     ) -> None:
         if type(prefix_cache_size) is not int or prefix_cache_size < 0:
             raise ValueError("prefix_cache_size must be a nonnegative integer")
@@ -1177,6 +1438,14 @@ class OuroScorer:
         batching = _candidate_batching(candidate_batching)
         if device_policy is not None and device_policy not in contract.DEVICE_POLICIES:
             raise ValueError(f"unknown artifact device_policy: {device_policy!r}")
+        if context_prefill is not None and prefix_cache_size > 0:
+            raise ValueError("prefix reuse is not part of a v2 context execution")
+        if numerics is not None and numerics not in contract.NUMERICS_POLICIES:
+            raise ValueError(f"unknown execution numerics: {numerics!r}")
+        self.context_prefill = (
+            None if context_prefill is None else dict(context_prefill)
+        )
+        self.numerics = numerics
         self.backbone: Any = backbone
         self.head = head
         self.tokenizer = tokenizer
@@ -1241,6 +1510,10 @@ class OuroScorer:
             root, verify_release_base=verify_release_base
         )
         execution = manifest["execution"]
+        if execution.get("numerics") is not None:
+            # Before any CUDA matmul: deterministic cuBLAS reads its workspace
+            # setting once.
+            apply_numerics(execution["numerics"])
         declared_device_policy = execution["device_policy"]
         permitted_devices = _DEVICE_POLICY_DEVICES[declared_device_policy]
         if device is None:
@@ -1396,7 +1669,41 @@ class OuroScorer:
             state_block_tokens=state_tokens,
             candidate_batching=candidate_batching,
             device_policy=declared_device_policy,
+            context_prefill=execution.get("context_prefill"),
+            numerics=execution.get("numerics"),
         )
+
+    def _context_execution(
+        self, tokens: int
+    ) -> tuple[int | None, ContextAttention, str | None]:
+        """Chunk, prefill attention and context-cache device for ``tokens``.
+
+        A v1 artifact, and a v2 context of at most ``single_chunk_max_tokens``,
+        take the exact single pass. A longer v2 context is chunked; above
+        ``host_cache_above_tokens`` its cache lives in host memory, which only
+        the shared-context batches read, and never changes a result.
+        """
+        prefill = self.context_prefill
+        if prefill is None or tokens <= prefill["single_chunk_max_tokens"]:
+            return None, "native", None
+        host = prefill["host_cache_above_tokens"]
+        offload = (
+            host is not None
+            and tokens > host
+            and self.device.type == "cuda"
+            and self.candidate_batching == "shared_context"
+        )
+        return (
+            prefill["chunk"],
+            prefill["chunked_attention"],
+            "cpu" if offload else None,
+        )
+
+    def _attention_kernels(self) -> AbstractContextManager[Any]:
+        """The exact MATH SDPA kernel under a v2 artifact's numerics."""
+        if self.numerics is None:
+            return nullcontext()
+        return sdpa_kernel(SDPBackend.MATH)
 
     def _amp(self) -> AbstractContextManager[Any]:
         if self.device.type == "cuda":
@@ -1465,6 +1772,18 @@ class OuroScorer:
 
     def _context_cache_for(self, row: CandidateBatch) -> ContextKVCache:
         """Compute or reuse the step-4 ``ContextKVCache`` for ``row``."""
+        if self.context_prefill is not None:
+            chunk, attention, bank = self._context_execution(len(row.context_ids))
+            ids = torch.tensor([row.context_ids], dtype=torch.long, device=self.device)
+            return prefill_context(
+                self.backbone,
+                ids,
+                policy="last",
+                context_steps=contract.CONTEXT_STEPS,
+                chunk=chunk,
+                bank_device=bank,
+                attention=attention,
+            )
         if self.prefix_cache_size <= 0:
             ids = torch.tensor([row.context_ids], dtype=torch.long, device=self.device)
             return prefill_context(
@@ -1512,7 +1831,7 @@ class OuroScorer:
             torch.tensor([ids], dtype=torch.long, device=self.device)
             for ids in row.candidate_ids
         ]
-        with torch.inference_mode(), self._amp():
+        with torch.inference_mode(), self._amp(), self._attention_kernels():
             context_cache = self._context_cache_for(row)
             logits = score_candidates_from_cache(
                 self.backbone,
@@ -1556,6 +1875,24 @@ class OuroScorer:
             row.question.id: tasks.interpret(row.question, self.question_logits(row))
             for row in self._encode_public(record)
         }
+
+
+def apply_numerics(policy: str) -> None:
+    """Set the process-wide numerics a v2 artifact was trained and judged with.
+
+    ``deterministic-no-tf32-v1``: TF32 off for matmuls and cuDNN, FP32 matmul
+    precision ``highest``, deterministic algorithms with cuBLAS workspace
+    ``:4096:8`` (kept if already set), and no fill of uninitialized memory.
+    These settings stay in effect for the rest of the process.
+    """
+    if policy not in contract.NUMERICS_POLICIES:
+        raise ValueError(f"unknown execution numerics: {policy!r}")
+    os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+    torch.set_float32_matmul_precision("highest")
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = False  # type: ignore[attr-defined]
 
 
 def _normalize_input_rendering(policy: object) -> Any:
@@ -1677,8 +2014,15 @@ def write_ouro_artifact(
     cache_state_block_tokens: int = contract.CACHE_DEFAULT_STATE_BLOCK_TOKENS,
     input_rendering: Mapping[str, object] | None = None,
     encoder_sha256: str | None = None,
+    context_prefill: Mapping[str, object] | None = None,
+    numerics: str | None = None,
 ) -> dict[str, Any]:
-    """Assemble and validate a complete ``wyat-ouro-decision-v1`` artifact directory."""
+    """Assemble and validate a complete Ouro artifact directory.
+
+    With ``context_prefill`` and ``numerics`` (the context execution the model
+    was trained and judged with) it is a ``wyat-ouro-decision-v2`` artifact,
+    otherwise ``wyat-ouro-decision-v1``.
+    """
     if contract_prompt != contract.PROMPT:
         raise ValueError(
             "write_ouro_artifact only writes the frozen current-prompt layout; "
@@ -1735,6 +2079,8 @@ def write_ouro_artifact(
         cache_entries=cache_entries,
         cache_state_block_tokens=cache_state_block_tokens,
         input_rendering=input_rendering,
+        context_prefill=context_prefill,
+        numerics=numerics,
     )
     (root / contract.MANIFEST).write_text(
         json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
@@ -1749,11 +2095,13 @@ __all__ = [
     "CandidateBatch",
     "CandidateBatching",
     "ContextKVCache",
+    "ContextAttention",
     "LayerKVCache",
     "OuroScorer",
     "ScalarScoreHead",
     "StepLoRALinear",
     "StepLoRARouter",
+    "apply_numerics",
     "attach_step_lora",
     "candidate_kv_workspace_bytes",
     "load_ouro",

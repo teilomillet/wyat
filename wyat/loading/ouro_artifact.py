@@ -28,6 +28,11 @@ from wyat.core import ModelInputError
 from wyat.loading.native_artifact import file_sha256
 
 FORMAT = "wyat-ouro-decision-v1"
+# v2 adds the context execution a model was trained and judged with
+# (``execution.context_prefill`` and ``execution.numerics``); a v1 manifest
+# keeps the single-pass prefill and the process's own numerics.
+FORMAT_V2 = "wyat-ouro-decision-v2"
+FORMATS = frozenset({FORMAT, FORMAT_V2})
 MANIFEST = "ouro_manifest.json"
 
 BASE_MODEL_ID = "ByteDance/Ouro-1.4B"
@@ -129,6 +134,19 @@ DEVICE_POLICIES = frozenset({"cuda-bf16-autocast", "cpu-fp32", "mps-fp32"})
 
 TENSOR_DTYPES = frozenset({"float32"})
 
+# v2 context prefill. A context of at most ``single_chunk_max_tokens`` tokens is
+# prefilled in one exact pass, the v1 path; a longer one in ``chunk``-token
+# chunks with ``chunked_attention`` (``flash``: fused BF16, ``lean``: the exact
+# MATH arithmetic). Above ``host_cache_above_tokens`` the retained context K/V
+# lives in host memory and moves to the device one layer at a time; where it
+# lives never changes a result.
+CONTEXT_PREFILL_ATTENTIONS = frozenset({"flash", "lean"})
+# v2 numerics: TF32 off for matmuls and cuDNN, FP32 matmul precision "highest",
+# deterministic algorithms (cuBLAS workspace ``:4096:8``) without filling
+# uninitialized memory, and the exact MATH SDPA kernel outside the chunked
+# context attention. Process-wide: loading such an artifact sets them.
+NUMERICS_POLICIES = frozenset({"deterministic-no-tf32-v1"})
+
 CACHE_POLICY = "retained-prefix-v1"
 CACHE_MATCH = "exact-token-prefix"
 CACHE_DEFAULT_ENTRIES = 0
@@ -188,6 +206,10 @@ _EXECUTION_FIELDS = frozenset(
         "device_policy",
     }
 )
+_EXECUTION_FIELDS_V2 = _EXECUTION_FIELDS | {"context_prefill", "numerics"}
+_CONTEXT_PREFILL_FIELDS = frozenset(
+    {"chunk", "single_chunk_max_tokens", "chunked_attention", "host_cache_above_tokens"}
+)
 _CACHE_FIELDS = frozenset(
     {
         "policy",
@@ -240,16 +262,35 @@ def adapter_tensor_names(
 
 
 def model_identity(
-    files_sha256: Mapping[str, str], prompt: Mapping[str, object]
+    files_sha256: Mapping[str, str],
+    prompt: Mapping[str, object],
+    context_execution: Mapping[str, object] | None = None,
 ) -> str:
-    """Derive the artifact identity from its files, contract, and prompt."""
-    payload = {
+    """Derive the artifact identity from its files, contract, and prompt.
+
+    A v2 artifact's ``context_execution`` (its context prefill and numerics)
+    changes its outputs, so it is part of the identity; v1 identities are
+    unchanged.
+    """
+    payload: dict[str, object] = {
         "contract": contract(),
         "prompt": dict(prompt),
         "files_sha256": dict(files_sha256),
     }
+    if context_execution is not None:
+        payload["context_execution"] = dict(context_execution)
     digest = hashlib.sha256(_canonical(payload).encode()).hexdigest()
     return "ouro-" + digest
+
+
+def context_execution(execution: Mapping[str, object]) -> dict[str, object] | None:
+    """A v2 ``execution`` block's context prefill and numerics; ``None`` for v1."""
+    if "context_prefill" not in execution:
+        return None
+    return {
+        "context_prefill": execution["context_prefill"],
+        "numerics": execution["numerics"],
+    }
 
 
 def build_manifest(
@@ -264,8 +305,17 @@ def build_manifest(
     cache_entries: int = CACHE_DEFAULT_ENTRIES,
     cache_state_block_tokens: int = CACHE_DEFAULT_STATE_BLOCK_TOKENS,
     input_rendering: Mapping[str, object] | None = None,
+    context_prefill: Mapping[str, object] | None = None,
+    numerics: str | None = None,
 ) -> dict[str, Any]:
-    """Assemble, identify, and validate one JSON-serializable Ouro manifest."""
+    """Assemble, identify, and validate one JSON-serializable Ouro manifest.
+
+    ``context_prefill`` and ``numerics`` together make a v2 manifest: the
+    context execution the model was trained and judged with. Without them the
+    manifest is v1.
+    """
+    if (context_prefill is None) != (numerics is None):
+        raise ValueError("a v2 manifest needs both context_prefill and numerics")
     files = _mapping(files_sha256, "files_sha256")
     _validate_file_hashes(files)
     _hash(encoder_sha256, "prompt.encoder_sha256")
@@ -313,7 +363,13 @@ def build_manifest(
         },
         "files_sha256": files,
     }
-    manifest["model_id"] = model_identity(files, prompt)
+    if context_prefill is not None:
+        manifest["format"] = FORMAT_V2
+        manifest["execution"]["context_prefill"] = dict(context_prefill)
+        manifest["execution"]["numerics"] = numerics
+    manifest["model_id"] = model_identity(
+        files, prompt, context_execution(manifest["execution"])
+    )
     validate_manifest(manifest)
     return manifest
 
@@ -322,7 +378,7 @@ def validate_manifest(value: object) -> None:
     """Refuse any manifest that does not match the frozen release contract."""
     manifest = _object(value, "Ouro manifest")
     _exact_keys(manifest, _TOP_LEVEL, "manifest")
-    if manifest["format"] != FORMAT:
+    if manifest["format"] not in FORMATS:
         raise ValueError(f"unsupported Ouro artifact format: {manifest['format']!r}")
     _validate_contract(manifest["contract"])
 
@@ -351,8 +407,10 @@ def validate_manifest(value: object) -> None:
         _rendering(rendering)
 
     _validate_tensors(manifest["tensors"])
-    _validate_execution(manifest["execution"])
+    _validate_execution(manifest["execution"], manifest["format"])
     _validate_cache(manifest["cache"])
+    if manifest["format"] == FORMAT_V2 and manifest["cache"]["entries"] != 0:
+        raise ValueError("prefix reuse is not part of a v2 context execution")
 
     files = _object(manifest["files_sha256"], "files_sha256")
     _validate_file_hashes(files)
@@ -367,7 +425,8 @@ def validate_manifest(value: object) -> None:
         if tokenizer[name] != files[name]:
             raise ValueError(f"tokenizer identity differs from files_sha256: {name}")
 
-    if manifest["model_id"] != model_identity(files, prompt):
+    identity = model_identity(files, prompt, context_execution(manifest["execution"]))
+    if manifest["model_id"] != identity:
         raise ValueError("Ouro model identity differs from artifact files")
 
 
@@ -636,9 +695,19 @@ def _rendering(value: object) -> dict[str, str]:
     return {"mode": mode, "source_sha256": source}
 
 
-def _validate_execution(value: object) -> None:
+def _validate_execution(value: object, manifest_format: str = FORMAT) -> None:
     execution = _object(value, "execution")
-    _exact_keys(execution, _EXECUTION_FIELDS, "execution")
+    v2 = manifest_format == FORMAT_V2
+    _exact_keys(
+        execution, _EXECUTION_FIELDS_V2 if v2 else _EXECUTION_FIELDS, "execution"
+    )
+    if v2:
+        _validate_context_prefill(execution["context_prefill"])
+        numerics = execution["numerics"]
+        if type(numerics) is not str or numerics not in NUMERICS_POLICIES:
+            raise ValueError(f"unsupported execution numerics: {numerics!r}")
+        if execution["attention"] != "sdpa-math":
+            raise ValueError("a v2 context prefill replaces SDPA attention")
     max_length = execution["max_length"]
     if (
         type(max_length) is not int
@@ -663,6 +732,25 @@ def _validate_execution(value: object) -> None:
     device = execution["device_policy"]
     if type(device) is not str or device not in DEVICE_POLICIES:
         raise ValueError(f"unsupported device policy: {device!r}")
+
+
+def _validate_context_prefill(value: object) -> None:
+    prefill = _object(value, "execution.context_prefill")
+    _exact_keys(prefill, _CONTEXT_PREFILL_FIELDS, "execution.context_prefill")
+    for name in ("chunk", "single_chunk_max_tokens"):
+        if type(prefill[name]) is not int or prefill[name] <= 0:
+            raise ValueError(f"execution.context_prefill.{name} must be positive")
+    if prefill["single_chunk_max_tokens"] < prefill["chunk"]:
+        raise ValueError("a context of one chunk must take the single exact pass")
+    if prefill["chunked_attention"] not in CONTEXT_PREFILL_ATTENTIONS:
+        raise ValueError(
+            f"unsupported chunked context attention: {prefill['chunked_attention']!r}"
+        )
+    host = prefill["host_cache_above_tokens"]
+    if host is not None and (type(host) is not int or host <= 0):
+        raise ValueError(
+            "execution.context_prefill.host_cache_above_tokens must be positive or null"
+        )
 
 
 def _validate_cache(value: object) -> None:
