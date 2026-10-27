@@ -17,7 +17,7 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import pytest
 
@@ -705,7 +705,9 @@ def test_real_artifact_k10_p832_matches_stored_golden(real_scorer: Any) -> None:
 
 @pytest.mark.parametrize("batching", ["shared_context", "per_candidate"])
 def test_resource_guard_refuses_long_candidate_before_any_prefill(
-    tiny_artifact: Path, monkeypatch: pytest.MonkeyPatch, batching: str
+    tiny_artifact: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    batching: Literal["shared_context", "per_candidate"],
 ) -> None:
     from dataclasses import replace
 

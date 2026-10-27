@@ -865,9 +865,7 @@ def test_context_attention_override_selects_the_exact_path(
         context_prefill={**CONTEXT_PREFILL, "chunked_attention": "flash"},
         numerics=NUMERICS,
     )
-    exact = OuroScorer.from_directory(
-        flash, device="cpu", context_attention="lean"
-    )
+    exact = OuroScorer.from_directory(flash, device="cpu", context_attention="lean")
     assert exact.context_prefill is not None
     assert exact.context_prefill["chunked_attention"] == "lean"
     assert exact._context_execution(2000) == (64, "lean", None)

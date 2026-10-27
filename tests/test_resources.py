@@ -3,7 +3,10 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
+import sys
+import time
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -15,7 +18,7 @@ from wyat.resources import ResourceGuard, ResourceLimitError, ResourceSnapshot
 
 @pytest.fixture
 def mac(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(resources.sys, "platform", "darwin")
+    monkeypatch.setattr(sys, "platform", "darwin")
 
 
 @pytest.mark.parametrize(
@@ -27,9 +30,9 @@ def test_invalid_fraction_refused(fraction: object) -> None:
 
 
 def test_non_macos_does_not_probe_or_configure(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(resources.sys, "platform", "linux")
+    monkeypatch.setattr(sys, "platform", "linux")
     probe = Mock(side_effect=AssertionError("must not probe"))
-    monkeypatch.setattr(resources.subprocess, "run", probe)
+    monkeypatch.setattr(subprocess, "run", probe)
     guard = ResourceGuard()
     assert not guard.enabled
     assert guard.check(10**30) is None
@@ -83,7 +86,7 @@ def test_snapshot_uses_bounded_commands_and_caches_only_total(
             ),
         ]
     )
-    monkeypatch.setattr(resources.subprocess, "run", run)
+    monkeypatch.setattr(subprocess, "run", run)
     guard = ResourceGuard()
     snapshot = guard.check()
     assert snapshot == ResourceSnapshot(10000, 3000)
@@ -118,7 +121,7 @@ def test_invalid_telemetry_fails_closed(
             SimpleNamespace(stdout=output),
         ]
     )
-    monkeypatch.setattr(resources.subprocess, "run", run)
+    monkeypatch.setattr(subprocess, "run", run)
     with pytest.raises(ResourceLimitError, match="Cannot check"):
         ResourceGuard().check()
 
@@ -129,7 +132,7 @@ def test_invalid_telemetry_fails_closed(
 def test_unavailable_telemetry_fails_closed(
     mac: None, monkeypatch: pytest.MonkeyPatch, error: Exception
 ) -> None:
-    monkeypatch.setattr(resources.subprocess, "run", Mock(side_effect=error))
+    monkeypatch.setattr(subprocess, "run", Mock(side_effect=error))
     with pytest.raises(ResourceLimitError, match="Cannot check"):
         ResourceGuard().check()
 
@@ -137,7 +140,7 @@ def test_unavailable_telemetry_fails_closed(
 def test_torch_threads_and_mps_limit(
     mac: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(resources.os, "cpu_count", lambda: 10)
+    monkeypatch.setattr(os, "cpu_count", lambda: 10)
     monkeypatch.setattr(
         ResourceGuard, "_snapshot", lambda self: ResourceSnapshot(1000, 900)
     )
@@ -182,7 +185,7 @@ def test_checkpoint_is_throttled_and_nested_context_restores_guard(
     monkeypatch.setattr(first, "check", check_first)
     monkeypatch.setattr(second, "check", check_second)
     ticks = iter([10.0, 10.1, 10.2, 11.0])
-    monkeypatch.setattr(resources.time, "monotonic", lambda: next(ticks))
+    monkeypatch.setattr(time, "monotonic", lambda: next(ticks))
     with first.activate():
         resources.checkpoint()
         resources.checkpoint()
