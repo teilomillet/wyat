@@ -328,6 +328,16 @@ def load(
     ``0`` disables caching. Option-fork entries retain the state-block prefix
     plus attention and gated-delta-net state, so size them against memory.
 
+    ``memory_mode`` is ``"resident"`` by default. For Ouro artifacts on macOS,
+    ``"streaming"`` stages the original base weights one FP32 module at a time
+    and spills the final context K/V bank to an anonymous uncached temporary
+    file instead of retaining it in RAM. It requires CPU or Apple GPU execution,
+    v2 chunked context execution, shared-context candidate batching and no
+    prefix cache, and it makes the produced backbone scoring-only. Streaming
+    replaces the three-times-on-disk loading estimate with the artifact's
+    token-aware working-set estimate; the same fraction still bounds RAM and
+    temporary disk. Non-macOS platforms reject streaming rather than run
+    without the admission guard and uncached-file policy.
 
     ``max_resource_fraction`` defaults to 0.85 and may be set in (0, 1]. On
     macOS, admission accounts for other applications before model allocation

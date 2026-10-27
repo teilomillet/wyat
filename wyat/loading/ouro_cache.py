@@ -234,6 +234,14 @@ class DiskKVBank:
     def close(self) -> None:
         """Release owned tensors and close the anonymous file idempotently."""
         try:
+            if self._gpu is not None:
+                # A submitted Apple GPU copy may still read these tensors.
+                synchronize = getattr(getattr(torch, "mps", None), "synchronize", None)
+                if synchronize is not None:
+                    try:
+                        synchronize()
+                    except RuntimeError:
+                        pass
             if self._file is not None:
                 self._file.close()
         finally:

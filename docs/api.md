@@ -486,20 +486,28 @@ limit therefore does not promise that 32K fits the current Mac and budget.
 
 ### Bounded-memory Ouro inference
 
+Streaming is macOS-only. Other platforms reject `memory_mode="streaming"`
+instead of running without the 85% admission guard and the Darwin uncached-file
+policy. Resident mode remains the default everywhere.
+
 For an Ouro v2 artifact, `wyat.load(path, device="mps", memory_mode="streaming")`
 (or `device="cpu"`) stages one original base-weight module in FP32 at a time.
 The original BF16 checkpoint values promote exactly; trained FP32 adapters and
 scoring head retain their values. This performs no quantization or retraining.
-Resident mode remains the default.
+The resulting backbone is scoring-only: `lm_head` and the early-exit gate are
+not materialized, so use the decision-scoring API rather than a direct
+backbone forward. Resident mode remains the default.
 
 Long chunked contexts store their exact FP32 K/V bank in an anonymous temporary
 file. Candidate scoring reads one layer into reusable CPU/Apple GPU buffers.
-The file is uncached on macOS and reclaimed when the request finishes, fails,
-or its process exits. At32K, the bank needs approximately12GiB temporary disk
-space. The same resource fraction bounds RAM admission and disk capacity;
-it defaults to85%. Streaming trades additional disk reads and transfers for
-lower resident memory. It requires shared-context candidate batching and no
-prefix cache. It preserves the artifact's context chunking and attention mode.
+The file is uncached and reclaimed when the request finishes, fails, or its
+process exits. At 32K, the bank needs approximately 12 GiB temporary disk
+space. The same resource fraction bounds RAM admission and disk capacity; it
+defaults to 85% and reserves a further 15% of the volume, so a volume already
+more than 85% full refuses streaming even when that much free space exists.
+Streaming trades additional disk reads and transfers for lower resident
+memory. It requires shared-context candidate batching and no prefix cache. It
+preserves the artifact's context chunking and attention mode.
 
 The working-set estimate, live checkpoints, CPU-worker and GPU-allocation
 bounds remain active. A busy Mac or insufficient disk headroom can still cause

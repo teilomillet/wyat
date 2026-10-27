@@ -1993,6 +1993,11 @@ class OuroScorer:
     ) -> OuroScorer:
         if memory_mode not in {"resident", "streaming"}:
             raise ValueError("memory_mode must be resident or streaming")
+        if memory_mode == "streaming" and sys.platform != "darwin":
+            raise ValueError(
+                "streaming requires macOS: the 85% RAM admission guard and the "
+                "uncached temporary-file policy are macOS facilities"
+            )
         root = Path(path).resolve()
         manifest = contract.validate_artifact(
             root, verify_release_base=verify_release_base or memory_mode == "streaming"
@@ -2429,7 +2434,13 @@ class OuroScorer:
         width = getattr(config, "head_dim", None) or (
             config.hidden_size // config.num_attention_heads
         )
-        size = native.layers[0].input_layernorm.weight.element_size()
+        # Streaming stores and computes Ouro in FP32 on CPU/MPS regardless of a
+        # future default dtype, so its live bytes are always four-byte.
+        size = (
+            4
+            if self.memory_mode == "streaming"
+            else native.layers[0].input_layernorm.weight.element_size()
+        )
         kv = (
             2
             * len(native.layers)
@@ -2727,6 +2738,16 @@ def load_ouro(
     ``context_attention="lean"`` overrides a v2 artifact's chunked context
     attention with the exact MATH-equivalent path; ``"flash"`` is the fast,
     non-MATH-exact throughput path.
+
+    ``memory_mode="streaming"`` (macOS only) stages one FP32 base-weight module
+    at a time from the pinned checkpoint and stores the final context K/V bank
+    in an anonymous uncached temporary file, so long contexts run under the same
+    85% guard at much lower resident memory. It requires CPU or Apple GPU
+    execution, v2 chunked context execution, shared-context candidate batching
+    and no prefix cache. Values and arithmetic are unchanged, but the resulting
+    backbone is scoring-only: ``lm_head`` and the early-exit gate are not
+    materialized, so a direct backbone forward is unsupported. The default
+    ``"resident"`` mode is unchanged.
     """
     return OuroScorer.from_directory(
         path,
@@ -2841,11 +2862,13 @@ __all__ = [
     "CandidateBatching",
     "ContextKVCache",
     "ContextAttention",
+    "DiskKVBank",
     "LayerKVCache",
     "OuroScorer",
     "ScalarScoreHead",
     "StepLoRALinear",
     "StepLoRARouter",
+    "StreamedWeights",
     "apply_numerics",
     "attach_step_lora",
     "candidate_kv_workspace_bytes",

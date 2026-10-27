@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any, cast
 
@@ -18,6 +19,10 @@ from wyat.loading import ouro, ouro_artifact  # noqa: E402
 from wyat.loading.native_artifact import file_sha256  # noqa: E402
 from wyat.loading.ouro import OuroScorer  # noqa: E402
 from wyat.loading.ouro_cache import DiskKVBank  # noqa: E402
+
+DARWIN_ONLY = pytest.mark.skipif(
+    sys.platform != "darwin", reason="streaming memory mode requires macOS"
+)
 
 
 def _artifact(path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
@@ -61,6 +66,7 @@ def _record(long: bool) -> dict[str, Any]:
     }
 
 
+@DARWIN_ONLY
 @pytest.mark.parametrize("device", ["cpu", "mps"])
 @pytest.mark.parametrize("long", [False, True])
 def test_streaming_matches_resident_and_restores_placeholders(
@@ -95,6 +101,7 @@ def test_streaming_matches_resident_and_restores_placeholders(
     )
 
 
+@DARWIN_ONLY
 def test_spill_failure_restores_weights_and_closes_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -118,6 +125,7 @@ def test_spill_failure_restores_weights_and_closes_file(
     )
 
 
+@DARWIN_ONLY
 def test_streaming_rejects_unsupported_contract(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -131,3 +139,13 @@ def test_streaming_rejects_unsupported_contract(
             memory_mode="streaming",
             candidate_batching="per_candidate",
         )
+
+
+def test_streaming_refuses_non_macos_before_reading_the_artifact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The 85% RAM guard and the uncached temp-file policy are macOS facilities.
+    # Off macOS, streaming must fail closed instead of running unguarded.
+    monkeypatch.setattr(sys, "platform", "linux")
+    with pytest.raises(ValueError, match="requires macOS"):
+        ouro.OuroScorer.from_directory(tmp_path, memory_mode="streaming")
