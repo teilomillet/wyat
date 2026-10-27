@@ -321,7 +321,7 @@ long rows the same call became 1.058-1.205x faster (median 1.071x, 0.37-1.06 s
 saved) with identical logits. In the full protocol 11 of the 13 over-threshold
 banks stayed resident and the two largest (31,851 and 31,308 tokens, ~5.9 GiB
 banks) were refused by the guard, as intended; peak memory rose to 8,590 MiB of
-the 12,282 MiB card (3.7 GiB headroom).
+the 12,282 MiB card (3.6 GiB headroom).
 
 On the untouched 420-request engine-parity protocol (300 G0c + 120 long
 public requests) the runtime stays bitwise vs the gated engine: 420/420
