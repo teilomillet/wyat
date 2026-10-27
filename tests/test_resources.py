@@ -73,11 +73,14 @@ def test_default_warns_once_per_operation_and_continues(
     default = ResourceGuard()
     assert default.max_fraction == 0.90
     assert not default.enforcing
-    with pytest.warns(MemoryHeadroomWarning, match="needs about 201.0 GiB") as caught:
+    with pytest.warns(
+        MemoryHeadroomWarning,
+        match="needs about 201.0 GiB of memory with about 300.0 GiB",
+    ) as caught:
         assert default.check(201 << 30, "model loading") is not None
         default.check(300 << 30, "model loading")
     assert len(caught) == 1
-    assert "300.0 GiB is available" in str(caught[0].message)
+    assert "past the 90% line" in str(caught[0].message)
     with pytest.warns(MemoryHeadroomWarning, match="Inference needs"):
         default.check(201 << 30)
 
