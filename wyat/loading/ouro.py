@@ -1324,10 +1324,12 @@ def score_candidates_shared_context(
 # feature for the scorer and leaves the eager path in charge.
 GRAPH_MAX_CONTEXT = 1024
 GRAPH_MAX_CANDIDATES = 32
-GRAPH_CACHE_ENTRIES = 32
+GRAPH_CACHE_ENTRIES = 64
 # Capture is attempted only after this many eager sightings of the same
-# geometry, so a shape that never repeats pays nothing.
-GRAPH_CAPTURE_SIGHTINGS = 2
+# geometry, so a shape that never repeats pays nothing. The measured capture
+# cost is ~158 ms against ~20 ms saved per replay, so a geometry needs several
+# guaranteed replays before a capture pays for itself.
+GRAPH_CAPTURE_SIGHTINGS = 3
 
 
 class _SharedBatchGraph:
