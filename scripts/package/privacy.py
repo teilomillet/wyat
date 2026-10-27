@@ -141,6 +141,7 @@ _MODEL_NAMES = {
             "loading/native_artifact",
             "loading/ouro",
             "loading/ouro_artifact",
+            "resources",
             "tasks",
             "wire",
         )
