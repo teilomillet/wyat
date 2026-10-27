@@ -459,8 +459,9 @@ The [ergonomics standard](ergonomics.md) describes the public API design princip
 reserve on macOS. Set the fraction explicitly to change it, for example
 `wyat.load(path, device="mps", max_resource_fraction=0.75)`.
 
-Before loading and each inference call, Wyat checks system-wide memory pressure,
-including other applications. Loading uses a conservative weight-size estimate;
+Before loading and each inference call, Wyat checks system-wide available RAM
+(free plus inactive VM pages), including other applications. Compressed and
+wired memory are not added to the available amount. Loading uses a conservative weight-size estimate;
 Ouro additionally estimates context K/V, attention and candidate workspaces before
 scoring and checks pressure between layers/chunks. Oversized work or unavailable
 telemetry raises `wyat.ResourceLimitError` (a `MemoryError`), including with

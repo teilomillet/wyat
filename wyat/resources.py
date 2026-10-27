@@ -3,11 +3,12 @@
 
 """Cooperative macOS admission checks that leave room for other applications.
 
-The memory-pressure free percentage is a conservative capacity signal, not an
-exact process RSS measurement. Checks can refuse new work and stop between
-operations; they cannot preempt an already submitted kernel or control another
-application. PyTorch thread and MPS allocator settings apply to the whole process.
-No runtime package is imported here, and non-macOS guards do no system probing.
+Available RAM is estimated from free plus inactive VM pages. Compressed and
+wired memory are not added to that estimate. This is not process RSS.
+Checks refuse new work and stop between operations; they cannot preempt a
+submitted kernel or control another application. PyTorch thread and MPS
+allocator settings apply to the whole process. No runtime package is imported
+here, and non-macOS guards do no system probing.
 """
 
 from __future__ import annotations
@@ -33,7 +34,7 @@ class ResourceLimitError(MemoryError):
 
 @dataclass(frozen=True, slots=True)
 class ResourceSnapshot:
-    """Physical capacity and the available amount reported by memory pressure."""
+    """Physical capacity and available RAM estimated from Mach VM page counts."""
 
     total_bytes: int
     available_bytes: int
@@ -87,29 +88,37 @@ class ResourceGuard:
                 if self._total_bytes <= 0:
                     self._total_bytes = None
                     raise ValueError("nonpositive physical memory capacity")
-            pressure = subprocess.run(
-                ["/usr/bin/memory_pressure", "-Q"],
+            statistics = subprocess.run(
+                ["/usr/bin/vm_stat"],
                 check=True,
                 capture_output=True,
                 text=True,
                 timeout=1.0,
             )
-            match = re.search(
-                r"System-wide memory free percentage:\s*(\d+(?:\.\d+)?)%",
-                pressure.stdout,
+            page_size = re.search(r"page size of (\d+) bytes", statistics.stdout)
+            pages = dict(
+                re.findall(
+                    r"^Pages (free|inactive):\s+(\d+)\.\s*$",
+                    statistics.stdout,
+                    re.MULTILINE,
+                )
             )
-            if match is None:
-                raise ValueError("memory pressure did not report available capacity")
-            free_percent = float(match.group(1))
-            if not 0 <= free_percent <= 100:
-                raise ValueError("invalid available capacity percentage")
+            if page_size is None or set(pages) != {"free", "inactive"}:
+                raise ValueError("VM statistics did not report available page counts")
+            size = int(page_size.group(1))
+            if size <= 0:
+                raise ValueError("invalid VM page size")
+            # Darwin's conventional available-RAM estimate is free + inactive.
+            # Do not add speculative/purgeable pages again or compressed pages:
+            # those overlap resident categories or are already occupied RAM.
+            available = (int(pages["free"]) + int(pages["inactive"])) * size
             return ResourceSnapshot(
-                self._total_bytes, int(self._total_bytes * free_percent / 100)
+                self._total_bytes, min(self._total_bytes, available)
             )
         except (OSError, subprocess.SubprocessError, ValueError) as error:
             raise ResourceLimitError(
                 "Cannot check macOS memory headroom; local model work was refused. "
-                "Check that sysctl and memory_pressure are available."
+                "Check that sysctl and vm_stat are available."
             ) from error
 
     def check(

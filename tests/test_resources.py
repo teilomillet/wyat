@@ -67,8 +67,20 @@ def test_snapshot_uses_bounded_commands_and_caches_only_total(
     run = Mock(
         side_effect=[
             SimpleNamespace(stdout="10000\n"),
-            SimpleNamespace(stdout="System-wide memory free percentage: 30%\n"),
-            SimpleNamespace(stdout="System-wide memory free percentage: 20%\n"),
+            SimpleNamespace(
+                stdout=(
+                    "Mach Virtual Memory Statistics: (page size of 100 bytes)\n"
+                    "Pages free: 10.\nPages inactive: 20.\n"
+                    "Pages stored in compressor: 999.\nPages purgeable: 999.\n"
+                    "Pages speculative: 999.\n"
+                )
+            ),
+            SimpleNamespace(
+                stdout=(
+                    "Mach Virtual Memory Statistics: (page size of 100 bytes)\n"
+                    "Pages free: 5.\nPages inactive: 15.\n"
+                )
+            ),
         ]
     )
     monkeypatch.setattr(resources.subprocess, "run", run)
@@ -83,11 +95,19 @@ def test_snapshot_uses_bounded_commands_and_caches_only_total(
             check=True, capture_output=True, text=True, timeout=1.0
         )
     assert run.call_args_list[0].args[0] == ["/usr/sbin/sysctl", "-n", "hw.memsize"]
-    assert run.call_args_list[1].args[0] == ["/usr/bin/memory_pressure", "-Q"]
+    assert run.call_args_list[1].args[0] == ["/usr/bin/vm_stat"]
 
 
 @pytest.mark.parametrize(
-    "output", ["missing", "System-wide memory free percentage: 101%", "bad total"]
+    "output",
+    [
+        "missing",
+        "System-wide memory free percentage: 99%",
+        "bad total",
+        "page size of 0 bytes\nPages free: 10.\nPages inactive: 20.",
+        "page size of 100 bytes\nPages free: 10.",
+        "page size of 100 bytes\nPages free: -10.\nPages inactive: 20.",
+    ],
 )
 def test_invalid_telemetry_fails_closed(
     mac: None, monkeypatch: pytest.MonkeyPatch, output: str
@@ -104,7 +124,7 @@ def test_invalid_telemetry_fails_closed(
 
 
 @pytest.mark.parametrize(
-    "error", [OSError("missing"), subprocess.TimeoutExpired("memory_pressure", 1.0)]
+    "error", [OSError("missing"), subprocess.TimeoutExpired("vm_stat", 1.0)]
 )
 def test_unavailable_telemetry_fails_closed(
     mac: None, monkeypatch: pytest.MonkeyPatch, error: Exception
