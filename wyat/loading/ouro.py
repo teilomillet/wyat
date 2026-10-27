@@ -1604,16 +1604,17 @@ class OuroScorer:
         with _quiet_ouro_source_exec(), torch.device("meta"):
             backbone = model_cls(config)
         backbone.to_empty(device=target)
-        # inv_freq is a non-persistent buffer: to_empty leaves it uninitialized,
-        # so restore the exact FP32 frequencies the native module would compute.
+        _stream_base_weights(backbone, root / contract.BASE_WEIGHT_FILE)
+        if base_dtype != torch.float32:
+            backbone.to(dtype=base_dtype)
+        # Restore after the weight cast: casting this buffer to BF16 rounds the
+        # position frequencies and changes scores, even if forward uses .float().
+        # It is non-persistent, so to_empty also leaves it uninitialized.
         inv_freq, _ = _default_rope_init(config)
         backbone.model.rotary_emb.inv_freq = inv_freq.to(
             device=target, dtype=torch.float32
         )
         backbone.model.rotary_emb.original_inv_freq = backbone.model.rotary_emb.inv_freq
-        _stream_base_weights(backbone, root / contract.BASE_WEIGHT_FILE)
-        if base_dtype != torch.float32:
-            backbone.to(dtype=base_dtype)
         attach_step_lora(
             backbone,
             rank=contract.ADAPTER_RANK,

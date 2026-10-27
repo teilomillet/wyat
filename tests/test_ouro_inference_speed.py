@@ -423,10 +423,16 @@ def test_candidate_kv_workspace_bytes_matches_buffer_shape(
         candidate_kv_workspace_bytes(backbone, -1, 6)
 
 
+@pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_streaming_loader_matches_checkpoint_values_exactly(
     tiny_artifact: Path,
+    device: str,
 ) -> None:
-    scorer = load_ouro(tiny_artifact, device="cpu")
+    if device == "cuda" and not torch.cuda.is_available():
+        pytest.skip("CUDA is required for the BF16 loader regression")
+    scorer = load_ouro(
+        tiny_artifact, device=device, allow_device_policy_override=device == "cuda"
+    )
     checkpoint = load_file(str(tiny_artifact / ouro_artifact.BASE_WEIGHT_FILE))
     parameters = {
         key.replace(".base.weight", ".weight"): value
@@ -435,10 +441,17 @@ def test_streaming_loader_matches_checkpoint_values_exactly(
     }
     assert set(checkpoint) == set(parameters)
     for key, tensor in checkpoint.items():
-        assert torch.equal(parameters[key].detach(), tensor.to(torch.float32)), key
+        assert torch.equal(
+            parameters[key].detach().cpu(), tensor.to(parameters[key].dtype)
+        ), key
     expected_inv_freq, _ = ouro._default_rope_init(scorer.backbone.config)
     assert torch.equal(
-        scorer.backbone.model.rotary_emb.inv_freq.detach(), expected_inv_freq
+        scorer.backbone.model.rotary_emb.inv_freq.detach().cpu(), expected_inv_freq
+    )
+    assert scorer.backbone.model.rotary_emb.inv_freq.dtype == torch.float32
+    assert (
+        scorer.backbone.model.rotary_emb.original_inv_freq
+        is scorer.backbone.model.rotary_emb.inv_freq
     )
 
 
