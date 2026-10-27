@@ -77,7 +77,12 @@ from wyat.loading.ouro_artifact import (
 )
 from wyat.loading.ouro_cache import DiskKVBank
 from wyat.loading.ouro_weights import StreamedWeights
-from wyat.resources import ResourceGuard, checkpoint, current_guard
+from wyat.resources import (
+    DEFAULT_MAX_RESOURCE_FRACTION,
+    ResourceGuard,
+    checkpoint,
+    current_guard,
+)
 
 CachePolicy = Literal["matched", "last"]
 
@@ -1865,7 +1870,7 @@ class OuroScorer:
         device_policy: str | None = None,
         context_prefill: Mapping[str, Any] | None = None,
         numerics: str | None = None,
-        max_resource_fraction: float = 0.85,
+        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
     ) -> None:
         if type(prefix_cache_size) is not int or prefix_cache_size < 0:
             raise ValueError("prefix_cache_size must be a nonnegative integer")
@@ -1951,7 +1956,7 @@ class OuroScorer:
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
-        max_resource_fraction: float = 0.85,
+        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
         memory_mode: Literal["resident", "streaming"] = "resident",
     ) -> OuroScorer:
         """Load under the same macOS resource policy as inference."""
@@ -1988,14 +1993,14 @@ class OuroScorer:
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
-        max_resource_fraction: float = 0.85,
+        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
         memory_mode: Literal["resident", "streaming"] = "resident",
     ) -> OuroScorer:
         if memory_mode not in {"resident", "streaming"}:
             raise ValueError("memory_mode must be resident or streaming")
         if memory_mode == "streaming" and sys.platform != "darwin":
             raise ValueError(
-                "streaming requires macOS: the 85% RAM admission guard and the "
+                "streaming requires macOS: the RAM admission guard and the "
                 "uncached temporary-file policy are macOS facilities"
             )
         root = Path(path).resolve()
@@ -2718,7 +2723,7 @@ def load_ouro(
     verify_release_base: bool = False,
     candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
     allow_device_policy_override: bool = False,
-    max_resource_fraction: float = 0.85,
+    max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
     memory_mode: Literal["resident", "streaming"] = "resident",
 ) -> OuroScorer:
     """Load an Ouro decision artifact directory.
@@ -2742,7 +2747,7 @@ def load_ouro(
     ``memory_mode="streaming"`` (macOS only) stages one FP32 base-weight module
     at a time from the pinned checkpoint and stores the final context K/V bank
     in an anonymous uncached temporary file, so long contexts run under the same
-    85% guard at much lower resident memory. It requires CPU or Apple GPU
+    admission guard at much lower resident memory. It requires CPU or Apple GPU
     execution, v2 chunked context execution, shared-context candidate batching
     and no prefix cache. Values and arithmetic are unchanged, but the resulting
     backbone is scoring-only: ``lm_head`` and the early-exit gate are not

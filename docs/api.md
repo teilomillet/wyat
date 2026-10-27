@@ -455,7 +455,7 @@ The [ergonomics standard](ergonomics.md) describes the public API design princip
 
 ### macOS resource headroom
 
-`wyat.load(..., max_resource_fraction=0.85)` leaves a default 15% memory
+`wyat.load(..., max_resource_fraction=0.90)` leaves a default 10% memory
 reserve on macOS. Set the fraction explicitly to change it, for example
 `wyat.load(path, device="mps", max_resource_fraction=0.75)`.
 
@@ -476,7 +476,7 @@ Direct `load_ouro`, `OuroScorer.from_directory` and `OuroScorer` accept the same
 `max_resource_fraction` option. Other families receive the guard through
 `wyat.load`; constructing their backend classes directly bypasses it.
 
-This is a cooperative memory safeguard, **not a hard 85% CPU/GPU utilization
+This is a cooperative memory safeguard, **not a hard 90% CPU/GPU utilization
 cap or an operating-system reservation**. Estimates are conservative, memory
 pressure is sampled, and other apps or already queued kernels can still consume
 resources between checks. Other model families have call-level admission checks,
@@ -487,7 +487,7 @@ limit therefore does not promise that 32K fits the current Mac and budget.
 ### Bounded-memory Ouro inference
 
 Streaming is macOS-only. Other platforms reject `memory_mode="streaming"`
-instead of running without the 85% admission guard and the Darwin uncached-file
+instead of running without the admission guard and the Darwin uncached-file
 policy. Resident mode remains the default everywhere.
 
 For an Ouro v2 artifact, `wyat.load(path, device="mps", memory_mode="streaming")`
@@ -503,8 +503,8 @@ file. Candidate scoring reads one layer into reusable CPU/Apple GPU buffers.
 The file is uncached and reclaimed when the request finishes, fails, or its
 process exits. At 32K, the bank needs approximately 12 GiB temporary disk
 space. The same resource fraction bounds RAM admission and disk capacity; it
-defaults to 85% and reserves a further 15% of the volume, so a volume already
-more than 85% full refuses streaming even when that much free space exists.
+defaults to 90% and reserves a further 10% of the volume, so a volume already
+more than 90% full refuses streaming even when that much free space exists.
 Streaming trades additional disk reads and transfers for lower resident
 memory. It requires shared-context candidate batching and no prefix cache. It
 preserves the artifact's context chunking and attention mode.
@@ -514,7 +514,7 @@ bounds remain active. A busy Mac or insufficient disk headroom can still cause
 `ResourceLimitError`; streaming does not reserve capacity against other apps.
 Qualified on 2026-10-27 on a 24 GiB Apple Silicon Mac: exact 32,768-token
 Choice, Noul and Score requests completed on both CPU and Apple GPU under the
-default 85% ceiling, and the 32,769-token boundary was refused. Two Apple GPU
+then-default 85% ceiling, and the 32,769-token boundary was refused. Two Apple GPU
 32K Choice runs were bitwise identical, and CPU versus Apple GPU answers agreed
 with the same argmax (maximum probability difference 1.9e-5). Those are
 measurements of this streaming implementation on one machine, not a claim about

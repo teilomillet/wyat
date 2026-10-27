@@ -65,7 +65,7 @@ def _fake_load(monkeypatch: pytest.MonkeyPatch, scorer: _Scorer) -> None:
     monkeypatch.setattr(local, "_load", load)
 
 
-@pytest.mark.parametrize("fraction", [0.85, 0.7, 1.0])
+@pytest.mark.parametrize("fraction", [0.90, 0.7, 1.0])
 def test_load_retains_default_or_custom_policy_across_inference(
     fraction: float,
     policy: list[ResourceGuard],
@@ -75,7 +75,7 @@ def test_load_retains_default_or_custom_policy_across_inference(
     scorer = _Scorer()
     _fake_load(monkeypatch, scorer)
     kwargs: dict[str, Any] = (
-        {} if fraction == 0.85 else {"max_resource_fraction": fraction}
+        {} if fraction == 0.90 else {"max_resource_fraction": fraction}
     )
     model = local.load(tmp_path, **kwargs)
     assert policy[0].max_fraction == fraction

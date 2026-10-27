@@ -144,7 +144,7 @@ def test_streaming_rejects_unsupported_contract(
 def test_streaming_refuses_non_macos_before_reading_the_artifact(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # The 85% RAM guard and the uncached temp-file policy are macOS facilities.
+    # The RAM admission guard and the uncached temp-file policy are macOS facilities.
     # Off macOS, streaming must fail closed instead of running unguarded.
     monkeypatch.setattr(sys, "platform", "linux")
     with pytest.raises(ValueError, match="requires macOS"):

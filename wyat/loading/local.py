@@ -15,7 +15,7 @@ from typing import Any, Literal, cast
 
 from wyat.core import Model, Request, Scorer
 from wyat.download import REPOSITORY
-from wyat.resources import ResourceGuard, current_guard
+from wyat.resources import DEFAULT_MAX_RESOURCE_FRACTION, ResourceGuard, current_guard
 
 
 class _GuardedScorer:
@@ -304,7 +304,7 @@ def load(
     compile: bool = False,
     responsive: bool = True,
     temperature: float = 1.0,
-    max_resource_fraction: float = 0.85,
+    max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
     memory_mode: Literal["resident", "streaming"] = "resident",
 ) -> Model:
     """Load a local model directory, or the pinned release by its Hub name.
@@ -339,7 +339,7 @@ def load(
     temporary disk. Non-macOS platforms reject streaming rather than run
     without the admission guard and uncached-file policy.
 
-    ``max_resource_fraction`` defaults to 0.85 and may be set in (0, 1]. On
+    ``max_resource_fraction`` defaults to 0.90 and may be set in (0, 1]. On
     macOS, admission accounts for other applications before model allocation
     and every inference call. Weight files in the root and recognized
     base/backbone directories receive a conservative three-times-on-disk loading

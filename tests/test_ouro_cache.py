@@ -105,7 +105,7 @@ def test_disk_admission_includes_reserved_space_before_opening(
     create = Mock(side_effect=AssertionError("file opened before admission"))
     monkeypatch.setattr(tempfile, "TemporaryFile", create)
     with pytest.raises(ResourceLimitError, match="disk-space budget"):
-        cache.DiskKVBank(guard, 151, tmp_path)
+        cache.DiskKVBank(guard, 201, tmp_path)
     create.assert_not_called()
 
 
