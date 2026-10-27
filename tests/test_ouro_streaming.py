@@ -5,8 +5,10 @@
 
 from __future__ import annotations
 
+import shutil
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -36,6 +38,16 @@ def _artifact(path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
             "host_cache_above_tokens": 1024,
         },
         numerics="deterministic-no-tf32-v1",
+    )
+    # The admission policy keeps the configured fraction of the volume free
+    # (10% by default). A busy CI runner can be nearly full, which says nothing
+    # about these tiny fixtures, so
+    # give the bank a deterministic simulated filesystem. Disk admission itself
+    # is covered against simulated capacities in test_ouro_cache.py.
+    monkeypatch.setattr(
+        shutil,
+        "disk_usage",
+        lambda path: SimpleNamespace(total=64 << 30, used=1 << 30, free=63 << 30),
     )
     # The integration fixture is a tiny, locally pinned model, not the public
     # 1.4B release. Exercise the same size/hash verification against its pins.
