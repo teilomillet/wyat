@@ -157,13 +157,13 @@ class ResourceGuard:
             if operation not in self._warned:
                 self._warned.add(operation)
                 warnings.warn(
-                    f"{operation.capitalize()} needs about "
-                    f"{additional_bytes / 2**30:.1f} GiB of memory and about "
-                    f"{snapshot.available_bytes / 2**30:.1f} GiB is available on "
-                    f"this Mac ({projected / 2**30:.1f} of "
-                    f"{snapshot.total_bytes / 2**30:.0f} GiB projected). It will "
-                    "continue, but may be slow; close other applications to free "
-                    "memory.",
+                    f"{operation[:1].upper()}{operation[1:]} needs about "
+                    f"{additional_bytes / 2**30:.1f} GiB of memory with about "
+                    f"{snapshot.available_bytes / 2**30:.1f} GiB available, taking "
+                    f"this Mac to about {projected / 2**30:.1f} of "
+                    f"{snapshot.total_bytes / 2**30:.0f} GiB, past the "
+                    f"{self.max_fraction:.0%} line. It will continue, but may be "
+                    "slow; close other applications to free memory.",
                     MemoryHeadroomWarning,
                     stacklevel=2,
                 )
