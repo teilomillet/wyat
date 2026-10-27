@@ -75,7 +75,12 @@ from wyat.loading.ouro_artifact import (
     encode_record,
     reuse_context_prefix,
 )
-from wyat.resources import ResourceGuard, checkpoint, current_guard
+from wyat.resources import (
+    DEFAULT_MAX_RESOURCE_FRACTION,
+    ResourceGuard,
+    checkpoint,
+    current_guard,
+)
 
 CachePolicy = Literal["matched", "last"]
 
@@ -1797,7 +1802,7 @@ class OuroScorer:
         device_policy: str | None = None,
         context_prefill: Mapping[str, Any] | None = None,
         numerics: str | None = None,
-        max_resource_fraction: float = 0.85,
+        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
     ) -> None:
         if type(prefix_cache_size) is not int or prefix_cache_size < 0:
             raise ValueError("prefix_cache_size must be a nonnegative integer")
@@ -1882,7 +1887,7 @@ class OuroScorer:
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
-        max_resource_fraction: float = 0.85,
+        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
     ) -> OuroScorer:
         """Load under the same macOS resource policy as inference."""
         requested_guard = ResourceGuard(max_resource_fraction)
@@ -1917,7 +1922,7 @@ class OuroScorer:
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
-        max_resource_fraction: float = 0.85,
+        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
     ) -> OuroScorer:
         root = Path(path).resolve()
         manifest = contract.validate_artifact(
@@ -2562,7 +2567,7 @@ def load_ouro(
     verify_release_base: bool = False,
     candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
     allow_device_policy_override: bool = False,
-    max_resource_fraction: float = 0.85,
+    max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
 ) -> OuroScorer:
     """Load an Ouro decision artifact directory.
 

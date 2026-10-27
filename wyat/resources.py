@@ -27,6 +27,9 @@ from numbers import Real
 from threading import RLock
 from typing import Any
 
+DEFAULT_MAX_RESOURCE_FRACTION = 0.90
+"""Default share of macOS capacity that admitted work may project to use."""
+
 
 class ResourceLimitError(MemoryError):
     """Local work was refused to preserve the configured resource headroom."""
@@ -55,13 +58,13 @@ _CURRENT_GUARD: ContextVar[ResourceGuard | None] = ContextVar(
 class ResourceGuard:
     """Refuse projected memory use above ``max_fraction`` on macOS.
 
-    The default leaves 15% of the Mac's capacity available. Estimates supplied
+    The default leaves 10% of the Mac's capacity available. Estimates supplied
     by callers must include additional peak allocations, rather than just the
     final retained tensors. Missing telemetry refuses work rather than silently
     disabling the guard. Other operating systems keep their existing behavior.
     """
 
-    def __init__(self, max_fraction: float = 0.85) -> None:
+    def __init__(self, max_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION) -> None:
         if (
             isinstance(max_fraction, bool)
             or not isinstance(max_fraction, Real)

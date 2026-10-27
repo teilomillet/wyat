@@ -455,7 +455,7 @@ The [ergonomics standard](ergonomics.md) describes the public API design princip
 
 ### macOS resource headroom
 
-`wyat.load(..., max_resource_fraction=0.85)` leaves a default 15% memory
+`wyat.load(..., max_resource_fraction=0.90)` leaves a default 10% memory
 reserve on macOS. Set the fraction explicitly to change it, for example
 `wyat.load(path, device="mps", max_resource_fraction=0.75)`.
 
@@ -476,7 +476,7 @@ Direct `load_ouro`, `OuroScorer.from_directory` and `OuroScorer` accept the same
 `max_resource_fraction` option. Other families receive the guard through
 `wyat.load`; constructing their backend classes directly bypasses it.
 
-This is a cooperative memory safeguard, **not a hard 85% CPU/GPU utilization
+This is a cooperative memory safeguard, **not a hard 90% CPU/GPU utilization
 cap or an operating-system reservation**. Estimates are conservative, memory
 pressure is sampled, and other apps or already queued kernels can still consume
 resources between checks. Other model families have call-level admission checks,

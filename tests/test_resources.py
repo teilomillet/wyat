@@ -49,11 +49,13 @@ def test_default_and_custom_memory_admission(
         ResourceGuard, "_snapshot", lambda self: ResourceSnapshot(1000, 300)
     )
     default = ResourceGuard()
-    assert default.max_fraction == 0.85
-    assert default.check(150) == ResourceSnapshot(1000, 300)
+    assert default.max_fraction == 0.90
+    assert default.check(200) == ResourceSnapshot(1000, 300)
+    with pytest.raises(ResourceLimitError, match="90%"):
+        default.check(201, "context prefill")
+    assert ResourceGuard(0.85).check(150) is not None
     with pytest.raises(ResourceLimitError, match="85%"):
-        default.check(151, "context prefill")
-    assert ResourceGuard(0.9).check(200) is not None
+        ResourceGuard(0.85).check(151)
     with pytest.raises(ResourceLimitError):
         ResourceGuard(0.6).check()
 
@@ -154,8 +156,8 @@ def test_torch_threads_and_mps_limit(
     )
     guard = ResourceGuard()
     guard.configure_torch(torch, "mps")
-    torch.set_num_threads.assert_called_once_with(8)
-    torch.mps.set_per_process_memory_fraction.assert_called_once_with(0.85)
+    torch.set_num_threads.assert_called_once_with(9)
+    torch.mps.set_per_process_memory_fraction.assert_called_once_with(0.90)
     torch.get_num_threads.return_value = 4
     torch.set_num_threads.reset_mock()
     guard.configure_torch(torch, "cpu")
@@ -163,7 +165,7 @@ def test_torch_threads_and_mps_limit(
     torch.mps.set_per_process_memory_fraction.reset_mock()
     torch.mps.recommended_max_memory.return_value = 2000
     guard.configure_torch(torch, "mps")
-    torch.mps.set_per_process_memory_fraction.assert_called_once_with(0.425)
+    torch.mps.set_per_process_memory_fraction.assert_called_once_with(0.45)
 
 
 def test_missing_mps_limit_support_refuses(
@@ -210,7 +212,7 @@ def test_mlx_limits_do_not_raise_existing_lower_limit(
     )
     guard = ResourceGuard()
     guard.configure_mlx(mx)
-    mx.set_memory_limit.assert_called_once_with(850)
+    mx.set_memory_limit.assert_called_once_with(900)
     mx.set_cache_limit.assert_called_once_with(0)
     mx.get_memory_limit.return_value = 500
     mx.set_memory_limit.reset_mock()
