@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -327,7 +327,8 @@ def test_scorer_matches_direct_score_candidates(artifact: Path) -> None:
         )
         assert isinstance(ctx_cache, ContextKVCache)
         assert len(ctx_cache.banks) == 1
-        assert isinstance(ctx_cache.banks[0][0], LayerKVCache)
+        resident = cast(tuple[LayerKVCache, ...], ctx_cache.banks[0])
+        assert isinstance(resident[0], LayerKVCache)
         first_cand = run_candidate_steps(
             scorer.backbone,
             ctx_cache,
@@ -759,7 +760,11 @@ def test_a_context_of_one_chunk_takes_the_exact_single_pass(artifact: Path) -> N
             same = prefill_context(
                 scorer.backbone, context, chunk=chunk, attention="lean"
             )
-            for a, b in zip(single.banks[0], same.banks[0], strict=True):
+            for a, b in zip(
+                cast(tuple[LayerKVCache, ...], single.banks[0]),
+                cast(tuple[LayerKVCache, ...], same.banks[0]),
+                strict=True,
+            ):
                 assert torch.equal(a.key, b.key) and torch.equal(a.value, b.value)
 
 
@@ -772,7 +777,11 @@ def test_lean_chunked_prefill_keeps_the_single_pass_values(artifact: Path) -> No
             scorer.backbone, context, chunk=16, attention="lean", bank_device="cpu"
         )
     assert chunked.length == single.length == 90
-    for a, b in zip(single.banks[0], chunked.banks[0], strict=True):
+    for a, b in zip(
+        cast(tuple[LayerKVCache, ...], single.banks[0]),
+        cast(tuple[LayerKVCache, ...], chunked.banks[0]),
+        strict=True,
+    ):
         torch.testing.assert_close(b.key, a.key, atol=2e-5, rtol=1e-4)
         torch.testing.assert_close(b.value, a.value, atol=2e-5, rtol=1e-4)
     with pytest.raises(ValueError, match="last policy"):

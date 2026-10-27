@@ -6,9 +6,12 @@
 from __future__ import annotations
 
 import os
+import shutil
+import sys
+import tempfile
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 from unittest.mock import Mock
 
 import pytest
@@ -23,7 +26,7 @@ def guard(monkeypatch: pytest.MonkeyPatch) -> ResourceGuard:
     result = ResourceGuard()
     monkeypatch.setattr(result, "check", Mock())
     monkeypatch.setattr(
-        cache.shutil,
+        shutil,
         "disk_usage",
         lambda path: SimpleNamespace(total=2**30, used=0, free=2**30),
     )
@@ -73,7 +76,9 @@ def test_reuses_one_cpu_pair_and_admits_before_allocation(
         assert tuple(t.data_ptr() for t in second) == pointers
         assert torch.equal(second[0], pair(123)[0])
         assert bank.resident_bytes == 256
-        positive = [call.args[0] for call in guard.check.call_args_list if call.args]
+        positive = [
+            call.args[0] for call in cast(Mock, guard.check).call_args_list if call.args
+        ]
         assert positive == [256]
 
 
@@ -93,12 +98,12 @@ def test_disk_admission_includes_reserved_space_before_opening(
     guard: ResourceGuard, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(
-        cache.shutil,
+        shutil,
         "disk_usage",
         lambda path: SimpleNamespace(total=1000, used=1, free=300),
     )
     create = Mock(side_effect=AssertionError("file opened before admission"))
-    monkeypatch.setattr(cache.tempfile, "TemporaryFile", create)
+    monkeypatch.setattr(tempfile, "TemporaryFile", create)
     with pytest.raises(ResourceLimitError, match="disk-space budget"):
         cache.DiskKVBank(guard, 151, tmp_path)
     create.assert_not_called()
@@ -108,7 +113,7 @@ def test_disk_budget_does_not_charge_written_bytes_twice(
     guard: ResourceGuard, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(
-        cache.shutil,
+        shutil,
         "disk_usage",
         Mock(
             side_effect=[
@@ -129,7 +134,7 @@ def test_disk_pressure_during_append_closes_storage(
 ) -> None:
     bank = cache.DiskKVBank(guard, 256, tmp_path)
     monkeypatch.setattr(
-        cache.shutil,
+        shutil,
         "disk_usage",
         lambda path: SimpleNamespace(total=1000, used=900, free=100),
     )
@@ -227,23 +232,21 @@ def test_mps_exact_spill_read_and_buffer_reuse(
         assert bank.resident_bytes == 512
 
 
-@pytest.mark.skipif(
-    cache.sys.platform != "darwin", reason="Darwin uncached-file policy"
-)
+@pytest.mark.skipif(sys.platform != "darwin", reason="Darwin uncached-file policy")
 def test_uncached_file_failure_closes_the_descriptor(
     guard: ResourceGuard, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     import fcntl
 
     opened = []
-    create = cache.tempfile.TemporaryFile
+    create = tempfile.TemporaryFile
 
     def tracked_file(*args: Any, **kwargs: Any) -> Any:
         file = create(*args, **kwargs)
         opened.append(file)
         return file
 
-    monkeypatch.setattr(cache.tempfile, "TemporaryFile", tracked_file)
+    monkeypatch.setattr(tempfile, "TemporaryFile", tracked_file)
     monkeypatch.setattr(
         fcntl, "fcntl", Mock(side_effect=OSError("no uncached support"))
     )
@@ -257,7 +260,7 @@ def test_custom_disk_budget_is_not_silently_raised(
     guard: ResourceGuard, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(
-        cache.shutil,
+        shutil,
         "disk_usage",
         lambda path: SimpleNamespace(total=1000, used=400, free=600),
     )

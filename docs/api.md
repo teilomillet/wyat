@@ -504,4 +504,10 @@ prefix cache. It preserves the artifact's context chunking and attention mode.
 The working-set estimate, live checkpoints, CPU-worker and GPU-allocation
 bounds remain active. A busy Mac or insufficient disk headroom can still cause
 `ResourceLimitError`; streaming does not reserve capacity against other apps.
-Actual32K CPU/MPS qualification is pending measurements of this implementation.
+Qualified on 2026-10-27 on a 24 GiB Apple Silicon Mac: exact 32,768-token
+Choice, Noul and Score requests completed on both CPU and Apple GPU under the
+default 85% ceiling, and the 32,769-token boundary was refused. Two Apple GPU
+32K Choice runs were bitwise identical, and CPU versus Apple GPU answers agreed
+with the same argmax (maximum probability difference 1.9e-5). Those are
+measurements of this streaming implementation on one machine, not a claim about
+any published release: the shipped release still uses the resident loader.

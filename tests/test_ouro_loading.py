@@ -90,6 +90,7 @@ def test_ouro_dispatch_defaults_to_artifact_policy_and_preserves_model_options(
             "max_length": None,
             "prefix_cache_size": 0,
             "attention": "sdpa",
+            "memory_mode": "resident",
         }
     ]
 
@@ -106,6 +107,7 @@ def test_ouro_dispatch_defaults_to_artifact_policy_and_preserves_model_options(
         "max_length": 896,
         "prefix_cache_size": 8,
         "attention": "eager",
+        "memory_mode": "resident",
     }
 
 

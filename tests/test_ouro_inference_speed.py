@@ -17,7 +17,7 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import pytest
 
@@ -325,7 +325,11 @@ def test_flash_prefill_omits_unused_masks_without_changing_values(
 
     monkeypatch.setattr(ouro, "_causal_mask", refuse_mask)
     observed = prefill_context(backbone, context, chunk=16, attention="flash")
-    for wanted, actual in zip(expected.banks[0], observed.banks[0], strict=True):
+    for wanted, actual in zip(
+        cast(tuple[Any, ...], expected.banks[0]),
+        cast(tuple[Any, ...], observed.banks[0]),
+        strict=True,
+    ):
         assert torch.equal(wanted.key, actual.key)
         assert torch.equal(wanted.value, actual.value)
 
@@ -353,7 +357,7 @@ def test_nonflash_prefill_keeps_required_causal_masks(
     assert mask_calls == 3
     assert all(
         torch.isfinite(layer.key).all() and torch.isfinite(layer.value).all()
-        for layer in observed.banks[0]
+        for layer in cast(tuple[Any, ...], observed.banks[0])
     )
 
 
@@ -398,7 +402,7 @@ def test_scoring_leaves_context_banks_unchanged_and_repeats(
 ) -> None:
     backbone, head = tiny_model
     cache = prefill_context(backbone, torch.randint(0, 320, (1, 17)), policy="last")
-    bank = cache.banks[0]
+    bank = cast(tuple[Any, ...], cache.banks[0])
     before = [(entry.key.clone(), entry.value.clone()) for entry in bank]
     candidates = _candidates([6, 4, 6])
     first = score_candidates_from_cache(backbone, head, cache, candidates)

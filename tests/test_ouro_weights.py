@@ -6,10 +6,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-torch = pytest.importorskip("torch")
+if TYPE_CHECKING:
+    import torch
+else:
+    torch = pytest.importorskip("torch")
 from safetensors.torch import save_file  # noqa: E402
 from torch import nn  # noqa: E402
 from torch.nn import functional as F  # noqa: E402

@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -15,6 +15,8 @@ from test_ouro_artifact import _build_ouro_artifact  # noqa: E402
 
 import wyat  # noqa: E402
 from wyat.loading import ouro, ouro_artifact  # noqa: E402
+from wyat.loading.native_artifact import file_sha256  # noqa: E402
+from wyat.loading.ouro import OuroScorer  # noqa: E402
 from wyat.loading.ouro_cache import DiskKVBank  # noqa: E402
 
 
@@ -38,7 +40,7 @@ def _artifact(path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         {
             name: {
                 "size": (artifact / name).stat().st_size,
-                "sha256": ouro_artifact.file_sha256(artifact / name),
+                "sha256": file_sha256(artifact / name),
             }
             for name in ouro_artifact.PINNED_BASE_FILES
         },
@@ -69,7 +71,7 @@ def test_streaming_matches_resident_and_restores_placeholders(
     path = _artifact(tmp_path, monkeypatch)
     resident = wyat.load(path, device=device)
     stream = wyat.load(path, device=device, memory_mode="streaming")
-    scorer = stream._scorer
+    scorer = cast(OuroScorer, stream._scorer)
     before = {name: id(value) for name, value in scorer.backbone.named_parameters()}
     record = _record(long)
     expected, actual = resident.logits(record), stream.logits(record)
@@ -111,7 +113,7 @@ def test_spill_failure_restores_weights_and_closes_file(
     assert len(banks) == 1 and banks[0].closed
     assert all(
         value.is_meta
-        for name, value in stream._scorer.backbone.named_parameters()
+        for name, value in cast(OuroScorer, stream._scorer).backbone.named_parameters()
         if ".lora_" not in name
     )
 
