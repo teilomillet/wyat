@@ -126,8 +126,8 @@ observation and allowed choices. Then:
 
 ```python
 decision = choose_action(request, small_model, larger_model)
-action = actions[decision.selected]   # Find the matching agent function.
-result = action()                     # The agent does the work.
+action = actions[decision.selected]  # Find the matching agent function.
+result = action()  # The agent does the work.
 ```
 
 `choose_action` calls `small_model.decide(request)`, checks the score gap, and

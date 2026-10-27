@@ -63,9 +63,16 @@ pins. Later runs verify and reuse the cache:
 uv run python demo.py --model teilomillet/wyat-1-800m
 ```
 
+On Apple Silicon, install and select MLX to use the Apple GPU:
+
+```sh
+uv add wyat --extra mlx
+uv run python demo.py --model teilomillet/wyat-1-800m --backend mlx
+```
+
 The model chooses the result; the fixed demonstration output above is not an
-expected answer for trained inference. 800M uses PyTorch on CPU by default;
-MLX does not support its option-fork format. See
+expected answer for trained inference. The default backend is PyTorch on CPU;
+select MLX explicitly on Apple Silicon as shown above. See
 [model acquisition](model-acquisition.md) for the cache and local artifact details.
 
 ## 4. Put the API in your application
