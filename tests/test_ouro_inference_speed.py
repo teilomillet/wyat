@@ -291,6 +291,72 @@ def _candidates(lengths: list[int], seed: int = 7) -> list[torch.Tensor]:
     ]
 
 
+@pytest.mark.parametrize("device", ["cpu", "mps"])
+def test_flash_prefill_omits_unused_masks_without_changing_values(
+    device: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    if device == "mps" and not torch.backends.mps.is_available():
+        pytest.skip("Apple MPS is unavailable")
+    backbone, _head = _tiny_backbone_and_head()
+    backbone.to(device)
+    context = torch.randint(0, 320, (1, 35)).to(device)
+    context_attention = ouro._context_attention
+    causal_mask = ouro._causal_mask
+    mask_calls = 0
+
+    def count_mask(hidden: torch.Tensor, context_length: int) -> torch.Tensor:
+        nonlocal mask_calls
+        mask_calls += 1
+        return causal_mask(hidden, context_length)
+
+    def masked_flash(native: Any, attention: ouro.ContextAttention) -> Any:
+        # Recreate the former flash path: allocate native masks, then dispatch
+        # the unchanged flash attention which ignores those masks.
+        return context_attention(native, "flash")
+
+    with monkeypatch.context() as reference_patch:
+        reference_patch.setattr(ouro, "_context_attention", masked_flash)
+        reference_patch.setattr(ouro, "_causal_mask", count_mask)
+        expected = prefill_context(backbone, context, chunk=16, attention="native")
+    assert mask_calls == 3
+
+    def refuse_mask(hidden: torch.Tensor, context_length: int) -> torch.Tensor:
+        raise AssertionError("flash prefill must not allocate unused causal masks")
+
+    monkeypatch.setattr(ouro, "_causal_mask", refuse_mask)
+    observed = prefill_context(backbone, context, chunk=16, attention="flash")
+    for wanted, actual in zip(expected.banks[0], observed.banks[0], strict=True):
+        assert torch.equal(wanted.key, actual.key)
+        assert torch.equal(wanted.value, actual.value)
+
+
+@pytest.mark.parametrize("device", ["cpu", "mps"])
+@pytest.mark.parametrize("attention", ["native", "lean"])
+def test_nonflash_prefill_keeps_required_causal_masks(
+    device: str, attention: ouro.ContextAttention, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    if device == "mps" and not torch.backends.mps.is_available():
+        pytest.skip("Apple MPS is unavailable")
+    backbone, _head = _tiny_backbone_and_head()
+    backbone.to(device)
+    context = torch.randint(0, 320, (1, 35)).to(device)
+    causal_mask = ouro._causal_mask
+    mask_calls = 0
+
+    def count_mask(hidden: torch.Tensor, context_length: int) -> torch.Tensor:
+        nonlocal mask_calls
+        mask_calls += 1
+        return causal_mask(hidden, context_length)
+
+    monkeypatch.setattr(ouro, "_causal_mask", count_mask)
+    observed = prefill_context(backbone, context, chunk=16, attention=attention)
+    assert mask_calls == 3
+    assert all(
+        torch.isfinite(layer.key).all() and torch.isfinite(layer.value).all()
+        for layer in observed.banks[0]
+    )
+
+
 def test_exact_workspace_is_bitwise_identical_to_cat_reference(
     tiny_model: tuple[Any, ScalarScoreHead],
 ) -> None:
@@ -635,3 +701,127 @@ def test_real_artifact_k10_p832_matches_stored_golden(real_scorer: Any) -> None:
     assert torch.equal(exact.argsort(), golden.argsort())
     assert (batched - golden).abs().max().item() <= BATCHING_ATOL
     assert torch.equal(batched.argsort(), golden.argsort())
+
+
+@pytest.mark.parametrize("batching", ["shared_context", "per_candidate"])
+def test_resource_guard_refuses_long_candidate_before_any_prefill(
+    tiny_artifact: Path, monkeypatch: pytest.MonkeyPatch, batching: str
+) -> None:
+    from dataclasses import replace
+
+    from wyat.resources import ResourceGuard, ResourceLimitError, ResourceSnapshot
+
+    scorer = load_ouro(tiny_artifact, device="cpu", candidate_batching=batching)
+    record = {
+        "state": "x",
+        "questions": {
+            "q": {
+                "type": "choice",
+                "instructions": "Choose.",
+                "criteria": {"a": "yes", "b": "no"},
+            }
+        },
+    }
+    row = scorer.encode_record(record)[0]
+    row = replace(
+        row, context_ids=(1,) * 16384, candidate_ids=((1,) * 16384, (1,) * 16000)
+    )
+    guard = ResourceGuard()
+    guard.enabled = True
+    monkeypatch.setattr(
+        guard, "_snapshot", lambda: ResourceSnapshot(24 << 30, 20 << 30)
+    )
+    scorer.resource_guard = guard
+
+    def forbidden(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError("oversized candidate reached model allocation")
+
+    monkeypatch.setattr(scorer, "_context_cache_for", forbidden)
+    with pytest.raises(ResourceLimitError, match="score Ouro request"):
+        scorer.question_logits(row)
+
+
+def test_resource_pressure_during_scoring_aborts_and_restores_guard(
+    tiny_artifact: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from wyat.resources import ResourceGuard, ResourceLimitError, current_guard
+
+    scorer = load_ouro(tiny_artifact, device="cpu")
+    row = scorer.encode_record(
+        {
+            "state": "x",
+            "questions": {
+                "q": {
+                    "type": "choice",
+                    "instructions": "Choose.",
+                    "criteria": {"a": "yes", "b": "no"},
+                }
+            },
+        }
+    )[0]
+    guard = ResourceGuard()
+    guard.enabled = True
+    calls = []
+
+    def check(*args: Any, **kwargs: Any) -> None:
+        calls.append(kwargs.get("operation", "checkpoint"))
+        if len(calls) > 1:
+            raise ResourceLimitError("memory pressure rose between layers")
+
+    monkeypatch.setattr(guard, "check", check)
+    scorer.resource_guard = guard
+    with pytest.raises(ResourceLimitError, match="between layers"):
+        scorer.question_logits(row)
+    assert calls == ["score Ouro request", "checkpoint"]
+    assert current_guard() is None
+
+
+def test_resource_guard_refuses_direct_load_before_materialization(
+    tiny_artifact: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from wyat.resources import ResourceGuard, ResourceLimitError
+
+    guard = ResourceGuard()
+    guard.enabled = True
+    checks = []
+
+    def check(additional_bytes: int = 0, **kwargs: Any) -> None:
+        checks.append(additional_bytes)
+        if additional_bytes:
+            raise ResourceLimitError("model does not fit")
+
+    monkeypatch.setattr(guard, "check", check)
+    monkeypatch.setattr(guard, "configure_torch", lambda *args: None)
+    monkeypatch.setattr(ouro, "ResourceGuard", lambda *args: guard)
+
+    def forbidden(*args: Any, **kwargs: Any) -> Any:
+        raise AssertionError("to_empty allocated before admission")
+
+    monkeypatch.setattr(torch.nn.Module, "to_empty", forbidden)
+    with pytest.raises(ResourceLimitError, match="does not fit"):
+        load_ouro(tiny_artifact, device="cpu")
+    assert checks[0] == 0 and checks[-1] > 0
+
+
+def test_direct_scorer_configures_requested_resource_fraction(
+    tiny_model: tuple[Any, ScalarScoreHead], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from wyat.resources import ResourceGuard
+
+    calls = []
+
+    def configure(guard: ResourceGuard, runtime: Any, device: Any) -> None:
+        calls.append((guard.max_fraction, str(device)))
+
+    monkeypatch.setattr(ResourceGuard, "configure_torch", configure)
+    backbone, head = tiny_model
+    scorer = OuroScorer(
+        backbone,
+        head,
+        None,
+        model_id="resource-fixture",
+        max_length=64,
+        max_resource_fraction=0.6,
+    )
+    assert scorer.resource_guard.max_fraction == 0.6
+    assert calls == [(0.6, "cpu")]

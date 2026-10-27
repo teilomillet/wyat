@@ -75,6 +75,7 @@ from wyat.loading.ouro_artifact import (
     encode_record,
     reuse_context_prefix,
 )
+from wyat.resources import ResourceGuard, checkpoint, current_guard
 
 CachePolicy = Literal["matched", "last"]
 
@@ -669,6 +670,7 @@ def _run_recurrent_step(
 ) -> torch.Tensor:
     positions, rotary, mask = geometry.get(hidden, context_length)
     for layer in backbone.layers:
+        checkpoint()
         hidden = layer(
             hidden,
             attention_mask=mask,
@@ -868,15 +870,23 @@ def _chunked_prefill_context(
             torch.arange(start, end, device=hidden.device) for start, end in spans
         ]
         rotary = [native.rotary_emb(hidden, position[None]) for position in positions]
-        masks = [_causal_mask(hidden[:, start:end], start) for start, end in spans]
+        # Flash attention constructs its own causal bias; retaining these full
+        # masks would waste about 2 GiB for a 32K-token FP32 context.
+        masks: list[torch.Tensor | None] = (
+            [None] * len(spans)
+            if attention == "flash"
+            else [_causal_mask(hidden[:, start:end], start) for start, end in spans]
+        )
         for step in range(contract.CONTEXT_STEPS):
             for layer_index, layer in enumerate(native.layers):
+                checkpoint()
                 writer = _ChunkedContextKV(step * layers + layer_index, length)
                 output = torch.empty_like(hidden)
                 for (start, end), position, rope, mask in zip(
                     spans, positions, rotary, masks, strict=True
                 ):
                     writer.begin(start, end)
+                    checkpoint()
                     token = _ACTIVE_CONTEXT_WRITER.set(writer)
                     try:
                         output[:, start:end] = layer(
@@ -1431,6 +1441,7 @@ class OuroScorer:
         device_policy: str | None = None,
         context_prefill: Mapping[str, Any] | None = None,
         numerics: str | None = None,
+        max_resource_fraction: float = 0.85,
     ) -> None:
         if type(prefix_cache_size) is not int or prefix_cache_size < 0:
             raise ValueError("prefix_cache_size must be a nonnegative integer")
@@ -1443,12 +1454,14 @@ class OuroScorer:
             raise ValueError("prefix reuse is not part of a v2 context execution")
         if numerics is not None and numerics not in contract.NUMERICS_POLICIES:
             raise ValueError(f"unknown execution numerics: {numerics!r}")
+        self.resource_guard = current_guard() or ResourceGuard(max_resource_fraction)
         self.context_prefill = (
             None if context_prefill is None else dict(context_prefill)
         )
         self.numerics = numerics
         self.backbone: Any = backbone
         self.head = head
+        self.resource_guard.configure_torch(torch, self.device)
         self.tokenizer = tokenizer
         self.model_id = model_id
         self.max_length = max_length
@@ -1506,6 +1519,42 @@ class OuroScorer:
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
+        max_resource_fraction: float = 0.85,
+    ) -> OuroScorer:
+        """Load under the same macOS resource policy as inference."""
+        requested_guard = ResourceGuard(max_resource_fraction)
+        guard = current_guard() or requested_guard
+        with guard.activate():
+            guard.check(operation="load Ouro")
+            scorer = cls._from_directory(
+                path,
+                device=device,
+                max_length=max_length,
+                prefix_cache_size=prefix_cache_size,
+                attention=attention,
+                context_attention=context_attention,
+                verify_release_base=verify_release_base,
+                candidate_batching=candidate_batching,
+                allow_device_policy_override=allow_device_policy_override,
+                max_resource_fraction=max_resource_fraction,
+            )
+            guard.check(operation="loaded Ouro model")
+            return scorer
+
+    @classmethod
+    def _from_directory(
+        cls,
+        path: str | Path,
+        *,
+        device: str | None = None,
+        max_length: int | None = None,
+        prefix_cache_size: int | None = None,
+        attention: str | None = None,
+        context_attention: str | None = None,
+        verify_release_base: bool = False,
+        candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
+        allow_device_policy_override: bool = False,
+        max_resource_fraction: float = 0.85,
     ) -> OuroScorer:
         root = Path(path).resolve()
         manifest = contract.validate_artifact(
@@ -1605,6 +1654,20 @@ class OuroScorer:
         # so this is bitwise identical to a load_state_dict of the same file.
         with _quiet_ouro_source_exec(), torch.device("meta"):
             backbone = model_cls(config)
+        resource_guard = current_guard() or ResourceGuard(max_resource_fraction)
+        resource_guard.configure_torch(torch, target.type)
+        if resource_guard.enabled:
+            # Parameters are still on meta: refuse before physical allocation.
+            parameter_bytes = sum(
+                p.numel() * p.element_size() for p in backbone.parameters()
+            )
+            largest_tensor = max(
+                p.numel() * p.element_size() for p in backbone.parameters()
+            )
+            resource_guard.check(
+                parameter_bytes + 2 * largest_tensor + (256 << 20),
+                operation="load Ouro",
+            )
         backbone.to_empty(device=target)
         _stream_base_weights(backbone, root / contract.BASE_WEIGHT_FILE)
         if base_dtype != torch.float32:
@@ -1678,7 +1741,7 @@ class OuroScorer:
             if cache_cfg["state_block_tokens"] > 0
             else contract.CACHE_MAX_STATE_BLOCK_TOKENS
         )
-        return cls(
+        scorer = cls(
             backbone,
             head,
             tokenizer,
@@ -1691,7 +1754,10 @@ class OuroScorer:
             device_policy=declared_device_policy,
             context_prefill=context_prefill,
             numerics=execution.get("numerics"),
+            max_resource_fraction=max_resource_fraction,
         )
+        scorer.resource_guard = resource_guard
+        return scorer
 
     def _context_execution(
         self, tokens: int
@@ -1846,7 +1912,92 @@ class OuroScorer:
             len(boundary),
         )
 
+    def _request_memory_bytes(self, row: CandidateBatch) -> int:
+        """Conservative extra live bytes; retained model/cache memory is already used.
+
+        Account for the final context bank, recurrent K/V workspaces, attention
+        intermediates and chunk masks. This is admission evidence, not an exact
+        allocator peak prediction (framework caches and other apps can grow).
+        """
+        native = _native_backbone(self.backbone)
+        config = native.config
+        length = len(row.context_ids)
+        suffix = max(map(len, row.candidate_ids))
+        width = getattr(config, "head_dim", None) or (
+            config.hidden_size // config.num_attention_heads
+        )
+        size = native.layers[0].input_layernorm.weight.element_size()
+        kv = (
+            2
+            * len(native.layers)
+            * config.num_key_value_heads
+            * width
+            * (length + suffix)
+            * size
+        )
+        chunk, attention, _ = self._context_execution(length)
+        query = length if chunk is None else min(chunk, length)
+        # MATH can retain score and softmax buffers. Older MPS flash fallbacks
+        # do too; estimate conservatively without guessing the installed kernel.
+        attention_bytes = 3 * config.num_attention_heads * query * length * size
+        masks = 0 if attention == "flash" else length * (length + query) * size
+        hidden = 4 * length * config.hidden_size * size
+        lengths = [len(ids) for ids in row.candidate_ids]
+        if self.candidate_batching == "per_candidate":
+            # The workspace pool retains both recurrent steps for EACH distinct
+            # suffix length, not just the longest candidate.
+            candidate = sum(
+                2 * candidate_kv_workspace_bytes(self.backbone, length, n)
+                for n in set(lengths)
+            )
+            candidate += (
+                3 * config.num_attention_heads * suffix * (length + suffix) * size
+            )
+        else:
+            batches = shared_context_batches(
+                lengths, length, config.num_attention_heads
+            )
+            packed = [len(batch) * max(lengths[i] for i in batch) for batch in batches]
+            # A singleton may exceed the batching budget. Count its real score
+            # matrix rather than assuming the budget is an allocation ceiling.
+            candidate = max(
+                8 * config.num_attention_heads * n * (length + n) for n in packed
+            )
+            candidate += 4 * sum(packed) * config.hidden_size * size
+        prefix = 0
+        if self.prefix_cache_size > 0:
+            boundary = min(length, self.state_block_tokens)
+            # A prefix miss can hold four matched banks and their four clones
+            # while continuing the context. Existing retained entries are
+            # already included in system-wide usage.
+            prefix = (
+                8
+                * 2
+                * len(native.layers)
+                * config.num_key_value_heads
+                * width
+                * boundary
+                * size
+            )
+        return int(
+            kv
+            + 2 * kv // len(native.layers)
+            + attention_bytes
+            + masks
+            + hidden
+            + candidate
+            + prefix
+        )
+
     def question_logits(self, row: CandidateBatch) -> list[float]:
+        with self.resource_guard.activate():
+            if self.resource_guard.enabled:
+                self.resource_guard.check(
+                    self._request_memory_bytes(row), operation="score Ouro request"
+                )
+            return self._question_logits(row)
+
+    def _question_logits(self, row: CandidateBatch) -> list[float]:
         candidates = [
             torch.tensor([ids], dtype=torch.long, device=self.device)
             for ids in row.candidate_ids
@@ -1946,6 +2097,7 @@ def _stream_base_weights(model: nn.Module, path: Path) -> None:
             raise ValueError("Ouro base weights do not match native architecture")
         with torch.no_grad():
             for key in handle.keys():
+                checkpoint()
                 tensor = handle.get_tensor(key)
                 destination = state[key]
                 if tensor.dtype != torch.bfloat16:
@@ -1993,6 +2145,7 @@ def load_ouro(
     verify_release_base: bool = False,
     candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
     allow_device_policy_override: bool = False,
+    max_resource_fraction: float = 0.85,
 ) -> OuroScorer:
     """Load an Ouro decision artifact directory.
 
@@ -2022,6 +2175,7 @@ def load_ouro(
         verify_release_base=verify_release_base,
         candidate_batching=candidate_batching,
         allow_device_policy_override=allow_device_policy_override,
+        max_resource_fraction=max_resource_fraction,
     )
 
 

@@ -13,6 +13,7 @@ from .core import (
     Scorer,
 )
 from .loading.local import load
+from .resources import ResourceLimitError
 from .tasks import (
     Answers,
     ChoiceAnswer,
@@ -42,6 +43,7 @@ __all__ = [
     "PublicRecord",
     "Question",
     "Request",
+    "ResourceLimitError",
     "ScoreAnswer",
     "ScoreQuestion",
     "Scorer",

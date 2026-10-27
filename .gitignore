@@ -109,6 +109,8 @@ artifacts/
 !/tests/test_fork_mlx.py
 !/tests/test_installation_recovery.py
 !/tests/test_loading.py
+!/tests/test_loading_resources.py
+!/tests/test_resources.py
 !/tests/test_native_mlx.py
 !/tests/test_native_mlx_resources.py
 !/tests/test_native_mlx_rope.py

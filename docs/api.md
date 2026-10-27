@@ -451,3 +451,33 @@ logits in request and candidate order; embeddings and other score semantics need
 their own model contract.
 
 The [ergonomics standard](ergonomics.md) describes the public API design principles.
+
+
+### macOS resource headroom
+
+`wyat.load(..., max_resource_fraction=0.85)` leaves a default 15% memory
+reserve on macOS. Set the fraction explicitly to change it, for example
+`wyat.load(path, device="mps", max_resource_fraction=0.75)`.
+
+Before loading and each inference call, Wyat checks system-wide memory pressure,
+including other applications. Loading uses a conservative weight-size estimate;
+Ouro additionally estimates context K/V, attention and candidate workspaces before
+scoring and checks pressure between layers/chunks. Oversized work or unavailable
+telemetry raises `wyat.ResourceLimitError` (a `MemoryError`), including with
+`errors="return"`; it is never retried by the input-error isolation mechanism.
+Close other applications or reduce the input before retrying.
+
+CPU thread counts are reduced to at most the selected fraction of logical cores
+(with a minimum of one). Apple GPU allocators receive a memory limit; MLX treats
+its limit as a guideline. These runtime settings apply to the entire process.
+Guarded calls in one process run sequentially. Non-macOS execution is unchanged.
+Direct `load_ouro`, `OuroScorer.from_directory` and `OuroScorer` accept the same
+`max_resource_fraction` option. Other families receive the guard through
+`wyat.load`; constructing their backend classes directly bypasses it.
+
+This is a cooperative memory safeguard, **not a hard 85% CPU/GPU utilization
+cap or an operating-system reservation**. Estimates are conservative, memory
+pressure is sampled, and other apps or already queued kernels can still consume
+resources between checks. Other model families have call-level admission checks,
+not Ouro's token-aware peak estimates or layer checkpoints. A 32K model context
+limit therefore does not promise that 32K fits the current Mac and budget.

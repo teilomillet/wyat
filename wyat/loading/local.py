@@ -8,11 +8,58 @@ local cache before loading. A release without pins fails before any request.
 """
 
 import sys
+from collections.abc import Sequence
+from functools import wraps
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal, cast
 
-from wyat.core import Model, Scorer
+from wyat.core import Model, Request, Scorer
 from wyat.download import REPOSITORY
+from wyat.resources import ResourceGuard, current_guard
+
+
+class _GuardedScorer:
+    """Retain a load policy across all public Model inference paths."""
+
+    def __init__(self, scorer: Scorer, guard: ResourceGuard) -> None:
+        self._scorer = scorer
+        self._guard = guard
+
+    def _run(self, method: Any, *args: Any, **kwargs: Any) -> Any:
+        with self._guard.activate():
+            self._guard.check(operation="inference")
+            return method(*args, **kwargs)
+
+    def score_many(self, requests: Sequence[Request]) -> Sequence[Sequence[float]]:
+        return cast(
+            Sequence[Sequence[float]], self._run(self._scorer.score_many, requests)
+        )
+
+    def __getattr__(self, name: str) -> Any:
+        value = getattr(self._scorer, name)
+        if name in {"logits", "predict", "_records_logits"} and callable(value):
+
+            @wraps(value)
+            def guarded(*args: Any, **kwargs: Any) -> Any:
+                return self._run(value, *args, **kwargs)
+
+            return guarded
+        return value
+
+
+def _configure_current_runtime(backend: str, device: str | None) -> None:
+    """Use a lazily imported runtime before it allocates model parameters."""
+    guard = current_guard()
+    if guard is None or not guard.enabled:
+        return
+    if backend == "torch":
+        runtime = sys.modules.get("torch")
+        if runtime is not None:
+            guard.configure_torch(runtime, "cpu" if device is None else device)
+    else:
+        runtime = sys.modules.get("mlx.core")
+        if runtime is not None:
+            guard.configure_mlx(runtime)
 
 
 def _raise_missing_runtime(
@@ -50,7 +97,7 @@ def _local_directory(path: str | Path) -> str | Path:
     return download(repository=repository, log=log)
 
 
-def load(
+def _load(
     path: str | Path = REPOSITORY,
     *,
     backend: Literal["torch", "mlx"] = "torch",
@@ -111,6 +158,7 @@ def load(
         except ModuleNotFoundError as exc:
             _raise_missing_runtime(exc, "torch")
             raise
+        _configure_current_runtime(backend, device)
         ouro_torch = load_ouro(
             path,
             # Ouro artifacts declare their own execution policy: cpu-fp32
@@ -134,6 +182,7 @@ def load(
             except ModuleNotFoundError as exc:
                 _raise_missing_runtime(exc, "torch")
                 raise
+            _configure_current_runtime(backend, device)
             fork_torch = load_fork(
                 path,
                 device="cpu" if device is None else device,
@@ -147,6 +196,7 @@ def load(
             except ModuleNotFoundError as exc:
                 _raise_missing_runtime(exc, "mlx")
                 raise
+            _configure_current_runtime(backend, device)
             fork_mlx = load_fork_mlx(
                 path,
                 device="gpu" if device is None else device,
@@ -172,6 +222,7 @@ def load(
                 _raise_missing_runtime(exc, "torch")
                 raise
 
+            _configure_current_runtime(backend, device)
             native_torch = load_native(
                 path,
                 device="cpu" if device is None else device,
@@ -186,6 +237,7 @@ def load(
                 _raise_missing_runtime(exc, "torch")
                 raise
 
+            _configure_current_runtime(backend, device)
             torch_scorer = WyatScorer.from_directory(
                 path,
                 device="cpu" if device is None else device,
@@ -206,6 +258,7 @@ def load(
                 _raise_missing_runtime(exc, "mlx")
                 raise
 
+            _configure_current_runtime(backend, device)
             native_mlx = load_native_mlx(
                 path,
                 device="gpu" if device is None else device,
@@ -221,6 +274,7 @@ def load(
                 _raise_missing_runtime(exc, "mlx")
                 raise
 
+            _configure_current_runtime(backend, device)
             mlx_scorer = MLXWyatScorer.from_directory(
                 path,
                 device="gpu" if device is None else device,
@@ -232,3 +286,85 @@ def load(
     else:
         raise ValueError(f"unsupported backend: {backend}")
     return Model(scorer, model_id, temperature=temperature)
+
+
+def load(
+    path: str | Path = REPOSITORY,
+    *,
+    backend: Literal["torch", "mlx"] = "torch",
+    device: str | None = None,
+    max_length: int | None = None,
+    token_cache_size: int = 0,
+    prefix_cache_size: int | None = None,
+    attention: str = "sdpa",
+    compile: bool = False,
+    responsive: bool = True,
+    temperature: float = 1.0,
+    max_resource_fraction: float = 0.85,
+) -> Model:
+    """Load a local model directory, or the pinned release by its Hub name.
+
+    The default is ``teilomillet/wyat-1-800m``; it raises a clear error until a
+    release is selected and pinned. Explicitly choose ``teilomillet/wyat-1-600m``
+    to download and verify that release into the Wyat cache. A local
+    directory with that relative path takes precedence. Torch defaults to CPU;
+    MLX defaults to Apple GPU. Ouro decision artifacts declare their own
+    execution policy: ``cpu-fp32`` defaults to CPU, ``mps-fp32`` to the Apple
+    GPU on Apple Silicon, and ``cuda-bf16-autocast`` to CUDA when available.
+    Compilation is an opt-in MLX experiment and must
+    pass the caller's quality and performance gates. Native and option-fork MLX
+    GPU inference pauses 1 ms after every fourth backbone layer so other
+    applications can submit GPU work; ``responsive=False`` removes those pauses
+    and is rejected by engines that do not pace.
+
+    ``prefix_cache_size`` bounds a least-recently-used cache of exact token
+    prefixes. ``None`` keeps the family defaults (native 16, option-fork 0);
+    a nonnegative integer sets the entry count for the selected family, and
+    ``0`` disables caching. Option-fork entries retain the state-block prefix
+    plus attention and gated-delta-net state, so size them against memory.
+
+
+    ``max_resource_fraction`` defaults to 0.85 and may be set in (0, 1]. On
+    macOS, admission accounts for other applications before model allocation
+    and every inference call. Weight files in the root and recognized
+    base/backbone directories receive a conservative three-times-on-disk loading
+    estimate, covering dtype expansion and staging;
+    this is an admission estimate, not a prediction of every runtime allocation.
+    CPU workers and Apple GPU allocation limits are also bounded. These are
+    cooperative safeguards, not a hard whole-machine CPU/GPU utilization cap:
+    another app or an already queued kernel can change resource use between
+    checks. The runtime settings affect the process, including other models.
+    Other operating systems retain their previous resource behavior.
+    """
+    guard = ResourceGuard(max_resource_fraction)
+    with guard.activate():
+        guard.check(operation="model loading")
+        resolved = _local_directory(path)
+        if guard.enabled:
+            root = Path(resolved)
+            weight_bytes = sum(
+                file.stat().st_size
+                for directory in (root, root / "base", root / "backbone")
+                if directory.is_dir()
+                for file in directory.iterdir()
+                if file.is_file()
+                and file.suffix in {".safetensors", ".bin", ".pt", ".pth"}
+            )
+            guard.check(3 * weight_bytes, operation="model loading")
+        model = _load(
+            resolved,
+            backend=backend,
+            device=device,
+            max_length=max_length,
+            token_cache_size=token_cache_size,
+            prefix_cache_size=prefix_cache_size,
+            attention=attention,
+            compile=compile,
+            responsive=responsive,
+            temperature=temperature,
+        )
+        if guard.enabled:
+            guard.check(operation="loaded model")
+            if getattr(model._scorer, "resource_guard", None) is not guard:
+                model._scorer = _GuardedScorer(model._scorer, guard)
+        return model
