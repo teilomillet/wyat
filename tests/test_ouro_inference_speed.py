@@ -728,7 +728,7 @@ def test_resource_guard_refuses_long_candidate_before_any_prefill(
     row = replace(
         row, context_ids=(1,) * 16384, candidate_ids=((1,) * 16384, (1,) * 16000)
     )
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     guard.enabled = True
     monkeypatch.setattr(
         guard, "_snapshot", lambda: ResourceSnapshot(24 << 30, 20 << 30)
@@ -761,7 +761,7 @@ def test_resource_pressure_during_scoring_aborts_and_restores_guard(
             },
         }
     )[0]
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     guard.enabled = True
     calls = []
 
@@ -783,7 +783,7 @@ def test_resource_guard_refuses_direct_load_before_materialization(
 ) -> None:
     from wyat.resources import ResourceGuard, ResourceLimitError
 
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     guard.enabled = True
     checks = []
 

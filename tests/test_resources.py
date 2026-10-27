@@ -13,7 +13,12 @@ from unittest.mock import Mock
 import pytest
 
 from wyat import resources
-from wyat.resources import ResourceGuard, ResourceLimitError, ResourceSnapshot
+from wyat.resources import (
+    MemoryHeadroomWarning,
+    ResourceGuard,
+    ResourceLimitError,
+    ResourceSnapshot,
+)
 
 
 @pytest.fixture
@@ -33,7 +38,7 @@ def test_non_macos_does_not_probe_or_configure(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(sys, "platform", "linux")
     probe = Mock(side_effect=AssertionError("must not probe"))
     monkeypatch.setattr(subprocess, "run", probe)
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     assert not guard.enabled
     assert guard.check(10**30) is None
     guard.configure_torch(object(), "cpu")
@@ -48,11 +53,10 @@ def test_default_and_custom_memory_admission(
     monkeypatch.setattr(
         ResourceGuard, "_snapshot", lambda self: ResourceSnapshot(1000, 300)
     )
-    default = ResourceGuard()
-    assert default.max_fraction == 0.90
-    assert default.check(200) == ResourceSnapshot(1000, 300)
+    explicit = ResourceGuard(0.90)
+    assert explicit.check(200) == ResourceSnapshot(1000, 300)
     with pytest.raises(ResourceLimitError, match="90%"):
-        default.check(201, "context prefill")
+        explicit.check(201, "context prefill")
     assert ResourceGuard(0.85).check(150) is not None
     with pytest.raises(ResourceLimitError, match="85%"):
         ResourceGuard(0.85).check(151)
@@ -60,10 +64,53 @@ def test_default_and_custom_memory_admission(
         ResourceGuard(0.6).check()
 
 
+def test_default_warns_once_per_operation_and_continues(
+    mac: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        ResourceGuard, "_snapshot", lambda self: ResourceSnapshot(1000 << 30, 300 << 30)
+    )
+    default = ResourceGuard()
+    assert default.max_fraction == 0.90
+    assert not default.enforcing
+    with pytest.warns(MemoryHeadroomWarning, match="needs about 201.0 GiB") as caught:
+        assert default.check(201 << 30, "model loading") is not None
+        default.check(300 << 30, "model loading")
+    assert len(caught) == 1
+    assert "300.0 GiB is available" in str(caught[0].message)
+    with pytest.warns(MemoryHeadroomWarning, match="Inference needs"):
+        default.check(201 << 30)
+
+
+def test_default_tolerates_unavailable_telemetry(
+    mac: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(subprocess, "run", Mock(side_effect=OSError("missing")))
+    assert ResourceGuard().check(1 << 40) is None
+
+
+def test_default_leaves_apple_gpu_allocators_unbounded(
+    mac: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(
+        ResourceGuard, "_snapshot", lambda self: ResourceSnapshot(1000, 900)
+    )
+    torch = SimpleNamespace(
+        get_num_threads=Mock(return_value=1),
+        set_num_threads=Mock(),
+        mps=SimpleNamespace(set_per_process_memory_fraction=Mock()),
+    )
+    ResourceGuard().configure_torch(torch, "mps")
+    torch.mps.set_per_process_memory_fraction.assert_not_called()
+    mx = SimpleNamespace(set_memory_limit=Mock(), set_cache_limit=Mock())
+    ResourceGuard().configure_mlx(mx)
+    mx.set_memory_limit.assert_not_called()
+
+
 @pytest.mark.parametrize("additional", [-1, 1.5, True])
 def test_invalid_estimates_refused(additional: object) -> None:
     with pytest.raises(ValueError, match="additional_bytes"):
-        ResourceGuard().check(additional)  # type: ignore[arg-type]
+        ResourceGuard(0.90).check(additional)  # type: ignore[arg-type]
 
 
 def test_snapshot_uses_bounded_commands_and_caches_only_total(
@@ -89,7 +136,7 @@ def test_snapshot_uses_bounded_commands_and_caches_only_total(
         ]
     )
     monkeypatch.setattr(subprocess, "run", run)
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     snapshot = guard.check()
     assert snapshot == ResourceSnapshot(10000, 3000)
     assert snapshot.used_bytes == 7000
@@ -125,7 +172,7 @@ def test_invalid_telemetry_fails_closed(
     )
     monkeypatch.setattr(subprocess, "run", run)
     with pytest.raises(ResourceLimitError, match="Cannot check"):
-        ResourceGuard().check()
+        ResourceGuard(0.90).check()
 
 
 @pytest.mark.parametrize(
@@ -136,7 +183,7 @@ def test_unavailable_telemetry_fails_closed(
 ) -> None:
     monkeypatch.setattr(subprocess, "run", Mock(side_effect=error))
     with pytest.raises(ResourceLimitError, match="Cannot check"):
-        ResourceGuard().check()
+        ResourceGuard(0.90).check()
 
 
 def test_torch_threads_and_mps_limit(
@@ -154,7 +201,7 @@ def test_torch_threads_and_mps_limit(
             set_per_process_memory_fraction=Mock(),
         ),
     )
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     guard.configure_torch(torch, "mps")
     torch.set_num_threads.assert_called_once_with(9)
     torch.mps.set_per_process_memory_fraction.assert_called_once_with(0.90)
@@ -176,13 +223,13 @@ def test_missing_mps_limit_support_refuses(
     )
     torch = SimpleNamespace(get_num_threads=lambda: 1, mps=object())
     with pytest.raises(ResourceLimitError, match="Cannot configure"):
-        ResourceGuard().configure_torch(torch, "mps")
+        ResourceGuard(0.90).configure_torch(torch, "mps")
 
 
 def test_checkpoint_is_throttled_and_nested_context_restores_guard(
     mac: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    first, second = ResourceGuard(), ResourceGuard(0.7)
+    first, second = ResourceGuard(0.90), ResourceGuard(0.7)
     check_first, check_second = Mock(), Mock()
     monkeypatch.setattr(first, "check", check_first)
     monkeypatch.setattr(second, "check", check_second)
@@ -210,7 +257,7 @@ def test_mlx_limits_do_not_raise_existing_lower_limit(
         set_memory_limit=Mock(),
         set_cache_limit=Mock(),
     )
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     guard.configure_mlx(mx)
     mx.set_memory_limit.assert_called_once_with(900)
     mx.set_cache_limit.assert_called_once_with(0)
@@ -227,11 +274,11 @@ def test_missing_mlx_limit_support_refuses(
         ResourceGuard, "_snapshot", lambda self: ResourceSnapshot(1000, 900)
     )
     with pytest.raises(ResourceLimitError, match="Cannot configure the MLX"):
-        ResourceGuard().configure_mlx(object())
+        ResourceGuard(0.90).configure_mlx(object())
 
 
 def test_current_guard_restored_after_exception() -> None:
-    guard = ResourceGuard()
+    guard = ResourceGuard(0.90)
     assert resources.current_guard() is None
     with pytest.raises(RuntimeError), guard.activate():
         assert resources.current_guard() is guard
@@ -244,7 +291,7 @@ def test_mac_activations_serialize_distinct_guards(mac: None) -> None:
     from threading import Event
 
     started, entered, release = Event(), Event(), Event()
-    first, second = ResourceGuard(), ResourceGuard()
+    first, second = ResourceGuard(0.90), ResourceGuard(0.90)
 
     def work() -> None:
         started.set()

@@ -13,7 +13,7 @@ from .core import (
     Scorer,
 )
 from .loading.local import load
-from .resources import ResourceLimitError
+from .resources import MemoryHeadroomWarning, ResourceLimitError
 from .tasks import (
     Answers,
     ChoiceAnswer,
@@ -35,6 +35,7 @@ __all__ = [
     "ChoiceAnswer",
     "ChoiceQuestion",
     "Decision",
+    "MemoryHeadroomWarning",
     "Model",
     "ModelInputError",
     "ModelOutputError",

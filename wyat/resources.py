@@ -19,6 +19,7 @@ import re
 import subprocess
 import sys
 import time
+import warnings
 from collections.abc import Iterator
 from contextlib import contextmanager, nullcontext
 from contextvars import ContextVar
@@ -33,6 +34,10 @@ DEFAULT_MAX_RESOURCE_FRACTION = 0.90
 
 class ResourceLimitError(MemoryError):
     """Local work was refused to preserve the configured resource headroom."""
+
+
+class MemoryHeadroomWarning(UserWarning):
+    """Local work may exceed the default memory headroom and was not refused."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -56,15 +61,22 @@ _CURRENT_GUARD: ContextVar[ResourceGuard | None] = ContextVar(
 
 
 class ResourceGuard:
-    """Refuse projected memory use above ``max_fraction`` on macOS.
+    """Check projected memory use against ``max_fraction`` on macOS.
 
-    The default leaves 10% of the Mac's capacity available. Estimates supplied
-    by callers must include additional peak allocations, rather than just the
-    final retained tensors. Missing telemetry refuses work rather than silently
-    disabling the guard. Other operating systems keep their existing behavior.
+    Without an explicit fraction the guard is advisory: work that would pass
+    the default 90% line still runs, and a ``MemoryHeadroomWarning`` says how
+    much memory it needs and how much is available, once per kind of
+    operation. An explicit fraction makes the guard refuse with
+    ``ResourceLimitError`` instead, and also bounds the Apple GPU allocators.
+    Estimates supplied by callers must include additional peak allocations,
+    rather than just the final retained tensors. Other operating systems keep
+    their existing behavior.
     """
 
-    def __init__(self, max_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION) -> None:
+    def __init__(self, max_fraction: float | None = None) -> None:
+        self.enforcing: bool = max_fraction is not None
+        if max_fraction is None:
+            max_fraction = DEFAULT_MAX_RESOURCE_FRACTION
         if (
             isinstance(max_fraction, bool)
             or not isinstance(max_fraction, Real)
@@ -73,6 +85,7 @@ class ResourceGuard:
         ):
             raise ValueError("max_resource_fraction must be a finite number in (0, 1]")
         self.max_fraction: float = float(max_fraction)
+        self._warned: set[str] = set()
         self.enabled: bool = sys.platform == "darwin"
         self._total_bytes: int | None = None
         self._last_checkpoint: float | None = None
@@ -132,10 +145,29 @@ class ResourceGuard:
             raise ValueError("additional_bytes must be a nonnegative integer")
         if not self.enabled:
             return None
-        snapshot = self._snapshot()
+        try:
+            snapshot = self._snapshot()
+        except ResourceLimitError:
+            if self.enforcing:
+                raise
+            return None
         projected = snapshot.used_bytes + additional_bytes
         ceiling = int(snapshot.total_bytes * self.max_fraction)
-        if projected > ceiling:
+        if projected > ceiling and not self.enforcing:
+            if operation not in self._warned:
+                self._warned.add(operation)
+                warnings.warn(
+                    f"{operation.capitalize()} needs about "
+                    f"{additional_bytes / 2**30:.1f} GiB of memory and about "
+                    f"{snapshot.available_bytes / 2**30:.1f} GiB is available on "
+                    f"this Mac ({projected / 2**30:.1f} of "
+                    f"{snapshot.total_bytes / 2**30:.0f} GiB projected). It will "
+                    "continue, but may be slow; close other applications to free "
+                    "memory.",
+                    MemoryHeadroomWarning,
+                    stacklevel=2,
+                )
+        elif projected > ceiling:
             raise ResourceLimitError(
                 f"Refusing {operation}: projected memory use exceeds the "
                 f"{self.max_fraction:.0%} macOS resource limit "
@@ -154,12 +186,12 @@ class ResourceGuard:
         if device_type not in {"cpu", "mps"}:
             return
         snapshot = self.check(operation="runtime configuration")
-        assert snapshot is not None
         threads = max(1, math.floor((os.cpu_count() or 1) * self.max_fraction))
         current_threads = torch.get_num_threads()
         if current_threads > threads:
             torch.set_num_threads(threads)
-        if device_type == "mps":
+        if device_type == "mps" and self.enforcing:
+            assert snapshot is not None
             try:
                 recommended = torch.mps.recommended_max_memory()
                 if (
@@ -187,7 +219,7 @@ class ResourceGuard:
         cooperative checkpoints remain necessary. Existing tighter limits are
         preserved. The cache setting controls unused allocations, not model KV.
         """
-        if not self.enabled:
+        if not self.enabled or not self.enforcing:
             return
         snapshot = self.check(operation="runtime configuration")
         assert snapshot is not None

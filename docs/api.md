@@ -455,8 +455,11 @@ The [ergonomics standard](ergonomics.md) describes the public API design princip
 
 ### macOS resource headroom
 
-`wyat.load(..., max_resource_fraction=0.90)` leaves a default 10% memory
-reserve on macOS. Set the fraction explicitly to change it, for example
+On macOS, Wyat compares each load and request with a 90% memory line. By
+default the check is advisory: work beyond the line still runs, and a
+`wyat.MemoryHeadroomWarning` says how much memory it needs and how much is
+available, once per kind of operation. Close other applications if the Mac
+slows down. Set the fraction explicitly to refuse instead, for example
 `wyat.load(path, device="mps", max_resource_fraction=0.75)`.
 
 Before loading and each inference call, Wyat checks system-wide available RAM
@@ -464,13 +467,13 @@ Before loading and each inference call, Wyat checks system-wide available RAM
 wired memory are not added to the available amount. Loading uses a conservative weight-size estimate;
 Ouro additionally estimates context K/V, attention and candidate workspaces before
 scoring and checks pressure between layers/chunks. Oversized work or unavailable
-telemetry raises `wyat.ResourceLimitError` (a `MemoryError`), including with
-`errors="return"`; it is never retried by the input-error isolation mechanism.
+telemetry raises `wyat.ResourceLimitError` (a `MemoryError`) when the fraction
+is explicit, including with `errors="return"`; it is never retried by the input-error isolation mechanism.
 Close other applications or reduce the input before retrying.
 
 CPU thread counts are reduced to at most the selected fraction of logical cores
-(with a minimum of one). Apple GPU allocators receive a memory limit; MLX treats
-its limit as a guideline. These runtime settings apply to the entire process.
+(with a minimum of one). With an explicit fraction, Apple GPU allocators also
+receive a memory limit; MLX treats its limit as a guideline. These runtime settings apply to the entire process.
 Guarded calls in one process run sequentially. Non-macOS execution is unchanged.
 Direct `load_ouro`, `OuroScorer.from_directory` and `OuroScorer` accept the same
 `max_resource_fraction` option. Other families receive the guard through
