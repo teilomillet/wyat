@@ -78,11 +78,12 @@ from wyat.loading.ouro_artifact import (
 
 CachePolicy = Literal["matched", "last"]
 
-# Target device types each declared execution policy permits. A request outside
-# this set requires the explicit ``allow_device_policy_override`` opt-in and
-# then runs under the artifact's declared execution tolerance.
+# Target device types each declared execution policy permits. CUDA artifacts
+# also run on CPU or Apple MPS with an FP32 backbone. Cross-device agreement
+# must be qualified per checkpoint; bitwise identity is not guaranteed.
+# Other policy mismatches require explicit ``allow_device_policy_override``.
 _DEVICE_POLICY_DEVICES: dict[str, frozenset[str]] = {
-    "cuda-bf16-autocast": frozenset({"cuda", "cpu"}),
+    "cuda-bf16-autocast": frozenset({"cuda", "cpu", "mps"}),
     "cpu-fp32": frozenset({"cpu"}),
     "mps-fp32": frozenset({"mps"}),
 }
@@ -1978,8 +1979,10 @@ def load_ouro(
 
     The artifact's ``device_policy`` selects the default device: ``cuda`` when
     available for ``cuda-bf16-autocast``, ``mps`` for ``mps-fp32`` on Apple
-    Silicon, and ``cpu`` for ``cpu-fp32``. An explicit ``device`` may only
-    select a device type the policy permits; pass
+    Silicon, and ``cpu`` for ``cpu-fp32``. A CUDA artifact also accepts explicit
+    ``cpu`` or ``mps`` execution with an FP32 backbone; its CUDA BF16 outputs
+    need not be bitwise identical. An explicit ``device`` may only select a
+    device type the policy permits; pass
     ``allow_device_policy_override=True`` to execute elsewhere under the
     artifact's declared execution tolerance. ``mps-fp32`` runs FP32 math on the
     Apple GPU and matches the CPU FP32 reference within

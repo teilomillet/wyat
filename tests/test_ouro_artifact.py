@@ -210,13 +210,31 @@ def test_unknown_device_policy_is_refused(tmp_path: Path) -> None:
 
 
 def test_device_policy_mismatch_requires_explicit_override(tmp_path: Path) -> None:
-    artifact_dir = _build_ouro_artifact(tmp_path)
+    artifact_dir = _build_ouro_artifact(tmp_path, device_policy="cpu-fp32")
     with pytest.raises(ValueError, match="does not permit 'mps'"):
         OuroScorer.from_directory(artifact_dir, device="mps")
-    # A CUDA artifact keeps its historical CPU fallback.
-    cpu_scorer = OuroScorer.from_directory(artifact_dir, device="cpu")
-    assert cpu_scorer.device.type == "cpu"
-    assert cpu_scorer.device_policy == "cuda-bf16-autocast"
+
+
+def test_cuda_artifact_keeps_its_cpu_fp32_fallback(tmp_path: Path) -> None:
+    artifact_dir = _build_ouro_artifact(tmp_path)
+    scorer = OuroScorer.from_directory(artifact_dir, device="cpu")
+    assert scorer.device.type == "cpu"
+    assert scorer.device_policy == "cuda-bf16-autocast"
+    assert next(scorer.backbone.parameters()).dtype == torch.float32
+
+
+@pytest.mark.skipif(
+    not torch.backends.mps.is_available(), reason="Apple MPS is unavailable"
+)
+def test_public_loader_runs_a_cuda_artifact_on_apple_mps(tmp_path: Path) -> None:
+    artifact_dir = _build_ouro_artifact(tmp_path)
+    model = wyat.load(artifact_dir, backend="torch", device="mps")
+    scorer = model._scorer
+    assert isinstance(scorer, OuroScorer)
+    assert scorer.device.type == "mps"
+    assert scorer.device_policy == "cuda-bf16-autocast"
+    assert next(scorer.backbone.parameters()).dtype == torch.float32
+    assert set(model.predict(RECORD)) == set(RECORD["questions"])
 
 
 def test_mps_artifact_selects_mps_by_default_and_needs_override_for_cpu(
@@ -549,7 +567,7 @@ def test_shared_context_is_the_default_and_keeps_every_ranking(artifact: Path) -
 @pytest.mark.parametrize("policy", ["last", "matched"])
 @pytest.mark.parametrize("budget", [1, 4096, ouro.SHARED_SCORE_BUDGET_BYTES])
 def test_shared_context_scores_each_candidate_in_its_place(
-    artifact: Path, policy: str, budget: int
+    artifact: Path, policy: ouro.CachePolicy, budget: int
 ) -> None:
     scorer = OuroScorer.from_directory(artifact, device="cpu")
     vocabulary = scorer.backbone.config.vocab_size
@@ -796,6 +814,45 @@ def test_v2_scorer_chunks_only_contexts_longer_than_one_exact_pass(
         == v2.encode_record(RECORD)[0].context_ids
     )
     assert len(v2.encode_record(RECORD)[0].context_ids) > 128
+
+
+@pytest.mark.parametrize("device", ["cpu", "mps"])
+def test_v2_flash_context_on_mac_matches_cpu_single_pass(
+    tmp_path: Path, device: str, restore_numerics: Any
+) -> None:
+    if device == "mps" and not torch.backends.mps.is_available():
+        pytest.skip("Apple MPS is unavailable")
+    source = tmp_path / "v2"
+    source.mkdir()
+    artifact_dir = _build_ouro_artifact(
+        source,
+        cache_entries=0,
+        context_prefill={**CONTEXT_PREFILL, "chunked_attention": "flash"},
+        numerics=NUMERICS,
+    )
+    reference_source = tmp_path / "reference"
+    reference_source.mkdir()
+    reference_dir = _build_ouro_artifact(reference_source, cache_entries=0)
+    assert (
+        ouro_artifact.validate_artifact(artifact_dir)["files_sha256"]
+        == ouro_artifact.validate_artifact(reference_dir)["files_sha256"]
+    )
+    scorer = OuroScorer.from_directory(artifact_dir, device=device)
+    reference = OuroScorer.from_directory(reference_dir, device="cpu")
+    assert scorer._context_execution(2000) == (64, "flash", None)
+    assert scorer.context_prefill is not None
+    for row in scorer.encode_record(RECORD):
+        assert len(row.context_ids) > scorer.context_prefill["single_chunk_max_tokens"]
+        expected = torch.tensor(reference.question_logits(row))
+        observed = torch.tensor(scorer.question_logits(row))
+        assert torch.isfinite(observed).all()
+        torch.testing.assert_close(
+            observed,
+            expected,
+            atol=ouro_artifact.MPS_EXECUTION_TOLERANCE_ATOL,
+            rtol=ouro_artifact.MPS_EXECUTION_TOLERANCE_RTOL,
+        )
+        assert observed.argmax() == expected.argmax()
 
 
 def test_v2_artifact_applies_its_numerics_and_refuses_prefix_reuse(
