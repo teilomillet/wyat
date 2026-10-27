@@ -455,8 +455,11 @@ The [ergonomics standard](ergonomics.md) describes the public API design princip
 
 ### macOS resource headroom
 
-`wyat.load(..., max_resource_fraction=0.90)` leaves a default 10% memory
-reserve on macOS. Set the fraction explicitly to change it, for example
+On macOS, Wyat compares each load and request with a 90% memory line. By
+default the check is advisory: work beyond the line still runs, and a
+`wyat.MemoryHeadroomWarning` says how much memory it needs and how much is
+available, once per kind of operation. Close other applications if the Mac
+slows down. Set the fraction explicitly to refuse instead, for example
 `wyat.load(path, device="mps", max_resource_fraction=0.75)`.
 
 Before loading and each inference call, Wyat checks system-wide available RAM
@@ -464,13 +467,13 @@ Before loading and each inference call, Wyat checks system-wide available RAM
 wired memory are not added to the available amount. Loading uses a conservative weight-size estimate;
 Ouro additionally estimates context K/V, attention and candidate workspaces before
 scoring and checks pressure between layers/chunks. Oversized work or unavailable
-telemetry raises `wyat.ResourceLimitError` (a `MemoryError`), including with
-`errors="return"`; it is never retried by the input-error isolation mechanism.
+telemetry raises `wyat.ResourceLimitError` (a `MemoryError`) when the fraction
+is explicit, including with `errors="return"`; it is never retried by the input-error isolation mechanism.
 Close other applications or reduce the input before retrying.
 
 CPU thread counts are reduced to at most the selected fraction of logical cores
-(with a minimum of one). Apple GPU allocators receive a memory limit; MLX treats
-its limit as a guideline. These runtime settings apply to the entire process.
+(with a minimum of one). With an explicit fraction, Apple GPU allocators also
+receive a memory limit; MLX treats its limit as a guideline. These runtime settings apply to the entire process.
 Guarded calls in one process run sequentially. Non-macOS execution is unchanged.
 Direct `load_ouro`, `OuroScorer.from_directory` and `OuroScorer` accept the same
 `max_resource_fraction` option. Other families receive the guard through
@@ -510,8 +513,8 @@ memory. It requires shared-context candidate batching and no prefix cache. It
 preserves the artifact's context chunking and attention mode.
 
 The working-set estimate, live checkpoints, CPU-worker and GPU-allocation
-bounds remain active. A busy Mac or insufficient disk headroom can still cause
-`ResourceLimitError`; streaming does not reserve capacity against other apps.
+bounds remain active. Insufficient disk headroom, or a busy Mac with an explicit fraction,
+can still cause `ResourceLimitError`; streaming does not reserve capacity against other apps.
 Qualified on 2026-10-27 on a 24 GiB Apple Silicon Mac: exact 32,768-token
 Choice, Noul and Score requests completed on both CPU and Apple GPU under the
 then-default 85% ceiling, and the 32,769-token boundary was refused. Two Apple GPU

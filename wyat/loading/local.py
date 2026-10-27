@@ -15,7 +15,7 @@ from typing import Any, Literal, cast
 
 from wyat.core import Model, Request, Scorer
 from wyat.download import REPOSITORY
-from wyat.resources import DEFAULT_MAX_RESOURCE_FRACTION, ResourceGuard, current_guard
+from wyat.resources import ResourceGuard, current_guard
 
 
 class _GuardedScorer:
@@ -304,7 +304,7 @@ def load(
     compile: bool = False,
     responsive: bool = True,
     temperature: float = 1.0,
-    max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
+    max_resource_fraction: float | None = None,
     memory_mode: Literal["resident", "streaming"] = "resident",
 ) -> Model:
     """Load a local model directory, or the pinned release by its Hub name.
@@ -339,13 +339,17 @@ def load(
     temporary disk. Non-macOS platforms reject streaming rather than run
     without the admission guard and uncached-file policy.
 
-    ``max_resource_fraction`` defaults to 0.90 and may be set in (0, 1]. On
+    ``max_resource_fraction`` may be set in (0, 1]. Left unset, the macOS check
+    is advisory: work beyond the default 90% line runs and a
+    ``MemoryHeadroomWarning`` says how much memory it needs. Set explicitly,
+    work beyond the fraction is refused with ``ResourceLimitError``. On
     macOS, admission accounts for other applications before model allocation
     and every inference call. Weight files in the root and recognized
     base/backbone directories receive a conservative three-times-on-disk loading
     estimate, covering dtype expansion and staging;
     this is an admission estimate, not a prediction of every runtime allocation.
-    CPU workers and Apple GPU allocation limits are also bounded. These are
+    CPU workers are bounded, and with an explicit fraction so are Apple GPU
+    allocation limits. These are
     cooperative safeguards, not a hard whole-machine CPU/GPU utilization cap:
     another app or an already queued kernel can change resource use between
     checks. The runtime settings affect the process, including other models.

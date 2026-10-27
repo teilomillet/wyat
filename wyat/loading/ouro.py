@@ -78,7 +78,6 @@ from wyat.loading.ouro_artifact import (
 from wyat.loading.ouro_cache import DiskKVBank
 from wyat.loading.ouro_weights import StreamedWeights
 from wyat.resources import (
-    DEFAULT_MAX_RESOURCE_FRACTION,
     ResourceGuard,
     checkpoint,
     current_guard,
@@ -1870,7 +1869,7 @@ class OuroScorer:
         device_policy: str | None = None,
         context_prefill: Mapping[str, Any] | None = None,
         numerics: str | None = None,
-        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
+        max_resource_fraction: float | None = None,
     ) -> None:
         if type(prefix_cache_size) is not int or prefix_cache_size < 0:
             raise ValueError("prefix_cache_size must be a nonnegative integer")
@@ -1956,7 +1955,7 @@ class OuroScorer:
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
-        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
+        max_resource_fraction: float | None = None,
         memory_mode: Literal["resident", "streaming"] = "resident",
     ) -> OuroScorer:
         """Load under the same macOS resource policy as inference."""
@@ -1993,7 +1992,7 @@ class OuroScorer:
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
-        max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
+        max_resource_fraction: float | None = None,
         memory_mode: Literal["resident", "streaming"] = "resident",
     ) -> OuroScorer:
         if memory_mode not in {"resident", "streaming"}:
@@ -2723,7 +2722,7 @@ def load_ouro(
     verify_release_base: bool = False,
     candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
     allow_device_policy_override: bool = False,
-    max_resource_fraction: float = DEFAULT_MAX_RESOURCE_FRACTION,
+    max_resource_fraction: float | None = None,
     memory_mode: Literal["resident", "streaming"] = "resident",
 ) -> OuroScorer:
     """Load an Ouro decision artifact directory.
