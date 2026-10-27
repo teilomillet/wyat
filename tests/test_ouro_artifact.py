@@ -855,6 +855,26 @@ def test_v2_flash_context_on_mac_matches_cpu_single_pass(
         assert observed.argmax() == expected.argmax()
 
 
+def test_context_attention_override_selects_the_exact_path(
+    tmp_path: Path, restore_numerics: Any
+) -> None:
+    (tmp_path / "flash").mkdir()
+    flash = _build_ouro_artifact(
+        tmp_path / "flash",
+        cache_entries=0,
+        context_prefill={**CONTEXT_PREFILL, "chunked_attention": "flash"},
+        numerics=NUMERICS,
+    )
+    exact = OuroScorer.from_directory(
+        flash, device="cpu", context_attention="lean"
+    )
+    assert exact.context_prefill is not None
+    assert exact.context_prefill["chunked_attention"] == "lean"
+    assert exact._context_execution(2000) == (64, "lean", None)
+    with pytest.raises(ValueError, match="context_attention"):
+        OuroScorer.from_directory(flash, device="cpu", context_attention="auto")
+
+
 def test_v2_artifact_applies_its_numerics_and_refuses_prefix_reuse(
     tmp_path: Path, restore_numerics: Any
 ) -> None:

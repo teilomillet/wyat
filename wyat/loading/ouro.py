@@ -1502,6 +1502,7 @@ class OuroScorer:
         max_length: int | None = None,
         prefix_cache_size: int | None = None,
         attention: str | None = None,
+        context_attention: str | None = None,
         verify_release_base: bool = False,
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
@@ -1655,6 +1656,23 @@ class OuroScorer:
         tokenizer = PreTrainedTokenizerFast.from_pretrained(
             str(root), local_files_only=True, trust_remote_code=False
         )
+        context_prefill = execution.get("context_prefill")
+        if context_attention is not None:
+            if context_attention not in {"lean", "flash"}:
+                raise ValueError(
+                    "context_attention must be 'lean' or 'flash' for a v2 artifact"
+                )
+            if context_prefill is None:
+                raise ValueError(
+                    "context_attention requires a v2 artifact with context_prefill"
+                )
+            # ``flash`` is a throughput mode: it is not bit-identical to the
+            # MATH path. ``lean`` is the exact path; this opt-in lets a caller
+            # choose parity without mutating the artifact or its model_id.
+            context_prefill = {
+                **context_prefill,
+                "chunked_attention": context_attention,
+            }
         state_tokens = (
             cache_cfg["state_block_tokens"]
             if cache_cfg["state_block_tokens"] > 0
@@ -1671,7 +1689,7 @@ class OuroScorer:
             state_block_tokens=state_tokens,
             candidate_batching=candidate_batching,
             device_policy=declared_device_policy,
-            context_prefill=execution.get("context_prefill"),
+            context_prefill=context_prefill,
             numerics=execution.get("numerics"),
         )
 
@@ -1971,6 +1989,7 @@ def load_ouro(
     max_length: int | None = None,
     prefix_cache_size: int | None = None,
     attention: str | None = None,
+    context_attention: str | None = None,
     verify_release_base: bool = False,
     candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
     allow_device_policy_override: bool = False,
@@ -1989,6 +2008,9 @@ def load_ouro(
     ``contract.MPS_EXECUTION_TOLERANCE_ATOL``/``RTOL``. Candidates are scored in
     shared-context batches by default; ``candidate_batching="per_candidate"``
     scores them one at a time, bitwise identical to the reference path.
+    ``context_attention="lean"`` overrides a v2 artifact's chunked context
+    attention with the exact MATH-equivalent path; ``"flash"`` is the fast,
+    non-MATH-exact throughput path.
     """
     return OuroScorer.from_directory(
         path,
@@ -1996,6 +2018,7 @@ def load_ouro(
         max_length=max_length,
         prefix_cache_size=prefix_cache_size,
         attention=attention,
+        context_attention=context_attention,
         verify_release_base=verify_release_base,
         candidate_batching=candidate_batching,
         allow_device_policy_override=allow_device_policy_override,

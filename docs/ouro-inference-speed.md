@@ -234,3 +234,21 @@ bank, so that multiplier is already banked and cannot be counted again.
   training.
 - **Not portable:** the Apple GPU device policy and MPS watermarks are
   Apple-Silicon specific. CUDA was not measurable from this Mac.
+
+## Context attention: parity vs throughput
+
+A v2 artifact stores `execution.context_prefill.chunked_attention`. `lean` is
+the exact MATH-equivalent path; `flash` is a fused BF16 throughput mode that is
+**not** MATH-exact. On long contexts the difference is measurable: in a 20-row
+long-context probe, Flash was about 2.9x faster than the exact path but 0/20
+requests were bit-identical, 10/20 exceeded a |Delta p| <= 0.02 gate, and one
+top choice flipped at a near-tie.
+
+Load with `context_attention="lean"` when parity with the evaluated engine
+matters; use `"flash"` only after task-level validation. The override is
+load-time only and does not rewrite the artifact or its `model_id`.
+
+```python
+from wyat.loading.ouro import OuroScorer
+scorer = OuroScorer.from_directory(path, context_attention="lean")
+```
