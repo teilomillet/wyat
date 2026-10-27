@@ -252,3 +252,74 @@ load-time only and does not rewrite the artifact or its `model_id`.
 from wyat.loading.ouro import OuroScorer
 scorer = OuroScorer.from_directory(path, context_attention="lean")
 ```
+
+## Exact acceleration of the engine-parity runtime (2026-10-27)
+
+The `wyat-2-1.4b` runtime is qualified bitwise against the gated engine on the
+420-request parity set. Profiling that execution on the qualification GPU
+(RTX 4070 Ti, torch 2.8.0+cu128) showed the context prefill is compute-bound
+while the short shared-context candidate stage is launch-bound: about 52 ms of
+a ~154 ms short-row request, with thousands of small kernel launches per call.
+The following changes remove only that overhead:
+
+- one device copy for all candidate tokens of a row;
+- one combined token-range reduction per validated tensor instead of two;
+- the block-diagonal mask of a candidate batch built once per batch instead of
+  once per decoder-layer visit (identical De Morgan mask values);
+- a vectorized fill of the padded candidate batch;
+- the finite-logit check after the single host logits copy;
+- **CUDA-graph replay of short candidate batches.** On CUDA with
+  shared-context scoring, a candidate batch with a context of at most 1,024
+  tokens, at most 32 candidates and a single score batch is captured on the
+  third sighting of its exact geometry (two eager calls first, so a shape that
+  never repeats pays nothing). The graph records the same kernels the eager
+  batch runs on fixed buffers. Before a graph is used, its first replay must
+  match the eager logits as FP32 bit patterns; a mismatch, or a capture or
+  replay error, permanently disables replay for the process and leaves eager
+  scoring in charge. The cache is bounded (32 geometries; one ~200 MiB static
+  K/V buffer pair; each graph owns its own memory pool because replay order is
+  LRU, not capture order). Capture needs `PYTORCH_CUDA_ALLOC_CONF` without
+  `expandable_segments`; otherwise capture fails safely and eager scoring runs.
+  Replay is bit-identical to eager scoring on the measured workload (see below)
+  and never changes the artifact's recorded execution.
+
+The artifact, its manifest and `model_id`, numerics, batching budget, chunk
+sizes, the engine and the evaluation are unchanged.
+
+Measured on the qualification GPU (RTX 4070 Ti, torch 2.8.0+cu128) on the
+same artifact and request set, eager and graph-enabled in one process with
+allocator churn between capture and replay:
+
+| rows | eager end-to-end | graph end-to-end | median speedup |
+| --- | ---: | ---: | ---: |
+| repeated geometry (12) | 95.4 ms | 75.5 ms | 1.263x |
+| singleton geometry (4) | — | — | 1.195x¹ |
+| all 16 | 95.4 ms | 75.8 ms | 1.260x |
+
+Every row's graph-enabled logits equal the eager logits as FP32 bit patterns.
+The cache captured 8 geometries and replayed 88 times with no mismatch and no
+error; peak allocated memory was 5,665 MiB (model-load dominated). These are
+end-to-end `question_logits` calls on short rows (context prefill included and
+unchanged), so the gain is candidate-stage launch overhead removed, never a
+change to arithmetic. ¹ "Singleton" is classified by sorted candidate lengths;
+two rows can still share a runtime key in caller order, so this column is not
+an eager baseline and is not used as a claim. On the untouched 420-request engine-parity protocol (300 G0c + 120 long
+public requests) the graph-enabled runtime stays bitwise vs the gated engine:
+420/420 candidate logits equal, 420/420 argmax agree, max |Delta logit| = 0.0,
+and the per-path counts (242 single pass / 165 chunked / 13 host cache) match
+the prior qualified receipt row for row. The same receipt records 92 captures
+and 892 graph replays with 0 mismatches and 0 errors, so the parity includes
+the replay path; capture overhead was 14.6 s of the run. Total 420-run time was
+576.3 s vs 585.8 s for the released runtime on the same protocol (-1.6%; the
+baseline was unpaired and used a different allocator configuration, and the
+capture overhead is included), while the within-run wyat/engine ratio improved
+from 0.982 to 0.961. Full receipts: keme
+`docs/ouro/WYAT2_EXACT_SPEED_20261027.md`.
+
+Verification: `tests/test_ouro_exact_speed.py` pins the reference logits as
+uint32 bit patterns for the tiny v2 fixture (40 logits, both case orders, with a
+16/16 one-bit negative control). The GPU qualification is the untouched
+420-request parity protocol (every candidate logit bitwise equal to the gated
+engine, max |Delta| = 0.0) run through the graph-enabled runtime with the
+graph-replay counters recorded in the same receipt, plus the 86-request kit
+adapter comparison.

@@ -439,7 +439,7 @@ def _validate_token_tensor(backbone: Any, ids: torch.Tensor) -> None:
         raise ValueError("token IDs must have dtype torch.long")
     if ids.device != backbone.embed_tokens.weight.device:
         raise ValueError("token IDs and backbone must share a device")
-    if torch.any(ids < 0) or torch.any(ids >= backbone.config.vocab_size):
+    if torch.any((ids < 0) | (ids >= backbone.config.vocab_size)):
         raise ValueError("token IDs are outside the vocabulary")
     if ids.shape[1] > backbone.config.max_position_embeddings:
         raise ValueError("input exceeds max_position_embeddings")
@@ -1056,6 +1056,12 @@ _SHARED_CONTEXT_KIND = "wyat_shared_context_batch"
 _SHARED_CONTEXT_LAYER: ContextVar[LayerKVCache | None] = ContextVar(
     "wyat_shared_context_layer", default=None
 )
+# The block-diagonal causal mask of the batch the layers are running. It is
+# built once per batch instead of once per decoder-layer visit; its values are
+# identical to the mask that computation produced.
+_SHARED_CONTEXT_BLOCK: ContextVar[torch.Tensor | None] = ContextVar(
+    "wyat_shared_context_block", default=None
+)
 
 
 def _candidate_batching(value: object) -> CandidateBatching:
@@ -1093,7 +1099,14 @@ def _shared_context_attention(
     at a time; the copy changes no value.
     """
     context = _SHARED_CONTEXT_LAYER.get()
-    if context is None or dropout or scaling is None or attention_mask is None:
+    blocked = _SHARED_CONTEXT_BLOCK.get()
+    if (
+        context is None
+        or blocked is None
+        or dropout
+        or scaling is None
+        or attention_mask is None
+    ):
         raise ValueError("shared-context attention runs only inside its own batches")
     batch, heads, length, dim = query.shape
     if key.shape[1] != heads or context.key.shape[:2] != (1, heads):
@@ -1104,6 +1117,8 @@ def _shared_context_attention(
             context.value.to(query.device, non_blocking=True),
         )
     packed = batch * length
+    if tuple(blocked.shape) != (packed, packed) or blocked.device != query.device:
+        raise ValueError("shared-context mask does not match the packed batch")
     with torch.autocast(query.device.type, enabled=False):
 
         def pack(states: torch.Tensor) -> torch.Tensor:
@@ -1113,10 +1128,7 @@ def _shared_context_attention(
         keys = torch.cat((context.key[0].float(), pack(key)), dim=1)
         values = torch.cat((context.value[0].float(), pack(value)), dim=1)
         scores = torch.matmul(pack(query) * scaling, keys.transpose(-1, -2))
-        token = torch.arange(packed, device=query.device)
-        row, position = token // length, token % length
-        own = (row[:, None] == row[None, :]) & (position[None, :] <= position[:, None])
-        scores[..., context.key.shape[2] :].masked_fill_(~own, float("-inf"))
+        scores[..., context.key.shape[2] :].masked_fill_(blocked, float("-inf"))
         output = torch.matmul(scores.softmax(-1), values)
     # [heads, batch · length, dim] -> [batch, length, heads, dim], as SDPA returns.
     output = output.reshape(heads, batch, length, dim).permute(1, 2, 0, 3)
@@ -1159,15 +1171,19 @@ class _OwnCandidateKV:
 
 
 @contextmanager
-def _shared_context_layers(native: Any) -> Iterator[None]:
+def _shared_context_layers(
+    native: Any, blocked: torch.Tensor | None = None
+) -> Iterator[None]:
     previous = native.config._attn_implementation
     native.config._attn_implementation = _SHARED_CONTEXT_KIND
     token = _SHARED_CONTEXT_LAYER.set(None)
+    block_token = _SHARED_CONTEXT_BLOCK.set(blocked)
     try:
         yield
     finally:
         native.config._attn_implementation = previous
         _SHARED_CONTEXT_LAYER.reset(token)
+        _SHARED_CONTEXT_BLOCK.reset(block_token)
 
 
 def shared_context_batches(
@@ -1193,6 +1209,41 @@ def shared_context_batches(
     if current:
         batches.append(current)
     return batches
+
+
+def _shared_context_padded(
+    candidates: Sequence[torch.Tensor],
+    batch: Sequence[int],
+    lengths: Sequence[int],
+    device: torch.device,
+) -> torch.Tensor:
+    """Right-padded token IDs for one shared-context batch.
+
+    The real tokens keep their order; padding is zero, which the block mask
+    keeps every real token blind to.
+    """
+    width = max(lengths[index] for index in batch)
+    padded = torch.zeros((len(batch), width), dtype=torch.long, device=device)
+    columns = torch.arange(width, device=device)
+    padded_lengths = torch.tensor(
+        [lengths[index] for index in batch], dtype=torch.long, device=device
+    )
+    padded[columns[None, :] < padded_lengths[:, None]] = torch.cat(
+        [candidates[index][0] for index in batch]
+    )
+    return padded
+
+
+def _shared_context_block(count: int, width: int, device: torch.device) -> torch.Tensor:
+    """Block-diagonal causal mask of a packed shared-context batch.
+
+    ``True`` marks a forbidden query/key pair: another candidate's tokens and
+    a token's own later positions.
+    """
+    packed = count * width
+    token = torch.arange(packed, device=device)
+    row, position = token // width, token % width
+    return (row[:, None] != row[None, :]) | (position[None, :] > position[:, None])
 
 
 def score_candidates_shared_context(
@@ -1234,16 +1285,13 @@ def score_candidates_shared_context(
     batches = shared_context_batches(
         lengths, context_cache.length, heads, score_budget_bytes
     )
+    device = candidates[0].device
     for batch in batches:
-        width = max(lengths[index] for index in batch)
-        padded = torch.zeros(
-            (len(batch), width), dtype=torch.long, device=candidates[0].device
-        )
-        for row, index in enumerate(batch):
-            padded[row, : lengths[index]] = candidates[index][0]
+        padded = _shared_context_padded(candidates, batch, lengths, device)
+        blocked = _shared_context_block(len(batch), padded.shape[1], device)
         # Causal masking keeps every real token blind to the padding after it.
         hidden = native.embed_tokens(padded)
-        with _shared_context_layers(native):
+        with _shared_context_layers(native, blocked):
             for step in range(candidate_steps):
                 bank = context_cache.banks[
                     step if context_cache.policy == "matched" else 0
@@ -1257,14 +1305,316 @@ def score_candidates_shared_context(
                         _OwnCandidateKV(bank, step),
                         geometry,
                     )
-        for row, index in enumerate(batch):
-            endpoints[index] = hidden[row : row + 1, lengths[index] - 1]
+        for slot, index in enumerate(batch):
+            endpoints[index] = hidden[slot : slot + 1, lengths[index] - 1]
     scores = head(torch.cat([e for e in endpoints if e is not None], dim=0))
     if scores.shape != (len(candidates), 1):
         raise ValueError("scalar score head must return shape [K, 1]")
     if not torch.isfinite(scores).all():
         raise ValueError("nonfinite Ouro candidate logits")
     return cast(torch.Tensor, scores[:, 0])
+
+
+# CUDA-graph replay of one short shared-context candidate batch. The graph
+# records exactly the kernels and fixed buffers the eager batch uses, so a
+# replay changes no arithmetic; every geometry is captured once and kept only
+# after its replay matches the eager logits bit for bit. Capture is attempted
+# on the second sighting of a geometry, so a shape that never repeats pays
+# nothing. Any capture error, replay error or bit mismatch disables the
+# feature for the scorer and leaves the eager path in charge.
+GRAPH_MAX_CONTEXT = 1024
+GRAPH_MAX_CANDIDATES = 32
+GRAPH_CACHE_ENTRIES = 32
+# Capture is attempted only after this many eager sightings of the same
+# geometry, so a shape that never repeats pays nothing.
+GRAPH_CAPTURE_SIGHTINGS = 2
+
+
+class _SharedBatchGraph:
+    """One captured candidate batch and the static buffers it replays on."""
+
+    # Every tensor below is read by the captured kernels; each one is retained
+    # here so its storage cannot be freed to the allocator and reused before a
+    # replay (a captured graph holds raw pointers, not tensor references).
+    __slots__ = (
+        "graph",
+        "padded",
+        "mask",
+        "blocked",
+        "geometry",
+        "scores",
+        "lengths",
+        "batch",
+        "bank",
+    )
+
+    def __init__(
+        self,
+        graph: Any,
+        padded: torch.Tensor,
+        mask: torch.Tensor,
+        blocked: torch.Tensor,
+        geometry: _GeometryCache,
+        scores: torch.Tensor,
+        lengths: list[int],
+        batch: list[int],
+        bank: tuple[LayerKVCache, ...],
+    ) -> None:
+        self.graph = graph
+        self.padded = padded
+        self.mask = mask
+        self.blocked = blocked
+        self.geometry = geometry
+        self.scores = scores
+        self.lengths = lengths
+        self.batch = batch
+        self.bank = bank
+
+
+class _ExactCandidateGraphs:
+    """Capture and replay short shared-context candidate batches on CUDA."""
+
+    def __init__(self, backbone: Any, head: Any) -> None:
+        self.backbone = backbone
+        self.head = head
+        self.native = _native_backbone(backbone)
+        self.enabled = True
+        self.replays = 0
+        self.captures = 0
+        self.mismatches = 0
+        self.errors = 0
+        self.evictions = 0
+        self._graphs: OrderedDict[tuple[Any, ...], _SharedBatchGraph] = OrderedDict()
+        self._seen: OrderedDict[tuple[Any, ...], int] = OrderedDict()
+        self._keys: torch.Tensor | None = None
+        self._values: torch.Tensor | None = None
+
+    def _plan(
+        self, candidates: Sequence[torch.Tensor], context_cache: ContextKVCache
+    ) -> tuple[tuple[Any, ...], int, list[int], list[int], Any] | None:
+        """The capture key and batch layout, or None when eager must run."""
+        if not self.enabled or not candidates:
+            return None
+        if context_cache.owner is not self.backbone:
+            return None
+        if context_cache.policy != "last" or len(context_cache.banks) != 1:
+            return None
+        bank = context_cache.banks[0]
+        if not bank or len(bank) != len(self.native.layers):
+            return None
+        if bank[0].key.device.type != "cuda":
+            return None
+        length = context_cache.length
+        if length <= 0 or length > GRAPH_MAX_CONTEXT:
+            return None
+        lengths: list[int] = []
+        device = None
+        for candidate in candidates:
+            if candidate.ndim != 2 or candidate.shape[0] != 1:
+                return None
+            lengths.append(int(candidate.shape[1]))
+            if device is None:
+                device = candidate.device
+            elif candidate.device != device:
+                return None
+        if len(lengths) > GRAPH_MAX_CANDIDATES:
+            return None
+        if any(value <= 0 for value in lengths):
+            return None
+        # Multi-batch rows keep their exact batching and use the eager path.
+        batches = shared_context_batches(
+            lengths, length, int(self.native.config.num_attention_heads)
+        )
+        if len(batches) != 1:
+            return None
+        key = (
+            length,
+            contract.CANDIDATE_STEPS,
+            bank[0].key.dtype,
+            bank[0].key.device.index,
+            tuple(lengths),
+        )
+        return key, length, lengths, batches[0], device
+
+    def scores(
+        self, candidates: Sequence[torch.Tensor], context_cache: ContextKVCache
+    ) -> torch.Tensor | None:
+        """Replay a captured geometry, or return None and leave eager in charge."""
+        if not self._graphs:
+            return None
+        plan = self._plan(candidates, context_cache)
+        if plan is None:
+            return None
+        key, length, _lengths, _batch, _device = plan
+        entry = self._graphs.get(key)
+        if entry is None:
+            return None
+        # The eager path validates before any pass; replay keeps that contract.
+        for candidate in candidates:
+            _prepare_candidate_pass(
+                self.native,
+                self.backbone,
+                context_cache,
+                candidate,
+                contract.CANDIDATE_STEPS,
+            )
+        try:
+            self._fill(entry, candidates)
+            for index, layer in enumerate(entry.bank):
+                layer.key.copy_(context_cache.banks[0][index].key)
+                layer.value.copy_(context_cache.banks[0][index].value)
+            entry.graph.replay()
+        except Exception:
+            self.errors += 1
+            self.enabled = False
+            return None
+        self.replays += 1
+        self._graphs.move_to_end(key)
+        return entry.scores.clone()
+
+    def capture(
+        self,
+        candidates: Sequence[torch.Tensor],
+        context_cache: ContextKVCache,
+        eager_logits: torch.Tensor,
+    ) -> None:
+        """Capture a geometry on its second sighting and verify it bitwise."""
+        if not self.enabled:
+            return
+        plan = self._plan(candidates, context_cache)
+        if plan is None:
+            return
+        key, length, lengths, batch, device = plan
+        if key in self._graphs:
+            return
+        sightings = self._seen.get(key)
+        if sightings is None:
+            self._seen[key] = 1
+            limit = GRAPH_CACHE_ENTRIES * 4
+            while len(self._seen) > limit:
+                self._seen.popitem(last=False)
+            return
+        if sightings < GRAPH_CAPTURE_SIGHTINGS:
+            self._seen[key] = sightings + 1
+            return
+        self._seen.pop(key, None)
+        try:
+            entry = self._build(
+                candidates, context_cache, length, lengths, batch, device
+            )
+        except Exception:
+            self.errors += 1
+            self.enabled = False
+            return
+        reference = eager_logits.detach()
+        if (
+            entry.scores.shape != reference.shape
+            or entry.scores.dtype != torch.float32
+            or reference.dtype != torch.float32
+            or not torch.equal(
+                entry.scores.view(torch.int32), reference.view(torch.int32)
+            )
+        ):
+            self.mismatches += 1
+            self.enabled = False
+            return
+        self._graphs[key] = entry
+        self.captures += 1
+        while len(self._graphs) > GRAPH_CACHE_ENTRIES:
+            self._graphs.popitem(last=False)
+            self.evictions += 1
+
+    def _build(
+        self,
+        candidates: Sequence[torch.Tensor],
+        context_cache: ContextKVCache,
+        length: int,
+        lengths: list[int],
+        batch: list[int],
+        device: torch.device,
+    ) -> _SharedBatchGraph:
+        native = self.native
+        heads = int(native.config.num_attention_heads)
+        dim = int(
+            getattr(native.config, "head_dim", 0) or native.config.hidden_size // heads
+        )
+        layers = len(native.layers)
+        if self._keys is None or self._values is None:
+            dtype = context_cache.banks[0][0].key.dtype
+            self._keys = torch.empty(
+                (layers, heads, GRAPH_MAX_CONTEXT, dim), dtype=dtype, device=device
+            )
+            self._values = torch.empty_like(self._keys)
+        static_bank = tuple(
+            LayerKVCache(
+                self._keys[index, :, :length, :].unsqueeze(0),
+                self._values[index, :, :length, :].unsqueeze(0),
+            )
+            for index in range(layers)
+        )
+        for index, layer in enumerate(static_bank):
+            layer.key.copy_(context_cache.banks[0][index].key)
+            layer.value.copy_(context_cache.banks[0][index].value)
+        width = max(lengths[index] for index in batch)
+        padded = _shared_context_padded(candidates, batch, lengths, device)
+        mask = (
+            torch.arange(width, device=device)[None, :]
+            < torch.tensor(
+                [lengths[index] for index in batch], dtype=torch.long, device=device
+            )[:, None]
+        )
+        blocked = _shared_context_block(len(batch), width, device)
+        static_context = ContextKVCache((static_bank,), length, "last", self.backbone)
+        router = getattr(self.backbone, "_step_lora_router", None)
+        geometry = _GeometryCache(native)
+        # Warm the per-geometry positions/rotary/mask before capture: they are
+        # deterministic functions of the geometry, not of the replay.
+        geometry.get(native.embed_tokens(padded), length)
+        graph = torch.cuda.CUDAGraph()
+        # One pool per captured graph: the cache replays graphs in LRU order,
+        # and a shared pool is only safe when replay order matches capture
+        # order, so sharing would let one replay overwrite another's buffers.
+        with torch.cuda.graph(graph):
+            hidden = native.embed_tokens(padded)
+            with _shared_context_layers(native, blocked):
+                for step in range(contract.CANDIDATE_STEPS):
+                    bank = static_context.banks[0]
+                    with router.activate(step) if router is not None else nullcontext():
+                        hidden = _run_recurrent_step(
+                            native,
+                            hidden,
+                            length,
+                            step,
+                            _OwnCandidateKV(bank, step),
+                            geometry,
+                        )
+            # Exactly the eager path's head input: one endpoint per caller
+            # candidate, in caller order (the batch itself is length-sorted).
+            endpoints: list[Any] = [None] * len(lengths)
+            for slot, index in enumerate(batch):
+                endpoints[index] = hidden[slot : slot + 1, lengths[index] - 1]
+            scores = self.head(
+                torch.cat([entry for entry in endpoints if entry is not None], dim=0)
+            )[:, 0]
+        graph.replay()
+        return _SharedBatchGraph(
+            graph,
+            padded,
+            mask,
+            blocked,
+            geometry,
+            scores,
+            lengths,
+            batch,
+            static_bank,
+        )
+
+    @staticmethod
+    def _fill(entry: _SharedBatchGraph, candidates: Sequence[torch.Tensor]) -> None:
+        entry.padded.zero_()
+        entry.padded[entry.mask] = torch.cat(
+            [candidates[index][0] for index in entry.batch]
+        )
 
 
 def candidate_kv_workspace_bytes(
@@ -1483,6 +1833,13 @@ class OuroScorer:
         ] = OrderedDict()
         self._prefix_hits = 0
         self._prefix_misses = 0
+        # Exact CUDA-graph replay of short candidate batches (CUDA inference
+        # only). It is disabled automatically off CUDA or when capture fails.
+        self.candidate_graphs: _ExactCandidateGraphs | None = (
+            _ExactCandidateGraphs(backbone, head)
+            if self.device.type == "cuda" and batching == "shared_context"
+            else None
+        )
 
     @property
     def device(self) -> torch.device:
@@ -1998,23 +2355,40 @@ class OuroScorer:
             return self._question_logits(row)
 
     def _question_logits(self, row: CandidateBatch) -> list[float]:
-        candidates = [
-            torch.tensor([ids], dtype=torch.long, device=self.device)
-            for ids in row.candidate_ids
-        ]
+        # One device copy for the whole row, split into [1, S] views. The
+        # token values are the same as one tensor per candidate.
+        flat = torch.tensor(
+            [token for ids in row.candidate_ids for token in ids],
+            dtype=torch.long,
+            device=self.device,
+        )
+        candidates = []
+        offset = 0
+        for ids in row.candidate_ids:
+            end = offset + len(ids)
+            candidates.append(flat[offset:end].view(1, -1))
+            offset = end
         with torch.inference_mode(), self._amp(), self._attention_kernels():
             context_cache = self._context_cache_for(row)
-            logits = score_candidates_from_cache(
-                self.backbone,
-                self.head,
-                context_cache,
-                candidates,
-                candidate_steps=contract.CANDIDATE_STEPS,
-                candidate_batching=self.candidate_batching,
+            graphs = self.candidate_graphs
+            logits = (
+                graphs.scores(candidates, context_cache) if graphs is not None else None
             )
-        if not torch.isfinite(logits).all():
+            if logits is None:
+                logits = score_candidates_from_cache(
+                    self.backbone,
+                    self.head,
+                    context_cache,
+                    candidates,
+                    candidate_steps=contract.CANDIDATE_STEPS,
+                    candidate_batching=self.candidate_batching,
+                )
+                if graphs is not None:
+                    graphs.capture(candidates, context_cache, logits)
+        values = cast(list[float], logits.detach().float().cpu().tolist())
+        if not all(math.isfinite(value) for value in values):
             raise ValueError("nonfinite Ouro candidate logits")
-        return cast(list[float], logits.detach().float().cpu().tolist())
+        return values
 
     def _encode_request(self, request: Request) -> CandidateBatch:
         try:

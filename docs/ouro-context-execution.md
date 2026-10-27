@@ -62,3 +62,15 @@ On CPU, with the same tiny random Ouro model, adapters and head:
 `tests/test_ouro_artifact.py` covers these, plus the manifest checks and the scorer's choice of prefill.
 
 The `flash` path runs on CUDA only. GPU parity with the reference engine must be measured on the target artifact before it is relied on.
+
+## Runtime acceleration (unchanged execution)
+
+Short shared-context candidate batches (context at most 1,024 tokens, a single
+score batch) may be replayed from CUDA graphs. A captured graph records exactly
+the kernels the eager batch runs on fixed buffers; its first replay is compared
+with the eager logits as FP32 bit patterns before the graph is used, and any
+mismatch or capture error permanently falls back to eager scoring. Nothing in
+the artifact's `execution` block changes: the same prefill, batching budget,
+numerics and readout run, and the values are identical. Capture requires a
+`PYTORCH_CUDA_ALLOC_CONF` without `expandable_segments`; elsewhere or on any
+error the eager path runs unchanged.
