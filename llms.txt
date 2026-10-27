@@ -4,13 +4,13 @@
 
 This file is an index of wyat's documentation for coding agents and other programs. Every link below serves raw Markdown or Python. In a source checkout, the same file sits at the repository-relative path that follows `/main/` in the URL.
 
-This documents the 0.1.2 release. The default model is `teilomillet/wyat-1-800m`. `wyat.load()` downloads and verifies its immutable release on first use, then loads from the verified cache. Bare `wyat download` fetches the same artifact ahead of time.
+This documents the 0.2.0 release. The default model is `teilomillet/wyat-1-800m`. `wyat.load()` downloads and verifies its immutable release on first use, then loads from the verified cache. Bare `wyat download` fetches the same artifact ahead of time.
 
 The library code uses Apache-2.0. The 800M trained adapters and decision head permit non-commercial use and redistribution with attribution; commercial use is not granted. Its upstream backbone, tokenizer and runtime retain Apache-2.0 terms. See the [model license](https://huggingface.co/teilomillet/wyat-1-800m#license).
 
 ## Instructions for agents
 
-- **Use version 0.1.2 or newer.** This documents `wyat` 0.1.2, including the 800M MLX runtime and updated examples. The old `wyat` 0.0.1 on PyPI has a different, incompatible API, so require `wyat>=0.1.2` when you add it. Do not write code from a remembered version of the API.
+- **Use version 0.2.0 or newer.** This documents `wyat` 0.2.0, including the wyat-2 1.4B (Ouro) loader and Mac memory warnings. The old `wyat` 0.0.1 on PyPI has a different, incompatible API, so require `wyat>=0.2.0` when you add it. Do not write code from a remembered version of the API.
 - **Model weights are separate from the package.** Installing wyat gives you no trained weights. `wyat.load("teilomillet/wyat-1-800m")`, or bare `wyat.load()`, downloads about 1.82 GB into `~/.cache/wyat/wyat-1-800m`, verifying the immutable revision and file hashes pinned in the package. Later loads verify and reuse the cache. You can also pass a local 800M `model/` directory. Other strings or paths remain local directories. See [model acquisition](https://raw.githubusercontent.com/teilomillet/wyat/main/docs/model-acquisition.md).
 - **Pick the runtime for the machine.** Install the `inference` extra for PyTorch on CPU (the default) or CUDA. On Apple Silicon, use the GPU: the `mlx` extra with `wyat.load(backend="mlx")`, or PyTorch with `wyat.load(device="mps")`. Both match PyTorch CPU scores; PyTorch CPU is several times slower there.
 - **To try wyat without weights, use a demo.** Every example accepts `--demo`, which uses fixed or stand-in scores. Demo output shows how the API works and nothing about model quality.
@@ -31,7 +31,7 @@ The library code uses Apache-2.0. The 800M trained adapters and decision head pe
 
 ```sh
 uv init --bare --python 3.12 my-app && cd my-app      # skip if a uv project exists
-uv add 'wyat[inference]>=0.1.2'
+uv add 'wyat[inference]>=0.2.0'
 ```
 
 | Extra | Adds | Use it when |

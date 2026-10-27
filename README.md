@@ -23,7 +23,9 @@ Nothing leaves your machine, and nothing runs until you act on the result.
 
 The model is [wyat-1 800M](https://huggingface.co/teilomillet/wyat-1-800m).
 It runs with PyTorch on CPU, CUDA or Apple MPS, or with MLX on Apple Silicon.
-Version **0.1.2** downloads its pinned
+Version 0.2.0 also loads [wyat-2 1.4B](https://huggingface.co/wyat-io/wyat-2-1.4b)
+from a downloaded `model/` directory.
+Version **0.2.0** downloads its pinned
 release and verifies every file before loading.
 
 ## Try it

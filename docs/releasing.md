@@ -5,8 +5,10 @@ public source repository `teilomillet/wyat`. Both must contain only explicitly
 approved files. Ignored files in the maintainer workspace (research, data,
 models, receipts) remain private and are never committed or exported.
 
-Version **0.1.2** adds MLX inference for the 800M artifact, quieter PyTorch
-loading and updated examples. Version **0.1.1** introduced the option-fork
+Version **0.2.0** loads wyat-2 1.4B (Ouro) decision artifacts, with exact
+CUDA speed work, bounded-memory streaming on macOS and memory warnings when a
+Mac is short of headroom. Version **0.1.2** added MLX inference for the 800M
+artifact, quieter PyTorch loading and updated examples. Version **0.1.1** introduced the option-fork
 loader and pinned 800M download. Version **0.1.0** introduced this API. The old PyPI `0.0.1`
 release contains a different implementation; never reuse or overwrite a
 published version. Nothing is published merely by building, exporting or
