@@ -29,10 +29,14 @@ import sys
 from collections.abc import Callable, Iterator
 from dataclasses import replace
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
-torch = pytest.importorskip("torch")
+if TYPE_CHECKING:
+    import torch
+else:
+    torch = pytest.importorskip("torch")
 
 from test_ouro_artifact import (  # noqa: E402
     CONTEXT_PREFILL,
@@ -207,13 +211,15 @@ def _assert_golden(name: str, observed: torch.Tensor) -> None:
 @pytest.fixture(scope="module", autouse=True)
 def _golden_process_state() -> Iterator[None]:
     """Pin CPU threads and restore the process numerics a v2 artifact applies."""
+    # torch's stubs omit this process-wide flag, so it is read and set directly.
+    deterministic = torch.utils.deterministic
     saved = (
         torch.get_num_threads(),
         torch.backends.cuda.matmul.allow_tf32,
         torch.backends.cudnn.allow_tf32,
         torch.get_float32_matmul_precision(),
         torch.are_deterministic_algorithms_enabled(),
-        torch.utils.deterministic.fill_uninitialized_memory,
+        deterministic.fill_uninitialized_memory,  # type: ignore[attr-defined]
     )
     torch.set_num_threads(1)
     yield
@@ -221,7 +227,7 @@ def _golden_process_state() -> Iterator[None]:
     torch.backends.cuda.matmul.allow_tf32, torch.backends.cudnn.allow_tf32 = saved[1:3]
     torch.set_float32_matmul_precision(saved[3])
     torch.use_deterministic_algorithms(saved[4])
-    torch.utils.deterministic.fill_uninitialized_memory = saved[5]  # type: ignore[attr-defined]
+    deterministic.fill_uninitialized_memory = saved[5]  # type: ignore[attr-defined]
 
 
 def _load_scorer_grid(root: Path) -> dict[str, OuroScorer]:

@@ -176,6 +176,7 @@ only-include = [
     "tests/test_native_mlx_resources.py",
     "tests/test_native_mlx_rope.py",
     "tests/test_ouro_artifact.py",
+    "tests/test_ouro_exact_speed.py",
     "tests/test_ouro_inference_speed.py",
     "tests/test_ouro_loading.py",
     "tests/test_recovery.py",
