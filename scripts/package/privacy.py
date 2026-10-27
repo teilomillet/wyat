@@ -82,6 +82,12 @@ _MODEL_NAMES = {
     "model/base/model.safetensors",
     "model/decision_head.safetensors",
     "model/fork_manifest.json",
+    "model/ouro_manifest.json",
+    "model/config.json",
+    "model/model.safetensors",
+    "model/configuration_ouro.py",
+    "model/modeling_ouro.py",
+    "model/special_tokens_map.json",
     "model/head.safetensors",
     "model/merges.txt",
     "model/native-adapters.safetensors",
@@ -133,6 +139,8 @@ _MODEL_NAMES = {
             "loading/local",
             "loading/native",
             "loading/native_artifact",
+            "loading/ouro",
+            "loading/ouro_artifact",
             "tasks",
             "wire",
         )
@@ -427,6 +435,25 @@ def _safetensors(name: str, path: Path) -> None:
         _fail(name, "unreferenced tensor bytes")
 
 
+def verbatim_ouro_source(name: str, raw: bytes) -> bool:
+    """Admit only the unchanged, release-pinned upstream native Python files.
+
+    This is an attribution exemption, never a content-scan exemption. Keep the
+    upstream copyright and license notices instead of adding project authorship.
+    """
+    if name not in {"model/configuration_ouro.py", "model/modeling_ouro.py"}:
+        return False
+    from wyat.loading.ouro_artifact import PINNED_BASE_FILES
+
+    expected = PINNED_BASE_FILES[PurePosixPath(name).name]
+    if (
+        len(raw) != expected["size"]
+        or hashlib.sha256(raw).hexdigest() != expected["sha256"]
+    ):
+        _fail(name, "modified or unrecognized Ouro native source")
+    return True
+
+
 def check_files(
     selected: Mapping[str, Path], *, profile: Literal["source", "model"] = "source"
 ) -> None:
@@ -454,6 +481,8 @@ def check_files(
         else:
             raw = path.read_bytes()
             check_text(name, raw)
+            if profile == "model":
+                verbatim_ouro_source(name, raw)
             if profile == "model" and name.endswith(".json"):
                 _model_json(name, _json(name, raw), raw=raw)
 
