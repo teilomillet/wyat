@@ -283,6 +283,13 @@ The following changes remove only that overhead:
   `expandable_segments`; otherwise capture fails safely and eager scoring runs.
   Replay is bit-identical to eager scoring on the measured workload (see below)
   and never changes the artifact's recorded execution.
+- **Device-resident context banks for long contexts.** Above the artifact's
+  `host_cache_above_tokens`, the retained context K/V usually lives in pinned
+  host memory and is streamed to the GPU one layer at a time. Placement never
+  changes a value, so when the whole bank fits in free device memory with 3 GiB
+  of headroom (checked once per long context, after returning allocator-cached
+  blocks to the driver) it stays resident on the GPU; tight-memory devices keep
+  the artifact's host placement.
 
 The artifact, its manifest and `model_id`, numerics, batching budget, chunk
 sizes, the engine and the evaluation are unchanged.
@@ -293,9 +300,9 @@ allocator churn between capture and replay:
 
 | rows | eager end-to-end | graph end-to-end | median speedup |
 | --- | ---: | ---: | ---: |
-| repeated geometry (12) | 95.6 ms | 75.5 ms | 1.267x |
-| singleton geometry (4) | — | — | 1.196x¹ |
-| all 16 | 95.7 ms | 75.8 ms | 1.264x |
+| repeated geometry (12) | 96.4 ms | 76.5 ms | 1.261x |
+| singleton geometry (4) | — | — | 1.204x¹ |
+| all 16 | 96.4 ms | 76.8 ms | 1.258x |
 
 Every row's graph-enabled logits equal the eager logits as FP32 bit patterns.
 The cache captured 8 geometries and replayed 112 times with no mismatch and no
@@ -304,19 +311,31 @@ end-to-end `question_logits` calls on short rows (context prefill included and
 unchanged), so the gain is candidate-stage launch overhead removed, never a
 change to arithmetic. ¹ "Singleton" is classified by sorted candidate lengths;
 two rows can still share a runtime key in caller order, so this column is not
-an eager baseline and is not used as a claim. On the untouched 420-request engine-parity protocol (300 G0c + 120 long
-public requests) the graph-enabled runtime stays bitwise vs the gated engine:
-420/420 candidate logits equal, 420/420 argmax agree, max |Delta logit| = 0.0,
-and the per-path counts (242 single pass / 165 chunked / 13 host cache) match
-the prior qualified receipt row for row. The same receipt records 42 captures,
-923 graph replays, 0 evictions, 0 mismatches and 0 errors, so the parity
-includes the replay path. Captures cost 6.7 s (1.2% of the run) and the recorded
-peak is 5,697 MiB. Total 420-run time was 567.7 s vs 585.8 s for the released
-runtime on the same protocol (-18.1 s, -3.1%; the baseline was unpaired and
-used a different allocator configuration, and capture overhead is included),
-8.6 s faster than the third-sighting policy on the same protocol; the
-within-run wyat/engine ratio improved from 0.982 to 0.950. Full receipts: keme
-`docs/ouro/WYAT2_EXACT_SPEED_20261027.md`.
+an eager baseline and is not used as a claim. **Long-context bank placement.** Above `host_cache_above_tokens` the artifact
+keeps a context's retained K/V in pinned host memory and streams it a layer at a
+time. Placement is a memory policy, not arithmetic. When the bank fits in free
+device memory with 3 GiB of headroom (one check per long context, after
+returning allocator-cached blocks to the driver), the bank now stays resident on
+the GPU; otherwise the artifact's host placement remains. On the six sampled
+long rows the same call became 1.058-1.205x faster (median 1.071x, 0.37-1.06 s
+saved) with identical logits. In the full protocol 11 of the 13 over-threshold
+banks stayed resident and the two largest (31,851 and 31,308 tokens, ~5.9 GiB
+banks) were refused by the guard, as intended; peak memory rose to 8,590 MiB of
+the 12,282 MiB card (3.7 GiB headroom).
+
+On the untouched 420-request engine-parity protocol (300 G0c + 120 long
+public requests) the runtime stays bitwise vs the gated engine: 420/420
+candidate logits equal, 420/420 argmax agree, max |Delta logit| = 0.0, and the
+per-path counts (242 single pass / 165 chunked / 13 host cache) match the prior
+qualified receipt row for row. The same receipt records 42 captures, 923 graph
+replays, 0 evictions, 0 mismatches and 0 errors, so the parity includes the
+replay path, and 11 long-context banks placed on the device. Captures cost
+6.8 s (1.2% of the run) and the recorded peak is 8,590 MiB. Total 420-run time
+was 564.8 s vs 585.8 s for the released runtime on the same protocol (-21.0 s,
+-3.6%; the baseline was unpaired and used a different allocator configuration,
+and capture overhead is included), 2.9 s faster than the same tree without the
+device-bank policy; the within-run wyat/engine ratio improved from 0.982 to
+0.942. Full receipts: keme `docs/ouro/WYAT2_EXACT_SPEED_20261027.md`.
 
 Verification: `tests/test_ouro_exact_speed.py` pins the reference logits as
 uint32 bit patterns for the tiny v2 fixture (40 logits, both case orders, with a

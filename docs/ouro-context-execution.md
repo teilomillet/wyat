@@ -23,7 +23,7 @@ Two fields under `execution`, which are also part of the artifact's `model_id`:
 - A longer context is prefilled in `chunk`-token pieces with `chunked_attention`:
   - `flash`: fused BF16, not MATH-exact;
   - `lean`: the MATH arithmetic, bit-identical to it.
-- Above `host_cache_above_tokens`, the retained context K/V sits in pinned host memory and moves to the GPU one layer at a time. This applies on CUDA with shared-context batches, and the placement never changes a result.
+- Above `host_cache_above_tokens`, the retained context K/V sits in pinned host memory and moves to the GPU one layer at a time. This applies on CUDA with shared-context batches, and the placement never changes a result. When the whole bank fits in free device memory with 3 GiB of headroom, a CUDA scorer keeps it resident on the GPU instead (one check per long context, after returning allocator-cached blocks to the driver); tight-memory devices keep the artifact's host placement. Either way the retained values are the same bf16 tensors, so the logits are identical.
 
 **The numerics:** loading the artifact sets them for the whole process (`wyat.loading.ouro.apply_numerics`):
 - TF32 off for matmuls and cuDNN;

@@ -1330,6 +1330,10 @@ GRAPH_CACHE_ENTRIES = 64
 # cost is ~158 ms against ~20 ms saved per replay, so a geometry needs several
 # guaranteed replays before a capture pays for itself.
 GRAPH_CAPTURE_SIGHTINGS = 3
+# A host-cached context bank may stay on the GPU instead when it fits with this
+# much free-memory headroom for the prefill and candidate workspaces. Placement
+# is a memory policy, not arithmetic: values are identical either way.
+DEVICE_BANK_RESERVE_BYTES = 3 * 1024**3
 
 
 class _SharedBatchGraph:
@@ -2144,6 +2148,34 @@ class OuroScorer:
             "cpu" if offload else None,
         )
 
+    def _context_bank_bytes(self, tokens: int) -> int:
+        """Bytes of the retained step-4 K/V tail for a ``tokens`` context."""
+        native = _native_backbone(self.backbone)
+        config = native.config
+        query_heads = int(config.num_attention_heads)
+        kv_heads = int(
+            getattr(config, "num_key_value_heads", query_heads) or query_heads
+        )
+        head_dim = int(
+            getattr(config, "head_dim", 0) or config.hidden_size // query_heads
+        )
+        element = native.layers[0].input_layernorm.weight.element_size()
+        return int(2 * len(native.layers) * kv_heads * tokens * head_dim * element)
+
+    def _context_bank_fits_device(self, tokens: int) -> bool:
+        """Whether this bank can stay on the GPU with safe headroom left.
+
+        The artifact's host-cache placement is a memory policy, not arithmetic;
+        when the bank fits, keeping it resident removes the per-layer transfers
+        and never changes a value. A short-on-memory device keeps the artifact's
+        host placement.
+        """
+        try:
+            free, _total = torch.cuda.mem_get_info()
+        except Exception:
+            return False
+        return self._context_bank_bytes(tokens) + DEVICE_BANK_RESERVE_BYTES <= free
+
     def _attention_kernels(self) -> AbstractContextManager[Any]:
         """The exact MATH SDPA kernel under a v2 artifact's numerics."""
         if self.numerics is None:
@@ -2219,6 +2251,15 @@ class OuroScorer:
         """Compute or reuse the step-4 ``ContextKVCache`` for ``row``."""
         if self.context_prefill is not None:
             chunk, attention, bank = self._context_execution(len(row.context_ids))
+            if bank is not None:
+                # Return cached blocks to the driver first: ``mem_get_info``
+                # excludes allocator-cached memory, so without this a bank
+                # freed by the previous row can make an identical-size bank
+                # look not to fit. The placement decision is the only memory
+                # policy here; the values are the same either way.
+                torch.cuda.empty_cache()
+                if self._context_bank_fits_device(len(row.context_ids)):
+                    bank = None
             ids = torch.tensor([row.context_ids], dtype=torch.long, device=self.device)
             return prefill_context(
                 self.backbone,
