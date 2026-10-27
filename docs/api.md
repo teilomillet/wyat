@@ -482,3 +482,26 @@ pressure is sampled, and other apps or already queued kernels can still consume
 resources between checks. Other model families have call-level admission checks,
 not Ouro's token-aware peak estimates or layer checkpoints. A 32K model context
 limit therefore does not promise that 32K fits the current Mac and budget.
+
+
+### Bounded-memory Ouro inference
+
+For an Ouro v2 artifact, `wyat.load(path, device="mps", memory_mode="streaming")`
+(or `device="cpu"`) stages one original base-weight module in FP32 at a time.
+The original BF16 checkpoint values promote exactly; trained FP32 adapters and
+scoring head retain their values. This performs no quantization or retraining.
+Resident mode remains the default.
+
+Long chunked contexts store their exact FP32 K/V bank in an anonymous temporary
+file. Candidate scoring reads one layer into reusable CPU/Apple GPU buffers.
+The file is uncached on macOS and reclaimed when the request finishes, fails,
+or its process exits. At32K, the bank needs approximately12GiB temporary disk
+space. The same resource fraction bounds RAM admission and disk capacity;
+it defaults to85%. Streaming trades additional disk reads and transfers for
+lower resident memory. It requires shared-context candidate batching and no
+prefix cache. It preserves the artifact's context chunking and attention mode.
+
+The working-set estimate, live checkpoints, CPU-worker and GPU-allocation
+bounds remain active. A busy Mac or insufficient disk headroom can still cause
+`ResourceLimitError`; streaming does not reserve capacity against other apps.
+Actual32K CPU/MPS qualification is pending measurements of this implementation.

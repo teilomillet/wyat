@@ -312,3 +312,8 @@ __marimo__/
 
 # Local editor tool configuration.
 /.zcodeignore
+
+# Reviewed bounded-memory Ouro runtime tests.
+!/tests/test_ouro_streaming.py
+!/tests/test_ouro_weights.py
+!/tests/test_ouro_cache.py

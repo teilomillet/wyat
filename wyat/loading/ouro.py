@@ -75,6 +75,8 @@ from wyat.loading.ouro_artifact import (
     encode_record,
     reuse_context_prefix,
 )
+from wyat.loading.ouro_cache import DiskKVBank
+from wyat.loading.ouro_weights import StreamedWeights
 from wyat.resources import ResourceGuard, checkpoint, current_guard
 
 CachePolicy = Literal["matched", "last"]
@@ -405,11 +407,14 @@ class LayerKVCache:
     value: torch.Tensor
 
 
+ContextBank = tuple[LayerKVCache, ...] | DiskKVBank
+
+
 @dataclass(frozen=True)
 class ContextKVCache:
     """Retained per-step or final-step K/V banks for a shared question context."""
 
-    banks: tuple[tuple[LayerKVCache, ...], ...]
+    banks: tuple[ContextBank, ...]
     length: int
     policy: CachePolicy
     owner: nn.Module
@@ -432,12 +437,35 @@ def _native_backbone(model: nn.Module) -> Any:
     return backbone
 
 
+def _stage_native(
+    native: Any, module: nn.Module, prefix: str
+) -> AbstractContextManager[Any]:
+    storage = getattr(native, "_streamed_weights", None)
+    return nullcontext() if storage is None else storage.stage(module, prefix)
+
+
+def _embed_tokens(native: Any, ids: torch.Tensor) -> torch.Tensor:
+    with _stage_native(native, native.embed_tokens, "model.embed_tokens"):
+        return cast(torch.Tensor, native.embed_tokens(ids))
+
+
+def _normalize_hidden(native: Any, hidden: torch.Tensor) -> torch.Tensor:
+    with _stage_native(native, native.norm, "model.norm"):
+        return cast(torch.Tensor, native.norm(hidden))
+
+
 def _validate_token_tensor(backbone: Any, ids: torch.Tensor) -> None:
     if ids.ndim != 2 or ids.shape[0] != 1 or ids.shape[1] == 0:
         raise ValueError("expected nonempty unpadded token IDs with shape [1, S]")
     if ids.dtype != torch.long:
         raise ValueError("token IDs must have dtype torch.long")
-    if ids.device != backbone.embed_tokens.weight.device:
+    storage = getattr(backbone, "_streamed_weights", None)
+    expected_device = (
+        backbone.embed_tokens.weight.device if storage is None else storage.device
+    )
+    if ids.device.type != expected_device.type or (
+        expected_device.index is not None and ids.device.index != expected_device.index
+    ):
         raise ValueError("token IDs and backbone must share a device")
     if torch.any((ids < 0) | (ids >= backbone.config.vocab_size)):
         raise ValueError("token IDs are outside the vocabulary")
@@ -560,7 +588,11 @@ class _KVWorkspace:
     ``torch.cat`` allocation is needed.
     """
 
-    def __init__(self, bank: tuple[LayerKVCache, ...], step: int) -> None:
+    def __init__(self, bank: ContextBank, step: int) -> None:
+        if isinstance(bank, DiskKVBank):
+            raise ValueError(
+                "disk context storage requires shared-context candidate scoring"
+            )
         self.bank = bank
         self.step = step
         self.count = 0
@@ -608,7 +640,7 @@ class _WorkspacePool:
 
     def acquire(
         self,
-        bank: tuple[LayerKVCache, ...],
+        bank: ContextBank,
         step: int,
         batch: int,
         candidate_length: int,
@@ -628,7 +660,7 @@ class _ReadContextKV:
 
     def __init__(
         self,
-        bank: tuple[LayerKVCache, ...],
+        bank: ContextBank,
         step: int,
         pool: _WorkspacePool | None = None,
     ) -> None:
@@ -669,19 +701,20 @@ def _run_recurrent_step(
     geometry: _GeometryCache,
 ) -> torch.Tensor:
     positions, rotary, mask = geometry.get(hidden, context_length)
-    for layer in backbone.layers:
+    for index, layer in enumerate(backbone.layers):
         checkpoint()
-        hidden = layer(
-            hidden,
-            attention_mask=mask,
-            position_ids=positions[None],
-            past_key_value=cache,
-            use_cache=True,
-            cache_position=positions,
-            position_embeddings=rotary,
-            current_ut=step,
-        )
-    return cast(torch.Tensor, backbone.norm(hidden))
+        with _stage_native(backbone, layer, f"model.layers.{index}"):
+            hidden = layer(
+                hidden,
+                attention_mask=mask,
+                position_ids=positions[None],
+                past_key_value=cache,
+                use_cache=True,
+                cache_position=positions,
+                position_embeddings=rotary,
+                current_ut=step,
+            )
+    return _normalize_hidden(backbone, hidden)
 
 
 # Chunked context prefill: the context execution of a v2 artifact
@@ -853,6 +886,7 @@ def _chunked_prefill_context(
     chunk: int,
     bank_device: str | torch.device | None,
     attention: ContextAttention,
+    disk_bank: DiskKVBank | None = None,
 ) -> ContextKVCache:
     length = int(context_ids.shape[1])
     layers = len(native.layers)
@@ -865,7 +899,7 @@ def _chunked_prefill_context(
         router.disabled() if router is not None else nullcontext(),
         _context_attention(native, attention),
     ):
-        hidden = native.embed_tokens(context_ids)
+        hidden = _embed_tokens(native, context_ids)
         positions = [
             torch.arange(start, end, device=hidden.device) for start, end in spans
         ]
@@ -880,37 +914,45 @@ def _chunked_prefill_context(
         for step in range(contract.CONTEXT_STEPS):
             for layer_index, layer in enumerate(native.layers):
                 checkpoint()
-                writer = _ChunkedContextKV(step * layers + layer_index, length)
-                output = torch.empty_like(hidden)
-                for (start, end), position, rope, mask in zip(
-                    spans, positions, rotary, masks, strict=True
-                ):
-                    writer.begin(start, end)
-                    checkpoint()
-                    token = _ACTIVE_CONTEXT_WRITER.set(writer)
-                    try:
-                        output[:, start:end] = layer(
-                            hidden[:, start:end],
-                            attention_mask=mask,
-                            position_ids=position[None],
-                            past_key_value=writer,
-                            use_cache=True,
-                            cache_position=position,
-                            position_embeddings=rope,
-                            current_ut=step,
-                        )
-                    finally:
-                        _ACTIVE_CONTEXT_WRITER.reset(token)
-                if writer.key is None or writer.value is None:
-                    raise ValueError("native layer skipped its cache update")
-                if step == contract.CONTEXT_STEPS - 1:
-                    bank.append(
-                        _place_context_layer(writer.key, writer.value, bank_device)
-                    )
-                hidden = output
-                del writer
-            hidden = native.norm(hidden)
-    return ContextKVCache((tuple(bank),), length, "last", owner)
+                with _stage_native(native, layer, f"model.layers.{layer_index}"):
+                    writer = _ChunkedContextKV(step * layers + layer_index, length)
+                    output = torch.empty_like(hidden)
+                    for (start, end), position, rope, mask in zip(
+                        spans, positions, rotary, masks, strict=True
+                    ):
+                        writer.begin(start, end)
+                        checkpoint()
+                        token = _ACTIVE_CONTEXT_WRITER.set(writer)
+                        try:
+                            output[:, start:end] = layer(
+                                hidden[:, start:end],
+                                attention_mask=mask,
+                                position_ids=position[None],
+                                past_key_value=writer,
+                                use_cache=True,
+                                cache_position=position,
+                                position_embeddings=rope,
+                                current_ut=step,
+                            )
+                        finally:
+                            _ACTIVE_CONTEXT_WRITER.reset(token)
+                    if writer.key is None or writer.value is None:
+                        raise ValueError("native layer skipped its cache update")
+                    if step == contract.CONTEXT_STEPS - 1:
+                        if disk_bank is not None:
+                            disk_bank.append(writer.key, writer.value)
+                        else:
+                            bank.append(
+                                _place_context_layer(
+                                    writer.key, writer.value, bank_device
+                                )
+                            )
+                    hidden = output
+                    del writer
+            hidden = _normalize_hidden(native, hidden)
+    return ContextKVCache(
+        (tuple(bank) if disk_bank is None else disk_bank,), length, "last", owner
+    )
 
 
 def prefill_context(
@@ -922,6 +964,7 @@ def prefill_context(
     chunk: int | None = None,
     bank_device: str | torch.device | None = None,
     attention: ContextAttention = "native",
+    disk_bank: DiskKVBank | None = None,
 ) -> ContextKVCache:
     """Run shared-context recurrent steps with all step-LoRA adapters disabled.
 
@@ -951,12 +994,15 @@ def prefill_context(
             chunk=chunk,
             bank_device=bank_device,
             attention=attention,
+            disk_bank=disk_bank,
         )
+    if disk_bank is not None:
+        raise ValueError("disk context storage requires chunked prefill")
     banks: list[tuple[LayerKVCache, ...]] = []
     router = getattr(backbone, "_step_lora_router", None)
     geometry = _GeometryCache(native)
     with router.disabled() if router is not None else nullcontext():
-        hidden = native.embed_tokens(context_ids)
+        hidden = _embed_tokens(native, context_ids)
         for step in range(context_steps):
             cache = _CaptureStepKV(
                 len(native.layers), step, policy == "matched" or step == 3
@@ -1004,7 +1050,7 @@ def _candidate_hidden_steps(
     pool: _WorkspacePool,
 ) -> torch.Tensor:
     """Run validated candidate recurrent passes with shared geometry/workspace."""
-    hidden = native.embed_tokens(candidate_ids)
+    hidden = _embed_tokens(native, candidate_ids)
     for step in range(candidate_steps):
         bank = context_cache.banks[step if context_cache.policy == "matched" else 0]
         with router.activate(step) if router is not None else nullcontext():
@@ -1016,7 +1062,7 @@ def _candidate_hidden_steps(
                 _ReadContextKV(bank, step, pool),
                 geometry,
             )
-    return cast(torch.Tensor, hidden)
+    return hidden
 
 
 def run_candidate_steps(
@@ -1145,7 +1191,7 @@ class _OwnCandidateKV:
     for the attention instead of being concatenated into every row.
     """
 
-    def __init__(self, bank: tuple[LayerKVCache, ...], step: int) -> None:
+    def __init__(self, bank: ContextBank, step: int) -> None:
         self.bank = bank
         self.step = step
         self.count = 0
@@ -1159,7 +1205,12 @@ class _OwnCandidateKV:
     ) -> tuple[torch.Tensor, torch.Tensor]:
         if layer_idx != self.step * len(self.bank) + self.count:
             raise ValueError("unexpected native cache update order")
-        layer = self.bank[self.count]
+        if isinstance(self.bank, DiskKVBank):
+            _SHARED_CONTEXT_LAYER.set(None)
+            stored_key, stored_value = self.bank.read_layer(self.count, key.device)
+            layer = LayerKVCache(stored_key, stored_value)
+        else:
+            layer = self.bank[self.count]
         if layer.key.device != key.device:
             layer = LayerKVCache(
                 layer.key.to(key.device, non_blocking=True),
@@ -1290,7 +1341,7 @@ def score_candidates_shared_context(
         padded = _shared_context_padded(candidates, batch, lengths, device)
         blocked = _shared_context_block(len(batch), padded.shape[1], device)
         # Causal masking keeps every real token blind to the padding after it.
-        hidden = native.embed_tokens(padded)
+        hidden = _embed_tokens(native, padded)
         with _shared_context_layers(native, blocked):
             for step in range(candidate_steps):
                 bank = context_cache.banks[
@@ -1405,7 +1456,11 @@ class _ExactCandidateGraphs:
             return None
         if context_cache.policy != "last" or len(context_cache.banks) != 1:
             return None
-        bank = context_cache.banks[0]
+        stored = context_cache.banks[0]
+        if isinstance(stored, DiskKVBank):
+            # A spilled context is CPU/MPS-only and never graph-replayed.
+            return None
+        bank = stored
         if not bank or len(bank) != len(self.native.layers):
             return None
         if bank[0].key.device.type != "cuda":
@@ -1466,9 +1521,12 @@ class _ExactCandidateGraphs:
             )
         try:
             self._fill(entry, candidates)
+            stored = context_cache.banks[0]
+            if isinstance(stored, DiskKVBank):
+                return None
             for index, layer in enumerate(entry.bank):
-                layer.key.copy_(context_cache.banks[0][index].key)
-                layer.value.copy_(context_cache.banks[0][index].value)
+                layer.key.copy_(stored[index].key)
+                layer.value.copy_(stored[index].value)
             entry.graph.replay()
         except Exception:
             self.errors += 1
@@ -1545,8 +1603,12 @@ class _ExactCandidateGraphs:
             getattr(native.config, "head_dim", 0) or native.config.hidden_size // heads
         )
         layers = len(native.layers)
+        stored = context_cache.banks[0]
+        if isinstance(stored, DiskKVBank):
+            # _plan refuses spilled contexts before _build is reached.
+            raise ValueError("disk context storage cannot be graph-replayed")
         if self._keys is None or self._values is None:
-            dtype = context_cache.banks[0][0].key.dtype
+            dtype = stored[0].key.dtype
             self._keys = torch.empty(
                 (layers, heads, GRAPH_MAX_CONTEXT, dim), dtype=dtype, device=device
             )
@@ -1559,8 +1621,8 @@ class _ExactCandidateGraphs:
             for index in range(layers)
         )
         for index, layer in enumerate(static_bank):
-            layer.key.copy_(context_cache.banks[0][index].key)
-            layer.value.copy_(context_cache.banks[0][index].value)
+            layer.key.copy_(stored[index].key)
+            layer.value.copy_(stored[index].value)
         width = max(lengths[index] for index in batch)
         padded = _shared_context_padded(candidates, batch, lengths, device)
         mask = (
@@ -1756,13 +1818,19 @@ def score_candidates_from_cache(
     return cast(torch.Tensor, scores[:, 0])
 
 
+def _resident_bank(bank: ContextBank) -> tuple[LayerKVCache, ...]:
+    if isinstance(bank, DiskKVBank):
+        raise ValueError("disk context storage cannot be used for prefix reuse")
+    return bank
+
+
 def _clone_banks(
-    banks: tuple[tuple[LayerKVCache, ...], ...],
+    banks: tuple[ContextBank, ...],
 ) -> tuple[tuple[LayerKVCache, ...], ...]:
     return tuple(
         tuple(
             LayerKVCache(entry.key.detach().clone(), entry.value.detach().clone())
-            for entry in bank
+            for entry in _resident_bank(bank)
         )
         for bank in banks
     )
@@ -1810,6 +1878,7 @@ class OuroScorer:
             raise ValueError("prefix reuse is not part of a v2 context execution")
         if numerics is not None and numerics not in contract.NUMERICS_POLICIES:
             raise ValueError(f"unknown execution numerics: {numerics!r}")
+        self.memory_mode = "resident"
         self.resource_guard = current_guard() or ResourceGuard(max_resource_fraction)
         self.context_prefill = (
             None if context_prefill is None else dict(context_prefill)
@@ -1883,6 +1952,7 @@ class OuroScorer:
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
         max_resource_fraction: float = 0.85,
+        memory_mode: Literal["resident", "streaming"] = "resident",
     ) -> OuroScorer:
         """Load under the same macOS resource policy as inference."""
         requested_guard = ResourceGuard(max_resource_fraction)
@@ -1900,6 +1970,7 @@ class OuroScorer:
                 candidate_batching=candidate_batching,
                 allow_device_policy_override=allow_device_policy_override,
                 max_resource_fraction=max_resource_fraction,
+                memory_mode=memory_mode,
             )
             guard.check(operation="loaded Ouro model")
             return scorer
@@ -1918,10 +1989,13 @@ class OuroScorer:
         candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
         allow_device_policy_override: bool = False,
         max_resource_fraction: float = 0.85,
+        memory_mode: Literal["resident", "streaming"] = "resident",
     ) -> OuroScorer:
+        if memory_mode not in {"resident", "streaming"}:
+            raise ValueError("memory_mode must be resident or streaming")
         root = Path(path).resolve()
         manifest = contract.validate_artifact(
-            root, verify_release_base=verify_release_base
+            root, verify_release_base=verify_release_base or memory_mode == "streaming"
         )
         execution = manifest["execution"]
         if execution.get("numerics") is not None:
@@ -1953,6 +2027,15 @@ class OuroScorer:
                 "declared execution tolerance on this device"
             )
 
+        if memory_mode == "streaming" and (
+            target.type not in {"cpu", "mps"}
+            or execution.get("context_prefill") is None
+            or prefix_cache_size not in {None, 0}
+            or _candidate_batching(candidate_batching) != "shared_context"
+        ):
+            raise ValueError(
+                "streaming requires CPU/MPS, v2 chunked prefill and no prefix reuse"
+            )
         declared_attention = execution["attention"]
         if attention is not None:
             normalized_attn = (
@@ -2019,22 +2102,31 @@ class OuroScorer:
             backbone = model_cls(config)
         resource_guard = current_guard() or ResourceGuard(max_resource_fraction)
         resource_guard.configure_torch(torch, target.type)
-        if resource_guard.enabled:
-            # Parameters are still on meta: refuse before physical allocation.
-            parameter_bytes = sum(
-                p.numel() * p.element_size() for p in backbone.parameters()
+        if memory_mode == "streaming":
+            storage = StreamedWeights(
+                root / contract.BASE_WEIGHT_FILE,
+                backbone.state_dict(),
+                target,
+                resource_guard,
             )
-            largest_tensor = max(
-                p.numel() * p.element_size() for p in backbone.parameters()
-            )
-            resource_guard.check(
-                parameter_bytes + 2 * largest_tensor + (256 << 20),
-                operation="load Ouro",
-            )
-        backbone.to_empty(device=target)
-        _stream_base_weights(backbone, root / contract.BASE_WEIGHT_FILE)
-        if base_dtype != torch.float32:
-            backbone.to(dtype=base_dtype)
+            backbone.model._streamed_weights = storage
+        else:
+            if resource_guard.enabled:
+                # Parameters are still on meta: refuse before physical allocation.
+                parameter_bytes = sum(
+                    p.numel() * p.element_size() for p in backbone.parameters()
+                )
+                largest_tensor = max(
+                    p.numel() * p.element_size() for p in backbone.parameters()
+                )
+                resource_guard.check(
+                    parameter_bytes + 2 * largest_tensor + (256 << 20),
+                    operation="load Ouro",
+                )
+            backbone.to_empty(device=target)
+            _stream_base_weights(backbone, root / contract.BASE_WEIGHT_FILE)
+            if base_dtype != torch.float32:
+                backbone.to(dtype=base_dtype)
         # Restore after the weight cast: casting this buffer to BF16 rounds the
         # position frequencies and changes scores, even if forward uses .float().
         # It is non-persistent, so to_empty also leaves it uninitialized.
@@ -2060,7 +2152,14 @@ class OuroScorer:
                 target_param = params.get(param_name)
                 if target_param is None or target_param.shape != tensor.shape:
                     raise ValueError(f"adapter shape mismatch for {key}")
-                target_param.copy_(tensor.to(device=target, dtype=torch.float32))
+                if memory_mode == "streaming":
+                    parent_name, leaf = param_name.rsplit(".", 1)
+                    parent = backbone.get_submodule(parent_name)
+                    parent._parameters[leaf] = nn.Parameter(
+                        tensor.float(), requires_grad=False
+                    )
+                else:
+                    target_param.copy_(tensor.to(device=target, dtype=torch.float32))
 
         head = ScalarScoreHead(config.hidden_size, contract.HEAD_WIDTH)
         head_tensors = load_file(str(root / contract.HEAD_FILE))
@@ -2120,6 +2219,7 @@ class OuroScorer:
             max_resource_fraction=max_resource_fraction,
         )
         scorer.resource_guard = resource_guard
+        scorer.memory_mode = memory_mode
         return scorer
 
     def _context_execution(
@@ -2208,7 +2308,7 @@ class OuroScorer:
     def _store_prefix(
         self,
         key: tuple[int, ...],
-        banks: tuple[tuple[LayerKVCache, ...], ...],
+        banks: tuple[ContextBank, ...],
     ) -> None:
         if not key or self.prefix_cache_size <= 0:
             return
@@ -2233,7 +2333,7 @@ class OuroScorer:
         geometry = _GeometryCache(native)
         final_bank: tuple[LayerKVCache, ...] = ()
         with router.disabled() if router is not None else nullcontext():
-            hidden = native.embed_tokens(ids)
+            hidden = _embed_tokens(native, ids)
             for step in range(contract.CONTEXT_STEPS):
                 reader = _ReadAndCaptureStepKV(
                     prior_banks[step], step, retain=(step == contract.CONTEXT_STEPS - 1)
@@ -2247,7 +2347,9 @@ class OuroScorer:
             (final_bank,), start + len(tail_ids), "last", self.backbone
         )
 
-    def _context_cache_for(self, row: CandidateBatch) -> ContextKVCache:
+    def _context_cache_for(
+        self, row: CandidateBatch, disk_bank: DiskKVBank | None = None
+    ) -> ContextKVCache:
         """Compute or reuse the step-4 ``ContextKVCache`` for ``row``."""
         if self.context_prefill is not None:
             chunk, attention, bank = self._context_execution(len(row.context_ids))
@@ -2269,6 +2371,7 @@ class OuroScorer:
                 chunk=chunk,
                 bank_device=bank,
                 attention=attention,
+                disk_bank=disk_bank,
             )
         if self.prefix_cache_size <= 0:
             ids = torch.tensor([row.context_ids], dtype=torch.long, device=self.device)
@@ -2307,7 +2410,7 @@ class OuroScorer:
         )
         self._store_prefix(boundary, matched_state.banks)
         return self._continue_context_from_banks(
-            matched_state.banks,
+            tuple(_resident_bank(bank) for bank in matched_state.banks),
             row.context_ids[len(boundary) :],
             len(boundary),
         )
@@ -2364,6 +2467,21 @@ class OuroScorer:
                 8 * config.num_attention_heads * n * (length + n) for n in packed
             )
             candidate += 4 * sum(packed) * config.hidden_size * size
+        if self.memory_mode == "streaming":
+            layer_pair = kv // len(native.layers)
+            stage = max(
+                sum(p.numel() * 4 for p in layer.parameters())
+                for layer in native.layers
+            )
+            embedding = native.embed_tokens.weight.numel() * 4
+            retained = kv if chunk is None else 0
+            prefill_peak = (
+                retained + hidden + layer_pair + attention_bytes + masks + stage
+            )
+            if attention == "lean":
+                prefill_peak += layer_pair
+            scoring_peak = retained + 3 * layer_pair + candidate + stage
+            return int(max(embedding + hidden, prefill_peak, scoring_peak))
         prefix = 0
         if self.prefix_cache_size > 0:
             boundary = min(length, self.state_block_tokens)
@@ -2395,9 +2513,30 @@ class OuroScorer:
                 self.resource_guard.check(
                     self._request_memory_bytes(row), operation="score Ouro request"
                 )
+            if self.memory_mode == "streaming":
+                native = _native_backbone(self.backbone)
+                chunk, _, _ = self._context_execution(len(row.context_ids))
+                if chunk is not None:
+                    width = (
+                        getattr(native.config, "head_dim", None)
+                        or native.config.hidden_size
+                        // native.config.num_attention_heads
+                    )
+                    expected = (
+                        2
+                        * len(native.layers)
+                        * native.config.num_key_value_heads
+                        * width
+                        * len(row.context_ids)
+                        * 4
+                    )
+                    with DiskKVBank(self.resource_guard, expected) as disk_bank:
+                        return self._question_logits(row, disk_bank)
             return self._question_logits(row)
 
-    def _question_logits(self, row: CandidateBatch) -> list[float]:
+    def _question_logits(
+        self, row: CandidateBatch, disk_bank: DiskKVBank | None = None
+    ) -> list[float]:
         # One device copy for the whole row, split into [1, S] views. The
         # token values are the same as one tensor per candidate.
         flat = torch.tensor(
@@ -2412,8 +2551,14 @@ class OuroScorer:
             candidates.append(flat[offset:end].view(1, -1))
             offset = end
         with torch.inference_mode(), self._amp(), self._attention_kernels():
-            context_cache = self._context_cache_for(row)
-            graphs = self.candidate_graphs
+            context_cache = (
+                self._context_cache_for(row)
+                if disk_bank is None
+                else self._context_cache_for(row, disk_bank)
+            )
+            # Graph replay is CUDA-only; streaming runs on CPU/MPS, so a
+            # disk-backed context always takes the eager path.
+            graphs = self.candidate_graphs if disk_bank is None else None
             logits = (
                 graphs.scores(candidates, context_cache) if graphs is not None else None
             )
@@ -2563,6 +2708,7 @@ def load_ouro(
     candidate_batching: CandidateBatching | bool = CANDIDATE_BATCHING,
     allow_device_policy_override: bool = False,
     max_resource_fraction: float = 0.85,
+    memory_mode: Literal["resident", "streaming"] = "resident",
 ) -> OuroScorer:
     """Load an Ouro decision artifact directory.
 
@@ -2593,6 +2739,7 @@ def load_ouro(
         candidate_batching=candidate_batching,
         allow_device_policy_override=allow_device_policy_override,
         max_resource_fraction=max_resource_fraction,
+        memory_mode=memory_mode,
     )
 
 

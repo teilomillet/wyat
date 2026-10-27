@@ -109,6 +109,7 @@ def _load(
     compile: bool = False,
     responsive: bool = True,
     temperature: float = 1.0,
+    memory_mode: Literal["resident", "streaming"] = "resident",
 ) -> Model:
     """Load a local model directory, or the pinned release by its Hub name.
 
@@ -144,6 +145,8 @@ def _load(
     is_native = (Path(path) / "native_manifest.json").is_file()
     is_fork = (Path(path) / "fork_manifest.json").is_file()
     is_ouro = (Path(path) / "ouro_manifest.json").is_file()
+    if memory_mode != "resident" and not is_ouro:
+        raise ValueError("streaming memory mode applies only to Ouro")
     if not responsive and not (backend == "mlx" and (is_native or is_fork)):
         raise ValueError(
             "responsive=False applies only to native MLX and option-fork MLX inference"
@@ -168,6 +171,7 @@ def _load(
             max_length=max_length,
             prefix_cache_size=ouro_prefix_cache_size,
             attention=attention,
+            memory_mode=memory_mode,
         )
         return Model(ouro_torch, ouro_torch.model_id, temperature=temperature)
     if is_fork:
@@ -301,6 +305,7 @@ def load(
     responsive: bool = True,
     temperature: float = 1.0,
     max_resource_fraction: float = 0.85,
+    memory_mode: Literal["resident", "streaming"] = "resident",
 ) -> Model:
     """Load a local model directory, or the pinned release by its Hub name.
 
@@ -336,11 +341,13 @@ def load(
     checks. The runtime settings affect the process, including other models.
     Other operating systems retain their previous resource behavior.
     """
+    if memory_mode not in {"resident", "streaming"}:
+        raise ValueError("memory_mode must be resident or streaming")
     guard = ResourceGuard(max_resource_fraction)
     with guard.activate():
         guard.check(operation="model loading")
         resolved = _local_directory(path)
-        if guard.enabled:
+        if guard.enabled and memory_mode == "resident":
             root = Path(resolved)
             weight_bytes = sum(
                 file.stat().st_size
@@ -362,6 +369,7 @@ def load(
             compile=compile,
             responsive=responsive,
             temperature=temperature,
+            memory_mode=memory_mode,
         )
         if guard.enabled:
             guard.check(operation="loaded model")
